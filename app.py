@@ -6,6 +6,9 @@ import io
 import csv
 import subprocess
 import sys
+import time
+import hashlib
+import base64
 import pandas as pd
 import altair as alt
 
@@ -177,74 +180,114 @@ def fmt_volatilite(val):
 
 
 APP_PASSWORD = "alexkakouisnice"
+SESSION_TIMEOUT_SECONDS = 30 * 60
+LOGO_FILE = os.path.join(SCRIPT_DIR, "assets", "logo.png")
+
+
+@st.cache_data
+def _logo_b64():
+    with open(LOGO_FILE, "rb") as f:
+        return base64.b64encode(f.read()).decode("utf-8")
+
+
+# ─── Persistance de la session (survit à un rafraîchissement, expire après
+# 30 min d'inactivité) — un jeton signé est gardé dans l'URL (query params)
+# et son horodatage est glissé à chaque exécution du script.
+def _auth_token(ts):
+    return hashlib.sha256(f"{APP_PASSWORD}:{ts}".encode()).hexdigest()[:16]
+
+
+def _restore_session_from_url():
+    ts_raw = st.query_params.get("ts")
+    token = st.query_params.get("tok")
+    if not ts_raw or not token:
+        return False
+    try:
+        ts = int(ts_raw)
+    except ValueError:
+        return False
+    if time.time() - ts > SESSION_TIMEOUT_SECONDS:
+        return False
+    return token == _auth_token(ts)
+
+
+def _persist_session():
+    ts = int(time.time())
+    st.query_params["ts"] = str(ts)
+    st.query_params["tok"] = _auth_token(ts)
+
+
+def _clear_session():
+    st.query_params.pop("ts", None)
+    st.query_params.pop("tok", None)
+    st.session_state.authenticated = False
 
 
 # ─── Porte d'accès ──────────────────────────────────────────────────────────
 def render_login_gate():
+    if not st.session_state.get("authenticated") and _restore_session_from_url():
+        st.session_state.authenticated = True
+
     if st.session_state.get("authenticated"):
+        _persist_session()
         return
+
+    _clear_session()
 
     st.markdown(
         """
         <style>
-        [data-testid="stAppViewContainer"] {
-            background: radial-gradient(circle at 50% 0%, #1c1a14 0%, #0b0a08 55%, #000000 100%);
-        }
+        [data-testid="stAppViewContainer"] { background: #000000; }
         [data-testid="stHeader"] { background: transparent; }
         [data-testid="stToolbar"] { display: none; }
-        .login-icon {
-            font-size: 2.6rem; text-align: center; margin-bottom: 6px;
-            filter: drop-shadow(0 0 14px rgba(212,175,55,0.35));
-        }
-        .login-title {
-            font-family: Georgia, 'Playfair Display', serif;
-            font-size: 2rem; font-weight: 700; text-align: center;
-            color: #E9C97B; letter-spacing: 0.03em; margin-bottom: 4px;
-        }
+        .login-logo { display: flex; justify-content: center; margin-bottom: 18px; }
+        .login-logo img { width: 100%; max-width: 260px; }
         .login-subtitle {
-            text-align: center; color: rgba(233,201,123,0.55);
-            font-size: 0.78rem; letter-spacing: 0.18em; text-transform: uppercase;
+            text-align: center; color: rgba(255,255,255,0.55);
+            font-size: 0.78rem; letter-spacing: 0.3em; text-transform: uppercase;
             margin-bottom: 30px;
         }
         .login-divider {
             width: 64px; height: 1px; margin: 0 auto 30px auto;
-            background: linear-gradient(90deg, transparent, #D4AF37, transparent);
+            background: rgba(255,255,255,0.25);
         }
         .login-footer {
             text-align: center; margin-top: 20px;
-            color: rgba(233,201,123,0.28); font-size: 0.72rem; letter-spacing: 0.05em;
+            color: rgba(255,255,255,0.25); font-size: 0.72rem; letter-spacing: 0.05em;
         }
         .st-key-login-card {
-            background: linear-gradient(165deg, rgba(30,27,20,0.9) 0%, rgba(10,10,9,0.95) 100%);
-            border: 1px solid rgba(212,175,55,0.28);
-            border-radius: 18px;
+            background: #000000;
+            border: 1px solid rgba(255,255,255,0.25);
+            border-radius: 10px;
             padding: 8px 36px 26px 36px;
-            box-shadow: 0 24px 70px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.03);
         }
+        .st-key-login-card label p {
+            color: rgba(255,255,255,0.7) !important;
+            font-size: 0.78rem !important;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            text-align: center;
+        }
+        .st-key-login-card [data-testid="stTextInputRootElement"] { justify-content: center; }
         .st-key-login-card input {
-            background-color: #131210 !important;
-            color: #f2e6c9 !important;
-            border: 1px solid rgba(212,175,55,0.35) !important;
+            background-color: #000000 !important;
+            color: #ffffff !important;
+            border: 1px solid rgba(255,255,255,0.4) !important;
+            text-align: center;
         }
         .st-key-login-card input:focus {
-            border-color: #E9C97B !important;
-            box-shadow: 0 0 0 1px rgba(233,201,123,0.4) !important;
+            border-color: #ffffff !important;
+            box-shadow: 0 0 0 1px rgba(255,255,255,0.5) !important;
         }
         .st-key-login-card button {
-            background: linear-gradient(135deg, #E9C97B, #B8860B) !important;
-            color: #16130a !important;
+            background: #ffffff !important;
+            color: #000000 !important;
             border: none !important;
             font-weight: 700 !important;
             letter-spacing: 0.06em;
         }
         .st-key-login-card button:hover {
-            filter: brightness(1.08);
-        }
-        .st-key-login-card label p {
-            color: rgba(233,201,123,0.75) !important;
-            font-size: 0.78rem !important;
-            letter-spacing: 0.08em;
-            text-transform: uppercase;
+            background: rgba(255,255,255,0.85) !important;
         }
         </style>
         """,
@@ -254,9 +297,12 @@ def render_login_gate():
     col_l, col_mid, col_r = st.columns([1, 1.1, 1])
     with col_mid:
         st.markdown("<div style='height:12vh'></div>", unsafe_allow_html=True)
-        st.markdown("<div class='login-icon'>💰</div>", unsafe_allow_html=True)
-        st.markdown("<div class='login-title'>BRVM Analytics</div>", unsafe_allow_html=True)
-        st.markdown("<div class='login-subtitle'>Accès privé</div>", unsafe_allow_html=True)
+        if os.path.exists(LOGO_FILE):
+            st.markdown(
+                f"<div class='login-logo'><img src='data:image/png;base64,{_logo_b64()}'></div>",
+                unsafe_allow_html=True,
+            )
+        st.markdown("<div class='login-subtitle'>To the top</div>", unsafe_allow_html=True)
         st.markdown("<div class='login-divider'></div>", unsafe_allow_html=True)
 
         with st.container(key="login-card"):
@@ -266,6 +312,7 @@ def render_login_gate():
             if submitted:
                 if password == APP_PASSWORD:
                     st.session_state.authenticated = True
+                    _persist_session()
                     st.rerun()
                 else:
                     st.error("Mot de passe incorrect.")
