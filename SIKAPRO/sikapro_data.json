@@ -1,0 +1,429 @@
+{
+    "last_update": "2026-07-14 01:40:10",
+    "count": 47,
+    "data": [
+        {
+            "ticker": "PRSC",
+            "nom_societe": "TRACTAFRIC MOTORS CI",
+            "cours_bas_1mois": 3620.0,
+            "cours_bas_1mois_str": "3 620",
+            "cours_haut_1mois": 4500.0,
+            "cours_haut_1mois_str": "4 500",
+            "url": "https://pro.sikafinance.com/fiche/PRSC.ci"
+        },
+        {
+            "ticker": "NSBC",
+            "nom_societe": "NSIA BANQUE",
+            "cours_bas_1mois": 13810.0,
+            "cours_bas_1mois_str": "13 810",
+            "cours_haut_1mois": 19500.0,
+            "cours_haut_1mois_str": "19 500",
+            "url": "https://pro.sikafinance.com/fiche/NSBC.ci"
+        },
+        {
+            "ticker": "SDSC",
+            "nom_societe": "AFRICA GLOBAL LOGISTICS",
+            "cours_bas_1mois": 1650.0,
+            "cours_bas_1mois_str": "1 650",
+            "cours_haut_1mois": 2125.0,
+            "cours_haut_1mois_str": "2 125",
+            "url": "https://pro.sikafinance.com/fiche/SDSC.ci"
+        },
+        {
+            "ticker": "BOAB",
+            "nom_societe": "BANK OF AFRICA BENIN",
+            "cours_bas_1mois": 8600.0,
+            "cours_bas_1mois_str": "8 600",
+            "cours_haut_1mois": 9420.0,
+            "cours_haut_1mois_str": "9 420",
+            "url": "https://pro.sikafinance.com/fiche/BOAB.bj"
+        },
+        {
+            "ticker": "BOAC",
+            "nom_societe": "BANK OF AFRICA CI",
+            "cours_bas_1mois": 8630.0,
+            "cours_bas_1mois_str": "8 630",
+            "cours_haut_1mois": 9000.0,
+            "cours_haut_1mois_str": "9 000",
+            "url": "https://pro.sikafinance.com/fiche/BOAC.ci"
+        },
+        {
+            "ticker": "BOAM",
+            "nom_societe": "BANK OF AFRICA MALI",
+            "cours_bas_1mois": 4550.0,
+            "cours_bas_1mois_str": "4 550",
+            "cours_haut_1mois": 5300.0,
+            "cours_haut_1mois_str": "5 300",
+            "url": "https://pro.sikafinance.com/fiche/BOAM.ml"
+        },
+        {
+            "ticker": "SHEC",
+            "nom_societe": "VIVO ENERGY CI",
+            "cours_bas_1mois": 1890.0,
+            "cours_bas_1mois_str": "1 890",
+            "cours_haut_1mois": 2095.0,
+            "cours_haut_1mois_str": "2 095",
+            "url": "https://pro.sikafinance.com/fiche/SHEC.ci"
+        },
+        {
+            "ticker": "LNBB",
+            "nom_societe": "LOTERIE NATIONALE DU BENIN",
+            "cours_bas_1mois": 3800.0,
+            "cours_bas_1mois_str": "3 800",
+            "cours_haut_1mois": 3990.0,
+            "cours_haut_1mois_str": "3 990",
+            "url": "https://pro.sikafinance.com/fiche/LNBB.bj"
+        },
+        {
+            "ticker": "UNXC",
+            "nom_societe": "UNIWAX CI",
+            "cours_bas_1mois": 1760.0,
+            "cours_bas_1mois_str": "1 760",
+            "cours_haut_1mois": 1975.0,
+            "cours_haut_1mois_str": "1 975",
+            "url": "https://pro.sikafinance.com/fiche/UNXC.ci"
+        },
+        {
+            "ticker": "UNLC",
+            "nom_societe": "UNILEVER CI",
+            "cours_bas_1mois": 55000.0,
+            "cours_bas_1mois_str": "55 000",
+            "cours_haut_1mois": 60295.0,
+            "cours_haut_1mois_str": "60 295",
+            "url": "https://pro.sikafinance.com/fiche/UNLC.ci"
+        },
+        {
+            "ticker": "TTLS",
+            "nom_societe": "TOTAL SENEGAL",
+            "cours_bas_1mois": 2950.0,
+            "cours_bas_1mois_str": "2 950",
+            "cours_haut_1mois": 3495.0,
+            "cours_haut_1mois_str": "3 495",
+            "url": "https://pro.sikafinance.com/fiche/TTLS.sn"
+        },
+        {
+            "ticker": "TTLC",
+            "nom_societe": "TOTAL CI",
+            "cours_bas_1mois": 2805.0,
+            "cours_bas_1mois_str": "2 805",
+            "cours_haut_1mois": 3000.0,
+            "cours_haut_1mois_str": "3 000",
+            "url": "https://pro.sikafinance.com/fiche/TTLC.ci"
+        },
+        {
+            "ticker": "SCRC",
+            "nom_societe": "SUCRIVOIRE",
+            "cours_bas_1mois": 2200.0,
+            "cours_bas_1mois_str": "2 200",
+            "cours_haut_1mois": 3195.0,
+            "cours_haut_1mois_str": "3 195",
+            "url": "https://pro.sikafinance.com/fiche/SCRC.ci"
+        },
+        {
+            "ticker": "SNTS",
+            "nom_societe": "SONATEL",
+            "cours_bas_1mois": 28200.0,
+            "cours_bas_1mois_str": "28 200",
+            "cours_haut_1mois": 30000.0,
+            "cours_haut_1mois_str": "30 000",
+            "url": "https://pro.sikafinance.com/fiche/SNTS.sn"
+        },
+        {
+            "ticker": "SLBC",
+            "nom_societe": "SOLIBRA CI",
+            "cours_bas_1mois": 37005.0,
+            "cours_bas_1mois_str": "37 005",
+            "cours_haut_1mois": 40295.0,
+            "cours_haut_1mois_str": "40 295",
+            "url": "https://pro.sikafinance.com/fiche/SLBC.ci"
+        },
+        {
+            "ticker": "SDCC",
+            "nom_societe": "SODECI",
+            "cours_bas_1mois": 9395.0,
+            "cours_bas_1mois_str": "9 395",
+            "cours_haut_1mois": 12275.0,
+            "cours_haut_1mois_str": "12 275",
+            "url": "https://pro.sikafinance.com/fiche/SDCC.ci"
+        },
+        {
+            "ticker": "SAFC",
+            "nom_societe": "SAFCA CI",
+            "cours_bas_1mois": 3590.0,
+            "cours_bas_1mois_str": "3 590",
+            "cours_haut_1mois": 4050.0,
+            "cours_haut_1mois_str": "4 050",
+            "url": "https://pro.sikafinance.com/fiche/SAFC.ci"
+        },
+        {
+            "ticker": "BOAS",
+            "nom_societe": "BANK OF AFRICA SENEGAL",
+            "cours_bas_1mois": 7290.0,
+            "cours_bas_1mois_str": "7 290",
+            "cours_haut_1mois": 8050.0,
+            "cours_haut_1mois_str": "8 050",
+            "url": "https://pro.sikafinance.com/fiche/BOAS.sn"
+        },
+        {
+            "ticker": "BNBC",
+            "nom_societe": "BERNABE",
+            "cours_bas_1mois": 1495.0,
+            "cours_bas_1mois_str": "1 495",
+            "cours_haut_1mois": 1880.0,
+            "cours_haut_1mois_str": "1 880",
+            "url": "https://pro.sikafinance.com/fiche/BNBC.ci"
+        },
+        {
+            "ticker": "CIEC",
+            "nom_societe": "CIE CI",
+            "cours_bas_1mois": 3290.0,
+            "cours_bas_1mois_str": "3 290",
+            "cours_haut_1mois": 5320.0,
+            "cours_haut_1mois_str": "5 320",
+            "url": "https://pro.sikafinance.com/fiche/CIEC.ci"
+        },
+        {
+            "ticker": "ABJC",
+            "nom_societe": "SERVAIR ABIDJAN CI",
+            "cours_bas_1mois": 2845.0,
+            "cours_bas_1mois_str": "2 845",
+            "cours_haut_1mois": 3525.0,
+            "cours_haut_1mois_str": "3 525",
+            "url": "https://pro.sikafinance.com/fiche/ABJC.ci"
+        },
+        {
+            "ticker": "STAC",
+            "nom_societe": "SETAO CI",
+            "cours_bas_1mois": 2600.0,
+            "cours_bas_1mois_str": "2 600",
+            "cours_haut_1mois": 3600.0,
+            "cours_haut_1mois_str": "3 600",
+            "url": "https://pro.sikafinance.com/fiche/STAC.ci"
+        },
+        {
+            "ticker": "ORAC",
+            "nom_societe": "ORANGE CI",
+            "cours_bas_1mois": 15000.0,
+            "cours_bas_1mois_str": "15 000",
+            "cours_haut_1mois": 16975.0,
+            "cours_haut_1mois_str": "16 975",
+            "url": "https://pro.sikafinance.com/fiche/ORAC.ci"
+        },
+        {
+            "ticker": "BOABF",
+            "nom_societe": "BANK OF AFRICA BURKINA FASO",
+            "cours_bas_1mois": 5400.0,
+            "cours_bas_1mois_str": "5 400",
+            "cours_haut_1mois": 5600.0,
+            "cours_haut_1mois_str": "5 600",
+            "url": "https://pro.sikafinance.com/fiche/BOABF.bf"
+        },
+        {
+            "ticker": "BOAN",
+            "nom_societe": "BANK OF AFRICA NIGER",
+            "cours_bas_1mois": 3450.0,
+            "cours_bas_1mois_str": "3 450",
+            "cours_haut_1mois": 3765.0,
+            "cours_haut_1mois_str": "3 765",
+            "url": "https://pro.sikafinance.com/fiche/BOAN.ne"
+        },
+        {
+            "ticker": "BICB",
+            "nom_societe": "BANQUE INTERNATIONALE POUR LE COMMERCE DU BENIN",
+            "cours_bas_1mois": 5005.0,
+            "cours_bas_1mois_str": "5 005",
+            "cours_haut_1mois": 5720.0,
+            "cours_haut_1mois_str": "5 720",
+            "url": "https://pro.sikafinance.com/fiche/BICB.bj"
+        },
+        {
+            "ticker": "BICC",
+            "nom_societe": "BICICI",
+            "cours_bas_1mois": 26400.0,
+            "cours_bas_1mois_str": "26 400",
+            "cours_haut_1mois": 29240.0,
+            "cours_haut_1mois_str": "29 240",
+            "url": "https://pro.sikafinance.com/fiche/BICC.ci"
+        },
+        {
+            "ticker": "CABC",
+            "nom_societe": "SICABLE CI",
+            "cours_bas_1mois": 3400.0,
+            "cours_bas_1mois_str": "3 400",
+            "cours_haut_1mois": 4100.0,
+            "cours_haut_1mois_str": "4 100",
+            "url": "https://pro.sikafinance.com/fiche/CABC.ci"
+        },
+        {
+            "ticker": "CBIBF",
+            "nom_societe": "CORIS BANK INTERNATIONAL BF",
+            "cours_bas_1mois": 17300.0,
+            "cours_bas_1mois_str": "17 300",
+            "cours_haut_1mois": 22700.0,
+            "cours_haut_1mois_str": "22 700",
+            "url": "https://pro.sikafinance.com/fiche/CBIBF.bf"
+        },
+        {
+            "ticker": "CFAC",
+            "nom_societe": "CFAO CI",
+            "cours_bas_1mois": 1380.0,
+            "cours_bas_1mois_str": "1 380",
+            "cours_haut_1mois": 1605.0,
+            "cours_haut_1mois_str": "1 605",
+            "url": "https://pro.sikafinance.com/fiche/CFAC.ci"
+        },
+        {
+            "ticker": "ECOC",
+            "nom_societe": "ECOBANK CI",
+            "cours_bas_1mois": 14500.0,
+            "cours_bas_1mois_str": "14 500",
+            "cours_haut_1mois": 16800.0,
+            "cours_haut_1mois_str": "16 800",
+            "url": "https://pro.sikafinance.com/fiche/ECOC.ci"
+        },
+        {
+            "ticker": "ETIT",
+            "nom_societe": "ETI TG",
+            "cours_bas_1mois": 29.0,
+            "cours_bas_1mois_str": "29",
+            "cours_haut_1mois": 33.0,
+            "cours_haut_1mois_str": "33",
+            "url": "https://pro.sikafinance.com/fiche/ETIT.tg"
+        },
+        {
+            "ticker": "FTSC",
+            "nom_societe": "FILTISAC CI",
+            "cours_bas_1mois": 2200.0,
+            "cours_bas_1mois_str": "2 200",
+            "cours_haut_1mois": 2430.0,
+            "cours_haut_1mois_str": "2 430",
+            "url": "https://pro.sikafinance.com/fiche/FTSC.ci"
+        },
+        {
+            "ticker": "NEIC",
+            "nom_societe": "NEI CEDA CI",
+            "cours_bas_1mois": 1890.0,
+            "cours_bas_1mois_str": "1 890",
+            "cours_haut_1mois": 2115.0,
+            "cours_haut_1mois_str": "2 115",
+            "url": "https://pro.sikafinance.com/fiche/NEIC.ci"
+        },
+        {
+            "ticker": "NTLC",
+            "nom_societe": "NESTLE CI",
+            "cours_bas_1mois": 11400.0,
+            "cours_bas_1mois_str": "11 400",
+            "cours_haut_1mois": 15325.0,
+            "cours_haut_1mois_str": "15 325",
+            "url": "https://pro.sikafinance.com/fiche/NTLC.ci"
+        },
+        {
+            "ticker": "ONTBF",
+            "nom_societe": "ONATEL BF",
+            "cours_bas_1mois": 2680.0,
+            "cours_bas_1mois_str": "2 680",
+            "cours_haut_1mois": 3070.0,
+            "cours_haut_1mois_str": "3 070",
+            "url": "https://pro.sikafinance.com/fiche/ONTBF.bf"
+        },
+        {
+            "ticker": "ORGT",
+            "nom_societe": "ORAGROUP TOGO",
+            "cours_bas_1mois": 2435.0,
+            "cours_bas_1mois_str": "2 435",
+            "cours_haut_1mois": 2900.0,
+            "cours_haut_1mois_str": "2 900",
+            "url": "https://pro.sikafinance.com/fiche/ORGT.tg"
+        },
+        {
+            "ticker": "PALC",
+            "nom_societe": "PALMCI",
+            "cours_bas_1mois": 7650.0,
+            "cours_bas_1mois_str": "7 650",
+            "cours_haut_1mois": 8780.0,
+            "cours_haut_1mois_str": "8 780",
+            "url": "https://pro.sikafinance.com/fiche/PALC.ci"
+        },
+        {
+            "ticker": "SEMC",
+            "nom_societe": "CROWN SIEM",
+            "cours_bas_1mois": 1380.0,
+            "cours_bas_1mois_str": "1 380",
+            "cours_haut_1mois": 1780.0,
+            "cours_haut_1mois_str": "1 780",
+            "url": "https://pro.sikafinance.com/fiche/SEMC.ci"
+        },
+        {
+            "ticker": "SGBC",
+            "nom_societe": "SGBCI",
+            "cours_bas_1mois": 34990.0,
+            "cours_bas_1mois_str": "34 990",
+            "cours_haut_1mois": 39210.0,
+            "cours_haut_1mois_str": "39 210",
+            "url": "https://pro.sikafinance.com/fiche/SGBC.ci"
+        },
+        {
+            "ticker": "SIBC",
+            "nom_societe": "SOCIETE IVOIRIENNE DE BANQUE CI",
+            "cours_bas_1mois": 7150.0,
+            "cours_bas_1mois_str": "7 150",
+            "cours_haut_1mois": 9300.0,
+            "cours_haut_1mois_str": "9 300",
+            "url": "https://pro.sikafinance.com/fiche/SIBC.ci"
+        },
+        {
+            "ticker": "SICC",
+            "nom_societe": "SICOR",
+            "cours_bas_1mois": 4270.0,
+            "cours_bas_1mois_str": "4 270",
+            "cours_haut_1mois": 4820.0,
+            "cours_haut_1mois_str": "4 820",
+            "url": "https://pro.sikafinance.com/fiche/SICC.ci"
+        },
+        {
+            "ticker": "SIVC",
+            "nom_societe": "ERIUM",
+            "cours_bas_1mois": 2665.0,
+            "cours_bas_1mois_str": "2 665",
+            "cours_haut_1mois": 2900.0,
+            "cours_haut_1mois_str": "2 900",
+            "url": "https://pro.sikafinance.com/fiche/SIVC.ci"
+        },
+        {
+            "ticker": "SMBC",
+            "nom_societe": "SMB CI",
+            "cours_bas_1mois": 12100.0,
+            "cours_bas_1mois_str": "12 100",
+            "cours_haut_1mois": 16250.0,
+            "cours_haut_1mois_str": "16 250",
+            "url": "https://pro.sikafinance.com/fiche/SMBC.ci"
+        },
+        {
+            "ticker": "SOGC",
+            "nom_societe": "SOGB",
+            "cours_bas_1mois": 7110.0,
+            "cours_bas_1mois_str": "7 110",
+            "cours_haut_1mois": 8550.0,
+            "cours_haut_1mois_str": "8 550",
+            "url": "https://pro.sikafinance.com/fiche/SOGC.ci"
+        },
+        {
+            "ticker": "SPHC",
+            "nom_societe": "SAPH CI",
+            "cours_bas_1mois": 6845.0,
+            "cours_bas_1mois_str": "6 845",
+            "cours_haut_1mois": 7720.0,
+            "cours_haut_1mois_str": "7 720",
+            "url": "https://pro.sikafinance.com/fiche/SPHC.ci"
+        },
+        {
+            "ticker": "STBC",
+            "nom_societe": "SITAB",
+            "cours_bas_1mois": 21000.0,
+            "cours_bas_1mois_str": "21 000",
+            "cours_haut_1mois": 22000.0,
+            "cours_haut_1mois_str": "22 000",
+            "url": "https://pro.sikafinance.com/fiche/STBC.ci"
+        }
+    ]
+}

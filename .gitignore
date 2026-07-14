@@ -2,3 +2,5 @@ financials.xlsx
 ~$*.xlsx
 __pycache__/
 *.pyc
+config.json
+SIKAPRO/config.json

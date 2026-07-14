@@ -11,12 +11,12 @@ import altair as alt
 
 # ─── Chemins ──────────────────────────────────────────────────────────────────
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
-BRVM_FILE  = os.path.normpath(os.path.join(SCRIPT_DIR, "..", "BRVM",   "brvm_latest.json"))
-SIKA_FILE  = os.path.normpath(os.path.join(SCRIPT_DIR, "..", "SIKAPRO", "sikapro_data.json"))
-RICHBOURSE_FILE = os.path.normpath(os.path.join(SCRIPT_DIR, "..", "RICHBOURSE", "richbourse_actualites.json"))
-BRVM_SCRAPER = os.path.normpath(os.path.join(SCRIPT_DIR, "..", "BRVM",   "brvm_scraper.py"))
-SIKA_SCRAPER = os.path.normpath(os.path.join(SCRIPT_DIR, "..", "SIKAPRO", "sikapro_scraper.py"))
-RICHBOURSE_SCRAPER = os.path.normpath(os.path.join(SCRIPT_DIR, "..", "RICHBOURSE", "richbourse_scraper.py"))
+BRVM_FILE  = os.path.normpath(os.path.join(SCRIPT_DIR, "BRVM",   "brvm_latest.json"))
+SIKA_FILE  = os.path.normpath(os.path.join(SCRIPT_DIR, "SIKAPRO", "sikapro_data.json"))
+RICHBOURSE_FILE = os.path.normpath(os.path.join(SCRIPT_DIR, "RICHBOURSE", "richbourse_actualites.json"))
+BRVM_SCRAPER = os.path.normpath(os.path.join(SCRIPT_DIR, "BRVM",   "brvm_scraper.py"))
+SIKA_SCRAPER = os.path.normpath(os.path.join(SCRIPT_DIR, "SIKAPRO", "sikapro_scraper.py"))
+RICHBOURSE_SCRAPER = os.path.normpath(os.path.join(SCRIPT_DIR, "RICHBOURSE", "richbourse_scraper.py"))
 RICHBOURSE_INDEX_URL = "https://www.richbourse.com/common/actualite/index"
 PYTHON_EXE   = sys.executable
 BRVM_LONG_FILE = os.path.join(SCRIPT_DIR, "BRVM_long.xlsx")
@@ -99,13 +99,17 @@ def load_financials():
     return pivot[FINANCIALS_COLUMNS]
 
 
-def run_scraper(script_path):
+def run_scraper(script_path, extra_env=None):
     try:
+        env = os.environ.copy()
+        if extra_env:
+            env.update({k: v for k, v in extra_env.items() if v})
         result = subprocess.run(
             [PYTHON_EXE, script_path],
             capture_output=True,
             cwd=os.path.dirname(script_path),
             timeout=120,
+            env=env,
         )
         stdout = result.stdout.decode("utf-8", errors="replace")
         stderr = result.stderr.decode("utf-8", errors="replace")
@@ -114,6 +118,19 @@ def run_scraper(script_path):
         return False, "Timeout : le scraper a pris plus de 2 minutes."
     except Exception as e:
         return False, str(e)
+
+
+def sikapro_credentials_env():
+    """Identifiants SikaFinance PRO pour le scraper, transmis via l'environnement.
+    En local : SIKAPRO/config.json (non versionné). Sur Streamlit Cloud : Secrets
+    (SIKAPRO_LOGIN / SIKAPRO_PASSWORD), à défaut de config.json."""
+    try:
+        return {
+            "SIKAPRO_LOGIN": st.secrets.get("SIKAPRO_LOGIN", ""),
+            "SIKAPRO_PASSWORD": st.secrets.get("SIKAPRO_PASSWORD", ""),
+        }
+    except Exception:
+        return {}
 
 
 def cell_html(text, align="left", bold=False, bg=None, extra_style=""):
@@ -186,7 +203,7 @@ with col_btn:
     if st.button("🔄 Actualiser", use_container_width=True):
         with st.spinner("Mise à jour BRVM, SIKAPRO et RichBourse..."):
             ok1, log1 = run_scraper(BRVM_SCRAPER)
-            ok2, log2 = run_scraper(SIKA_SCRAPER)
+            ok2, log2 = run_scraper(SIKA_SCRAPER, extra_env=sikapro_credentials_env())
             ok3, log3 = run_scraper(RICHBOURSE_SCRAPER)
         if ok1 and ok2 and ok3:
             st.success("Les trois sources mises à jour.")
