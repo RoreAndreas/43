@@ -176,12 +176,116 @@ def fmt_volatilite(val):
     return f"{val:.2f}%"
 
 
+APP_PASSWORD = "alexkakouisnice"
+
+
+# ─── Porte d'accès ──────────────────────────────────────────────────────────
+def render_login_gate():
+    if st.session_state.get("authenticated"):
+        return
+
+    st.markdown(
+        """
+        <style>
+        [data-testid="stAppViewContainer"] {
+            background: radial-gradient(circle at 50% 0%, #1c1a14 0%, #0b0a08 55%, #000000 100%);
+        }
+        [data-testid="stHeader"] { background: transparent; }
+        [data-testid="stToolbar"] { display: none; }
+        .login-icon {
+            font-size: 2.6rem; text-align: center; margin-bottom: 6px;
+            filter: drop-shadow(0 0 14px rgba(212,175,55,0.35));
+        }
+        .login-title {
+            font-family: Georgia, 'Playfair Display', serif;
+            font-size: 2rem; font-weight: 700; text-align: center;
+            color: #E9C97B; letter-spacing: 0.03em; margin-bottom: 4px;
+        }
+        .login-subtitle {
+            text-align: center; color: rgba(233,201,123,0.55);
+            font-size: 0.78rem; letter-spacing: 0.18em; text-transform: uppercase;
+            margin-bottom: 30px;
+        }
+        .login-divider {
+            width: 64px; height: 1px; margin: 0 auto 30px auto;
+            background: linear-gradient(90deg, transparent, #D4AF37, transparent);
+        }
+        .login-footer {
+            text-align: center; margin-top: 20px;
+            color: rgba(233,201,123,0.28); font-size: 0.72rem; letter-spacing: 0.05em;
+        }
+        .st-key-login-card {
+            background: linear-gradient(165deg, rgba(30,27,20,0.9) 0%, rgba(10,10,9,0.95) 100%);
+            border: 1px solid rgba(212,175,55,0.28);
+            border-radius: 18px;
+            padding: 8px 36px 26px 36px;
+            box-shadow: 0 24px 70px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.03);
+        }
+        .st-key-login-card input {
+            background-color: #131210 !important;
+            color: #f2e6c9 !important;
+            border: 1px solid rgba(212,175,55,0.35) !important;
+        }
+        .st-key-login-card input:focus {
+            border-color: #E9C97B !important;
+            box-shadow: 0 0 0 1px rgba(233,201,123,0.4) !important;
+        }
+        .st-key-login-card button {
+            background: linear-gradient(135deg, #E9C97B, #B8860B) !important;
+            color: #16130a !important;
+            border: none !important;
+            font-weight: 700 !important;
+            letter-spacing: 0.06em;
+        }
+        .st-key-login-card button:hover {
+            filter: brightness(1.08);
+        }
+        .st-key-login-card label p {
+            color: rgba(233,201,123,0.75) !important;
+            font-size: 0.78rem !important;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+        }
+        </style>
+        """,
+        unsafe_allow_html=True,
+    )
+
+    col_l, col_mid, col_r = st.columns([1, 1.1, 1])
+    with col_mid:
+        st.markdown("<div style='height:12vh'></div>", unsafe_allow_html=True)
+        st.markdown("<div class='login-icon'>💰</div>", unsafe_allow_html=True)
+        st.markdown("<div class='login-title'>BRVM Analytics</div>", unsafe_allow_html=True)
+        st.markdown("<div class='login-subtitle'>Accès privé</div>", unsafe_allow_html=True)
+        st.markdown("<div class='login-divider'></div>", unsafe_allow_html=True)
+
+        with st.container(key="login-card"):
+            with st.form("login_form"):
+                password = st.text_input("Mot de passe", type="password", placeholder="••••••••••")
+                submitted = st.form_submit_button("Entrer", use_container_width=True)
+            if submitted:
+                if password == APP_PASSWORD:
+                    st.session_state.authenticated = True
+                    st.rerun()
+                else:
+                    st.error("Mot de passe incorrect.")
+
+        st.markdown(
+            "<div class='login-footer'>Analyse comparative BRVM × SikaFinance PRO</div>",
+            unsafe_allow_html=True,
+        )
+
+    st.stop()
+
+
 # ─── Configuration de la page ─────────────────────────────────────────────────
 st.set_page_config(
     page_title="Analyse BRVM × SikaFinance PRO",
     page_icon="📊",
     layout="wide",
 )
+
+render_login_gate()
 
 st.markdown("<h4 style='margin-bottom:2px'>📊 Analyse comparative — BRVM × SikaFinance PRO</h4>", unsafe_allow_html=True)
 
