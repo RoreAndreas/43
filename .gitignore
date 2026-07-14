@@ -1,0 +1,4 @@
+financials.xlsx
+~$*.xlsx
+__pycache__/
+*.pyc
