@@ -16,6 +16,8 @@ jobs:
     steps:
       - name: Checkout repo
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0   # Historique complet, nécessaire pour rebaser proprement avant le push
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -53,6 +55,14 @@ jobs:
             exit 0
           fi
           git commit -m "🔄 Update market data (automated)"
-          # Récupère d'éventuels commits arrivés entre-temps avant de pousser (évite les conflits)
-          git pull --rebase origin main
-          git push
+          # Push blindé : si le dépôt a bougé entre-temps, on rebase et on réessaie (jusqu'à 5 fois)
+          for i in 1 2 3 4 5; do
+            if git push; then
+              echo "Push réussi."
+              exit 0
+            fi
+            echo "Push rejeté (tentative $i) — synchronisation puis nouvel essai..."
+            git pull --rebase origin main
+          done
+          echo "Échec du push après 5 tentatives."
+          exit 1
