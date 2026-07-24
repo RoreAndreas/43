@@ -334,7 +334,14 @@ st.set_page_config(
 
 render_login_gate()
 
-st.markdown("<h4 style='margin-bottom:2px'>📊 Analyse comparative — BRVM × SikaFinance PRO</h4>", unsafe_allow_html=True)
+col_title, col_refresh = st.columns([15, 1], vertical_alignment="center")
+with col_title:
+    st.markdown("<h4 style='margin-bottom:2px'>📊 Analyse comparative — BRVM × SikaFinance PRO</h4>", unsafe_allow_html=True)
+with col_refresh:
+    refresh_clicked = st.button(
+        "", icon=":material/refresh:", type="tertiary",
+        help="Actualiser les données maintenant", key="refresh_now",
+    )
 
 # ─── État de session ───────────────────────────────────────────────────────────
 if "active_view" not in st.session_state:
@@ -348,31 +355,29 @@ if "sort_ascending" not in st.session_state:
 if "only_matched" not in st.session_state:
     st.session_state.only_matched = True
 
-# ─── Bouton d'actualisation ───────────────────────────────────────────────────
-col_btn, col_empty = st.columns([1, 3])
-with col_btn:
-    if st.button("🔄 Actualiser", use_container_width=True):
-        with st.spinner("Mise à jour BRVM, SIKAPRO et RichBourse..."):
-            ok1, log1 = run_scraper(BRVM_SCRAPER)
-            ok2, log2 = run_scraper(SIKA_SCRAPER, extra_env=sikapro_credentials_env())
-            ok3, log3 = run_scraper(RICHBOURSE_SCRAPER)
-        if ok1 and ok2 and ok3:
-            st.success("Les trois sources mises à jour.")
-        else:
-            brvm_status = "OK" if ok1 else "ERREUR"
-            sika_status = "OK" if ok2 else "ERREUR"
-            rich_status = "OK" if ok3 else "ERREUR"
-            st.warning(f"BRVM : {brvm_status}  |  SIKAPRO : {sika_status}  |  RichBourse : {rich_status}")
-            if not ok1:
-                with st.expander("Log BRVM"):
-                    st.code(log1)
-            if not ok2:
-                with st.expander("Log SIKAPRO"):
-                    st.code(log2)
-            if not ok3:
-                with st.expander("Log RichBourse"):
-                    st.code(log3)
-        st.rerun()
+# ─── Actualisation à la demande (icône 🔄 en haut à droite) ───────────────────
+if refresh_clicked:
+    with st.spinner("Mise à jour BRVM, SIKAPRO et RichBourse..."):
+        ok1, log1 = run_scraper(BRVM_SCRAPER)
+        ok2, log2 = run_scraper(SIKA_SCRAPER, extra_env=sikapro_credentials_env())
+        ok3, log3 = run_scraper(RICHBOURSE_SCRAPER)
+    if ok1 and ok2 and ok3:
+        st.success("Les trois sources mises à jour.")
+    else:
+        brvm_status = "OK" if ok1 else "ERREUR"
+        sika_status = "OK" if ok2 else "ERREUR"
+        rich_status = "OK" if ok3 else "ERREUR"
+        st.warning(f"BRVM : {brvm_status}  |  SIKAPRO : {sika_status}  |  RichBourse : {rich_status}")
+        if not ok1:
+            with st.expander("Log BRVM"):
+                st.code(log1)
+        if not ok2:
+            with st.expander("Log SIKAPRO"):
+                st.code(log2)
+        if not ok3:
+            with st.expander("Log RichBourse"):
+                st.code(log3)
+    st.rerun()
 
 # ─── Chargement des données ───────────────────────────────────────────────────
 brvm_raw = load_json(BRVM_FILE)

@@ -1,10 +1,20 @@
 {
-    "last_update": "2026-07-23 09:14:36",
+    "last_update": "2026-07-24 15:32:06",
     "count": 20,
     "weeks": [
         {
             "semaine": "Semaine du 20 Juillet au 26 Juillet 2026",
             "publications": [
+                {
+                    "date": "23/07/2026",
+                    "titre": "BOA BN : Rapport d'activités - 1er semestre 2026",
+                    "url": "https://www.richbourse.com/common/actualite/details/23-07-2026-boa-bn-rapport-dactivites-1er-semestre-2026"
+                },
+                {
+                    "date": "22/07/2026",
+                    "titre": "ETI TG : Avis de convocation - Assemblée Générale Extraordinaire",
+                    "url": "https://www.richbourse.com/common/actualite/details/22-07-2026-eti-tg-avis-de-convocation-assemblee-generale-extraordinaire"
+                },
                 {
                     "date": "22/07/2026",
                     "titre": "BIIC BN : Rapport d'activités - 1er trimestre 2026",
@@ -14,11 +24,6 @@
                     "date": "22/07/2026",
                     "titre": "SOGB CI : Paiement de dividendes - Exercice 2025",
                     "url": "https://www.richbourse.com/common/actualite/details/22-07-2026-sogb-ci-paiement-de-dividendes-exercice-2025"
-                },
-                {
-                    "date": "22/07/2026",
-                    "titre": "ETI TG : Avis de convocation - Assemblée Générale Extraordinaire",
-                    "url": "https://www.richbourse.com/common/actualite/details/22-07-2026-eti-tg-avis-de-convocation-assemblee-generale-extraordinaire"
                 },
                 {
                     "date": "22/07/2026",
@@ -32,13 +37,13 @@
                 },
                 {
                     "date": "20/07/2026",
-                    "titre": "LNB BN : Paiement de dividendes - Exercice 2025",
-                    "url": "https://www.richbourse.com/common/actualite/details/20-07-2026-lnb-bn-paiement-de-dividendes-exercice-2025"
+                    "titre": "VIVO ENERGY CI : Rapport d'activités - 2eme trimestre 2026",
+                    "url": "https://www.richbourse.com/common/actualite/details/20-07-2026-vivo-energy-ci-rapport-dactivites-2eme-trimestre-2026"
                 },
                 {
                     "date": "20/07/2026",
-                    "titre": "VIVO ENERGY CI : Rapport d'activités - 2eme trimestre 2026",
-                    "url": "https://www.richbourse.com/common/actualite/details/20-07-2026-vivo-energy-ci-rapport-dactivites-2eme-trimestre-2026"
+                    "titre": "LNB BN : Paiement de dividendes - Exercice 2025",
+                    "url": "https://www.richbourse.com/common/actualite/details/20-07-2026-lnb-bn-paiement-de-dividendes-exercice-2025"
                 }
             ]
         },
@@ -47,28 +52,18 @@
             "publications": [
                 {
                     "date": "15/07/2026",
-                    "titre": "BOA CI : Bilan semestriel du contrat de liquidité -1er semestre 2026",
-                    "url": "https://www.richbourse.com/common/actualite/details/15-07-2026-boa-ci-bilan-semestriel-du-contrat-de-liquidite-1er-semestre-2026"
-                },
-                {
-                    "date": "15/07/2026",
-                    "titre": "BOA BF : Bilan semestriel du contrat de liquidité -1er semestre 2026",
-                    "url": "https://www.richbourse.com/common/actualite/details/15-07-2026-boa-bf-bilan-semestriel-du-contrat-de-liquidite-1er-semestre-2026"
-                },
-                {
-                    "date": "15/07/2026",
                     "titre": "BOA ML : Bilan semestriel du contrat de liquidité -1er semestre 2026",
                     "url": "https://www.richbourse.com/common/actualite/details/15-07-2026-boa-ml-bilan-semestriel-du-contrat-de-liquidite-1er-semestre-2026"
                 },
                 {
                     "date": "15/07/2026",
-                    "titre": "BOA BN : Bilan semestriel du contrat de liquidité -1er semestre 2026",
-                    "url": "https://www.richbourse.com/common/actualite/details/15-07-2026-boa-bn-bilan-semestriel-du-contrat-de-liquidite-1er-semestre-2026"
+                    "titre": "BOA NG : Bilan semestriel du contrat de liquidité -1er semestre 2026",
+                    "url": "https://www.richbourse.com/common/actualite/details/15-07-2026-boa-ng-bilan-semestriel-du-contrat-de-liquidite-1er-semestre-2026"
                 },
                 {
                     "date": "15/07/2026",
-                    "titre": "BOA NG : Bilan semestriel du contrat de liquidité -1er semestre 2026",
-                    "url": "https://www.richbourse.com/common/actualite/details/15-07-2026-boa-ng-bilan-semestriel-du-contrat-de-liquidite-1er-semestre-2026"
+                    "titre": "BOA CI : Bilan semestriel du contrat de liquidité -1er semestre 2026",
+                    "url": "https://www.richbourse.com/common/actualite/details/15-07-2026-boa-ci-bilan-semestriel-du-contrat-de-liquidite-1er-semestre-2026"
                 },
                 {
                     "date": "15/07/2026",
@@ -81,24 +76,29 @@
                     "url": "https://www.richbourse.com/common/actualite/details/15-07-2026-sitab-ci-rapport-annuel-exercice-2025"
                 },
                 {
+                    "date": "15/07/2026",
+                    "titre": "BOA BN : Bilan semestriel du contrat de liquidité -1er semestre 2026",
+                    "url": "https://www.richbourse.com/common/actualite/details/15-07-2026-boa-bn-bilan-semestriel-du-contrat-de-liquidite-1er-semestre-2026"
+                },
+                {
+                    "date": "15/07/2026",
+                    "titre": "BOA BF : Bilan semestriel du contrat de liquidité -1er semestre 2026",
+                    "url": "https://www.richbourse.com/common/actualite/details/15-07-2026-boa-bf-bilan-semestriel-du-contrat-de-liquidite-1er-semestre-2026"
+                },
+                {
                     "date": "14/07/2026",
                     "titre": "ORAGROUP TG : Bilan semestriel du contrat de liquidité -1er semestre 2026",
                     "url": "https://www.richbourse.com/common/actualite/details/14-07-2026-oragroup-tg-bilan-semestriel-du-contrat-de-liquidite-1er-semestre-2026"
                 },
                 {
                     "date": "13/07/2026",
-                    "titre": "UNIWAX CI : Rapport d'activités - 1er semestre 2026",
-                    "url": "https://www.richbourse.com/common/actualite/details/13-07-2026-uniwax-ci-rapport-dactivites-1er-semestre-2026"
+                    "titre": "NSIA BANQUE CI : Communiqué",
+                    "url": "https://www.richbourse.com/common/actualite/details/13-07-2026-nsia-banque-ci-communique"
                 },
                 {
                     "date": "13/07/2026",
                     "titre": "SOLIBRA CI : Paiement de dividendes - Exercice 2025",
                     "url": "https://www.richbourse.com/common/actualite/details/13-07-2026-solibra-ci-paiement-de-dividendes-exercice-2025"
-                },
-                {
-                    "date": "13/07/2026",
-                    "titre": "NSIA BANQUE CI : Communiqué",
-                    "url": "https://www.richbourse.com/common/actualite/details/13-07-2026-nsia-banque-ci-communique"
                 },
                 {
                     "date": "13/07/2026",
