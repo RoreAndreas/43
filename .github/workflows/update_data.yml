@@ -5,16 +5,20 @@ on:
     - cron: '*/10 * * * *'  # Toutes les 10 minutes (UTC)
   workflow_dispatch:      # Permet de lancer manuellement depuis GitHub
 
+# Autorise le robot (GITHUB_TOKEN) à écrire dans le dépôt (nécessaire pour git push)
+permissions:
+  contents: write
+
 jobs:
   scrape:
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout repo
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Set up Python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
           python-version: '3.11'
 
@@ -39,6 +43,13 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add BRVM/*.json RICHBOURSE/*.json SIKAPRO/*.json || true
-          git commit -m "🔄 Update market data (automated)" --allow-empty || true
+          git add BRVM/*.json RICHBOURSE/*.json SIKAPRO/*.json
+          # Ne rien faire s'il n'y a aucun changement de données
+          if git diff --staged --quiet; then
+            echo "Aucune donnée modifiée, rien à committer."
+            exit 0
+          fi
+          git commit -m "🔄 Update market data (automated)"
+          # Récupère d'éventuels commits arrivés entre-temps avant de pousser (évite les conflits)
+          git pull --rebase origin main
           git push
