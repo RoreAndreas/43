@@ -2,7 +2,7 @@ name: Update market data
 
 on:
   schedule:
-    - cron: '0 * * * *'  # Toutes les heures (UTC)
+    - cron: '*/30 * * * *'  # Toutes les heures (UTC)
   workflow_dispatch:      # Permet de lancer manuellement depuis GitHub
 
 jobs:
