@@ -57,24 +57,7 @@ def update_data():
         latest_file = os.path.join(script_dir, "brvm_latest.json")
         with open(latest_file, "w", encoding="utf-8") as f:
             json.dump(result, f, indent=4, ensure_ascii=False)
-            
-        # Ajout à l'historique
-        history_file = os.path.join(script_dir, "brvm_history.json")
-        history = []
-        if os.path.exists(history_file):
-            try:
-                with open(history_file, "r", encoding="utf-8") as f:
-                    history = json.load(f)
-            except:
-                history = []
-        
-        history.append(result)
-        # Garder seulement les 100 dernières entrées pour éviter un fichier trop lourd
-        history = history[-100:]
-        
-        with open(history_file, "w", encoding="utf-8") as f:
-            json.dump(history, f, indent=4, ensure_ascii=False)
-            
+
         print(f"[{timestamp}] Mise à jour réussie : {len(data)} titres récupérés.")
     else:
         print(f"[{datetime.now()}] Échec de la mise à jour.")
