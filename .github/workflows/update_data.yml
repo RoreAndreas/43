@@ -38,6 +38,9 @@ jobs:
       - name: Run SikaP scraper
         run: python SIKAPRO/sikapro_scraper.py
         continue-on-error: true
+        env:
+          SIKAPRO_LOGIN: ${{ secrets.SIKAPRO_LOGIN }}
+          SIKAPRO_PASSWORD: ${{ secrets.SIKAPRO_PASSWORD }}
 
       - name: Commit and push changes
         run: |
