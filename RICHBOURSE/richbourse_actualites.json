@@ -1,10 +1,25 @@
 {
-    "last_update": "2026-07-24 17:21:41",
+    "last_update": "2026-07-24 19:01:00",
     "count": 20,
     "weeks": [
         {
             "semaine": "Semaine du 20 Juillet au 26 Juillet 2026",
             "publications": [
+                {
+                    "date": "24/07/2026",
+                    "titre": "SONATEL SN : Communiqué de Presse",
+                    "url": "https://www.richbourse.com/common/actualite/details/24-07-2026-sonatel-sn-communique-de-presse"
+                },
+                {
+                    "date": "24/07/2026",
+                    "titre": "SONATEL SN : Rapport d'activités - 1er semestre 2026",
+                    "url": "https://www.richbourse.com/common/actualite/details/24-07-2026-sonatel-sn-rapport-dactivites-1er-semestre-2026"
+                },
+                {
+                    "date": "24/07/2026",
+                    "titre": "SAFCA CI : Admission à la cote des actions nouvelles de la société",
+                    "url": "https://www.richbourse.com/common/actualite/details/24-07-2026-safca-ci-admission-a-la-cote-des-actions-nouvelles-de-la-societe"
+                },
                 {
                     "date": "23/07/2026",
                     "titre": "BOA BN : Rapport d'activités - 1er semestre 2026",
@@ -52,11 +67,6 @@
             "publications": [
                 {
                     "date": "15/07/2026",
-                    "titre": "BOA ML : Bilan semestriel du contrat de liquidité -1er semestre 2026",
-                    "url": "https://www.richbourse.com/common/actualite/details/15-07-2026-boa-ml-bilan-semestriel-du-contrat-de-liquidite-1er-semestre-2026"
-                },
-                {
-                    "date": "15/07/2026",
                     "titre": "BOA NG : Bilan semestriel du contrat de liquidité -1er semestre 2026",
                     "url": "https://www.richbourse.com/common/actualite/details/15-07-2026-boa-ng-bilan-semestriel-du-contrat-de-liquidite-1er-semestre-2026"
                 },
@@ -82,6 +92,11 @@
                 },
                 {
                     "date": "15/07/2026",
+                    "titre": "BOA ML : Bilan semestriel du contrat de liquidité -1er semestre 2026",
+                    "url": "https://www.richbourse.com/common/actualite/details/15-07-2026-boa-ml-bilan-semestriel-du-contrat-de-liquidite-1er-semestre-2026"
+                },
+                {
+                    "date": "15/07/2026",
                     "titre": "BOA BF : Bilan semestriel du contrat de liquidité -1er semestre 2026",
                     "url": "https://www.richbourse.com/common/actualite/details/15-07-2026-boa-bf-bilan-semestriel-du-contrat-de-liquidite-1er-semestre-2026"
                 },
@@ -92,23 +107,8 @@
                 },
                 {
                     "date": "13/07/2026",
-                    "titre": "NSIA BANQUE CI : Communiqué",
-                    "url": "https://www.richbourse.com/common/actualite/details/13-07-2026-nsia-banque-ci-communique"
-                },
-                {
-                    "date": "13/07/2026",
                     "titre": "SOLIBRA CI : Paiement de dividendes - Exercice 2025",
                     "url": "https://www.richbourse.com/common/actualite/details/13-07-2026-solibra-ci-paiement-de-dividendes-exercice-2025"
-                },
-                {
-                    "date": "13/07/2026",
-                    "titre": "UNIWAX CI : Etats financiers - Exercice 2025",
-                    "url": "https://www.richbourse.com/common/actualite/details/13-07-2026-uniwax-ci-etats-financiers-exercice-2025"
-                },
-                {
-                    "date": "13/07/2026",
-                    "titre": "CFAO MOTORS CI : Rapport annuel - Exercice 2025",
-                    "url": "https://www.richbourse.com/common/actualite/details/13-07-2026-cfao-motors-ci-rapport-annuel-exercice-2025"
                 }
             ]
         }
