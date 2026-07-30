@@ -1,14 +1,39 @@
 {
-    "last_update": "2026-07-30 18:44:40",
+    "last_update": "2026-07-30 20:09:01",
     "count": 20,
     "weeks": [
         {
             "semaine": "Semaine du 27 Juillet au 02 Août 2026",
             "publications": [
                 {
+                    "date": "30/07/2026",
+                    "titre": "CFAO MOTORS CI : Paiement de dividendes - Exercice 2025",
+                    "url": "https://www.richbourse.com/common/actualite/details/30-07-2026-cfao-motors-ci-paiement-de-dividendes-exercice-2025-2"
+                },
+                {
+                    "date": "30/07/2026",
+                    "titre": "NESTLE CI : Paiement de dividendes - Exercice 2025",
+                    "url": "https://www.richbourse.com/common/actualite/details/30-07-2026-nestle-ci-paiement-de-dividendes-exercice-2025"
+                },
+                {
+                    "date": "30/07/2026",
+                    "titre": "CFAO MOTORS CI : Paiement de dividendes - Exercice 2025",
+                    "url": "https://www.richbourse.com/common/actualite/details/30-07-2026-cfao-motors-ci-paiement-de-dividendes-exercice-2025"
+                },
+                {
+                    "date": "30/07/2026",
+                    "titre": "NESTLE CI : Paiement de dividendes - Exercice 2025",
+                    "url": "https://www.richbourse.com/common/actualite/details/30-07-2026-nestle-ci-paiement-de-dividendes-exercice-2025-2"
+                },
+                {
                     "date": "29/07/2026",
                     "titre": "SITAB CI : Paiement de dividendes - Exercice 2025",
                     "url": "https://www.richbourse.com/common/actualite/details/sitab-ci-paiement-de-dividendes-exercice"
+                },
+                {
+                    "date": "29/07/2026",
+                    "titre": "SONATEL SN : Communiqué - Changement important dans la Direction",
+                    "url": "https://www.richbourse.com/common/actualite/details/sonatel-sn-communique-changement-importa"
                 },
                 {
                     "date": "29/07/2026",
@@ -19,11 +44,6 @@
                     "date": "29/07/2026",
                     "titre": "ETI TG : Rapport d'activités - 1er semestre 2026",
                     "url": "https://www.richbourse.com/common/actualite/details/eti-tg-rapport-d-activites-1er-semestre"
-                },
-                {
-                    "date": "29/07/2026",
-                    "titre": "SONATEL SN : Communiqué - Changement important dans la Direction",
-                    "url": "https://www.richbourse.com/common/actualite/details/sonatel-sn-communique-changement-importa"
                 }
             ]
         },
@@ -52,13 +72,13 @@
                 },
                 {
                     "date": "22/07/2026",
-                    "titre": "ETI TG : Avis de convocation - Assemblée Générale Extraordinaire",
-                    "url": "https://www.richbourse.com/common/actualite/details/22-07-2026-eti-tg-avis-de-convocation-assemblee-generale-extraordinaire"
+                    "titre": "Respect de diffusion d'information financière par les sociétés cotées à la BRVM (Etats financiers 2025 et 1er trimestre 2026)",
+                    "url": "https://www.richbourse.com/common/actualite/details/22-07-2026-respect-de-diffusion-dinformation-financiere-par-les-societes-cotees-a-la-brvm-etats-financiers-2025-et-1er-trimestre-2026"
                 },
                 {
                     "date": "22/07/2026",
-                    "titre": "Respect de diffusion d'information financière par les sociétés cotées à la BRVM (Etats financiers 2025 et 1er trimestre 2026)",
-                    "url": "https://www.richbourse.com/common/actualite/details/22-07-2026-respect-de-diffusion-dinformation-financiere-par-les-societes-cotees-a-la-brvm-etats-financiers-2025-et-1er-trimestre-2026"
+                    "titre": "ETI TG : Avis de convocation - Assemblée Générale Extraordinaire",
+                    "url": "https://www.richbourse.com/common/actualite/details/22-07-2026-eti-tg-avis-de-convocation-assemblee-generale-extraordinaire"
                 },
                 {
                     "date": "22/07/2026",
@@ -92,28 +112,8 @@
             "publications": [
                 {
                     "date": "15/07/2026",
-                    "titre": "BOA NG : Bilan semestriel du contrat de liquidité -1er semestre 2026",
-                    "url": "https://www.richbourse.com/common/actualite/details/15-07-2026-boa-ng-bilan-semestriel-du-contrat-de-liquidite-1er-semestre-2026"
-                },
-                {
-                    "date": "15/07/2026",
-                    "titre": "BOA ML : Bilan semestriel du contrat de liquidité -1er semestre 2026",
-                    "url": "https://www.richbourse.com/common/actualite/details/15-07-2026-boa-ml-bilan-semestriel-du-contrat-de-liquidite-1er-semestre-2026"
-                },
-                {
-                    "date": "15/07/2026",
-                    "titre": "BOA BF : Bilan semestriel du contrat de liquidité -1er semestre 2026",
-                    "url": "https://www.richbourse.com/common/actualite/details/15-07-2026-boa-bf-bilan-semestriel-du-contrat-de-liquidite-1er-semestre-2026"
-                },
-                {
-                    "date": "15/07/2026",
                     "titre": "SITAB CI : Rapport annuel - Exercice 2025",
                     "url": "https://www.richbourse.com/common/actualite/details/15-07-2026-sitab-ci-rapport-annuel-exercice-2025"
-                },
-                {
-                    "date": "15/07/2026",
-                    "titre": "BOA BN : Bilan semestriel du contrat de liquidité -1er semestre 2026",
-                    "url": "https://www.richbourse.com/common/actualite/details/15-07-2026-boa-bn-bilan-semestriel-du-contrat-de-liquidite-1er-semestre-2026"
                 }
             ]
         }
