@@ -1,14 +1,14 @@
 {
-    "last_update": "2026-08-01 04:57:05",
+    "last_update": "2026-08-01 16:26:48",
     "count": 20,
     "weeks": [
         {
             "semaine": "Semaine du 27 Juillet au 02 Août 2026",
             "publications": [
                 {
-                    "date": "30/07/2026",
-                    "titre": "CFAO MOTORS CI : Paiement de dividendes - Exercice 2025",
-                    "url": "https://www.richbourse.com/common/actualite/details/30-07-2026-cfao-motors-ci-paiement-de-dividendes-exercice-2025-2"
+                    "date": "31/07/2026",
+                    "titre": "LNB BN : Rapport d'activités et rapport d'examen limité des Commissaires Aux Comptes- 1er semestre 2026",
+                    "url": "https://www.richbourse.com/common/actualite/details/31-07-2026-lnb-bn-rapport-dactivites-et-rapport-dexamen-limite-des-commissaires-aux-comptes-1er-semestre-2026"
                 },
                 {
                     "date": "30/07/2026",
@@ -19,6 +19,11 @@
                     "date": "30/07/2026",
                     "titre": "CFAO MOTORS CI : Paiement de dividendes - Exercice 2025",
                     "url": "https://www.richbourse.com/common/actualite/details/30-07-2026-cfao-motors-ci-paiement-de-dividendes-exercice-2025"
+                },
+                {
+                    "date": "30/07/2026",
+                    "titre": "CFAO MOTORS CI : Paiement de dividendes - Exercice 2025",
+                    "url": "https://www.richbourse.com/common/actualite/details/30-07-2026-cfao-motors-ci-paiement-de-dividendes-exercice-2025-2"
                 },
                 {
                     "date": "30/07/2026",
@@ -104,16 +109,6 @@
                     "date": "20/07/2026",
                     "titre": "LNB BN : Paiement de dividendes - Exercice 2025",
                     "url": "https://www.richbourse.com/common/actualite/details/20-07-2026-lnb-bn-paiement-de-dividendes-exercice-2025"
-                }
-            ]
-        },
-        {
-            "semaine": "Semaine du 13 Juillet au 19 Juillet 2026",
-            "publications": [
-                {
-                    "date": "15/07/2026",
-                    "titre": "SITAB CI : Rapport annuel - Exercice 2025",
-                    "url": "https://www.richbourse.com/common/actualite/details/15-07-2026-sitab-ci-rapport-annuel-exercice-2025"
                 }
             ]
         }
