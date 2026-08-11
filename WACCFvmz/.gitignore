@@ -1,0 +1,11 @@
+# Artefacts de build PyInstaller (ne jamais versionner : très volumineux)
+build_exe/
+dist/
+dist_output/
+BackUP/
+*.exe
+*.spec
+
+# Caches Python
+__pycache__/
+*.pyc
