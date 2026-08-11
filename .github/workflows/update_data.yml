@@ -12,6 +12,9 @@ permissions:
 jobs:
   scrape:
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: BRVM-Analysis   # Le projet BRVM vit dans ce sous-dossier du repo
 
     steps:
       - name: Checkout repo
