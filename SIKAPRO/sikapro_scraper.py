@@ -117,6 +117,117 @@ def _parse_price(text):
         return None
 
 
+def _extract_fundamentals(text):
+    """Nombre de titres, capitalisation boursière et beta — lus dans le texte de la page."""
+    out = {"nombre_titres": None, "capitalisation_mxof": None, "beta_1an": None}
+    m = re.search(r"Nombre de titres\s*:\s*([\d\s ]+)", text)
+    if m:
+        out["nombre_titres"] = _parse_price(m.group(1))
+    m = re.search(r"Capitalisation\s*:\s*([\d\s ]+)\s*MXOF", text)
+    if m:
+        out["capitalisation_mxof"] = _parse_price(m.group(1))
+    m = re.search(r"BETA 1 AN\s+([\d,\.]+)", text)
+    if m:
+        out["beta_1an"] = _parse_price(m.group(1))
+    return out
+
+
+def _extract_technical(tables):
+    """RSI 14 jours + moyennes mobiles 20/50/200 jours (déjà calculées par SikaFinance)."""
+    out = {"rsi_14": None, "mm_20": None, "mm_50": None, "mm_200": None}
+    for t in tables:
+        tt = t.get_text(" ", strip=True)
+        if "RSI" in tt and "MM 20" in tt:
+            m = re.search(r"RSI 14\s*jours?\s*([\d,\.]+)", tt)
+            if m:
+                out["rsi_14"] = _parse_price(m.group(1))
+            for mm in ("20", "50", "200"):
+                m = re.search(rf"MM {mm}\s*jours?\s*([\d\s ,\.]+?)(?:MM|$)", tt)
+                if m:
+                    out[f"mm_{mm}"] = _parse_price(m.group(1))
+            break
+    return out
+
+
+def _extract_performance(tables):
+    """Performance depuis le 1er janvier (YTD) et sur 1 an, en %."""
+    out = {"perf_ytd_pct": None, "perf_1an_pct": None}
+    for t in tables:
+        tt = t.get_text(" ", strip=True)
+        if "1er janvier" in tt and "%" in tt and "Plus" not in tt:
+            m = re.search(r"1er janvier\s*([+\-][\d,\.]+)%", tt)
+            if m:
+                out["perf_ytd_pct"] = _parse_price(m.group(1))
+            m = re.search(r"1 an\s*([+\-][\d,\.]+)%", tt)
+            if m:
+                out["perf_1an_pct"] = _parse_price(m.group(1))
+            break
+    return out
+
+
+def _extract_consensus(tables):
+    """Consensus des analystes : note /9, recommandation, objectif de cours, potentiel %."""
+    out = {"consensus_note": None, "consensus_reco": None,
+           "objectif_cours": None, "potentiel_pct": None}
+    for t in tables:
+        tt = t.get_text(" ", strip=True)
+        if "consensus" in tt.lower() and "Recommandation" in tt:
+            m = re.search(r"Moyenne consensus\s*([\d,\.]+)\s*/\s*9", tt)
+            if m:
+                out["consensus_note"] = _parse_price(m.group(1))
+            m = re.search(r"Recommandation\s+([A-Za-z ]+?)\s+Nombre", tt)
+            if m:
+                out["consensus_reco"] = m.group(1).strip()
+            m = re.search(r"Pr[eé]vision\s*([\d\s ]+)\s*XOF", tt)
+            if m:
+                out["objectif_cours"] = _parse_price(m.group(1))
+            m = re.search(r"Potentiel\s*([+\-][\d,\.]+)%", tt)
+            if m:
+                out["potentiel_pct"] = _parse_price(m.group(1))
+            break
+    return out
+
+
+def _extract_finance(session, fiche_url):
+    """Onglet FINANCE (/finance/TICKER) : dernier exercice annuel — résultat net,
+    capitaux propres, dette nette, chiffre d'affaires (en MFCFA)."""
+    out = {"resultat_net_annuel": None, "capitaux_propres": None,
+           "dette_nette_annuelle": None, "chiffre_affaires_annuel": None}
+    fin_url = fiche_url.replace("/fiche/", "/finance/")
+    try:
+        resp = session.get(fin_url, timeout=30)
+        resp.raise_for_status()
+    except Exception as e:
+        print(f"[AVERTISSEMENT] Onglet finance indisponible pour {fin_url} : {e}")
+        return out
+
+    soup = BeautifulSoup(resp.text, "html.parser")
+
+    def last_value(patterns, exclude=("croissance", "marge", "%")):
+        """Dans une ligne de tableau dont le libellé matche, renvoie la DERNIÈRE
+        valeur numérique (l'exercice le plus récent)."""
+        for table in soup.find_all("table"):
+            for row in table.find_all("tr"):
+                cells = row.find_all(["th", "td"])
+                if len(cells) < 2:
+                    continue
+                head = cells[0].get_text(" ", strip=True)
+                if any(x in head.lower() for x in exclude):
+                    continue
+                if any(re.search(p, head, re.IGNORECASE) for p in patterns):
+                    for cell in reversed(cells[1:]):
+                        v = _parse_price(cell.get_text(" ", strip=True))
+                        if v is not None:
+                            return v
+        return None
+
+    out["resultat_net_annuel"]     = last_value([r"^R[ée]sultat net"])
+    out["capitaux_propres"]        = last_value([r"Capitaux propres", r"Fonds propres"])
+    out["dette_nette_annuelle"]    = last_value([r"Dette nette"])
+    out["chiffre_affaires_annuel"] = last_value([r"Chiffre d'affaires"])
+    return out
+
+
 def scrape_ticker(session, url):
     """
     Scrape une page de titre sur pro.sikafinance.com.
@@ -167,10 +278,9 @@ def scrape_ticker(session, url):
     #   Header row : [vide/] Plus Haut | Plus bas | Variation
     #   Lignes      : label | val_haut | val_bas | variation
     #   Ligne cible : "1 mois" -> col_index 2 = Plus bas
-    cours_bas_1mois = None
-    cours_bas_1mois_str = None
-    cours_haut_1mois = None
-    cours_haut_1mois_str = None
+    cours_bas_1mois = cours_bas_1mois_str = None
+    cours_haut_1mois = cours_haut_1mois_str = None
+    haut_52sem = bas_52sem = None
 
     tables = soup.find_all("table")
 
@@ -197,25 +307,41 @@ def scrape_ticker(session, url):
                 elif "plus haut" in cell_txt:
                     col_index_haut = i
 
-        # Localiser la ligne "1 mois"
-        # get_text(" ", strip=True) pour reconstruire "1 mois" depuis <td>1<span>mois</span></td>
-        for row in rows:
-            cells = row.find_all(["th", "td"])
-            if not cells:
-                continue
-            label = cells[0].get_text(" ", strip=True).lower()
-            if "1 mois" in label or "1mois" in label:
-                if col_index_bas < len(cells):
-                    raw = cells[col_index_bas].get_text(" ", strip=True)
-                    cours_bas_1mois_str = raw.replace("\xa0", " ").strip()
-                    cours_bas_1mois = _parse_price(cours_bas_1mois_str)
-                if col_index_haut < len(cells):
-                    raw = cells[col_index_haut].get_text(" ", strip=True)
-                    cours_haut_1mois_str = raw.replace("\xa0", " ").strip()
-                    cours_haut_1mois = _parse_price(cours_haut_1mois_str)
-                break
+        # Lecture cellule par cellule des (plus haut, plus bas) pour la ligne recherchée
+        # (robuste aux espaces des milliers, ex. "30 000")
+        def _row_high_low(matches):
+            for row in rows:
+                cells = row.find_all(["th", "td"])
+                if not cells:
+                    continue
+                label = cells[0].get_text(" ", strip=True).lower()
+                if matches(label):
+                    haut = bas = None
+                    if col_index_haut < len(cells):
+                        haut = cells[col_index_haut].get_text(" ", strip=True).replace("\xa0", " ").strip()
+                    if col_index_bas < len(cells):
+                        bas = cells[col_index_bas].get_text(" ", strip=True).replace("\xa0", " ").strip()
+                    return haut, bas
+            return None, None
+
+        # 1 mois (label reconstruit "1 mois" depuis <td>1<span>mois</span></td>)
+        cours_haut_1mois_str, cours_bas_1mois_str = _row_high_low(lambda l: "1 mois" in l or "1mois" in l)
+        cours_haut_1mois = _parse_price(cours_haut_1mois_str)
+        cours_bas_1mois  = _parse_price(cours_bas_1mois_str)
+
+        # 1 an = plus haut / plus bas sur 52 semaines (attention : "1 an" ≠ "3 ans")
+        haut_52sem_str, bas_52sem_str = _row_high_low(lambda l: l.strip() in ("1 an", "1an"))
+        haut_52sem = _parse_price(haut_52sem_str)
+        bas_52sem  = _parse_price(bas_52sem_str)
     else:
         print(f"[AVERTISSEMENT] Table historique introuvable pour {url}")
+
+    # --- Données fondamentales, techniques, performance et consensus ---
+    fundamentals = _extract_fundamentals(full_text)
+    technical    = _extract_technical(tables)
+    performance  = _extract_performance(tables)
+    consensus    = _extract_consensus(tables)
+    finance      = _extract_finance(session, url)
 
     result = {
         "ticker":               ticker,
@@ -224,12 +350,19 @@ def scrape_ticker(session, url):
         "cours_bas_1mois_str":  cours_bas_1mois_str,
         "cours_haut_1mois":     cours_haut_1mois,
         "cours_haut_1mois_str": cours_haut_1mois_str,
+        "haut_52sem":           haut_52sem,
+        "bas_52sem":            bas_52sem,
         "url":                  url,
+        **fundamentals,
+        **technical,
+        **performance,
+        **consensus,
+        **finance,
     }
 
-    status_bas  = cours_bas_1mois_str  if cours_bas_1mois_str  else "N/A"
-    status_haut = cours_haut_1mois_str if cours_haut_1mois_str else "N/A"
-    print(f"[OK] {ticker:10s} | {nom_societe[:35]:35s} | Plus bas 1 mois : {status_bas} | Plus haut 1 mois : {status_haut}")
+    status_bas = cours_bas_1mois_str if cours_bas_1mois_str else "N/A"
+    reco = consensus.get("consensus_reco") or "N/A"
+    print(f"[OK] {ticker:10s} | {nom_societe[:28]:28s} | Bas 1M: {status_bas:>10s} | Reco: {reco}")
     return result
 
 
@@ -260,7 +393,7 @@ def scrape_all():
     with open(OUTPUT_FILE, "w", encoding="utf-8") as f:
         json.dump(output, f, indent=4, ensure_ascii=False)
 
-    print(f"\n[{timestamp}] Terminé : {len(data)} titre(s) traité(s). → sikapro_data.json")
+    print(f"\n[{timestamp}] Termine : {len(data)} titre(s) traite(s). -> sikapro_data.json")
 
 
 if __name__ == "__main__":

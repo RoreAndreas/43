@@ -179,6 +179,33 @@ def fmt_volatilite(val):
     return f"{val:.2f}%"
 
 
+def fmt_mfcfa(val):
+    """Montant en millions FCFA (séparateur espace), ou —."""
+    if val is None or (isinstance(val, float) and pd.isna(val)):
+        return "—"
+    return f"{val:,.0f} MFCFA".replace(",", " ")
+
+
+def fmt_entier(val):
+    if val is None or (isinstance(val, float) and pd.isna(val)):
+        return "—"
+    return f"{val:,.0f}".replace(",", " ")
+
+
+def compute_per(capi, rn):
+    """PER = capitalisation / résultat net annuel (mêmes unités MFCFA). None si non calculable."""
+    if capi and rn and rn > 0:
+        return capi / rn
+    return None
+
+
+def compute_pb(capi, capitaux_propres):
+    """P/B = capitalisation / capitaux propres (valeur de marché / valeur intrinsèque comptable)."""
+    if capi and capitaux_propres and capitaux_propres > 0:
+        return capi / capitaux_propres
+    return None
+
+
 APP_PASSWORD = "alexkakouisnice"
 SESSION_TIMEOUT_SECONDS = 30 * 60
 LOGO_FILE = os.path.join(SCRIPT_DIR, "assets", "logo.png")
@@ -742,6 +769,57 @@ def render_societe_view():
         st.warning("Titre absent de la source BRVM.")
     if sika_item is None:
         st.warning("Titre absent de la source SIKAPRO.")
+
+    # ─── Valorisation : marché vs valeur intrinsèque (fonds propres) ──────────
+    if sika_item:
+        capi   = sika_item.get("capitalisation_mxof")
+        titres = sika_item.get("nombre_titres")
+        rn     = sika_item.get("resultat_net_annuel")
+        cp     = sika_item.get("capitaux_propres")
+        per    = compute_per(capi, rn)
+        pb     = compute_pb(capi, cp)
+
+        st.divider()
+        st.markdown("#### 💰 Valorisation")
+
+        m1, m2, m3, m4 = st.columns(4)
+        m1.metric("Capitalisation (valeur de marché)", fmt_mfcfa(capi))
+        m2.metric("Nombre de titres", fmt_entier(titres))
+        m3.metric("Résultat net annuel", fmt_mfcfa(rn))
+        m4.metric("PER", f"{per:.1f}×" if per is not None else "N/A",
+                  help="Cours rapporté aux bénéfices : capitalisation / résultat net annuel.")
+
+        if capi and cp:
+            st.markdown("##### ⚖️ Valeur de marché vs valeur intrinsèque (fonds propres comptables)")
+            comp_col, ratio_col = st.columns([1.3, 1])
+            with comp_col:
+                comp_df = pd.DataFrame({
+                    "Mesure": ["Valeur de marché", "Valeur intrinsèque (fonds propres)"],
+                    "MFCFA":  [capi, cp],
+                })
+                chart = alt.Chart(comp_df).mark_bar().encode(
+                    x=alt.X("MFCFA:Q", title="MFCFA"),
+                    y=alt.Y("Mesure:N", title=None, sort="-x"),
+                    color=alt.Color("Mesure:N", legend=None,
+                                    scale=alt.Scale(range=["#ff4b4b", "#4b8bff"])),
+                    tooltip=[alt.Tooltip("MFCFA:Q", format=",.0f")],
+                ).properties(height=130)
+                st.altair_chart(chart, use_container_width=True)
+            with ratio_col:
+                st.metric("Ratio P/B (marché / intrinsèque)",
+                          f"{pb:.2f}×" if pb is not None else "N/A")
+                if pb is not None and pb < 1:
+                    st.success(f"**Décote** : le marché valorise l'entreprise "
+                               f"**{(1 - pb) * 100:.0f}% sous** ses fonds propres.")
+                elif pb is not None:
+                    st.info(f"**Prime** : le marché paie **{(pb - 1) * 100:+.0f}%** "
+                            f"au-dessus des fonds propres ({pb:.2f}× la valeur comptable).")
+            st.caption(
+                "Valeur intrinsèque = capitaux propres comptables (actif net de l'entreprise). "
+                "P/B < 1 → potentielle décote sur la valeur des actifs ; "
+                "P/B > 1 → prime que le marché accorde pour la rentabilité/croissance attendue. "
+                "Résultat net & fonds propres : dernier exercice publié (SikaFinance PRO)."
+            )
 
     st.divider()
     st.markdown("#### 📈 Évolution trimestrielle (FY23 → FY26, en mFCFA)")
