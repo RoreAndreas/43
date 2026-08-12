@@ -148,6 +148,19 @@ terme neutralisé.
 calcul dans sa docstring. Rien n'est jamais filtré silencieusement : tous les
 signaux sortent, triés par confiance décroissante.
 
+Attention : la confiance **n'est pas comparable d'une règle à l'autre**, et une
+confiance basse ne veut pas dire « probablement faux » — les signaux de
+cartographie et de cadrage sortent à 0.10-0.30 parce que ce ne sont pas des
+anomalies. Pour l'ordre de travail à adopter, voir le
+[guide de lecture des signaux](GUIDE_lecture_des_signaux.md).
+
+## Interpréter la sortie
+
+[**GUIDE_lecture_des_signaux.md**](GUIDE_lecture_des_signaux.md) explique comment
+lire une sortie : l'ordre de lecture (réserves, puis journal, puis signaux), ce
+que chaque règle prouve et ne prouve pas, les faux positifs typiques de chacune,
+les angles morts de l'outil, et des commandes `jq` de tri prêtes à l'emploi.
+
 ## Pièges techniques traités dans le socle
 
 Chacun a coûté des heures sur un audit réel (32 Mo, 34 onglets, 1,26 M de
