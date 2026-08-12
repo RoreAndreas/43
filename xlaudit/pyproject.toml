@@ -19,6 +19,7 @@ dependencies = [
 
 [project.optional-dependencies]
 dev = ["pytest>=7.0"]
+ui = ["streamlit>=1.40", "pandas>=2.0"]
 
 [project.scripts]
 xlaudit = "xlaudit.cli:app"

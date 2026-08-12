@@ -1,7 +1,8 @@
 # xlaudit
 
-Outil Python en ligne de commande d'aide à l'audit de modèles financiers Excel
-(`.xlsx` / `.xlsm`).
+Outil Python d'aide à l'audit de modèles financiers Excel (`.xlsx` / `.xlsm`),
+utilisable en ligne de commande ou depuis une interface Streamlit où le classeur
+se dépose par glisser-déposer.
 
 ## Ce que fait l'outil, et ce qu'il ne fait pas
 
@@ -30,6 +31,51 @@ pip install -e ".[dev]"
 
 Python 3.11+. Dépendances : `openpyxl`, `pydantic`, `typer`, `rich`, `oletools`,
 `pyyaml`, `networkx`. Pas de pandas dans le socle.
+
+## Interface Streamlit
+
+Pour joindre un classeur depuis le navigateur plutôt que de passer par la ligne
+de commande, double-cliquez sur **`launcher.bat`** (Windows). Il se place dans le
+bon dossier, active l'environnement virtuel, installe les dépendances au premier
+lancement, et ouvre l'interface sur `http://localhost:8501`.
+
+Manuellement :
+
+```bash
+pip install -e ".[ui]"
+streamlit run app.py --server.address localhost
+```
+
+Le modèle est déposé dans la barre latérale, copié dans un dossier temporaire
+pour être lu, et **jamais modifié**. L'empreinte SHA-256 du contenu sert de clef
+de cache : redéposer le même fichier ne relance pas la collecte, et un fichier
+modifié ne peut pas être servi depuis le cache par erreur.
+
+Cinq onglets : **Signaux** (tableau triable, détail chiffré par sélection),
+**Trace** (précédents ou dépendants d'une cellule), **Cartographie** (onglets,
+graphe des dépendances, circularités, noms définis, VBA), **Bouclages**
+(discover → édition du mapping → validation → écarts) et **Export** (JSON,
+Markdown, classeur de constats, journal d'exécution).
+
+Le curseur « confiance minimale affichée » ne filtre **que l'affichage** : les
+exports contiennent toujours l'intégralité des signaux.
+
+> **Confidentialité.** Streamlit écoute par défaut sur toutes les interfaces
+> réseau et affiche une URL externe. Pour un modèle financier confidentiel,
+> lancez-le avec `--server.address localhost`. Le classeur reste par ailleurs
+> dans le dossier temporaire du système jusqu'à son nettoyage.
+
+Un classeur de plus de 200 Mo nécessite de relever la limite de dépôt, dans
+`.streamlit/config.toml` :
+
+```toml
+[server]
+maxUploadSize = 500
+```
+
+La logique de l'interface vit dans [xlaudit/ui.py](xlaudit/ui.py) et non dans
+`app.py` : un script Streamlit ne s'importe pas — `st.stop()` n'a aucun effet
+hors du moteur d'exécution — donc y laisser la logique la rendrait intestable.
 
 ## Commandes
 
@@ -292,7 +338,7 @@ sont ceux de sa nature.
 pytest
 ```
 
-241 tests. Deux classeurs de fixtures de même mise en page sont construits par
+264 tests. Deux classeurs de fixtures de même mise en page sont construits par
 `openpyxl` : un sain et un portant une anomalie de chaque type recherché. Chaque
 règle doit détecter son anomalie **et ne rien détecter dans le classeur sain** —
 le test de non-détection compte autant que l'autre.
@@ -305,8 +351,11 @@ chiffreur d'écart intestables.
 
 ```
 xlaudit/
+├── launcher.bat              # lanceur Windows de l'interface
+├── app.py                    # interface Streamlit (mise en page seule)
 ├── cli.py                    # Typer
 ├── models.py                 # Signal, Finding, Reserve, RunLog, AuditContext
+├── ui.py                     # couche de donnees de l'interface Streamlit
 ├── core/
 │   ├── loader.py             # double chargement, itération sûre, cache disque
 │   ├── refs.py               # références, ancrages, A1↔R1C1, fonctions
