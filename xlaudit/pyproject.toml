@@ -1,0 +1,31 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "xlaudit"
+version = "0.6.0"
+description = "Aide a l'audit de modeles financiers Excel : production de signaux verifiables, chiffres et traces"
+requires-python = ">=3.11"
+dependencies = [
+    "openpyxl>=3.1",
+    "pydantic>=2.0",
+    "typer>=0.9",
+    "rich>=13.0",
+    "oletools>=0.60",
+    "pyyaml>=6.0",
+    "networkx>=3.0",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=7.0"]
+
+[project.scripts]
+xlaudit = "xlaudit.cli:app"
+
+[tool.setuptools.packages.find]
+include = ["xlaudit*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+filterwarnings = ["ignore::DeprecationWarning"]

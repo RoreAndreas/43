@@ -1,0 +1,18 @@
+periodes:
+  sheet: "Etats fi periode"
+  ligne_index: 10
+  ligne_date: 9
+  colonnes: "O:T"
+bilan:
+  actif_total: {sheet: "Etats fi periode", row: 20}
+  passif_total: {sheet: "Etats fi periode", row: 30}
+  tresorerie: {sheet: "Etats fi periode", row: 15}
+cascade:
+  solde_cloture: {sheet: "Etats fi periode", row: 40}
+  solde_ouverture: {sheet: "Etats fi periode", row: 41}
+non_negatif:
+  - {sheet: "Etats fi periode", row: 15}
+tolerances:
+  bilan: 1.0e-6
+  cascade: 1.0e-6
+  continuite: 1.0e-6
