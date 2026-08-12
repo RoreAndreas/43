@@ -180,6 +180,110 @@ class TestTies:
                 sheet.values[(15, 17)] = original
 
 
+class TestPeriodeAnnuel:
+    """Flux et stocks ne s'agregent pas de la meme facon : le confondre est
+    l'erreur classique, donc les deux regles sont eprouvees separement."""
+
+    @staticmethod
+    def _build(tmp_path, flux_annuel, stock_annuel):
+        """Deux ans de quatre trimestres, plus une vue annuelle."""
+        from .fixtures import FixtureBuilder
+        from xlaudit.core import loader as L
+        from xlaudit.core.graph import build_graph
+
+        b = FixtureBuilder()
+        # Vue periodique : colonnes B..I (2 ans x 4 trimestres).
+        for i in range(8):
+            col = 2 + i
+            b.cell("Periodes", 1, col, None, (i // 4) + 1)  # annee
+            b.cell("Periodes", 2, col, None, 10.0)          # flux : 10 par trimestre
+            b.cell("Periodes", 3, col, None, float(100 + i))  # stock : croissant
+        b.text("Periodes", 2, 1, "Chiffre d'affaires")
+        b.text("Periodes", 3, 1, "Encours")
+        # Vue annuelle : colonnes B..C.
+        b.text("Annuel", 10, 1, "Chiffre d'affaires")
+        b.text("Annuel", 20, 1, "Encours")
+        for y, (flux, stock) in enumerate([(40.0, 103.0), (flux_annuel, stock_annuel)]):
+            b.cell("Annuel", 10, 2 + y, None, flux)
+            b.cell("Annuel", 20, 2 + y, None, stock)
+        path = b.save(tmp_path / "annuel.xlsx")
+        snap = L.collect(path)
+        return AuditContext(snapshot=snap, graph=build_graph(snap))
+
+    @staticmethod
+    def _mapping():
+        return MappingModel.model_validate(
+            {
+                "periodes": {"sheet": "Periodes", "ligne_index": 1, "colonnes": "B:I"},
+                "annuel": {
+                    "sheet": "Annuel",
+                    "colonnes": "B:C",
+                    "flux": {"ca": {"periode_row": 2, "annuel_row": 10}},
+                    "stocks": {"encours": {"periode_row": 3, "annuel_row": 20}},
+                },
+                "non_negatif": [{"sheet": "Periodes", "row": 2}],
+            }
+        )
+
+    def test_consistent_views_produce_no_signal(self, tmp_path):
+        # Annee 2 : flux = 4 x 10 = 40 ; stock = derniere periode = 107.
+        ctx = self._build(tmp_path, flux_annuel=40.0, stock_annuel=107.0)
+        mapping = self._mapping()
+        validate_mapping(ctx.snapshot, mapping)
+        ctx.mapping = mapping
+        signals = [
+            s for s in R301Ties().run(ctx)
+            if str(s.evidence.get("controle", "")).startswith("periode_annuel")
+        ]
+        assert signals == [], [(s.label, s.note) for s in signals]
+
+    def test_flux_is_compared_to_the_sum_of_periods(self, tmp_path):
+        ctx = self._build(tmp_path, flux_annuel=35.0, stock_annuel=107.0)
+        mapping = self._mapping()
+        validate_mapping(ctx.snapshot, mapping)
+        ctx.mapping = mapping
+        signals = [
+            s for s in R301Ties().run(ctx)
+            if s.evidence.get("controle") == "periode_annuel_flux"
+        ]
+        assert len(signals) == 1
+        detail = signals[0].evidence["detail"][0]
+        assert detail["agrege_periodes"] == pytest.approx(40.0)
+        assert detail["vue_annuelle"] == pytest.approx(35.0)
+        assert "somme des periodes" in signals[0].evidence["regle_appliquee"]
+
+    def test_stock_is_compared_to_the_last_period(self, tmp_path):
+        """Sommer un stock donnerait 4 x 100 : la regle doit prendre la derniere."""
+        ctx = self._build(tmp_path, flux_annuel=40.0, stock_annuel=104.0)
+        mapping = self._mapping()
+        validate_mapping(ctx.snapshot, mapping)
+        ctx.mapping = mapping
+        signals = [
+            s for s in R301Ties().run(ctx)
+            if s.evidence.get("controle") == "periode_annuel_stocks"
+        ]
+        assert len(signals) == 1
+        detail = signals[0].evidence["detail"][0]
+        assert detail["agrege_periodes"] == pytest.approx(107.0)
+        assert "derniere periode" in signals[0].evidence["regle_appliquee"]
+
+    def test_period_and_annual_rows_are_distinct_fields(self):
+        """Les deux lignes doivent etre nommees separement.
+
+        Rien ne garantit qu'une grandeur occupe le meme numero de ligne des deux
+        cotes ; un schema qui n'en demanderait qu'une comparerait une ligne a
+        elle-meme.
+        """
+        with pytest.raises(ValidationError):
+            MappingModel.model_validate(
+                {
+                    "periodes": {"sheet": "P", "ligne_index": 1, "colonnes": "B:C"},
+                    "annuel": {"sheet": "A", "colonnes": "B:C", "flux": {"ca": 10}},
+                    "non_negatif": [{"sheet": "P", "row": 2}],
+                }
+            )
+
+
 class TestDiscover:
     def test_normalisation_strips_accents_and_case(self):
         assert normalise("Trésorerie  d'OUVERTURE") == "tresorerie d ouverture"

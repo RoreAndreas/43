@@ -259,6 +259,17 @@ cascade:
 dettes:
   - {nom: "KfW", sheet: "Financement", crd_debut: 100, tirage: 101,
      remb: 102, crd_fin: 105, taux_periode: 0.0275}
+annuel:
+  sheet: "Etats fi annuel"
+  colonnes: "D:X"
+  # Un flux annuel doit égaler la somme des périodes de l'année ;
+  # un stock annuel, le stock de la dernière période. Les deux lignes sont
+  # nommées séparément : rien ne garantit qu'une grandeur occupe le même
+  # numéro de ligne des deux côtés.
+  flux:
+    chiffre_affaires: {periode_row: 42, annuel_row: 18}
+  stocks:
+    dette_nette: {periode_row: 233, annuel_row: 96}
 tolerances:
   bilan: 1.0e-6
   interets_relatif: 0.005
@@ -281,7 +292,7 @@ sont ceux de sa nature.
 pytest
 ```
 
-237 tests. Deux classeurs de fixtures de même mise en page sont construits par
+241 tests. Deux classeurs de fixtures de même mise en page sont construits par
 `openpyxl` : un sain et un portant une anomalie de chaque type recherché. Chaque
 règle doit détecter son anomalie **et ne rien détecter dans le classeur sain** —
 le test de non-détection compte autant que l'autre.

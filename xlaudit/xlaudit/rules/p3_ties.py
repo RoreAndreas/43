@@ -415,25 +415,27 @@ class TiesEngine:
         tol = self.mapping.tolerances.periode_annuel
         out: list[Signal] = []
         annual_cols = _annual_columns(annuel)
+        if not annual_cols:
+            self.skipped.append(
+                "periode/annuel : les colonnes de la vue annuelle ne sont pas declarees"
+            )
+            return []
         for kind, rows in (("flux", annuel.flux), ("stocks", annuel.stocks)):
-            for name, period_row in rows.items():
-                signal = self._compare_annual(
-                    kind, name, period_row, years, annual_cols, tol
-                )
+            for name, link in rows.items():
+                signal = self._compare_annual(kind, name, link, years, annual_cols, tol)
                 if signal:
                     out.append(signal)
         return out
 
-    def _compare_annual(self, kind, name, period_row, years, annual_cols, tol):
+    def _compare_annual(self, kind, name, link, years, annual_cols, tol):
         annuel = self.mapping.annuel
+        period_row, annual_row = link.periode_row, link.annuel_row
         period_series = self.row_series(self.mapping.periodes.sheet, period_row, name)
-        if period_series is None or not annual_cols:
+        if period_series is None:
             return None
         annual_sheet = self.snap.sheet(annuel.sheet)
         if annual_sheet is None:
-            return None
-        annual_row = annuel.flux.get(name) if kind == "flux" else annuel.stocks.get(name)
-        if annual_row is None:
+            self.skipped.append(f"periode/annuel : onglet {annuel.sheet} introuvable")
             return None
 
         gaps = []

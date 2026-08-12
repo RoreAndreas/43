@@ -104,16 +104,36 @@ class Immobilisations(BaseModel):
     net: Located | None = None
 
 
+class AnnualSeries(BaseModel):
+    """Une grandeur presente des deux cotes : par periode, et par annee.
+
+    Les deux lignes doivent etre nommees. Une seule ne suffirait pas : rien ne
+    garantit qu'une grandeur occupe le meme numero de ligne sur l'onglet
+    periodique et sur l'onglet annuel.
+    """
+
+    model_config = ConfigDict(extra="forbid")
+
+    periode_row: int = Field(ge=1, le=R.MAX_ROW)
+    annuel_row: int = Field(ge=1, le=R.MAX_ROW)
+
+
 class Annuel(BaseModel):
-    """Correspondance entre la vue par periode et la vue annuelle."""
+    """Correspondance entre la vue par periode et la vue annuelle.
+
+    `flux` et `stocks` ne se controlent pas de la meme facon : un flux annuel
+    doit egaler la **somme** des periodes de l'annee, un stock annuel doit egaler
+    le stock de la **derniere** periode de l'annee. Les confondre est une source
+    classique d'erreur, d'ou deux rubriques distinctes.
+    """
 
     model_config = ConfigDict(extra="forbid")
 
     sheet: str
     ligne_index: int | None = Field(default=None, ge=1)
     colonnes: str | None = None
-    flux: dict[str, int] = Field(default_factory=dict)
-    stocks: dict[str, int] = Field(default_factory=dict)
+    flux: dict[str, AnnualSeries] = Field(default_factory=dict)
+    stocks: dict[str, AnnualSeries] = Field(default_factory=dict)
 
 
 class Tolerances(BaseModel):
