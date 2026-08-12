@@ -1,0 +1,388 @@
+"""Graphe de dependances cellule / ligne / onglet.
+
+Choix d'echelle : le graphe principal est construit au grain de la **ligne**.
+Sur un classeur de 1,26 M de formules, un graphe au grain de la cellule avec
+expansion des plages produirait des centaines de millions d'aretes. Or la
+question posee par les regles est presque toujours au grain de la ligne
+(« qui consomme cette ligne ? », « cette ligne a-t-elle un dependant ? »), et
+c'est aussi la granularite du champ `consumers` d'un signal.
+
+Le grain cellule reste disponible a la demande pour `trace`, qui ne porte que sur
+quelques cellules : les precedents sont relus dans la formule, les dependants
+sont cherches parmi les seules lignes consommatrices connues du graphe de lignes.
+
+Les plages tres hautes (`A:A`, `A1:A100000`) ne sont pas expansees arete par
+arete : elles sont enregistrees comme intervalles de consommation, interroges par
+`is_consumed`. Sans cela une ligne citee par un `SOMME(A:A)` passerait pour
+orpheline.
+"""
+
+from __future__ import annotations
+
+from bisect import bisect_right
+from dataclasses import dataclass, field
+from typing import Callable, Iterator
+
+import networkx as nx
+
+from . import refs as R
+from .loader import Snapshot
+
+ProgressCb = Callable[[str, int, int], None]
+
+# Au-dela, une plage est traitee comme intervalle plutot que comme paquet d'aretes.
+BULK_ROW_THRESHOLD = 500
+
+
+def node_name(sheet: str, row: int) -> str:
+    return f"{sheet}!{row}"
+
+
+@dataclass
+class CellNode:
+    """Un maillon d'une trace, avec de quoi juger sans rouvrir le classeur."""
+
+    sheet: str
+    row: int
+    col: int
+    formula: str | None
+    value: object
+    label: str = ""
+    depth: int = 0
+    children: list["CellNode"] = field(default_factory=list)
+    truncated: bool = False
+    note: str = ""
+
+    @property
+    def ref(self) -> str:
+        return f"{R.index_to_col(self.col)}{self.row}"
+
+    @property
+    def full_ref(self) -> str:
+        return f"{self.sheet}!{self.ref}"
+
+    def to_dict(self) -> dict:
+        from ..models import _jsonable
+
+        return {
+            "ref": self.full_ref,
+            "label": self.label,
+            "formula": self.formula,
+            "value": _jsonable(self.value),
+            "depth": self.depth,
+            "truncated": self.truncated,
+            "note": self.note,
+            "children": [c.to_dict() for c in self.children],
+        }
+
+
+class _IntervalSet:
+    """Ensemble d'intervalles de lignes, interroge par appartenance.
+
+    Utilise pour les plages trop hautes pour etre expansees en aretes.
+    """
+
+    def __init__(self) -> None:
+        self._raw: list[tuple[int, int]] = []
+        self._starts: list[int] = []
+        self._ends: list[int] = []
+        self._dirty = True
+
+    def add(self, lo: int, hi: int) -> None:
+        self._raw.append((lo, hi))
+        self._dirty = True
+
+    def _compact(self) -> None:
+        if not self._dirty:
+            return
+        merged: list[tuple[int, int]] = []
+        for lo, hi in sorted(self._raw):
+            if merged and lo <= merged[-1][1] + 1:
+                merged[-1] = (merged[-1][0], max(merged[-1][1], hi))
+            else:
+                merged.append((lo, hi))
+        self._raw = merged
+        self._starts = [a for a, _ in merged]
+        self._ends = [b for _, b in merged]
+        self._dirty = False
+
+    def contains(self, row: int) -> bool:
+        self._compact()
+        if not self._starts:
+            return False
+        i = bisect_right(self._starts, row) - 1
+        return i >= 0 and row <= self._ends[i]
+
+    def __bool__(self) -> bool:
+        self._compact()
+        return bool(self._raw)
+
+
+class DependencyGraph:
+    """Graphe de lignes, plus les services de trace au grain cellule."""
+
+    def __init__(self, snapshot: Snapshot) -> None:
+        self.snapshot = snapshot
+        self.row_graph = nx.DiGraph()
+        self.sheet_graph = nx.DiGraph()
+        # Lignes citees par une plage trop haute pour etre expansee.
+        self.bulk_consumed: dict[str, _IntervalSet] = {}
+        # Lignes citees par une reference dont l'onglet est introuvable.
+        self.unresolved_refs: list[tuple[str, int, int, str]] = []
+        self.external_refs: set[str] = set()
+        self._built = False
+
+    # -- construction ------------------------------------------------------
+    def build(self, progress: ProgressCb | None = None) -> "DependencyGraph":
+        snap = self.snapshot
+        sheets = list(snap.sheets.values())
+        total = sum(len(s.formulas) for s in sheets) or 1
+        done = 0
+
+        for sheet in sheets:
+            self.sheet_graph.add_node(sheet.name)
+            for (row, col), formula in sheet.formulas.items():
+                done += 1
+                if progress and done % 5000 == 0:
+                    progress("graphe", done, total)
+                consumer = (sheet.name, row)
+                self.row_graph.add_node(consumer)
+                for ref in R.extract_refs(formula, default_sheet=sheet.name):
+                    self._add_edge(sheet.name, row, col, ref)
+
+        if progress:
+            progress("graphe", total, total)
+        self._built = True
+        return self
+
+    def _add_edge(self, sheet_name: str, row: int, col: int, ref: R.RangeRef) -> None:
+        target_sheet = ref.sheet or sheet_name
+        if target_sheet.startswith("["):
+            self.external_refs.add(target_sheet)
+            return
+        src = self.snapshot.sheet(target_sheet)
+        if src is None:
+            self.unresolved_refs.append((sheet_name, row, col, ref.a1))
+            return
+        canonical = src.name
+        consumer = (sheet_name, row)
+
+        lo = ref.min_row
+        hi = min(ref.max_row, max(src.max_row, 1))
+        if hi < lo:
+            return
+
+        if (hi - lo + 1) > BULK_ROW_THRESHOLD:
+            self.bulk_consumed.setdefault(canonical, _IntervalSet()).add(lo, hi)
+            self.sheet_graph.add_edge(canonical, sheet_name)
+            return
+
+        for r in range(lo, hi + 1):
+            producer = (canonical, r)
+            if producer == consumer:
+                continue  # auto-reference : traitee par `self_referencing_rows`
+            self.row_graph.add_edge(producer, consumer)
+        if canonical != sheet_name:
+            self.sheet_graph.add_edge(canonical, sheet_name)
+
+    # -- interrogation -----------------------------------------------------
+    def consumers_of_row(self, sheet: str, row: int, limit: int = 40) -> list[str]:
+        """Lignes qui consomment (sheet, row), en 'Onglet!ligne'."""
+        node = (sheet, row)
+        if node not in self.row_graph:
+            return []
+        out = [node_name(s, r) for s, r in self.row_graph.successors(node)]
+        out.sort()
+        return out[:limit]
+
+    def precedents_of_row(self, sheet: str, row: int, limit: int = 40) -> list[str]:
+        node = (sheet, row)
+        if node not in self.row_graph:
+            return []
+        out = [node_name(s, r) for s, r in self.row_graph.predecessors(node)]
+        out.sort()
+        return out[:limit]
+
+    def consumer_count(self, sheet: str, row: int) -> int:
+        node = (sheet, row)
+        if node not in self.row_graph:
+            return 0
+        return self.row_graph.out_degree(node)
+
+    def is_consumed(self, sheet: str, row: int) -> bool:
+        """Vrai si la ligne est lue par au moins une formule.
+
+        Prend en compte les plages trop hautes pour avoir ete expansees : sans
+        cela, une ligne citee par `SOMME(A:A)` serait declaree orpheline a tort.
+        """
+        if self.consumer_count(sheet, row) > 0:
+            return True
+        iv = self.bulk_consumed.get(sheet)
+        return bool(iv and iv.contains(row))
+
+    def self_referencing_rows(self) -> list[tuple[str, int]]:
+        """Lignes qui se citent elles-memes : circularite assumee ou accident."""
+        out = []
+        for sheet in self.snapshot.sheets.values():
+            for (row, col), formula in sheet.formulas.items():
+                for ref in R.extract_refs(formula, default_sheet=sheet.name):
+                    tgt = ref.sheet or sheet.name
+                    s = self.snapshot.sheet(tgt)
+                    if s and s.name == sheet.name and ref.min_row <= row <= ref.max_row:
+                        if ref.min_col <= col <= ref.max_col:
+                            out.append((sheet.name, row))
+                            break
+        return sorted(set(out))
+
+    def cycles(self, max_cycles: int = 50) -> list[list[str]]:
+        """Composantes fortement connexes du graphe de lignes, de taille > 1.
+
+        On ne cherche pas les cycles elementaires (`simple_cycles` est
+        exponentiel sur un modele reel) : une composante fortement connexe suffit
+        a localiser une boucle de calcul.
+        """
+        out: list[list[str]] = []
+        for comp in nx.strongly_connected_components(self.row_graph):
+            if len(comp) > 1:
+                out.append(sorted(node_name(s, r) for s, r in comp))
+                if len(out) >= max_cycles:
+                    break
+        return out
+
+    def sheet_cycles(self) -> list[list[str]]:
+        out = []
+        for comp in nx.strongly_connected_components(self.sheet_graph):
+            if len(comp) > 1:
+                out.append(sorted(comp))
+        return out
+
+    # -- grain cellule (a la demande) --------------------------------------
+    def _cell_precedents(self, sheet: str, row: int, col: int) -> list[tuple[str, int, int]]:
+        snap = self.snapshot
+        formula = snap.formula(sheet, row, col)
+        if not formula:
+            return []
+        out: list[tuple[str, int, int]] = []
+        seen: set[tuple[str, int, int]] = set()
+        for ref in R.extract_refs(formula, default_sheet=sheet):
+            tgt = snap.sheet(ref.sheet or sheet)
+            if tgt is None:
+                continue
+            hi_r = min(ref.max_row, tgt.max_row)
+            hi_c = min(ref.max_col, tgt.max_col)
+            for r in range(ref.min_row, hi_r + 1):
+                for c in range(ref.min_col, hi_c + 1):
+                    if not tgt.has_content(r, c):
+                        continue
+                    key = (tgt.name, r, c)
+                    if key in seen:
+                        continue
+                    seen.add(key)
+                    out.append(key)
+                    if len(out) > 400:
+                        return out
+        return out
+
+    def _cell_dependents(self, sheet: str, row: int, col: int) -> list[tuple[str, int, int]]:
+        """Cellules dont la formule cite reellement (sheet, row, col).
+
+        Les candidats sont restreints aux lignes consommatrices connues du graphe
+        de lignes, puis verifies par relecture de la formule : le graphe de lignes
+        est volontairement grossier, la verification retablit la precision.
+        """
+        snap = self.snapshot
+        out: list[tuple[str, int, int]] = []
+        candidates = set(self.row_graph.successors((sheet, row))) if (sheet, row) in self.row_graph else set()
+        # Les plages en masse ne sont pas dans le graphe : on ajoute les onglets
+        # concernes en entier seulement si la ligne y figure.
+        for tgt_sheet, iv in self.bulk_consumed.items():
+            if tgt_sheet == sheet and iv.contains(row):
+                for other in snap.sheets.values():
+                    candidates.update((other.name, r) for r in {rr for (rr, _c) in other.formulas})
+                break
+
+        for csheet, crow in candidates:
+            s = snap.sheet(csheet)
+            if s is None:
+                continue
+            for (r, c), formula in s.formulas.items():
+                if r != crow:
+                    continue
+                if self._formula_hits(formula, csheet, sheet, row, col):
+                    out.append((s.name, r, c))
+                    if len(out) > 400:
+                        return out
+        return out
+
+    @staticmethod
+    def _formula_hits(formula: str, host_sheet: str, sheet: str, row: int, col: int) -> bool:
+        for ref in R.extract_refs(formula, default_sheet=host_sheet):
+            if (ref.sheet or host_sheet).lower() != sheet.lower():
+                continue
+            if ref.min_row <= row <= ref.max_row and ref.min_col <= col <= ref.max_col:
+                return True
+        return False
+
+    def trace(
+        self,
+        sheet: str,
+        row: int,
+        col: int,
+        depth: int = 3,
+        direction: str = "up",
+        _seen: set | None = None,
+        _level: int = 0,
+    ) -> CellNode:
+        """Remontee (`up`) ou descente (`down`) recursive des dependances.
+
+        Chaque maillon porte sa formule et sa valeur : la trace se lit sans
+        rouvrir le classeur.
+        """
+        snap = self.snapshot
+        s = snap.sheet(sheet)
+        canonical = s.name if s else sheet
+        node = CellNode(
+            sheet=canonical,
+            row=row,
+            col=col,
+            formula=snap.formula(canonical, row, col),
+            value=snap.value(canonical, row, col),
+            label=snap.row_label(canonical, row),
+            depth=_level,
+        )
+        if _seen is None:
+            _seen = set()
+        key = (canonical, row, col)
+        if key in _seen:
+            node.note = "deja visite (boucle)"
+            node.truncated = True
+            return node
+        _seen.add(key)
+        if _level >= depth:
+            has_more = bool(
+                self._cell_precedents(canonical, row, col)
+                if direction == "up"
+                else self._cell_dependents(canonical, row, col)
+            )
+            node.truncated = has_more
+            if has_more:
+                node.note = "profondeur maximale atteinte"
+            return node
+
+        children = (
+            self._cell_precedents(canonical, row, col)
+            if direction == "up"
+            else self._cell_dependents(canonical, row, col)
+        )
+        for csheet, crow, ccol in children[:60]:
+            node.children.append(
+                self.trace(csheet, crow, ccol, depth, direction, _seen, _level + 1)
+            )
+        if len(children) > 60:
+            node.truncated = True
+            node.note = f"{len(children)} dependances, 60 affichees"
+        return node
+
+
+def build_graph(snapshot: Snapshot, progress: ProgressCb | None = None) -> DependencyGraph:
+    return DependencyGraph(snapshot).build(progress=progress)
