@@ -333,10 +333,6 @@ def build_model(path: str | Path, faulty: bool) -> Path:
     b.text(S, 49, 1, "Impasse de tresorerie")
     for p in range(N_PER):
         b.cell(S, 49, col(p), f"={letter(p)}18-{letter(p)}16", _marge(p) - _total_charges(p))
-    if not faulty:
-        # Dans le classeur sain, l'impasse est consommee : le canal est branche.
-        b.text(S, 53, 1, "Synthese")
-        b.cell(S, 53, 4, "=SUM(D49:I49)", sum(_marge(p) - _total_charges(p) for p in range(N_PER)))
 
     # -- R202 haute confiance : ligne de controle --------------------------
     b.text(S, 55, 1, "Controle equilibre")
@@ -363,6 +359,20 @@ def build_model(path: str | Path, faulty: bool) -> Path:
     if faulty:
         b.text(S, 59, 1, "Poste supprime")
         b.cell(S, 59, 4, "=#REF!*2", "#REF!")
+    else:
+        # Dans le classeur sain, les canaux sont branches : l'impasse de
+        # tresorerie, le controle d'equilibre et le ratio de couverture
+        # alimentent une ligne de restitution. Le libelle de celle-ci est
+        # volontairement neutre pour qu'elle ne soit pas elle-meme lue comme un
+        # mecanisme debranche.
+        b.text(S, 61, 1, "Tableau de bord")
+        b.cell(
+            S, 61, 4,
+            "=SUM(D49:I49)+SUM(D55:I55)+SUM(D57:I57)",
+            sum(_marge(p) - _total_charges(p) for p in range(N_PER))
+            + 0.0
+            + sum(_marge(p) / (100 + 10 * p) for p in range(N_PER)),
+        )
 
     _build_ties_sheet(b, faulty)
     return b.save(path)
@@ -409,26 +419,43 @@ def _build_ties_sheet(b: FixtureBuilder, faulty: bool) -> None:
 
     b.text(S, 15, 1, "Tresorerie")
     b.text(S, 20, 1, "Total actif")
+    b.text(S, 21, 1, "Autres actifs")
     b.text(S, 30, 1, "Total passif")
+    b.text(S, 31, 1, "Capitaux propres")
+    b.text(S, 32, 1, "Dettes financieres")
     b.text(S, 40, 1, "Solde de cloture")
     b.text(S, 41, 1, "Solde d'ouverture")
+    b.text(S, 42, 1, "Variation de tresorerie")
 
     for p in range(n):
         c = col(p)
         letter = index_to_col(c)
         tresorerie = 1000.0 + 100.0 * p
-        actif = 5000.0 + 250.0 * p
-        passif = actif + (0.01 if (faulty and p == 3) else 0.0)
+        autres = 4000.0 + 250.0 * p
+        capitaux = 3000.0 + 200.0 * p
+        # Le desequilibre plante vaut un centime, sur une seule periode.
+        dettes = 2000.0 + 150.0 * p + (0.01 if (faulty and p == 3) else 0.0)
+
         b.cell(S, 15, c, None, tresorerie)
-        b.cell(S, 20, c, f"=3000+2000+{letter}15-{letter}15+{2000 + 250 * p}", actif)
-        b.cell(S, 30, c, None, passif)
-        # Cascade de tresorerie : le solde de cloture doit egaler la tresorerie du bilan.
-        b.cell(S, 40, c, f"={letter}15", tresorerie)
+        b.cell(S, 21, c, None, autres)
+        b.cell(S, 31, c, None, capitaux)
+        b.cell(S, 32, c, None, dettes)
+        b.cell(S, 20, c, f"={letter}15+{letter}21", tresorerie + autres)
+        b.cell(S, 30, c, f"={letter}31+{letter}32", capitaux + dettes)
+
+        # Cascade de tresorerie : ouverture + variation = cloture, et le solde de
+        # cloture doit egaler la tresorerie du bilan. Le solde d'ouverture reprend
+        # la cloture de la periode precedente, de sorte que le canal soit branche
+        # de bout en bout — un modele sain n'a pas de maillon orphelin ici.
+        ouverture = 0.0 if p == 0 else 1000.0 + 100.0 * (p - 1)
+        variation = tresorerie - ouverture
         if p == 0:
-            b.cell(S, 41, c, None, 0.0)
+            b.cell(S, 41, c, None, ouverture)
         else:
             prev = index_to_col(col(p - 1))
-            b.cell(S, 41, c, f"={prev}40", 1000.0 + 100.0 * (p - 1))
+            b.cell(S, 41, c, f"={prev}40", ouverture)
+        b.cell(S, 42, c, None, variation)
+        b.cell(S, 40, c, f"={letter}41+{letter}42", tresorerie)
 
 
 def build_healthy(path: str | Path) -> Path:

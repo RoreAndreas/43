@@ -177,11 +177,23 @@ class DependencyGraph:
             self.sheet_graph.add_edge(canonical, sheet_name)
             return
 
+        # Une arete est « decalee » quand la formule ne lit que des colonnes
+        # strictement a sa gauche : c'est le motif « solde d'ouverture = solde de
+        # cloture de la periode precedente ». Au grain de la ligne, une telle
+        # recurrence temporelle ressemble a un cycle alors qu'elle n'en est pas
+        # un. L'attribut permet de les distinguer sans perdre l'information.
+        lagged = ref.max_col < col
         for r in range(lo, hi + 1):
             producer = (canonical, r)
             if producer == consumer:
                 continue  # auto-reference : traitee par `self_referencing_rows`
-            self.row_graph.add_edge(producer, consumer)
+            existing = self.row_graph.get_edge_data(producer, consumer)
+            if existing is None:
+                self.row_graph.add_edge(producer, consumer, lagged=lagged)
+            elif not lagged:
+                # Une seule reference en meme colonne suffit a rendre l'arete
+                # instantanee : le decalage doit valoir pour toutes.
+                existing["lagged"] = False
         if canonical != sheet_name:
             self.sheet_graph.add_edge(canonical, sheet_name)
 
@@ -234,20 +246,54 @@ class DependencyGraph:
                             break
         return sorted(set(out))
 
+    def _components(self, max_components: int) -> tuple[list[list[str]], list[list[str]]]:
+        """Separe les vraies circularites des recurrences temporelles.
+
+        Une composante fortement connexe du graphe de lignes qui se dissout des
+        qu'on retire les aretes decalees d'une periode n'est pas une circularite :
+        c'est une chronique, ou chaque periode lit la precedente. Les signaler
+        comme des cycles noierait les vraies boucles sous le bruit, puisque tout
+        modele financier enchaine ainsi ses soldes.
+        """
+        instantaneous = nx.DiGraph()
+        instantaneous.add_nodes_from(self.row_graph.nodes)
+        instantaneous.add_edges_from(
+            (u, v) for u, v, data in self.row_graph.edges(data=True)
+            if not data.get("lagged", False)
+        )
+
+        real: list[list[str]] = []
+        temporal: list[list[str]] = []
+        for comp in nx.strongly_connected_components(self.row_graph):
+            if len(comp) <= 1:
+                continue
+            names = sorted(node_name(s, r) for s, r in comp)
+            sub = instantaneous.subgraph(comp)
+            if any(len(c) > 1 for c in nx.strongly_connected_components(sub)):
+                real.append(names)
+            else:
+                temporal.append(names)
+            if len(real) + len(temporal) >= max_components:
+                break
+        return real, temporal
+
     def cycles(self, max_cycles: int = 50) -> list[list[str]]:
-        """Composantes fortement connexes du graphe de lignes, de taille > 1.
+        """Circularites reelles : composantes qui subsistent sans les aretes decalees.
 
         On ne cherche pas les cycles elementaires (`simple_cycles` est
         exponentiel sur un modele reel) : une composante fortement connexe suffit
         a localiser une boucle de calcul.
         """
-        out: list[list[str]] = []
-        for comp in nx.strongly_connected_components(self.row_graph):
-            if len(comp) > 1:
-                out.append(sorted(node_name(s, r) for s, r in comp))
-                if len(out) >= max_cycles:
-                    break
-        return out
+        return self._components(max_cycles)[0]
+
+    def temporal_recurrences(self, max_components: int = 50) -> list[list[str]]:
+        """Chaines periode a periode, du type « ouverture = cloture precedente ».
+
+        Ce ne sont pas des anomalies : c'est ainsi qu'un modele enchaine ses
+        soldes. Elles sont exposees a part pour ne pas etre confondues avec des
+        circularites.
+        """
+        return self._components(max_components)[1]
 
     def sheet_cycles(self) -> list[list[str]]:
         out = []
@@ -301,14 +347,14 @@ class DependencyGraph:
                     candidates.update((other.name, r) for r in {rr for (rr, _c) in other.formulas})
                 break
 
-        for csheet, crow in candidates:
+        # Tri explicite : les candidats viennent d'ensembles, et une sortie de
+        # trace doit etre reproductible d'une execution a l'autre.
+        for csheet, crow in sorted(candidates):
             s = snap.sheet(csheet)
             if s is None:
                 continue
-            for (r, c), formula in s.formulas.items():
-                if r != crow:
-                    continue
-                if self._formula_hits(formula, csheet, sheet, row, col):
+            for (r, c) in sorted(k for k in s.formulas if k[0] == crow):
+                if self._formula_hits(s.formulas[(r, c)], csheet, sheet, row, col):
                     out.append((s.name, r, c))
                     if len(out) > 400:
                         return out

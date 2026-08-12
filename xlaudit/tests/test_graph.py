@@ -126,14 +126,42 @@ class TestCycles:
         _, g = healthy_graph
         assert g.cycles() == []
 
-    def test_cycle_is_detected(self, tmp_path):
+    def test_period_recurrence_is_not_a_cycle(self, healthy_graph):
+        """« Ouverture = cloture precedente » n'est pas une circularite.
+
+        Au grain de la ligne, la chronique se referme sur elle-meme ; c'est le
+        decalage d'une colonne qui la distingue d'une vraie boucle.
+        """
+        _, g = healthy_graph
+        recurrences = g.temporal_recurrences()
+        assert recurrences, "la cascade de tresorerie enchaine bien les periodes"
+        joined = {name for comp in recurrences for name in comp}
+        assert {"Etats fi periode!40", "Etats fi periode!41"} <= joined
+        assert g.cycles() == []
+
+    def test_same_period_cycle_is_detected(self, tmp_path):
+        """Deux lignes qui se lisent mutuellement dans la meme colonne."""
         from .fixtures import FixtureBuilder
 
         b = FixtureBuilder()
-        b.cell("S", 1, 1, "=B1+1", 1.0)
-        b.cell("S", 2, 2, "=A1", 1.0)
-        b.cell("S", 1, 2, "=B2", 1.0)
+        b.cell("S", 1, 1, "=A2+1", 1.0)
+        b.cell("S", 2, 1, "=A1*2", 2.0)
         path = b.save(tmp_path / "cycle.xlsx")
         g = build_graph(L.collect(path))
         cycles = g.cycles()
-        assert cycles, "la boucle A1 -> B1 -> B2 -> A1 doit etre vue"
+        assert cycles, "la boucle A1 <-> A2 doit etre vue"
+        assert {"S!1", "S!2"} <= set(cycles[0])
+
+    def test_lagged_loop_is_classified_as_recurrence(self, tmp_path):
+        """La meme boucle, decalee d'une colonne, est une chronique."""
+        from .fixtures import FixtureBuilder
+
+        b = FixtureBuilder()
+        b.cell("S", 1, 1, None, 10.0)
+        b.cell("S", 2, 1, "=A1*2", 20.0)
+        b.cell("S", 1, 2, "=A2+1", 21.0)  # lit la colonne precedente
+        b.cell("S", 2, 2, "=B1*2", 42.0)
+        path = b.save(tmp_path / "recurrence.xlsx")
+        g = build_graph(L.collect(path))
+        assert g.cycles() == []
+        assert g.temporal_recurrences()

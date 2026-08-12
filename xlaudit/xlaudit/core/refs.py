@@ -585,6 +585,85 @@ def to_r1c1(formula: str, row: int, col: int, default_sheet: str | None = None) 
     return "=" + "".join(out)
 
 
+def map_refs(formula: str, fn) -> str:
+    """Reecrit une formule en substituant ses references.
+
+    `fn(ref, index)` rend le texte de remplacement, ou None pour laisser la
+    reference intacte. La reconstruction passe par les tokens : le reste de la
+    formule (chaines, noms definis, operateurs) est restitue caractere pour
+    caractere, donc une substitution ne peut pas abimer ce qu'elle ne vise pas.
+
+    Sert au chiffreur d'ecart : reconstruire la grandeur attendue revient a
+    remplacer la plage fautive par la plage correcte, puis a reevaluer.
+    """
+    toks = tokenize(formula)
+    if not toks:
+        return formula
+    out: list[str] = []
+    idx = 0
+    for tok in toks:
+        if tok.type == Token.OPERAND and tok.subtype == Token.RANGE:
+            ref = parse_ref(tok.value, None)
+            if ref is not None:
+                replacement = fn(ref, idx)
+                idx += 1
+                out.append(tok.value if replacement is None else replacement)
+                continue
+        out.append(tok.value)
+    return "=" + "".join(out)
+
+
+def same_extent(a: RangeRef, b: RangeRef, default_sheet: str | None = None) -> bool:
+    """Deux references visent-elles exactement la meme zone ?
+
+    L'ancrage est ignore : `$D$6:$D$9` et `D6:D9` visent la meme zone. L'onglet
+    implicite est resolu avec `default_sheet`, ce qui permet de comparer une
+    reference issue de `extract_refs` (onglet resolu) a une reference issue de
+    `map_refs` (onglet tel qu'ecrit).
+    """
+    if (a.sheet or default_sheet) != (b.sheet or default_sheet):
+        return False
+    return (a.min_col, a.min_row, a.max_col, a.max_row) == (
+        b.min_col, b.min_row, b.max_col, b.max_row
+    )
+
+
+def translate_formula(
+    formula: str, from_row: int, from_col: int, to_row: int, to_col: int
+) -> str:
+    """Recopie une formule d'une cellule vers une autre, comme le ferait Excel.
+
+    Les coordonnees relatives se decalent, les coordonnees ancrees ne bougent pas.
+    Sert a proposer une correction concrete : « voici la formule de la cellule
+    jumelle, transposee a cette colonne », plutot qu'un motif R1C1 que l'auditeur
+    devrait retraduire lui-meme.
+    """
+    d_row = to_row - from_row
+    d_col = to_col - from_col
+    if d_row == 0 and d_col == 0:
+        return formula
+
+    def shift(ref: RangeRef, _idx: int) -> str | None:
+        def move(cell: CellRef) -> CellRef:
+            return CellRef(
+                col=cell.col if cell.col_abs else min(max(cell.col + d_col, 1), MAX_COL),
+                row=cell.row if cell.row_abs else min(max(cell.row + d_row, 1), MAX_ROW),
+                col_abs=cell.col_abs,
+                row_abs=cell.row_abs,
+            )
+
+        moved = RangeRef(
+            start=move(ref.start),
+            end=move(ref.end),
+            sheet=ref.sheet,
+            whole_col=ref.whole_col,
+            whole_row=ref.whole_row,
+        )
+        return moved.a1
+
+    return map_refs(formula, shift)
+
+
 def top_level_terms(formula: str) -> list[tuple[str, str]]:
     """Decompose une formule en termes additifs de premier niveau.
 
