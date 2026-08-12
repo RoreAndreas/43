@@ -14,7 +14,6 @@ import zipfile
 import openpyxl
 import pytest
 
-from xlaudit.core.graph import build_graph
 from xlaudit.models import Reserve, RunLog, RuleRun, Signal, signals_to_document
 from xlaudit.render.graphviz import sheet_map_dot, sheet_map_mermaid, trace_mermaid
 from xlaudit.render.markdown import render_markdown

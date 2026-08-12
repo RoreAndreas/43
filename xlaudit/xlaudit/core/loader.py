@@ -34,7 +34,6 @@ import gzip
 import hashlib
 import json
 import os
-import re
 import zipfile
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -44,7 +43,6 @@ from xml.etree import ElementTree as ET
 import openpyxl
 
 from ..models import SCHEMA_VERSION, _jsonable
-from . import refs as R
 
 CACHE_DIRNAME = ".xlaudit_cache"
 _NS_MAIN = "{http://schemas.openxmlformats.org/spreadsheetml/2006/main}"
@@ -82,6 +80,30 @@ def normalize_cell_value(value: Any) -> Any:
     return value
 
 
+def ensure_dimensions(ws, force: bool = False) -> tuple[int, int]:
+    """Rend (max_row, max_col) en reconstruisant la dimension si elle manque.
+
+    Piege silencieux et couteux : l'element `<dimension>` de la feuille est
+    facultatif, et de nombreux generateurs l'omettent — y compris le mode
+    write-only d'openpyxl. En lecture seule, `ws.max_row` vaut alors `None`, et
+    tout code qui s'y fie lit **zero cellule** sans lever la moindre erreur : le
+    scan reussit et ne trouve rien.
+
+    `calculate_dimension(force=True)` relit la feuille pour retrouver ses bornes.
+    Le cout est celui d'un parcours supplementaire, paye uniquement quand la
+    dimension est absente, ou sur demande explicite quand on soupconne une
+    dimension declaree trop petite.
+    """
+    max_row, max_col = ws.max_row, ws.max_column
+    if max_row and max_col and not force:
+        return max_row, max_col
+    try:
+        ws.calculate_dimension(force=True)
+    except (ValueError, TypeError, AttributeError):
+        return max_row or 0, max_col or 0
+    return ws.max_row or 0, ws.max_column or 0
+
+
 def iter_cells(
     ws,
     min_row: int = 1,
@@ -97,10 +119,10 @@ def iter_cells(
 
     Seul point du projet ou `iter_rows` est appele.
     """
-    if max_row is None:
-        max_row = ws.max_row
-    if max_col is None:
-        max_col = ws.max_column
+    if max_row is None or max_col is None:
+        found_row, found_col = ensure_dimensions(ws)
+        max_row = found_row if max_row is None else max_row
+        max_col = found_col if max_col is None else max_col
     if not max_row or not max_col:
         return
     if max_row < min_row or max_col < min_col:
@@ -134,6 +156,14 @@ class SheetSnapshot:
     formulas: dict[tuple[int, int], str] = field(default_factory=dict)
     values: dict[tuple[int, int], Any] = field(default_factory=dict)
     label_max_col: int = 12
+    #: Lecture structurelle memoisee (core.blocks.SheetStructure). La structure
+    #: est deterministe pour un snapshot donne, et une dizaine de regles la
+    #: redemandent : la recalculer a chaque fois couterait un parcours complet
+    #: des formules par regle.
+    structure: Any = field(default=None, init=False, repr=False, compare=False)
+    #: Groupes R1C1 par ligne, memoises : quatre regles reclament la meme
+    #: normalisation, dont le cout domine le scan d'un gros classeur.
+    variants: dict = field(default_factory=dict, init=False, repr=False, compare=False)
 
     # -- acces -------------------------------------------------------------
     def formula(self, row: int, col: int) -> str | None:
@@ -413,6 +443,7 @@ def collect(
     path: str | os.PathLike,
     progress: ProgressCb | None = None,
     max_sheets: int | None = None,
+    force_dimensions: bool = False,
 ) -> Snapshot:
     """Passage de collecte unique : un seul parcours alimente tous les controles.
 
@@ -435,17 +466,20 @@ def collect(
             if progress:
                 progress(f"formules · {name}", i, total)
             ws = wb_f[name]
+            max_row, max_col = ensure_dimensions(ws, force=force_dimensions)
             sheet = SheetSnapshot(
                 name=name,
                 index=i,
                 state=states.get(name, "visible"),
                 min_row=ws.min_row or 1,
-                max_row=ws.max_row or 1,
+                max_row=max_row or 1,
                 min_col=ws.min_column or 1,
-                max_col=ws.max_column or 1,
+                max_col=max_col or 1,
             )
             per_col: dict[int, int] = {}
-            for r, c, v in iter_cells(ws, min_row=1, min_col=1):
+            for r, c, v in iter_cells(
+                ws, min_row=1, min_col=1, max_row=max_row, max_col=max_col
+            ):
                 if isinstance(v, str) and v.startswith("="):
                     sheet.formulas[(r, c)] = v
                     per_col[c] = per_col.get(c, 0) + 1
@@ -470,7 +504,10 @@ def collect(
                 progress(f"valeurs · {name}", i, total)
             ws = wb_v[name]
             sheet = snap.sheets[name]
-            for r, c, v in iter_cells(ws, min_row=1, min_col=1):
+            v_max_row, v_max_col = ensure_dimensions(ws, force=force_dimensions)
+            for r, c, v in iter_cells(
+                ws, min_row=1, min_col=1, max_row=v_max_row, max_col=v_max_col
+            ):
                 sheet.values[(r, c)] = v
                 if (r, c) in sheet.formulas:
                     cached_any = True
@@ -500,6 +537,7 @@ def get_snapshot(
     force: bool = False,
     use_cache: bool = True,
     progress: ProgressCb | None = None,
+    force_dimensions: bool = False,
 ) -> tuple[Snapshot, bool]:
     """Rend le snapshot, depuis le cache si l'empreinte du classeur correspond.
 
@@ -518,7 +556,7 @@ def get_snapshot(
                 return snap, True
         except (OSError, ValueError, KeyError, EOFError):
             pass  # cache illisible : on recollecte
-    snap = collect(path, progress=progress)
+    snap = collect(path, progress=progress, force_dimensions=force_dimensions)
     if use_cache:
         try:
             snap.save(cpath)

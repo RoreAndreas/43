@@ -69,6 +69,19 @@ class TestBulkRanges:
         g = build_graph(snap)
         assert g.is_consumed("S", 5) is True
 
+    def test_dependents_of_a_cell_inside_a_bulk_range_are_found(self, tmp_path):
+        """Le consommateur d'un SOMME(A:A) doit rester atteignable par la trace."""
+        from .fixtures import FixtureBuilder
+
+        b = FixtureBuilder()
+        b.cell("S", 5, 1, None, 10.0)
+        b.cell("S", 900, 3, "=SUM(A:A)", 10.0)
+        path = b.save(tmp_path / "bulk_trace.xlsx")
+        snap = L.collect(path)
+        g = build_graph(snap)
+        node = g.trace("S", 5, 1, depth=1, direction="down")
+        assert [c.ref for c in node.children] == ["C900"]
+
     def test_tall_range_is_recorded_as_interval(self, tmp_path):
         from .fixtures import FixtureBuilder
 

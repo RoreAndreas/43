@@ -44,6 +44,7 @@ class SheetStructure:
     formula_rows: list[int] = field(default_factory=list)
     total_rows: set[int] = field(default_factory=set)
     per_col_counts: dict[int, int] = field(default_factory=dict)
+    min_density: float = 0.3
 
     @property
     def first_col(self) -> int:
@@ -73,8 +74,16 @@ def build_structure(sheet: SheetSnapshot, min_density: float = 0.3) -> SheetStru
     fraction du maximum : dans un modele, la chronique concentre les formules,
     tandis que les colonnes de libelles, d'unites ou de commentaires en sont
     depourvues.
+
+    Le resultat est memoise sur le snapshot de l'onglet : la detection des lignes
+    de total parcourt toutes les formules, et une dizaine de regles reclament la
+    meme lecture structurelle.
     """
-    st = SheetStructure(sheet=sheet.name)
+    cached = getattr(sheet, "structure", None)
+    if cached is not None and cached.min_density == min_density:
+        return cached
+
+    st = SheetStructure(sheet=sheet.name, min_density=min_density)
     per_col: dict[int, int] = {}
     rows: set[int] = set()
     for (row, col), _f in sheet.formulas.items():
@@ -94,6 +103,11 @@ def build_structure(sheet: SheetSnapshot, min_density: float = 0.3) -> SheetStru
     for row in st.formula_rows:
         if _is_total_row(sheet, row, st.projection_cols):
             st.total_rows.add(row)
+
+    try:
+        sheet.structure = st
+    except AttributeError:  # objet fige : la memoisation est un confort, pas un du
+        pass
     return st
 
 
@@ -121,14 +135,24 @@ def row_variants(
     Deux colonnes portant la meme formule recopiee tombent dans le meme groupe.
     Une entree unique signifie une ligne homogene ; plusieurs entrees signalent
     des variantes, dont R203 isole les minoritaires.
+
+    Memoise par (ligne, colonnes) sur le snapshot de l'onglet : la normalisation
+    R1C1 est le poste de cout dominant d'un scan, et quatre regles la reclament.
     """
+    cache = getattr(sheet, "variants", None)
+    key = (row, tuple(cols))
+    if cache is not None and key in cache:
+        return cache[key]
+
     groups: dict[str, list[int]] = {}
     for col in cols:
         formula = sheet.formula(row, col)
         if not formula:
             continue
-        key = R.to_r1c1(formula, row, col)
-        groups.setdefault(key, []).append(col)
+        groups.setdefault(R.to_r1c1(formula, row, col), []).append(col)
+
+    if cache is not None:
+        cache[key] = groups
     return groups
 
 

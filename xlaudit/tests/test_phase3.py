@@ -5,7 +5,6 @@ from __future__ import annotations
 import copy
 
 import pytest
-import yaml
 from pydantic import ValidationError
 
 from xlaudit.mapping.discover import discover, normalise, score_label

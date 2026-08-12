@@ -40,6 +40,7 @@ def _load(
     with_graph: bool = True,
     with_vba: bool = True,
     quiet: bool = False,
+    rescan_dimensions: bool = False,
 ):
     """Charge le snapshot (cache ou collecte) et construit le graphe."""
     from .core.graph import build_graph
@@ -65,6 +66,7 @@ def _load(
         snapshot, from_cache = get_snapshot(
             workbook, cache_dir=cache_dir, force=refresh,
             use_cache=not no_cache, progress=report,
+            force_dimensions=rescan_dimensions,
         )
         if with_vba and not snapshot.vba:
             progress.update(task, description="VBA", completed=0, total=1)
@@ -140,6 +142,15 @@ def scan(
     cache_dir: Optional[Path] = typer.Option(None, "--cache-dir"),
     no_cache: bool = typer.Option(False, "--no-cache"),
     refresh: bool = typer.Option(False, "--refresh", help="ignore le cache existant"),
+    rescan_dimensions: bool = typer.Option(
+        False, "--rescan-dimensions",
+        help=(
+            "relit chaque onglet pour retrouver ses bornes, au lieu de se fier a "
+            "l'element <dimension> declare. A utiliser si le classeur semble "
+            "tronque : une dimension declaree trop petite fait lire moins de "
+            "cellules qu'il n'y en a, sans aucune erreur."
+        ),
+    ),
     validate_first: bool = typer.Option(
         True, "--validate-mapping/--skip-validation",
         help="valide numeriquement le mapping avant d'executer la phase 3",
@@ -149,7 +160,9 @@ def scan(
     from .models import AuditContext, RunLog, signals_to_document
     from .rules.base import execute, get_rules
 
-    snapshot, graph = _load(workbook, cache_dir, no_cache, refresh)
+    snapshot, graph = _load(
+        workbook, cache_dir, no_cache, refresh, rescan_dimensions=rescan_dimensions
+    )
     mapping_model = _load_mapping(mapping)
 
     run_log = RunLog(tool_version=TOOL_VERSION)

@@ -56,7 +56,6 @@ class R205Anchoring(Rule):
         return out
 
     def _scan_row(self, ctx, sheet, st, row: int, graph):
-        snap = ctx.snapshot
         cols = [c for c in st.projection_cols if sheet.formula(row, c)]
         if len(cols) < 2:
             return []

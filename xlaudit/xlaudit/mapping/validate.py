@@ -15,7 +15,6 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 
-from ..core import blocks as B
 from ..core import quantifier as Q
 from ..core.loader import Snapshot
 from .schema import Dette, Located, MappingModel

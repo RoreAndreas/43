@@ -163,7 +163,6 @@ def _write_log(ws, run_log: RunLog | None) -> None:
                  ("Signaux", 10), ("Duree (s)", 11), ("Motif", 70)])
     if run_log is None:
         return
-    ws.cell(row=1, column=9, value="Classeur").font = HEADER_FONT
     for r, run in enumerate(run_log.rules, start=2):
         write_text(ws.cell(row=r, column=1), run.rule_id)
         write_text(ws.cell(row=r, column=2), run.label)

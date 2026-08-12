@@ -13,7 +13,6 @@ import pytest
 from openpyxl.worksheet.formula import ArrayFormula
 
 from xlaudit.core import loader as L
-from xlaudit.core.refs import index_to_col
 
 from .fixtures import build_faulty, build_healthy
 
@@ -98,6 +97,40 @@ class TestSafeIteration:
             assert list(L.iter_cells(wb2["vide"])) == []
         finally:
             wb2.close()
+
+    def test_sheet_without_dimension_element_is_still_read(self, tmp_path):
+        """L'element <dimension> est facultatif et souvent absent.
+
+        Sans lui, `ws.max_row` vaut None en lecture seule, et un scan naif lit
+        zero cellule *sans lever d'erreur* : il reussit et ne trouve rien. C'est
+        le pire mode de defaillance possible pour un outil d'audit.
+        """
+        import openpyxl as _op
+
+        wb = _op.Workbook(write_only=True)  # n'ecrit pas <dimension>
+        ws = wb.create_sheet("Sans dimension")
+        ws.append(["Poste", 10, 20])
+        ws.append(["Total", "=B1+C1", None])
+        path = tmp_path / "sans_dimension.xlsx"
+        wb.save(path)
+        wb.close()
+
+        import zipfile
+
+        with zipfile.ZipFile(path) as zf:
+            xml = zf.read("xl/worksheets/sheet1.xml").decode()
+        assert "<dimension" not in xml, "la fixture doit vraiment omettre la dimension"
+
+        wb2 = _op.load_workbook(path, read_only=True, data_only=False)
+        try:
+            assert wb2["Sans dimension"].max_row is None
+        finally:
+            wb2.close()
+
+        snap = L.collect(path)
+        assert snap.formula_count == 1
+        assert snap.formula("Sans dimension", 2, 2) == "=B1+C1"
+        assert snap.value("Sans dimension", 1, 2) == 10
 
     def test_array_formula_is_normalized_to_text(self, tmp_path):
         """Sans normalisation, les formules matricielles disparaissent des scans."""

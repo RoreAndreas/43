@@ -53,7 +53,6 @@ class R204CopyDrift(Rule):
         return out
 
     def _scan_block(self, ctx, sheet, st, block: B.RowBlock, probe_col, graph):
-        snap = ctx.snapshot
         rows = list(block.rows)
         per_row_refs = []
         for row in rows:

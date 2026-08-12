@@ -47,6 +47,8 @@ xlaudit diff v1.xlsm v2.xlsm               # non-régression
 ```
 
 Toutes les commandes acceptent `--cache-dir`, `--no-cache` et `--refresh`.
+`scan` accepte en plus `--rescan-dimensions`, à utiliser si le classeur semble
+tronqué (voir le piège 3 ci-dessous).
 
 ### Parcours type
 
@@ -154,14 +156,24 @@ formules), ou produit des résultats faux.
 1. **Double chargement.** openpyxl ne rend jamais formules et valeurs ensemble :
    deux `load_workbook`, l'un `data_only=False`, l'autre `data_only=True`.
 2. **`read_only=True`** dans les deux cas, sous peine de saturation mémoire.
-3. **Cellules vides.** En lecture seule, ce sont des `EmptyCell` sans `.row` ni
-   `.column`. Vérifié empiriquement en plus : `iter_rows()` sans bornes commence
-   **ligne 1, colonne 1**, et non à `ws.min_row` / `ws.min_column` — un
-   `enumerate(row, start=ws.min_column)` décalerait donc toutes les colonnes. La
-   parade est de toujours passer des bornes explicites. Le tout est encapsulé
-   une seule fois dans `core.loader.iter_cells`, et un test AST
+3. **Cellules vides et bornes d'itération.** En lecture seule, les cellules vides
+   sont des `EmptyCell` sans `.row` ni `.column`. Vérifié empiriquement en plus :
+   `iter_rows()` sans bornes commence **ligne 1, colonne 1**, et non à
+   `ws.min_row` / `ws.min_column` — un `enumerate(row, start=ws.min_column)`
+   décalerait donc toutes les colonnes. La parade est de toujours passer des
+   bornes explicites. Le tout est encapsulé une seule fois dans
+   `core.loader.iter_cells`, et un test AST
    (`tests/test_no_direct_iter_rows.py`) interdit tout autre appel à `iter_rows`
    dans le paquet.
+
+   Corollaire découvert au banc d'essai, et le plus dangereux de tous :
+   l'élément `<dimension>` d'une feuille est **facultatif**, et de nombreux
+   générateurs l'omettent — y compris le mode write-only d'openpyxl. `ws.max_row`
+   vaut alors `None`, et un scan qui s'y fie lit **zéro cellule sans lever la
+   moindre erreur** : il réussit et ne trouve rien. `ensure_dimensions` relit la
+   feuille pour retrouver ses bornes quand elles manquent. `--rescan-dimensions`
+   force ce parcours même lorsqu'une dimension est déclarée, pour le cas d'une
+   dimension déclarée trop petite.
 4. **Formules matricielles.** La valeur est un objet `ArrayFormula`, pas une
    chaîne : normalisée via `getattr(v, "text", v)`, sinon elles disparaissent
    silencieusement des scans.
@@ -183,6 +195,11 @@ formules), ou produit des résultats faux.
    classeur de constats.
 10. **Performance.** Un seul passage de collecte alimente tous les contrôles ;
     le snapshot est sérialisé en JSON gzip, invalidé par le SHA-256 du classeur.
+    La lecture structurelle d'un onglet et la normalisation R1C1 d'une ligne sont
+    mémoïsées sur le snapshot : une dizaine de règles réclament les mêmes.
+    Mesuré sur un classeur synthétique de 215 000 formules et 12 onglets : 38 s
+    et 110 Mo pour la collecte, le graphe et les dix règles des phases 1 et 2,
+    soit de l'ordre de quatre minutes et 650 Mo extrapolés à 1,26 M de formules.
 
 **Le fichier source n'est jamais ouvert en écriture, sous aucune option.**
 
@@ -264,7 +281,7 @@ sont ceux de sa nature.
 pytest
 ```
 
-235 tests. Deux classeurs de fixtures de même mise en page sont construits par
+237 tests. Deux classeurs de fixtures de même mise en page sont construits par
 `openpyxl` : un sain et un portant une anomalie de chaque type recherché. Chaque
 règle doit détecter son anomalie **et ne rien détecter dans le classeur sain** —
 le test de non-détection compte autant que l'autre.

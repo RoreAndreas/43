@@ -21,7 +21,7 @@ from __future__ import annotations
 
 from bisect import bisect_right
 from dataclasses import dataclass, field
-from typing import Callable, Iterator
+from typing import Callable
 
 import networkx as nx
 
@@ -127,9 +127,16 @@ class DependencyGraph:
         self.sheet_graph = nx.DiGraph()
         # Lignes citees par une plage trop haute pour etre expansee.
         self.bulk_consumed: dict[str, _IntervalSet] = {}
+        # Les memes plages, avec leur consommateur : sans cela, retrouver les
+        # dependants d'une cellule prise dans un `SOMME(A:A)` imposerait de
+        # relire toutes les formules du classeur.
+        self.bulk_edges: dict[str, list[tuple[int, int, tuple[str, int]]]] = {}
         # Lignes citees par une reference dont l'onglet est introuvable.
         self.unresolved_refs: list[tuple[str, int, int, str]] = []
         self.external_refs: set[str] = set()
+        # Collectees pendant la construction : les reperer apres coup imposerait
+        # un second parcours complet des formules.
+        self._self_refs: set[tuple[str, int]] = set()
         self._built = False
 
     # -- construction ------------------------------------------------------
@@ -174,6 +181,7 @@ class DependencyGraph:
 
         if (hi - lo + 1) > BULK_ROW_THRESHOLD:
             self.bulk_consumed.setdefault(canonical, _IntervalSet()).add(lo, hi)
+            self.bulk_edges.setdefault(canonical, []).append((lo, hi, consumer))
             self.sheet_graph.add_edge(canonical, sheet_name)
             return
 
@@ -183,10 +191,13 @@ class DependencyGraph:
         # recurrence temporelle ressemble a un cycle alors qu'elle n'en est pas
         # un. L'attribut permet de les distinguer sans perdre l'information.
         lagged = ref.max_col < col
+        if canonical == sheet_name and lo <= row <= hi and ref.min_col <= col <= ref.max_col:
+            self._self_refs.add((canonical, row))
+
         for r in range(lo, hi + 1):
             producer = (canonical, r)
             if producer == consumer:
-                continue  # auto-reference : traitee par `self_referencing_rows`
+                continue  # auto-reference : comptabilisee juste au-dessus
             existing = self.row_graph.get_edge_data(producer, consumer)
             if existing is None:
                 self.row_graph.add_edge(producer, consumer, lagged=lagged)
@@ -233,7 +244,13 @@ class DependencyGraph:
         return bool(iv and iv.contains(row))
 
     def self_referencing_rows(self) -> list[tuple[str, int]]:
-        """Lignes qui se citent elles-memes : circularite assumee ou accident."""
+        """Lignes qui se citent elles-memes : circularite assumee ou accident.
+
+        Collectees pendant la construction du graphe ; sans graphe construit, on
+        retombe sur un parcours complet des formules.
+        """
+        if self._built:
+            return sorted(self._self_refs)
         out = []
         for sheet in self.snapshot.sheets.values():
             for (row, col), formula in sheet.formulas.items():
@@ -339,13 +356,11 @@ class DependencyGraph:
         snap = self.snapshot
         out: list[tuple[str, int, int]] = []
         candidates = set(self.row_graph.successors((sheet, row))) if (sheet, row) in self.row_graph else set()
-        # Les plages en masse ne sont pas dans le graphe : on ajoute les onglets
-        # concernes en entier seulement si la ligne y figure.
-        for tgt_sheet, iv in self.bulk_consumed.items():
-            if tgt_sheet == sheet and iv.contains(row):
-                for other in snap.sheets.values():
-                    candidates.update((other.name, r) for r in {rr for (rr, _c) in other.formulas})
-                break
+        # Les plages en masse ne figurent pas dans le graphe : on rappelle leurs
+        # consommateurs enregistres plutot que de rebalayer tout le classeur.
+        for lo, hi, consumer in self.bulk_edges.get(sheet, ()):
+            if lo <= row <= hi:
+                candidates.add(consumer)
 
         # Tri explicite : les candidats viennent d'ensembles, et une sortie de
         # trace doit etre reproductible d'une execution a l'autre.

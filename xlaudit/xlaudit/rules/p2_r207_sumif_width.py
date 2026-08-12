@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-from ..core import blocks as B
 from ..core import quantifier as Q
 from ..core import refs as R
 from ..models import AuditContext, Signal
