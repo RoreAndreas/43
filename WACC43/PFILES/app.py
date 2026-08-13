@@ -307,40 +307,37 @@ st.title("Calcul du CMPC - Méthode indirecte")
 st.markdown("**Formule Coût Fonds Propres:** Coût = a + b × c + d + e")
 st.divider()
 
-# Sélection de l'année de valorisation
-current_year = datetime.now().year
-col_year, col_maturity = st.columns(2)
-with col_year:
-    valuation_year = st.selectbox(
-        "Sélectionner l'année de valorisation",
-        options=range(current_year, current_year - 10, -1), # 10 dernières années
-        index=0
-    )
-with col_maturity:
-    risk_free_maturity = st.selectbox(
-        "Maturité du taux sans risque",
-        options=["30Y", "10Y"],
-        index=0,
-        help="Taux des bons du Trésor US utilisé comme taux sans risque"
-    )
-risk_free_maturity_code = "30" if risk_free_maturity == "30Y" else "10"
-st.divider()
+tab_parametres, tab_valeurs = st.tabs(["Paramètres", "Valeurs"])
 
-# Charger les données
-with st.spinner(f"Chargement des données pour {valuation_year}..."):
+# Charger les données (indépendantes de l'année et de la maturité choisies)
+with st.spinner("Chargement des données Damodaran..."):
     betas_data = load_betas_data()
     tax_rates_data = load_tax_rates_data()
     erps_data, mature_market_premium = load_erps_data()
     financing_spread_data = load_financing_spread_data()
     spread_adjustment_table = load_spread_adjustment_table()
-    # Calculer le taux US pour la maturité et l'année choisies
-    avg_30y_rate = calculate_average_rate(valuation_year, risk_free_maturity_code)
 
 if betas_data is not None and tax_rates_data is not None and erps_data is not None and financing_spread_data is not None:
-    # Colonnes pour une meilleure disposition
-    col1, col2 = st.columns(2)
+    with tab_parametres:
+        # Sélection de l'année de valorisation
+        current_year = datetime.now().year
+        col_year, col_maturity = st.columns(2)
+        with col_year:
+            valuation_year = st.selectbox(
+                "Sélectionner l'année de valorisation",
+                options=range(current_year, current_year - 10, -1), # 10 dernières années
+                index=0
+            )
+        with col_maturity:
+            risk_free_maturity = st.selectbox(
+                "Maturité du taux sans risque",
+                options=["30Y", "10Y"],
+                index=0,
+                help="Taux des bons du Trésor US utilisé comme taux sans risque"
+            )
+        risk_free_maturity_code = "30" if risk_free_maturity == "30Y" else "10"
+        st.divider()
 
-    with col1:
         st.subheader("Sélection Pays et Industrie")
 
         # Sélection du pays
@@ -399,243 +396,257 @@ if betas_data is not None and tax_rates_data is not None and erps_data is not No
         # Espace réservé pour le message de spread de financement correspondant
         financing_spread_placeholder = st.empty()
 
-    with col2:
-        # Extraire les données pour le pays sélectionné
-        country_data = erps_data[erps_data[erps_data.columns[0]].str.lower() == selected_country.lower()]
-        # Prime de risque marché actions (c) - prime pour un marché mature (cellule E3)
-        c = mature_market_premium if mature_market_premium is not None else 0.06
-        if len(country_data) > 0:
-            # Prime de risque pays (pour le calcul de 'a')
-            country_risk_premium = float(country_data["Country Risk Premium"].values[0])
-        else:
-            country_risk_premium = 0.01 # Valeur par défaut
-            st.warning("Primes de risque non trouvées, valeurs par défaut utilisées")
+    avg_30y_rate = calculate_average_rate(valuation_year, risk_free_maturity_code)
 
-        # Extraire les données pour l'industrie sélectionnée
-        industry_data = betas_data[betas_data[betas_data.columns[0]].str.lower() == selected_industry.lower()]
-        if len(industry_data) > 0:
-            # Beta désendetté (colonne F)
-            beta_desendetté = float(industry_data["Unlevered beta"].values[0])
-            # Gearing sectoriel
-            gearing_sectoriel = float(industry_data["D/E Ratio"].values[0])
-        else:
-            beta_desendetté = 1.0  # Valeur par défaut
-            gearing_sectoriel = 0.5  # Valeur par défaut
-            st.warning("Données beta non trouvées, valeurs par défaut utilisées")
+    with tab_valeurs:
+        col_values, col_comments = st.columns(2)
 
-        # Extraire les données de spread de financement pour l'industrie sélectionnée
-        financing_spread_industry = financing_spread_data[financing_spread_data[financing_spread_data.columns[0]].str.lower() == selected_industry.lower()]
-        if len(financing_spread_industry) > 0:
-            # Spread de financement - colonne F, index 5 (Std Dev in Stock)
-            cost_of_debt = float(financing_spread_industry.iloc[0, 5])
-            # E/(D+E) - proportion de fonds propres - colonne E, index 4
-            proportion_equity = float(financing_spread_industry.iloc[0, 4])
-            financing_spread_placeholder.empty()  # Effacer le message d'avertissement si trouvé
-        else:
-            # Fuzzy matching si correspondance exacte échoue
-            financing_industries_list = financing_spread_data[financing_spread_data.columns[0]].dropna().str.lower().tolist()
-            matches = difflib.get_close_matches(selected_industry.lower(), financing_industries_list, n=1, cutoff=0.9)
-            if matches:
-                matched_industry = matches[0]
-                financing_spread_industry = financing_spread_data[financing_spread_data[financing_spread_data.columns[0]].str.lower() == matched_industry]
+        with col_values:
+            # Extraire les données pour le pays sélectionné
+            country_data = erps_data[erps_data[erps_data.columns[0]].str.lower() == selected_country.lower()]
+            # Prime de risque marché actions (c) - prime pour un marché mature (cellule E3)
+            c = mature_market_premium if mature_market_premium is not None else 0.06
+            if len(country_data) > 0:
+                # Prime de risque pays (pour le calcul de 'a')
+                country_risk_premium = float(country_data["Country Risk Premium"].values[0])
+            else:
+                country_risk_premium = 0.01 # Valeur par défaut
+                st.warning("Primes de risque non trouvées, valeurs par défaut utilisées")
+
+            # Extraire les données pour l'industrie sélectionnée
+            industry_data = betas_data[betas_data[betas_data.columns[0]].str.lower() == selected_industry.lower()]
+            if len(industry_data) > 0:
+                # Beta désendetté (colonne F)
+                beta_desendetté = float(industry_data["Unlevered beta"].values[0])
+                # Gearing sectoriel
+                gearing_sectoriel = float(industry_data["D/E Ratio"].values[0])
+            else:
+                beta_desendetté = 1.0  # Valeur par défaut
+                gearing_sectoriel = 0.5  # Valeur par défaut
+                st.warning("Données beta non trouvées, valeurs par défaut utilisées")
+
+            # Extraire les données de spread de financement pour l'industrie sélectionnée
+            financing_spread_industry = financing_spread_data[financing_spread_data[financing_spread_data.columns[0]].str.lower() == selected_industry.lower()]
+            if len(financing_spread_industry) > 0:
+                # Spread de financement - colonne F, index 5 (Std Dev in Stock)
                 cost_of_debt = float(financing_spread_industry.iloc[0, 5])
+                # E/(D+E) - proportion de fonds propres - colonne E, index 4
                 proportion_equity = float(financing_spread_industry.iloc[0, 4])
-                financing_spread_placeholder.info(f"Financing spread industry match -> {matched_industry}")
+                financing_spread_placeholder.empty()  # Effacer le message d'avertissement si trouvé
             else:
-                cost_of_debt = 0.05  # Valeur par défaut
-                proportion_equity = 0.6  # Valeur par défaut
-                st.warning("Données de spread de financement non trouvées, valeurs par défaut utilisées")
-                financing_spread_placeholder.empty()
+                # Fuzzy matching si correspondance exacte échoue
+                financing_industries_list = financing_spread_data[financing_spread_data.columns[0]].dropna().str.lower().tolist()
+                matches = difflib.get_close_matches(selected_industry.lower(), financing_industries_list, n=1, cutoff=0.9)
+                if matches:
+                    matched_industry = matches[0]
+                    financing_spread_industry = financing_spread_data[financing_spread_data[financing_spread_data.columns[0]].str.lower() == matched_industry]
+                    cost_of_debt = float(financing_spread_industry.iloc[0, 5])
+                    proportion_equity = float(financing_spread_industry.iloc[0, 4])
+                    financing_spread_placeholder.info(f"Financing spread industry match -> {matched_industry}")
+                else:
+                    cost_of_debt = 0.05  # Valeur par défaut
+                    proportion_equity = 0.6  # Valeur par défaut
+                    st.warning("Données de spread de financement non trouvées, valeurs par défaut utilisées")
+                    financing_spread_placeholder.empty()
 
-        # Tax rate pour le pays (corporate tax rate)
-        tax_country_data = tax_rates_data[tax_rates_data[tax_rates_data.columns[0]].str.strip().str.lower() == selected_country.lower().strip()]
-        if len(tax_country_data) > 0:
-            tax_rate = float(tax_country_data[tax_rates_data.columns[1]].values[0]) # Corporate tax rate
-            country_match_placeholder.empty() # Effacer le message si une correspondance exacte est trouvée
-        else:
-            # Fuzzy matching si correspondance exacte échoue
-            tax_countries_list = tax_rates_data[tax_rates_data.columns[0]].dropna().str.strip().str.lower().tolist()
-            matches = difflib.get_close_matches(selected_country.lower().strip(), tax_countries_list, n=1, cutoff=0.9)
-            if matches:
-                matched_country = matches[0]
-                tax_country_data = tax_rates_data[tax_rates_data[tax_rates_data.columns[0]].str.strip().str.lower() == matched_country]
+            # Tax rate pour le pays (corporate tax rate)
+            tax_country_data = tax_rates_data[tax_rates_data[tax_rates_data.columns[0]].str.strip().str.lower() == selected_country.lower().strip()]
+            if len(tax_country_data) > 0:
                 tax_rate = float(tax_country_data[tax_rates_data.columns[1]].values[0]) # Corporate tax rate
-                country_match_placeholder.info(f"Corp. Tax files match -> {matched_country}")
+                country_match_placeholder.empty() # Effacer le message si une correspondance exacte est trouvée
             else:
-                tax_rate = 0.25  # Valeur par défaut
-                st.warning("Corporate tax rate non trouvé, valeur par défaut utilisée")
-                country_match_placeholder.empty() # Effacer le message si aucune correspondance n'est trouvée
+                # Fuzzy matching si correspondance exacte échoue
+                tax_countries_list = tax_rates_data[tax_rates_data.columns[0]].dropna().str.strip().str.lower().tolist()
+                matches = difflib.get_close_matches(selected_country.lower().strip(), tax_countries_list, n=1, cutoff=0.9)
+                if matches:
+                    matched_country = matches[0]
+                    tax_country_data = tax_rates_data[tax_rates_data[tax_rates_data.columns[0]].str.strip().str.lower() == matched_country]
+                    tax_rate = float(tax_country_data[tax_rates_data.columns[1]].values[0]) # Corporate tax rate
+                    country_match_placeholder.info(f"Corp. Tax files match -> {matched_country}")
+                else:
+                    tax_rate = 0.25  # Valeur par défaut
+                    st.warning("Corporate tax rate non trouvé, valeur par défaut utilisée")
+                    country_match_placeholder.empty() # Effacer le message si aucune correspondance n'est trouvée
 
-        # Calcul du beta réendetté
-        b = calcul_beta_reendeté(beta_desendetté, gearing_sectoriel, tax_rate)
+            # Calcul du beta réendetté
+            b = calcul_beta_reendeté(beta_desendetté, gearing_sectoriel, tax_rate)
 
-        # Calcul du Taux sans risque local (a)
-        if avg_30y_rate is not None:
-            # Le taux US est déjà en %, on le convertit en décimal
-            a = (avg_30y_rate / 100) + country_risk_premium
-        else:
-            a = 0.03 # Fallback si le taux US n'est pas trouvé
-            st.error(f"Impossible de calculer le taux US {risk_free_maturity} pour {valuation_year}. Utilisation d'une valeur par défaut pour 'a'.")
+            # Calcul du Taux sans risque local (a)
+            if avg_30y_rate is not None:
+                # Le taux US est déjà en %, on le convertit en décimal
+                a = (avg_30y_rate / 100) + country_risk_premium
+            else:
+                a = 0.03 # Fallback si le taux US n'est pas trouvé
+                st.error(f"Impossible de calculer le taux US {risk_free_maturity} pour {valuation_year}. Utilisation d'une valeur par défaut pour 'a'.")
 
-        # Calcul du Coût des fonds propres
-        cout_fonds_propres = calcul_cout_fonds_propres(a, b, c, d, e)
-        
-        # Ajuster le spread de financement si applicable
-        adjusted_spread, is_adjusted = get_adjusted_spread(cost_of_debt, spread_adjustment_table)
+            # Calcul du Coût des fonds propres
+            cout_fonds_propres = calcul_cout_fonds_propres(a, b, c, d, e)
+            
+            # Ajuster le spread de financement si applicable
+            adjusted_spread, is_adjusted = get_adjusted_spread(cost_of_debt, spread_adjustment_table)
 
-        # ===== AFFICHAGE DANS LE NOUVEL ORDRE =====
+            # ===== AFFICHAGE DANS LE NOUVEL ORDRE =====
 
-        # 1. Tableau de détermination du taux sans risque (bleu)
-        if avg_30y_rate is not None:
+            # 1. Tableau de détermination du taux sans risque (bleu)
+            if avg_30y_rate is not None:
+                st.info(
+                    f"""
+                    **Détermination du taux sans risque:**
+                    - Taux US Bond {risk_free_maturity} ({valuation_year}) : {avg_30y_rate:.2f}%
+                    - Prime de risque pays : {country_risk_premium:.2%}
+                    
+                    **Taux sans risque local (a) : {a:.2%}**
+                    """
+                )
+            else:
+                country_risk_premium_display = f"{country_risk_premium:.2%}"
+                st.info(
+                    f"""
+                    **Détermination du taux sans risque:**
+                    - Prime de risque pays : {country_risk_premium_display}
+                    
+                    **Taux sans risque local (a) : {a:.2%}** (valeur par défaut)
+                    """
+                )
+
+            # 2 Carré gris foncé avec beta désendetté et autres infos
+            st.markdown(f"""
+            <div style="background-color: #404040; padding: 8px; border-radius: 8px; color: white; margin-bottom: 15px;">
+                <div style="margin-bottom: 4px; font-weight: bold;">Beta désendetté: {beta_desendetté:.3f}</div>
+                <div style="margin-bottom: 4px;">Gearing sectoriel: {gearing_sectoriel:.2f}</div>
+                <div style="margin-bottom: 4px;">Corporate Tax Rate: {tax_rate*100:.0f}%</div>
+                <div style="font-weight: bold;">Beta réendetté (b): {b:.3f}</div>
+            </div>
+            """, unsafe_allow_html=True)
+
+            # 3 Prime de taille et prime spécifique, dans un carré gris clair
+            st.markdown(f"""
+            <div style="background-color: #f0f0f0; padding: 8px; border-radius: 8px; margin-bottom: 15px;">
+                <div style="margin-bottom: 4px;">Prime de risque marché (c): {c:.2%}</div>
+                <div style="margin-bottom: 4px;">Prime de taille (d): {d:.2%}</div>
+                <div style="margin-bottom: 2px;">Prime spécifique (e): {e:.2%}</div>
+            </div>
+            """, unsafe_allow_html=True)
+
+
+            # 3.5 Spread de financement
+            if is_adjusted:
+                spread_display = f"{adjusted_spread:.2%}"
+            else:
+                spread_display = f"{adjusted_spread:.2%}"
+            
+            st.markdown(f"""
+            <div style="background-color: #404040; padding: 9px; border-radius: 8px; color: white; margin-bottom: 15px;">
+                <div style="margin-bottom: 0px; font-weight: bold; font-size: 0.95em;">Spread de Financement: {spread_display}</div>
+            </div>
+            """, unsafe_allow_html=True)
+
+            # 3.3 Quote-parts des fonds propres et de la dette
+            quote_part_equity = 1 / (1 + gearing_sectoriel)
+            quote_part_debt = 1 - quote_part_equity
+            
+            st.markdown(f"""
+            <div style="background-color: #f0f0f0; padding: 8px; border-radius: 8px; margin-bottom: 15px;">
+                <div style="margin-bottom: 4px;">Quote-part Fonds Propres: {quote_part_equity:.2%}</div>
+                <div style="margin-bottom: 2px;">Quote-part Dette: {quote_part_debt:.2%}</div>
+            </div>
+            """, unsafe_allow_html=True)
+
+            # 4 Coût des fonds propres en gras
+            cout_fonds_propres = calcul_cout_fonds_propres(a, b, c, d, e)
+            st.markdown(f"""
+            <div style="margin-bottom:5px; font-size: 1.15em; font-weight: bold; color: #1f77b4; text-align: center; padding: 6px; background-color: #f0f0f0; border-radius: 8px;">
+                Coût des fonds propres: {cout_fonds_propres:.2%}
+            </div>
+            """, unsafe_allow_html=True)
+
+            # 5 Calcul du coût de la dette
+            cout_dette = calcul_cout_dette(adjusted_spread, a, tax_rate)
+            st.markdown(f"""
+            <div style="margin-bottom:5px;font-size: 1.15em; font-weight: bold; color: #d62728; text-align: center; padding:6px; background-color: #f0f0f0; border-radius: 8px;">
+                Coût de la Dette: {cout_dette:.2%}
+            </div>
+            """, unsafe_allow_html=True)
+
+            # 6 Calcul et affichage du WACC
+            wacc = calcul_wacc(cout_fonds_propres, cout_dette, quote_part_equity, quote_part_debt)
+            st.markdown(f"""
+            <div style="background-color: #f0f0f0;margin-bottom:5px;font-size: 1.2em; font-weight: bold; color: #2ca02c; text-align: center; padding: 6px; background-color: #f0f0f0; border-radius: 8px;">
+                WACC: {wacc:.2%}
+            </div>
+            """, unsafe_allow_html=True)
+
+            # 7 CMPC en monnaie locale
+            wacc_local = calcul_wacc_monnaie_locale(wacc, inflation_locale, inflation_mature)
+            st.markdown(f"""
+            <div style="background-color: #f0f0f0;margin-bottom:5px;font-size: 1.2em; font-weight: bold; color: #2ca02c; text-align: center; padding: 6px; background-color: #f0f0f0; border-radius: 8px;">
+                CMPC en monnaie locale: {wacc_local:.2%}
+            </div>
+            """, unsafe_allow_html=True)
+
+            # Détail du calcul
             st.info(
                 f"""
-                **Détermination du taux sans risque:**
-                - Taux US Bond {risk_free_maturity} ({valuation_year}) : {avg_30y_rate:.2f}%
-                - Prime de risque pays : {country_risk_premium:.2%}
+                **Détail du calcul Coût Fonds Propres:**
+                - a = {a:.2%}
+                - b × c = {b*c:.2%}
+                - d = {d:.2%}
+                - e = {e:.2%}
                 
-                **Taux sans risque local (a) : {a:.2%}**
+                **Total:** {cout_fonds_propres:.2%}
+                
+                ---
+                
+                **Détail du calcul Coût de la Dette:**
+                - Spread = {adjusted_spread:.4f}
+                - a × (1 - Tax Rate) = {a:.4f} × {1-tax_rate:.4f} = {a * (1-tax_rate):.4f}
+                
+                **Total:** {cout_dette:.2%}
                 """
             )
-        else:
-            country_risk_premium_display = f"{country_risk_premium:.2%}"
-            st.info(
-                f"""
-                **Détermination du taux sans risque:**
-                - Prime de risque pays : {country_risk_premium_display}
-                
-                **Taux sans risque local (a) : {a:.2%}** (valeur par défaut)
-                """
+
+        with col_comments:
+            st.subheader("Commentaires")
+            st.text_area(
+                "Commentaires",
+                key="commentaires_valeurs",
+                height=700,
+                label_visibility="collapsed",
+                placeholder="Notes et commentaires sur les valeurs calculées…"
             )
 
-        # 2 Carré gris foncé avec beta désendetté et autres infos
-        st.markdown(f"""
-        <div style="background-color: #404040; padding: 8px; border-radius: 8px; color: white; margin-bottom: 15px;">
-            <div style="margin-bottom: 4px; font-weight: bold;">Beta désendetté: {beta_desendetté:.3f}</div>
-            <div style="margin-bottom: 4px;">Gearing sectoriel: {gearing_sectoriel:.2f}</div>
-            <div style="margin-bottom: 4px;">Corporate Tax Rate: {tax_rate*100:.0f}%</div>
-            <div style="font-weight: bold;">Beta réendetté (b): {b:.3f}</div>
-        </div>
-        """, unsafe_allow_html=True)
-
-        # 3 Prime de taille et prime spécifique, dans un carré gris clair
-        st.markdown(f"""
-        <div style="background-color: #f0f0f0; padding: 8px; border-radius: 8px; margin-bottom: 15px;">
-            <div style="margin-bottom: 4px;">Prime de risque marché (c): {c:.2%}</div>
-            <div style="margin-bottom: 4px;">Prime de taille (d): {d:.2%}</div>
-            <div style="margin-bottom: 2px;">Prime spécifique (e): {e:.2%}</div>
-        </div>
-        """, unsafe_allow_html=True)
-
-
-        # 3.5 Spread de financement
-        if is_adjusted:
-            spread_display = f"{adjusted_spread:.2%}"
-        else:
-            spread_display = f"{adjusted_spread:.2%}"
-        
-        st.markdown(f"""
-        <div style="background-color: #404040; padding: 9px; border-radius: 8px; color: white; margin-bottom: 15px;">
-            <div style="margin-bottom: 0px; font-weight: bold; font-size: 0.95em;">Spread de Financement: {spread_display}</div>
-        </div>
-        """, unsafe_allow_html=True)
-
-        # 3.3 Quote-parts des fonds propres et de la dette
-        quote_part_equity = 1 / (1 + gearing_sectoriel)
-        quote_part_debt = 1 - quote_part_equity
-        
-        st.markdown(f"""
-        <div style="background-color: #f0f0f0; padding: 8px; border-radius: 8px; margin-bottom: 15px;">
-            <div style="margin-bottom: 4px;">Quote-part Fonds Propres: {quote_part_equity:.2%}</div>
-            <div style="margin-bottom: 2px;">Quote-part Dette: {quote_part_debt:.2%}</div>
-        </div>
-        """, unsafe_allow_html=True)
-
-        # 4 Coût des fonds propres en gras
-        cout_fonds_propres = calcul_cout_fonds_propres(a, b, c, d, e)
-        st.markdown(f"""
-        <div style="margin-bottom:5px; font-size: 1.15em; font-weight: bold; color: #1f77b4; text-align: center; padding: 6px; background-color: #f0f0f0; border-radius: 8px;">
-            Coût des fonds propres: {cout_fonds_propres:.2%}
-        </div>
-        """, unsafe_allow_html=True)
-
-        # 5 Calcul du coût de la dette
-        cout_dette = calcul_cout_dette(adjusted_spread, a, tax_rate)
-        st.markdown(f"""
-        <div style="margin-bottom:5px;font-size: 1.15em; font-weight: bold; color: #d62728; text-align: center; padding:6px; background-color: #f0f0f0; border-radius: 8px;">
-            Coût de la Dette: {cout_dette:.2%}
-        </div>
-        """, unsafe_allow_html=True)
-
-        # 6 Calcul et affichage du WACC
-        wacc = calcul_wacc(cout_fonds_propres, cout_dette, quote_part_equity, quote_part_debt)
-        st.markdown(f"""
-        <div style="background-color: #f0f0f0;margin-bottom:5px;font-size: 1.2em; font-weight: bold; color: #2ca02c; text-align: center; padding: 6px; background-color: #f0f0f0; border-radius: 8px;">
-            WACC: {wacc:.2%}
-        </div>
-        """, unsafe_allow_html=True)
-
-        # 7 CMPC en monnaie locale
-        wacc_local = calcul_wacc_monnaie_locale(wacc, inflation_locale, inflation_mature)
-        st.markdown(f"""
-        <div style="background-color: #f0f0f0;margin-bottom:5px;font-size: 1.2em; font-weight: bold; color: #2ca02c; text-align: center; padding: 6px; background-color: #f0f0f0; border-radius: 8px;">
-            CMPC en monnaie locale: {wacc_local:.2%}
-        </div>
-        """, unsafe_allow_html=True)
-
-    # Détail du calcul dans col1
-    with col1:
-        st.info(
-            f"""
-            **Détail du calcul Coût Fonds Propres:**
-            - a = {a:.2%}
-            - b × c = {b*c:.2%}
-            - d = {d:.2%}
-            - e = {e:.2%}
-            
-            **Total:** {cout_fonds_propres:.2%}
-            
-            ---
-            
-            **Détail du calcul Coût de la Dette:**
-            - Spread = {adjusted_spread:.4f}
-            - a × (1 - Tax Rate) = {a:.4f} × {1-tax_rate:.4f} = {a * (1-tax_rate):.4f}
-            
-            **Total:** {cout_dette:.2%}
-            """
+        # Export Excel
+        st.divider()
+        st.subheader("Export")
+        excel_buffer = generate_wacc_workbook({
+            "country": selected_country,
+            "industry": selected_industry,
+            "valuation_year": valuation_year,
+            "avg_30y_rate": avg_30y_rate if avg_30y_rate is not None else 0.0,
+            "risk_free_maturity": risk_free_maturity,
+            "country_risk_premium": country_risk_premium,
+            "beta_desendette": beta_desendetté,
+            "gearing_sectoriel": gearing_sectoriel,
+            "tax_rate": tax_rate,
+            "beta_reendette": b,
+            "c": c,
+            "d": d,
+            "e": e,
+            "cout_fonds_propres": cout_fonds_propres,
+            "adjusted_spread": adjusted_spread,
+            "is_adjusted": is_adjusted,
+            "cout_dette": cout_dette,
+            "quote_part_equity": quote_part_equity,
+            "quote_part_debt": quote_part_debt,
+            "wacc": wacc,
+            "inflation_mature": inflation_mature,
+            "inflation_locale": inflation_locale,
+            "wacc_local": wacc_local,
+        }, betas_data, erps_data, tax_rates_data, financing_spread_data)
+        file_name = f"WACC_{selected_industry}_{selected_country}_{valuation_year}.xlsx".replace(" ", "_")
+        st.download_button(
+            label="📥 Exporter en Excel",
+            data=excel_buffer,
+            file_name=file_name,
+            mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
         )
-
-    # Export Excel
-    st.divider()
-    st.subheader("Export")
-    excel_buffer = generate_wacc_workbook({
-        "country": selected_country,
-        "industry": selected_industry,
-        "valuation_year": valuation_year,
-        "avg_30y_rate": avg_30y_rate if avg_30y_rate is not None else 0.0,
-        "risk_free_maturity": risk_free_maturity,
-        "country_risk_premium": country_risk_premium,
-        "beta_desendette": beta_desendetté,
-        "gearing_sectoriel": gearing_sectoriel,
-        "tax_rate": tax_rate,
-        "beta_reendette": b,
-        "c": c,
-        "d": d,
-        "e": e,
-        "cout_fonds_propres": cout_fonds_propres,
-        "adjusted_spread": adjusted_spread,
-        "is_adjusted": is_adjusted,
-        "cout_dette": cout_dette,
-        "quote_part_equity": quote_part_equity,
-        "quote_part_debt": quote_part_debt,
-        "wacc": wacc,
-        "inflation_mature": inflation_mature,
-        "inflation_locale": inflation_locale,
-        "wacc_local": wacc_local,
-    }, betas_data, erps_data, tax_rates_data, financing_spread_data)
-    file_name = f"WACC_{selected_industry}_{selected_country}_{valuation_year}.xlsx".replace(" ", "_")
-    st.download_button(
-        label="📥 Exporter en Excel",
-        data=excel_buffer,
-        file_name=file_name,
-        mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-    )
