@@ -1,4 +1,5 @@
 import streamlit as st
+import streamlit.components.v1 as components
 import pandas as pd
 import requests
 from io import BytesIO
@@ -8,6 +9,7 @@ import difflib
 from datetime import datetime
 from get_us_bond_rate import calculate_average_rate
 from export_wacc import generate_wacc_workbook
+from wacc_html import render_wacc_html
 
 # Vérifier et installer openpyxl si nécessaire
 try:
@@ -287,315 +289,134 @@ def calcul_wacc_monnaie_locale(wacc: float, inflation_locale: float, inflation_m
     return (1 + wacc) * (1 + inflation_locale) / (1 + inflation_mature) - 1
 
 
-def render_comment_trigger(key: str, label: str) -> None:
-    """Petit bouton qui ouvre, dans la zone Commentaire, la bulle liée à ce cadre de valeur."""
-    if st.button("💬", key=f"btn_comment_{key}", help=f"Commenter : {label}"):
-        st.session_state["active_comment_key"] = key
-        st.session_state["active_comment_label"] = label
-        st.rerun()
-
-
-def render_value_card(title: str, value: str, accent: str, helper: str = "", comment_key: str | None = None, dark: bool = False, badge: str | None = None) -> None:
-    """Affiche une carte de valeur dans le style d’un dashboard de valorisation premium."""
-    bloc_valeur, bloc_bouton = st.columns([10, 1])
-    card_bg = "#111827" if dark else "#ffffff"
-    label_color = "rgba(148,163,184,0.95)" if dark else "#64748b"
-    helper_color = "rgba(255,255,255,0.78)" if dark else "#475569"
-    border = "rgba(148,163,184,0.28)" if dark else "rgba(15,23,42,0.08)"
-    badge_html = f'<span style="display:inline-block;padding:4px 8px;border-radius:999px;background:rgba(255,255,255,0.08);color:{accent};font-size:10px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;">{badge}</span>' if badge else ''
-    card_html = f"""
-    <div style="background:{card_bg}; border:1px solid {border}; border-radius:18px; padding:16px 18px; margin-bottom:14px; box-shadow:0 8px 22px rgba(15, 23, 42, 0.06);">
-        <div style="display:flex; justify-content:space-between; align-items:center; gap:10px; margin-bottom:12px;">
-            <div style="font-size:11px; font-weight:700; letter-spacing:0.08em; text-transform:uppercase; color:{label_color};">{title}</div>
-            {badge_html}
-        </div>
-        <div style="font-size:1.55rem; line-height:1.2; font-weight:800; letter-spacing:-0.02em; color:{accent};">{value}</div>
-        {f'<div style="margin-top:8px; font-size:0.82rem; line-height:1.45; color:{helper_color};">{helper}</div>' if helper else ''}
-    </div>
-    """
-    with bloc_valeur:
-        st.markdown(card_html, unsafe_allow_html=True)
-    if comment_key:
-        with bloc_bouton:
-            render_comment_trigger(comment_key, title)
-
-
 # Configuration de la page
 st.set_page_config(
     page_title="Calcul WACC",
     page_icon="🔵",
-    layout="centered"
+    layout="wide"
 )
 
-# Logo texte, centré au-dessus du titre : sans carré ni fond, texte noir.
-st.markdown(
-    "<div style='text-align:center;margin:0 auto 16px;'>"
-    "<span style=\"color:#000;font-family:'Arial Black','Helvetica Neue',Arial,sans-serif;"
-    "font-weight:900;font-size:32px;line-height:1.2;\">Making it the 43. Type of way</span>"
-    "</div>",
-    unsafe_allow_html=True,
-)
-
-st.title("Calcul du CMPC - Méthode indirecte")
-st.markdown("**Formule Coût Fonds Propres:** Coût = a + b × c + d + e")
-st.divider()
-
-# Bulle de commentaire : rectangle avec une flèche pointant vers le cadre de valeur cliqué
+# Charte visuelle alignée sur la maquette wacc_value_tab.html
 st.markdown(
     """
     <style>
     .stApp {
-        background: linear-gradient(180deg, #f6f8fc 0%, #eef3fb 100%);
+        background: #f5f6f8;
     }
     .block-container {
-        max-width: 1450px;
+        max-width: 1180px;
         padding-top: 1.75rem;
-        padding-bottom: 2rem;
+        padding-bottom: 3rem;
     }
-    [data-testid="stTab"] {
-        font-weight: 700;
-        letter-spacing: 0.02em;
-        color: #475569;
-        padding: 0.7rem 1rem;
-        border-radius: 12px 12px 0 0;
+    .app-header {
+        background: #ffffff;
+        border: 1px solid #e6e8ee;
+        border-bottom: none;
+        border-radius: 18px 18px 0 0;
+        padding: 22px 26px 18px;
     }
-    [data-testid="stTabList"] {
-        gap: 0.6rem;
-        background: rgba(255,255,255,0.7);
-        border-radius: 16px;
-        padding: 0.35rem 0.5rem;
-        border: 1px solid rgba(148, 163, 184, 0.2);
-    }
-    [data-testid="stTabList"] button[aria-selected="true"] {
-        background: linear-gradient(135deg, #eaf2ff 0%, #dfefff 100%);
-        color: #103870;
-        border: 1px solid rgba(96,165,250,0.25);
-        box-shadow: 0 8px 18px rgba(59,130,246,0.1);
-    }
-    .design-header {
-        background: linear-gradient(135deg, rgba(15,23,42,0.98), rgba(30,41,59,0.96));
-        border-radius: 22px;
-        padding: 1.4rem 1.5rem 1.2rem 1.5rem;
-        margin-bottom: 1.2rem;
-        border: 1px solid rgba(148,163,184,0.18);
-        box-shadow: 0 18px 40px rgba(15,23,42,0.08);
-    }
-    .design-header .eyebrow {
-        display: inline-block;
-        font-size: 11px;
-        font-weight: 700;
-        letter-spacing: 0.12em;
-        text-transform: uppercase;
-        color: #7dd3fc;
-        margin-bottom: 0.55rem;
-    }
-    .design-header h2 {
-        margin: 0;
-        color: white;
-        font-size: clamp(1.6rem, 2.2vw, 2.4rem);
-        line-height: 1.1;
-        letter-spacing: -0.04em;
-    }
-    .design-header .subtitle {
-        margin-top: 0.4rem;
-        color: rgba(255,255,255,0.72);
-        font-size: 0.95rem;
-    }
-    .panel {
-        background: rgba(255,255,255,0.85);
-        border: 1px solid rgba(148,163,184,0.18);
-        border-radius: 18px;
-        padding: 1rem 1.1rem;
-        box-shadow: 0 10px 25px rgba(15,23,42,0.04);
-        height: 100%;
-    }
-    .panel-title {
-        font-size: 0.8rem;
-        font-weight: 800;
-        letter-spacing: 0.08em;
-        text-transform: uppercase;
-        color: #475569;
-        margin-bottom: 0.8rem;
-    }
-    .kpi-highlight {
-        background: linear-gradient(135deg, #eaf2ff 0%, #dfeeff 100%);
-        border: 1px solid rgba(59,130,246,0.18);
-        border-radius: 18px;
-        padding: 1.1rem 1.15rem;
-        box-shadow: inset 0 1px rgba(255,255,255,0.8);
-    }
-    .kpi-highlight .label {
-        display: block;
-        font-size: 0.73rem;
-        letter-spacing: 0.08em;
-        text-transform: uppercase;
-        color: #3b82f6;
-        margin-bottom: 0.5rem;
-        font-weight: 700;
-    }
-    .kpi-highlight .value {
-        font-size: clamp(1.7rem, 2.2vw, 2.5rem);
-        font-weight: 900;
-        letter-spacing: -0.04em;
-        color: #0f172a;
-    }
-    .st-key-comment_bubble {
-        position: relative;
-        background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
-        border: 1px solid rgba(148,163,184,0.28);
-        border-radius: 18px;
-        padding: 14px 16px;
-        margin: 6px 0 10px 18px;
-        box-shadow: 0 10px 25px rgba(15,23,42,0.05);
-    }
-    .st-key-comment_bubble::before {
-        content: "";
-        position: absolute;
-        top: 22px;
-        left: -18px;
-        width: 0;
-        height: 0;
-        border-top: 11px solid transparent;
-        border-bottom: 11px solid transparent;
-        border-right: 18px solid rgba(148,163,184,0.28);
-    }
-    .st-key-comment_bubble::after {
-        content: "";
-        position: absolute;
-        top: 24px;
-        left: -14px;
-        width: 0;
-        height: 0;
-        border-top: 9px solid transparent;
-        border-bottom: 9px solid transparent;
-        border-right: 15px solid #ffffff;
-    }
-    [data-testid="stRadio"] > div {
-        display: flex;
-        flex-direction: column;
-        gap: 0.72rem;
-    }
-    [data-testid="stRadio"] label {
-        width: 100% !important;
-        min-height: 62px;
-        border-radius: 16px !important;
-        border: 1px solid rgba(148,163,184,0.18) !important;
-        background: rgba(255,255,255,0.88) !important;
-        color: #111827 !important;
-        padding: 0.9rem 1.05rem !important;
-        margin: 0 !important;
-        box-shadow: 0 6px 16px rgba(15,23,42,0.04) !important;
-        font-weight: 700 !important;
-        font-size: 1.05rem !important;
-        display: flex !important;
-        align-items: center !important;
-        justify-content: space-between !important;
-    }
-    [data-testid="stRadio"] label:has(input:checked) {
-        background: linear-gradient(135deg, #7247c9 0%, #5b2ca0 100%) !important;
-        border-color: rgba(114,71,201,0.9) !important;
-        color: #ffffff !important;
-        box-shadow: 0 16px 28px rgba(91,44,160,0.18) !important;
-    }
-    [data-testid="stRadio"] input {
-        display: none !important;
-    }
-    .component-list-header {
-        font-size: 0.82rem;
-        font-weight: 800;
-        letter-spacing: 0.08em;
-        text-transform: uppercase;
-        color: #475569;
-        margin-bottom: 0.3rem;
-    }
-    .component-list-subtitle {
-        font-size: 0.78rem;
-        color: #64748b;
-        margin-bottom: 0.8rem;
-    }
-    .detail-panel {
-        background: rgba(255,255,255,0.82);
-        border: 1px solid rgba(148,163,184,0.2);
-        border-radius: 18px;
-        padding: 1.15rem 1.2rem 1rem 1.2rem;
-        box-shadow: 0 12px 26px rgba(15, 23, 42, 0.04);
-        height: 100%;
-    }
-    .detail-head {
+    .app-header .brand-row {
         display: flex;
         justify-content: space-between;
-        align-items: baseline;
-        gap: 0.9rem;
-        margin-bottom: 0.9rem;
-        padding-bottom: 0.7rem;
-        border-bottom: 1px solid rgba(148,163,184,0.18);
+        align-items: flex-end;
+        flex-wrap: wrap;
+        gap: 8px;
     }
-    .detail-title {
-        font-size: 1.1rem;
-        color: #111827;
-        font-weight: 700;
-    }
-    .detail-value {
-        font-size: 2rem;
-        line-height: 1;
+    .app-header .brand-line {
+        display: block;
+        font-size: 13px;
         font-weight: 800;
-        letter-spacing: -0.04em;
-        color: #111827;
+        letter-spacing: 0.02em;
+        color: #12131a;
+        margin-bottom: 6px;
     }
-    .detail-rows {
-        display: flex;
-        flex-direction: column;
-        gap: 0.7rem;
+    .app-header .brand-43 {
+        font-style: italic;
+        font-size: 1.2em;
     }
-    .detail-row {
-        display: grid;
-        grid-template-columns: 110px 1fr;
-        gap: 0.8rem;
-        align-items: start;
-        color: #334155;
-        font-size: 0.96rem;
-        line-height: 1.5;
-    }
-    .detail-label {
-        font-size: 0.72rem;
+    .app-header h1 {
+        margin: 0;
+        font-size: 1.7rem;
         font-weight: 800;
-        letter-spacing: 0.08em;
-        text-transform: uppercase;
-        color: #64748b;
-        padding-top: 0.1rem;
+        letter-spacing: -0.02em;
+        color: #12131a;
     }
-    .formula-box {
-        margin-top: 1rem;
-        padding: 0.9rem 1rem;
-        border-radius: 12px;
-        border: 1px solid rgba(148,163,184,0.16);
-        background: rgba(148,163,184,0.08);
-        font-size: 0.95rem;
-        line-height: 1.6;
-        color: #0f172a;
+    .app-header .fiscal-year {
+        font-size: 0.85rem;
+        color: #6b7280;
+        padding-bottom: 4px;
+    }
+    [data-testid="stTabs"] {
+        background: #ffffff;
+        border: 1px solid #e6e8ee;
+        border-radius: 0 0 18px 18px;
+        padding: 0 26px 4px;
+        margin-bottom: 22px;
+    }
+    [data-testid="stTabList"] {
+        gap: 28px;
+        background: transparent;
+        border: none;
+        padding: 0;
+    }
+    [data-testid="stTab"] {
+        font-size: 0.92rem;
         font-weight: 600;
+        letter-spacing: 0;
+        color: #6b7280;
+        padding: 14px 2px;
+        border-radius: 0;
     }
-    .comment-button-row {
-        margin-top: 1rem;
+    [data-testid="stTabList"] button[aria-selected="true"] {
+        color: #12131a;
+        background: transparent;
+        border: none;
+        box-shadow: none;
     }
-    .comment-button-row .stButton > button {
-        width: 100%;
-        border-radius: 10px;
-        border: 1px solid rgba(148, 163, 184, 0.4);
-        background: rgba(255,255,255,0.7);
-        color: #334155;
+    [data-testid="stTabs"] [data-baseweb="tab-highlight"] {
+        background-color: #6b3fa0;
+    }
+    [data-testid="stTabs"] [data-baseweb="tab-border"] {
+        display: none;
+    }
+    [data-testid="stTabs"] h2, [data-testid="stTabs"] h3 {
+        font-size: 1rem;
         font-weight: 800;
-        letter-spacing: 0.12em;
-        text-transform: uppercase;
-        padding: 0.7rem 1rem;
+        color: #12131a;
+    }
+    [data-testid="stDownloadButton"] button {
+        border-radius: 12px;
+        border: 1px solid #e6e8ee;
+        background: #ffffff;
+        color: #12131a;
+        font-weight: 700;
+        padding: 0.6rem 1.1rem;
+    }
+    [data-testid="stDownloadButton"] button:hover {
+        border-color: #6b3fa0;
+        color: #6b3fa0;
     }
     </style>
     """,
     unsafe_allow_html=True,
 )
 
-if "active_comment_key" not in st.session_state:
-    st.session_state["active_comment_key"] = None
+# En-tête : même composition que la maquette (marque, titre, méthode) ;
+# les onglets Streamlit ci-dessous prolongent visuellement cette carte.
+st.markdown(
+    """
+    <div class="app-header">
+      <div class="brand-row">
+        <div>
+          <span class="brand-line">Making it the <em class="brand-43">43</em>. Type of way</span>
+          <h1>Coût moyen pondéré du capital</h1>
+        </div>
+        <div class="fiscal-year">Méthode indirecte</div>
+      </div>
+    </div>
+    """,
+    unsafe_allow_html=True,
+)
 
 tab_parametres, tab_valeurs = st.tabs(["Paramètres", "Valeurs"])
 
@@ -760,120 +581,15 @@ if betas_data is not None and tax_rates_data is not None and erps_data is not No
         wacc = calcul_wacc(cout_fonds_propres, cout_dette, quote_part_equity, quote_part_debt)
         wacc_local = calcul_wacc_monnaie_locale(wacc, inflation_locale, inflation_mature)
 
-        default_component = "poids_dette"
-        if "selected_component" not in st.session_state:
-            st.session_state["selected_component"] = default_component
-
-        component_data = {
-            "cout_fonds_propres": {
-                "title": "Coût des fonds propres",
-                "value": f"{cout_fonds_propres:.2%}",
-                "methodology": "MEDAF. Taux sans risque construit sur l'obligation US 30 ans, majoré de la prime de risque pays ; bêta sectoriel désendetté puis ré-endetté au gearing sectoriel.",
-                "source": "US Treasury 30Y (2026) ; prime pays, prime de risque marché et bêta sectoriel Damodaran.",
-                "hypothesis": "Primes de taille et spécifique maintenues sur tout l'horizon ; gearing sectoriel considéré comme cible.",
-                "formula": f"Re = a + b × c + d + e = {a:.2%} + {b:.3f} × {c:.2%} + {d:.2%} + {e:.2%} = {cout_fonds_propres:.2%}",
-            },
-            "cout_dette": {
-                "title": "Coût de la dette",
-                "value": f"{cout_dette:.2%}",
-                "methodology": "Coût marginal de la dette : taux sans risque local majoré du spread de financement obtenu auprès des prêteurs.",
-                "source": "Grille de spread bancaire 2026 ; conditions du dernier financement signé.",
-                "hypothesis": "Refinancement aux conditions actuelles ; charges financières intégralement déductibles.",
-                "formula": f"Rd = a + spread = {a:.2%} + {adjusted_spread:.2%} = {cout_dette:.2%}",
-            },
-            "poids_fonds_propres": {
-                "title": "Poids des fonds propres",
-                "value": f"{quote_part_equity:.2%}",
-                "methodology": "Structure financière cible en valeur de marché, déduite du gearing sectoriel plutôt que du levier comptable spot.",
-                "source": "Gearing médian de l'échantillon sectoriel retenu pour le désendettement du bêta.",
-                "hypothesis": "Structure stable sur l'horizon d'actualisation, sans opération de haut de bilan.",
-                "formula": f"E/V = 1 / (1 + D/E) = 1 / 1,32 = {quote_part_equity:.2%}",
-            },
-            "poids_dette": {
-                "title": "Poids de la dette",
-                "value": f"{quote_part_debt:.2%}",
-                "methodology": "Complément de la quote-part de fonds propres, sur la même structure cible ; dette financière brute, trésorerie non déduite.",
-                "source": "Gearing médian de l'échantillon sectoriel retenu pour le désendettement du bêta.",
-                "hypothesis": "Obligations locatives assimilées à de la dette financière.",
-                "formula": f"D/V = (D/E) / (1 + D/E) = 0,32 / 1,32 = {quote_part_debt:.2%}",
-            },
-            "taxe": {
-                "title": "Taux d'imposition",
-                "value": f"{tax_rate:.2%}",
-                "methodology": "Taux d'impôt sur les sociétés normatif, également utilisé pour le ré-endettement du bêta.",
-                "source": "Taux d'IS de droit commun applicable en 2026.",
-                "hypothesis": "Aucun déficit reportable activé ; pas de plafonnement de la déductibilité.",
-                "formula": f"Économie d'impôt = Rd × t = {cout_dette:.2%} × {tax_rate:.2%} = {cout_dette * tax_rate:.2%}",
-            },
-            "wacc": {
-                "title": "Coût moyen pondéré du capital",
-                "value": f"{wacc:.2%}",
-                "methodology": "Moyenne des deux coûts pondérée par la structure cible, la dette étant retenue après économie d'impôt.",
-                "source": "Structure financière cible et coût de la dette ajusté selon le taux d'imposition.",
-                "hypothesis": "Le modèle retient 11,25 % dans l'actualisation de la valeur d'entreprise.",
-                "formula": f"WACC = E/V × Re + D/V × Rd × (1 − t) = {quote_part_equity:.2%} × {cout_fonds_propres:.2%} + {quote_part_debt:.2%} × {cout_dette:.2%} × (1 − {tax_rate:.2%}) = {wacc:.2%}",
-            },
-        }
-
-        left_col, right_col = st.columns([1.25, 1.2], gap="large")
-
-        with left_col:
-            st.markdown('<div class="component-list-header">Composantes</div>', unsafe_allow_html=True)
-            st.markdown('<div class="component-list-subtitle">Cliquez pour le détail</div>', unsafe_allow_html=True)
-            selected_key = st.radio(
-                "Composantes",
-                options=list(component_data.keys()),
-                format_func=lambda key: f"{component_data[key]['title']} {component_data[key]['value']}",
-                index=list(component_data.keys()).index(st.session_state["selected_component"]),
-                label_visibility="collapsed",
-                key="selected_component",
-            )
-
-        with right_col:
-            selected_detail = component_data[selected_key]
-            st.markdown(
-                f"""
-                <div class="detail-panel">
-                    <div class="detail-head">
-                        <div class="detail-title">{selected_detail['title']}</div>
-                        <div class="detail-value">{selected_detail['value']}</div>
-                    </div>
-                    <div class="detail-rows">
-                        <div class="detail-row"><div class="detail-label">Méthodologie</div><div>{selected_detail['methodology']}</div></div>
-                        <div class="detail-row"><div class="detail-label">Source</div><div>{selected_detail['source']}</div></div>
-                        <div class="detail-row"><div class="detail-label">Hypothèse</div><div>{selected_detail['hypothesis']}</div></div>
-                    </div>
-                    <div class="formula-box">{selected_detail['formula']}</div>
-                </div>
-                """,
-                unsafe_allow_html=True,
-            )
-            st.markdown('<div class="comment-button-row">', unsafe_allow_html=True)
-            if st.button("COMMENTAIRE", key=f"comment_{selected_key}", use_container_width=True):
-                st.session_state["active_comment_key"] = selected_key
-                st.session_state["active_comment_label"] = selected_detail["title"]
-                st.rerun()
-            st.markdown('</div>', unsafe_allow_html=True)
-
-            if st.session_state.get("active_comment_key") == selected_key:
-                st.text_area(
-                    "Commentaire",
-                    key=f"comment_input_{selected_key}",
-                    label_visibility="collapsed",
-                    placeholder="Votre commentaire…",
-                    height=140,
-                )
-
-        # Export Excel
-        st.divider()
-        st.subheader("Export")
-        excel_buffer = generate_wacc_workbook({
+        # Jeu de valeurs partagé par la sortie HTML et l'export Excel
+        wacc_values = {
             "country": selected_country,
             "industry": selected_industry,
             "valuation_year": valuation_year,
             "avg_30y_rate": avg_30y_rate if avg_30y_rate is not None else 0.0,
             "risk_free_maturity": risk_free_maturity,
             "country_risk_premium": country_risk_premium,
+            "taux_sans_risque_local": a,
             "beta_desendette": beta_desendetté,
             "gearing_sectoriel": gearing_sectoriel,
             "tax_rate": tax_rate,
@@ -884,6 +600,7 @@ if betas_data is not None and tax_rates_data is not None and erps_data is not No
             "cout_fonds_propres": cout_fonds_propres,
             "adjusted_spread": adjusted_spread,
             "is_adjusted": is_adjusted,
+            "cout_dette_avant_impot": adjusted_spread + a,
             "cout_dette": cout_dette,
             "quote_part_equity": quote_part_equity,
             "quote_part_debt": quote_part_debt,
@@ -891,11 +608,36 @@ if betas_data is not None and tax_rates_data is not None and erps_data is not No
             "inflation_mature": inflation_mature,
             "inflation_locale": inflation_locale,
             "wacc_local": wacc_local,
-        }, betas_data, erps_data, tax_rates_data, financing_spread_data)
-        file_name = f"WACC_{selected_industry}_{selected_country}_{valuation_year}.xlsx".replace(" ", "_")
-        st.download_button(
-            label="📥 Exporter en Excel",
-            data=excel_buffer,
-            file_name=file_name,
-            mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-        )
+        }
+
+        # Rendu de l'onglet Valeurs : cartes dépliables + panneau de détail,
+        # au format de la maquette wacc_value_tab.html
+        wacc_page_html = render_wacc_html(wacc_values, standalone=False)
+        components.html(wacc_page_html, height=780, scrolling=True)
+
+        # Export
+        st.divider()
+        st.subheader("Export")
+        base_name = f"WACC_{selected_industry}_{selected_country}_{valuation_year}".replace(" ", "_")
+        col_html, col_excel = st.columns(2)
+
+        with col_html:
+            st.download_button(
+                label="📄 Exporter en HTML",
+                data=render_wacc_html(wacc_values, standalone=True).encode("utf-8"),
+                file_name=f"{base_name}.html",
+                mime="text/html",
+                use_container_width=True,
+            )
+
+        with col_excel:
+            excel_buffer = generate_wacc_workbook(
+                wacc_values, betas_data, erps_data, tax_rates_data, financing_spread_data
+            )
+            st.download_button(
+                label="📥 Exporter en Excel",
+                data=excel_buffer,
+                file_name=f"{base_name}.xlsx",
+                mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                use_container_width=True,
+            )

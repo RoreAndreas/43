@@ -1,0 +1,565 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>wacc43 — Coût moyen pondéré du capital</title>
+<style>
+  :root {
+    --bg: #f5f6f8;
+    --card-bg: #ffffff;
+    --card-border: #e6e8ee;
+    --text-main: #12131a;
+    --text-muted: #6b7280;
+    --label-muted: #9298a6;
+    --accent: #6b3fa0;
+    --accent-dark: #4f2f79;
+    --radius-lg: 18px;
+    --radius-md: 14px;
+    font-variant-numeric: tabular-nums;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text-main);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  }
+  .mono {
+    font-family: "SFMono-Regular", "JetBrains Mono", "Space Mono", ui-monospace, Menlo, Consolas, monospace;
+  }
+  .page {
+    max-width: 1180px;
+    margin: 0 auto;
+    padding: 28px 24px 60px;
+  }
+
+  /* ---------- Header ---------- */
+  .top-header {
+    background: #ffffff;
+    border: 1px solid var(--card-border);
+    border-radius: var(--radius-lg);
+    padding: 22px 26px 0;
+    margin-bottom: 22px;
+  }
+  .brand-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    flex-wrap: wrap;
+    gap: 8px;
+    padding-bottom: 18px;
+  }
+  .eyebrow {
+    display: block;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--label-muted);
+    margin-bottom: 6px;
+  }
+  .eyebrow.brand-line {
+    font-size: 13px;
+    letter-spacing: 0.02em;
+    text-transform: none;
+    font-weight: 800;
+    color: var(--text-main);
+  }
+  .eyebrow.brand-line .brand-43 {
+    font-style: italic;
+    font-size: 1.2em;
+  }
+  .brand-row h1 {
+    margin: 0;
+    font-size: 1.7rem;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+  }
+  .fiscal-year {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    padding-bottom: 4px;
+  }
+  .tabs {
+    display: flex;
+    gap: 28px;
+    border-top: 1px solid var(--card-border);
+  }
+  .tabs button {
+    background: none;
+    border: none;
+    font: inherit;
+    font-size: 0.92rem;
+    font-weight: 600;
+    color: var(--text-muted);
+    padding: 14px 2px;
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+  }
+  .tabs button.active {
+    color: var(--text-main);
+    border-bottom-color: var(--accent);
+  }
+
+  /* ---------- Layout ---------- */
+  .content {
+    display: grid;
+    grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr);
+    gap: 22px;
+    align-items: start;
+  }
+  @media (max-width: 880px) {
+    .content { grid-template-columns: 1fr; }
+  }
+
+  .panel-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 12px;
+  }
+  .panel-head h2 {
+    margin: 0;
+    font-size: 1rem;
+    font-weight: 800;
+  }
+  .panel-head .hint {
+    font-size: 0.78rem;
+    color: var(--label-muted);
+  }
+
+  /* ---------- Cards ---------- */
+  .card-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .card {
+    position: relative;
+    display: block;
+    width: 100%;
+    text-align: left;
+    background: var(--card-bg);
+    border: 1px solid var(--card-border);
+    border-radius: var(--radius-md);
+    padding: 16px 18px;
+    cursor: pointer;
+    transition: background 380ms cubic-bezier(0.4, 0, 0.2, 1),
+                border-color 380ms cubic-bezier(0.4, 0, 0.2, 1),
+                box-shadow 380ms cubic-bezier(0.4, 0, 0.2, 1);
+    font: inherit;
+    color: var(--text-main);
+  }
+  .card:hover { border-color: #cfd3dc; }
+  .card .row-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+  }
+  .card .title {
+    font-size: 0.98rem;
+    font-weight: 600;
+    transition: color 380ms ease;
+  }
+  .card .value {
+    font-size: 1.15rem;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    transition: color 380ms ease;
+  }
+  .card.highlight {
+    background: #f4fbf7;
+    border-color: #bfe8d2;
+  }
+  .card.highlight .title,
+  .card.highlight .value {
+    color: #0f7a44;
+  }
+
+  /* Expanded (active) card unfolds its detail inline; height/opacity animate smoothly */
+  .card .expand-wrap {
+    display: grid;
+    grid-template-rows: 0fr;
+    opacity: 0;
+    transition: grid-template-rows 380ms cubic-bezier(0.4, 0, 0.2, 1),
+                opacity 260ms ease;
+  }
+  .card .expand-wrap > .expand-inner {
+    overflow: hidden;
+    min-height: 0;
+  }
+  .card .sub-rows {
+    margin-top: 14px;
+    padding-top: 12px;
+    border-top: 1px solid rgba(255,255,255,0.18);
+  }
+  .card.active {
+    background: linear-gradient(135deg, var(--accent) 0%, var(--accent-dark) 100%);
+    border-color: transparent;
+    color: #ffffff;
+    box-shadow: 0 14px 28px rgba(107, 63, 160, 0.22);
+  }
+  .card.active .title { color: #ffffff; }
+  .card.active .value { color: #ffffff; }
+  .card.active .expand-wrap {
+    grid-template-rows: 1fr;
+    opacity: 1;
+  }
+  .card.active .sub-rows .sub-row {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.86rem;
+    padding: 5px 0;
+    color: rgba(255,255,255,0.86);
+  }
+  .card.active .sub-rows .sub-row.strong {
+    color: #ffffff;
+    font-weight: 700;
+  }
+  /* Le WACC (résultat final) reste en vert, même carte active */
+  .card.highlight.active {
+    background: linear-gradient(135deg, #1a9a56 0%, #0f7a44 100%);
+    box-shadow: 0 14px 28px rgba(15, 122, 68, 0.24);
+  }
+  /* ---------- Detail panel ---------- */
+  .detail-panel {
+    background: var(--card-bg);
+    border: 1px solid var(--card-border);
+    border-radius: var(--radius-lg);
+    padding: 22px 24px;
+    height: 600px;
+    overflow-y: auto;
+  }
+  .detail-content {
+    animation: detailFadeIn 320ms cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  @keyframes detailFadeIn {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .detail-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 12px;
+    padding-bottom: 14px;
+    margin-bottom: 14px;
+    border-bottom: 1px solid var(--card-border);
+  }
+  .detail-head-left {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+  }
+  .detail-head .title {
+    font-size: 1.05rem;
+    font-weight: 700;
+  }
+  .detail-head .head-formula {
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: var(--accent);
+  }
+  .detail-head .symbol {
+    font-size: 0.8rem;
+    color: var(--label-muted);
+    font-weight: 700;
+    white-space: nowrap;
+  }
+  .detail-rows {
+    display: flex;
+    flex-direction: column;
+    gap: 22px;
+  }
+  .detail-row {
+    display: grid;
+    grid-template-columns: 110px 1fr;
+    gap: 20px;
+  }
+  .detail-row .label {
+    font-size: 0.68rem;
+    font-weight: 800;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--label-muted);
+    padding-top: 2px;
+  }
+  .detail-row .text {
+    font-size: 0.92rem;
+    line-height: 1.55;
+    color: #33394a;
+  }
+  .composition {
+    display: flex;
+    gap: 16px;
+    margin-top: 14px;
+    margin-bottom: 22px;
+    font-size: 0.8rem;
+    color: var(--text-muted);
+  }
+  .composition strong { color: var(--text-main); }
+
+  footer.credit {
+    text-align: center;
+    margin-top: 28px;
+    font-size: 0.75rem;
+    color: var(--label-muted);
+  }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <header class="top-header">
+    <div class="brand-row">
+      <div>
+        <span class="eyebrow brand-line">Making it the <em class="brand-43">43</em>. Type of way</span>
+        <h1>Coût moyen pondéré du capital</h1>
+      </div>
+      <div class="fiscal-year">Exercice 2026</div>
+    </div>
+    <nav class="tabs">
+      <button type="button" data-tab="parametres">Paramètres</button>
+      <button type="button" class="active" data-tab="valeurs">Valeurs</button>
+    </nav>
+  </header>
+
+  <main class="content">
+    <section>
+      <div class="card-list" id="cardList"></div>
+    </section>
+
+    <aside class="detail-panel" id="detailPanel"></aside>
+  </main>
+
+  <footer class="credit">wacc43 — onglet Valeur</footer>
+</div>
+
+<script>
+  // ---- Données des composantes (issues du modèle WACC) ----
+  // COMPONENTS_DATA_START
+  const components = [
+    {
+      id: "cout_fonds_propres",
+      title: "Coût des fonds propres",
+      symbol: "Re",
+      value: "13,16 %",
+      rows: [
+        { label: "Taux US Bond 30Y (2026)", value: "4,94 %" },
+        { label: "Prime de risque pays", value: "0,64 %" },
+        { label: "Taux sans risque local (a)", value: "5,58 %" },
+        { label: "Beta désendetté", value: "1,163" },
+        { label: "Gearing sectoriel", value: "0,32" },
+        { label: "Beta réendetté (b)", value: "1,439" },
+        { label: "Prime de risque marché (c)", value: "4,23 %" },
+        { label: "Prime de taille (d)", value: "1,00 %" },
+        { label: "Prime spécifique (e)", value: "0,50 %" }
+      ],
+      methodology: "MEDAF. Taux sans risque construit sur l'obligation US 30 ans, majoré de la prime de risque pays ; bêta sectoriel désendetté puis ré-endetté au gearing sectoriel.",
+      source: "US Treasury 30Y (2026) ; prime pays, prime de risque marché et bêta sectoriel Damodaran.",
+      hypothesis: "Primes de taille et spécifique maintenues sur tout l'horizon ; gearing sectoriel considéré comme cible.",
+      formula: [
+        "Re = a + b × c + d + e",
+        "= 5,58 % + 1,439 × 4,23 % + 1,00 % + 0,50 % = 13,16 %"
+      ]
+    },
+    {
+      id: "cout_dette",
+      title: "Coût de la dette",
+      symbol: "Rd",
+      value: "6,92 %",
+      rows: [
+        { label: "Taux sans risque local (a)", value: "5,58 %" },
+        { label: "Spread de financement", value: "1,34 %" },
+        { label: "Coût de la dette avant impôt", value: "6,92 %" }
+      ],
+      methodology: "Coût marginal de la dette : taux sans risque local majoré du spread de financement obtenu auprès des prêteurs.",
+      source: "Grille de spread bancaire 2026 ; conditions du dernier financement signé.",
+      hypothesis: "Refinancement aux conditions actuelles ; charges financières intégralement déductibles.",
+      formula: [
+        "Rd = a + spread = 5,58 % + 1,34 % = 6,92 %",
+        "Rd après impôt = 6,92 % × (1 − 25 %) = 5,19 %"
+      ]
+    },
+    {
+      id: "poids_fonds_propres",
+      title: "Poids des fonds propres",
+      symbol: "E/V",
+      value: "76,00 %",
+      rows: [
+        { label: "Gearing sectoriel (D/E)", value: "0,32" },
+        { label: "Quote-part fonds propres", value: "76,00 %" },
+        { label: "Quote-part dette", value: "24,00 %" }
+      ],
+      methodology: "Structure financière cible en valeur de marché, déduite du gearing sectoriel plutôt que du levier comptable spot.",
+      source: "Gearing médian de l'échantillon sectoriel retenu pour le désendettement du bêta.",
+      hypothesis: "Structure stable sur l'horizon d'actualisation, sans opération de haut de bilan.",
+      formula: ["E/V = 1 / (1 + D/E) = 1 / 1,32 = 76,00 %"]
+    },
+    {
+      id: "poids_dette",
+      title: "Poids de la dette",
+      symbol: "D/V",
+      value: "24,00 %",
+      rows: [
+        { label: "Gearing sectoriel (D/E)", value: "0,32" },
+        { label: "Quote-part dette", value: "24,00 %" },
+        { label: "Quote-part fonds propres", value: "76,00 %" }
+      ],
+      methodology: "Complément de la quote-part de fonds propres, sur la même structure cible ; dette financière brute, trésorerie non déduite.",
+      source: "Gearing médian de l'échantillon sectoriel retenu pour le désendettement du bêta.",
+      hypothesis: "Obligations locatives assimilées à de la dette financière.",
+      formula: ["D/V = (D/E) / (1 + D/E) = 0,32 / 1,32 = 24,00 %"]
+    },
+    {
+      id: "taux_imposition",
+      title: "Taux d'imposition",
+      symbol: "t",
+      value: "25,00 %",
+      rows: [
+        { label: "Corporate tax rate", value: "25,00 %" },
+        { label: "Coût de la dette avant impôt", value: "6,92 %" },
+        { label: "Économie d'impôt", value: "1,73 pt" }
+      ],
+      methodology: "Taux d'impôt sur les sociétés normatif, également utilisé pour le ré-endettement du bêta.",
+      source: "Taux d'IS de droit commun applicable en 2026.",
+      hypothesis: "Aucun déficit reportable activé ; pas de plafonnement de la déductibilité.",
+      formula: [
+        "Économie d'impôt = Rd × t = 6,92 % × 25,00 % = 1,73 pt",
+        "Beta réendetté = 1,163 × (1 + 0,32 × (1 − 25 %)) = 1,439"
+      ]
+    },
+    {
+      id: "wacc",
+      title: "Coût moyen pondéré du capital",
+      symbol: "WACC",
+      value: "11,25 %",
+      highlight: true,
+      rows: [
+        { label: "Fonds propres 13,16 % × 76,00 %", value: "10,00 pts" },
+        { label: "Dette 5,19 % × 24,00 %", value: "1,25 pt" },
+        { label: "WACC", value: "11,25 %" }
+      ],
+      methodology: "Moyenne des deux coûts pondérée par la structure cible, la dette étant retenue après économie d'impôt.",
+      retained: "11,25 % dans le modèle d'actualisation. Une variation de ±0,5 pt de WACC déplace la valeur d'entreprise d'environ ∓6 %.",
+      composition: [
+        { label: "Fonds propres", value: "88,9 %" },
+        { label: "Dette", value: "11,1 %" }
+      ],
+      formula: [
+        "WACC = E/V × Re + D/V × Rd × (1 − t)",
+        "= 76,00 % × 13,16 % + 24,00 % × 6,92 % × 0,75 = 11,25 %"
+      ]
+    }
+  ];
+  // COMPONENTS_DATA_END
+
+  let activeId = components[0].id;
+
+  const cardList = document.getElementById("cardList");
+  const detailPanel = document.getElementById("detailPanel");
+
+  function cardBodyHtml(c) {
+    const subRows = c.rows.map(r => `
+        <div class="sub-row${/\([a-e]\)/.test(r.label) ? " strong" : ""}">
+          <span>${r.label}</span><span class="mono">${r.value}</span>
+        </div>`).join("");
+    return `
+      <span class="row-top">
+        <span class="title">${c.title}</span>
+        <span class="value mono">${c.value}</span>
+      </span>
+      <div class="expand-wrap">
+        <div class="expand-inner">
+          <div class="sub-rows">${subRows}</div>
+        </div>
+      </div>`;
+  }
+
+  function buildCardsOnce() {
+    cardList.innerHTML = components.map(c => `
+      <div class="card${c.id === activeId ? " active" : ""}${c.highlight ? " highlight" : ""}"
+           role="button" tabindex="0"
+           data-id="${c.id}">
+        ${cardBodyHtml(c)}
+      </div>`).join("");
+
+    cardList.querySelectorAll(".card").forEach(cardEl => {
+      cardEl.addEventListener("click", () => setActive(cardEl.dataset.id));
+      cardEl.addEventListener("keydown", (evt) => {
+        if (evt.key === "Enter" || evt.key === " ") {
+          evt.preventDefault();
+          setActive(cardEl.dataset.id);
+        }
+      });
+    });
+  }
+
+  function setActive(id) {
+    if (id === activeId) return;
+    const prevEl = cardList.querySelector(`.card[data-id="${activeId}"]`);
+    const nextEl = cardList.querySelector(`.card[data-id="${id}"]`);
+    if (prevEl) prevEl.classList.remove("active");
+    if (nextEl) nextEl.classList.add("active");
+    activeId = id;
+    renderDetail();
+  }
+
+  function renderDetail() {
+    const c = components.find(x => x.id === activeId);
+    const rows = [
+      ["Méthodologie", c.methodology],
+      ["Source", c.source],
+      ["Hypothèse", c.hypothesis]
+    ].filter(([, text]) => Boolean(text));
+
+    const compositionHtml = c.composition ? `
+      <div class="composition">
+        ${c.composition.map(x => `<span>${x.label} <strong>${x.value}</strong></span>`).join("")}
+      </div>` : "";
+
+    const retainedHtml = c.retained ? `
+      <div class="detail-row">
+        <div class="label">Retenu</div>
+        <div class="text">${c.retained}</div>
+      </div>` : "";
+
+    const headFormula = c.formula && c.formula.length ? c.formula[0] : "";
+
+    detailPanel.innerHTML = `
+      <div class="detail-content">
+        <div class="detail-head">
+          <div class="detail-head-left">
+            <span class="title">${c.title}</span>
+            ${headFormula ? `<span class="head-formula mono">${headFormula}</span>` : ""}
+          </div>
+          <span class="symbol">${c.symbol}</span>
+        </div>
+        ${compositionHtml}
+        <div class="detail-rows">
+          ${rows.map(([label, text]) => `
+            <div class="detail-row">
+              <div class="label">${label}</div>
+              <div class="text">${text}</div>
+            </div>`).join("")}
+          ${retainedHtml}
+        </div>
+      </div>
+    `;
+  }
+
+  buildCardsOnce();
+  renderDetail();
+
+  // Onglets visuels (seul "Valeur" a un contenu dans cette page autonome)
+  document.querySelectorAll(".tabs button").forEach(btn => {
+    btn.addEventListener("click", () => {
+      document.querySelectorAll(".tabs button").forEach(b => b.classList.remove("active"));
+      btn.classList.add("active");
+    });
+  });
+</script>
+</body>
+</html>
