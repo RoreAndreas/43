@@ -295,18 +295,22 @@ def render_comment_trigger(key: str, label: str) -> None:
         st.rerun()
 
 
-def render_value_card(title: str, value: str, accent: str, helper: str = "", comment_key: str | None = None, dark: bool = False) -> None:
-    """Affiche une carte de valeur dans le style du design WACC."""
+def render_value_card(title: str, value: str, accent: str, helper: str = "", comment_key: str | None = None, dark: bool = False, badge: str | None = None) -> None:
+    """Affiche une carte de valeur dans le style d’un dashboard de valorisation premium."""
     bloc_valeur, bloc_bouton = st.columns([10, 1])
-    card_bg = "#2b2b2b" if dark else "#f5f7fb"
-    text_color = "#ffffff" if dark else "#1f2a37"
-    helper_color = "rgba(255,255,255,0.78)" if dark else "#5f6a7a"
-    label_color = "rgba(255,255,255,0.68)" if dark else "#69768a"
+    card_bg = "#111827" if dark else "#ffffff"
+    label_color = "rgba(148,163,184,0.95)" if dark else "#64748b"
+    helper_color = "rgba(255,255,255,0.78)" if dark else "#475569"
+    border = "rgba(148,163,184,0.28)" if dark else "rgba(15,23,42,0.08)"
+    badge_html = f'<span style="display:inline-block;padding:4px 8px;border-radius:999px;background:rgba(255,255,255,0.08);color:{accent};font-size:10px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;">{badge}</span>' if badge else ''
     card_html = f"""
-    <div style="background:{card_bg}; border:1px solid rgba(0,0,0,0.06); border-radius:16px; padding:16px 18px; margin-bottom:14px; box-shadow:0 4px 18px rgba(23,34,52,0.06);">
-        <div style="font-size:11px; font-weight:700; letter-spacing:0.08em; text-transform:uppercase; color:{label_color}; margin-bottom:8px;">{title}</div>
-        <div style="font-size:1.35rem; line-height:1.2; font-weight:800; color:{accent};">{value}</div>
-        {f'<div style="margin-top:8px; font-size:0.82rem; color:{helper_color};">{helper}</div>' if helper else ''}
+    <div style="background:{card_bg}; border:1px solid {border}; border-radius:18px; padding:16px 18px; margin-bottom:14px; box-shadow:0 8px 22px rgba(15, 23, 42, 0.06);">
+        <div style="display:flex; justify-content:space-between; align-items:center; gap:10px; margin-bottom:12px;">
+            <div style="font-size:11px; font-weight:700; letter-spacing:0.08em; text-transform:uppercase; color:{label_color};">{title}</div>
+            {badge_html}
+        </div>
+        <div style="font-size:1.55rem; line-height:1.2; font-weight:800; letter-spacing:-0.02em; color:{accent};">{value}</div>
+        {f'<div style="margin-top:8px; font-size:0.82rem; line-height:1.45; color:{helper_color};">{helper}</div>' if helper else ''}
     </div>
     """
     with bloc_valeur:
@@ -340,14 +344,109 @@ st.divider()
 st.markdown(
     """
     <style>
+    .stApp {
+        background: linear-gradient(180deg, #f6f8fc 0%, #eef3fb 100%);
+    }
+    .block-container {
+        max-width: 1450px;
+        padding-top: 1.75rem;
+        padding-bottom: 2rem;
+    }
+    [data-testid="stTab"] {
+        font-weight: 700;
+        letter-spacing: 0.02em;
+        color: #475569;
+        padding: 0.7rem 1rem;
+        border-radius: 12px 12px 0 0;
+    }
+    [data-testid="stTabList"] {
+        gap: 0.6rem;
+        background: rgba(255,255,255,0.7);
+        border-radius: 16px;
+        padding: 0.35rem 0.5rem;
+        border: 1px solid rgba(148, 163, 184, 0.2);
+    }
+    [data-testid="stTabList"] button[aria-selected="true"] {
+        background: linear-gradient(135deg, #eaf2ff 0%, #dfefff 100%);
+        color: #103870;
+        border: 1px solid rgba(96,165,250,0.25);
+        box-shadow: 0 8px 18px rgba(59,130,246,0.1);
+    }
+    .design-header {
+        background: linear-gradient(135deg, rgba(15,23,42,0.98), rgba(30,41,59,0.96));
+        border-radius: 22px;
+        padding: 1.4rem 1.5rem 1.2rem 1.5rem;
+        margin-bottom: 1.2rem;
+        border: 1px solid rgba(148,163,184,0.18);
+        box-shadow: 0 18px 40px rgba(15,23,42,0.08);
+    }
+    .design-header .eyebrow {
+        display: inline-block;
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: #7dd3fc;
+        margin-bottom: 0.55rem;
+    }
+    .design-header h2 {
+        margin: 0;
+        color: white;
+        font-size: clamp(1.6rem, 2.2vw, 2.4rem);
+        line-height: 1.1;
+        letter-spacing: -0.04em;
+    }
+    .design-header .subtitle {
+        margin-top: 0.4rem;
+        color: rgba(255,255,255,0.72);
+        font-size: 0.95rem;
+    }
+    .panel {
+        background: rgba(255,255,255,0.85);
+        border: 1px solid rgba(148,163,184,0.18);
+        border-radius: 18px;
+        padding: 1rem 1.1rem;
+        box-shadow: 0 10px 25px rgba(15,23,42,0.04);
+        height: 100%;
+    }
+    .panel-title {
+        font-size: 0.8rem;
+        font-weight: 800;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: #475569;
+        margin-bottom: 0.8rem;
+    }
+    .kpi-highlight {
+        background: linear-gradient(135deg, #eaf2ff 0%, #dfeeff 100%);
+        border: 1px solid rgba(59,130,246,0.18);
+        border-radius: 18px;
+        padding: 1.1rem 1.15rem;
+        box-shadow: inset 0 1px rgba(255,255,255,0.8);
+    }
+    .kpi-highlight .label {
+        display: block;
+        font-size: 0.73rem;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: #3b82f6;
+        margin-bottom: 0.5rem;
+        font-weight: 700;
+    }
+    .kpi-highlight .value {
+        font-size: clamp(1.7rem, 2.2vw, 2.5rem);
+        font-weight: 900;
+        letter-spacing: -0.04em;
+        color: #0f172a;
+    }
     .st-key-comment_bubble {
         position: relative;
-        background-color: #ffffff;
-        border: 2px solid #2a3b4d;
-        border-radius: 14px;
+        background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+        border: 1px solid rgba(148,163,184,0.28);
+        border-radius: 18px;
         padding: 14px 16px;
         margin: 6px 0 10px 18px;
-        box-shadow: 0 8px 22px rgba(17, 30, 45, 0.08);
+        box-shadow: 0 10px 25px rgba(15,23,42,0.05);
     }
     .st-key-comment_bubble::before {
         content: "";
@@ -358,7 +457,7 @@ st.markdown(
         height: 0;
         border-top: 11px solid transparent;
         border-bottom: 11px solid transparent;
-        border-right: 18px solid #2a3b4d;
+        border-right: 18px solid rgba(148,163,184,0.28);
     }
     .st-key-comment_bubble::after {
         content: "";
@@ -370,22 +469,6 @@ st.markdown(
         border-top: 9px solid transparent;
         border-bottom: 9px solid transparent;
         border-right: 15px solid #ffffff;
-    }
-    .block-container {
-        padding-top: 1.5rem;
-        padding-bottom: 2rem;
-    }
-    [data-testid="stTab"] {
-        font-weight: 600;
-        letter-spacing: 0.02em;
-    }
-    [data-testid="stTabList"] {
-        gap: 0.5rem;
-    }
-    [data-testid="stTabList"] button[aria-selected="true"] {
-        background: linear-gradient(135deg, #eaf2ff 0%, #dfefff 100%);
-        color: #103870;
-        border-bottom: 2px solid #4f8cff;
     }
     </style>
     """,
@@ -561,36 +644,47 @@ if betas_data is not None and tax_rates_data is not None and erps_data is not No
             wacc = calcul_wacc(cout_fonds_propres, cout_dette, quote_part_equity, quote_part_debt)
             wacc_local = calcul_wacc_monnaie_locale(wacc, inflation_locale, inflation_mature)
 
-            st.subheader("Onglet Valeur WACC")
-            st.caption(f"Pays: {selected_country} • Industrie: {selected_industry} • Année de valorisation: {valuation_year}")
+            st.markdown(
+                """
+                <div class="design-header">
+                    <div class="eyebrow">Valuation</div>
+                    <h2>Onglet Valeur WACC</h2>
+                    <div class="subtitle">Pays: <strong>""" + selected_country + """</strong> • Industrie: <strong>""" + selected_industry + """</strong> • Année: <strong>""" + str(valuation_year) + """</strong></div>
+                </div>
+                """,
+                unsafe_allow_html=True,
+            )
 
-            top_cards = st.columns(4)
-            with top_cards[0]:
+            summary_cols = st.columns(4)
+            with summary_cols[0]:
                 render_value_card(
-                    "Taux sans risque local",
+                    "Taux sans risque",
                     f"{a:.2%}",
-                    "#1b6cff",
+                    "#1d4ed8",
                     helper=f"US {risk_free_maturity} {valuation_year}: {avg_30y_rate:.2f}% + pays {country_risk_premium:.2%}",
                     comment_key="taux_sans_risque",
                     dark=True,
+                    badge="a",
                 )
-            with top_cards[1]:
+            with summary_cols[1]:
                 render_value_card(
                     "Beta réendetté",
                     f"{b:.3f}",
-                    "#2d6cdf",
+                    "#2563eb",
                     helper=f"Beta désendetté {beta_desendetté:.3f} • gearing {gearing_sectoriel:.2f}",
                     comment_key="beta",
+                    badge="b",
                 )
-            with top_cards[2]:
+            with summary_cols[2]:
                 render_value_card(
                     "Prime de risque",
                     f"{c:.2%}",
                     "#f59e0b",
                     helper=f"Taille {d:.2%} • spécifique {e:.2%}",
                     comment_key="primes",
+                    badge="c+d+e",
                 )
-            with top_cards[3]:
+            with summary_cols[3]:
                 render_value_card(
                     "Spread financement",
                     f"{adjusted_spread:.2%}",
@@ -598,26 +692,30 @@ if betas_data is not None and tax_rates_data is not None and erps_data is not No
                     helper=f"Ajusté: {'Oui' if is_adjusted else 'Non'} • dette {cost_of_debt:.2%}",
                     comment_key="spread",
                     dark=True,
+                    badge="spread",
                 )
 
-            middle_cards = st.columns(3)
-            with middle_cards[0]:
+            st.markdown('<div class="panel-title" style="margin-top:1.2rem; margin-bottom:0.75rem;">Détail du modèle</div>', unsafe_allow_html=True)
+            model_cols = st.columns(3)
+            with model_cols[0]:
                 render_value_card(
                     "Coût des fonds propres",
                     f"{cout_fonds_propres:.2%}",
                     "#2563eb",
-                    helper=f"a + b × c + d + e",
+                    helper="a + b × c + d + e",
                     comment_key="cout_fonds_propres",
+                    badge="Ke",
                 )
-            with middle_cards[1]:
+            with model_cols[1]:
                 render_value_card(
                     "Coût de la dette",
                     f"{cout_dette:.2%}",
                     "#dc2626",
-                    helper=f"(spread + a) × (1 - T)",
+                    helper="(spread + a) × (1 - T)",
                     comment_key="cout_dette",
+                    badge="Kd",
                 )
-            with middle_cards[2]:
+            with model_cols[2]:
                 render_value_card(
                     "WACC",
                     f"{wacc:.2%}",
@@ -625,28 +723,32 @@ if betas_data is not None and tax_rates_data is not None and erps_data is not No
                     helper=f"CP {quote_part_equity:.2%} • Dette {quote_part_debt:.2%}",
                     comment_key="wacc",
                     dark=True,
+                    badge="WACC",
                 )
 
-            bottom_cards = st.columns(2)
-            with bottom_cards[0]:
+            local_cols = st.columns(2)
+            with local_cols[0]:
                 render_value_card(
                     "CMPC locale",
                     f"{wacc_local:.2%}",
                     "#0ea5e9",
                     helper=f"Inflation locale: {inflation_locale:.2%} • mature: {inflation_mature:.2%}",
                     comment_key="wacc_local",
+                    badge="local",
                 )
-            with bottom_cards[1]:
+            with local_cols[1]:
                 render_value_card(
                     "Taxe",
                     f"{tax_rate:.2%}",
                     "#7c3aed",
                     helper=f"Corporate tax rate • {selected_country}",
                     comment_key="beta",
+                    badge="T",
                 )
 
         with col_comments:
-            st.subheader("Commentaire")
+            st.markdown('<div class="panel" style="padding:1.2rem; margin-top:0.2rem;">', unsafe_allow_html=True)
+            st.markdown('<div class="panel-title">Commentaire</div>', unsafe_allow_html=True)
             active_key = st.session_state.get("active_comment_key")
             if active_key:
                 active_label = st.session_state.get("active_comment_label", "")
@@ -662,6 +764,9 @@ if betas_data is not None and tax_rates_data is not None and erps_data is not No
                     if st.button("✕ Fermer", key="close_comment_bubble"):
                         st.session_state["active_comment_key"] = None
                         st.rerun()
+            else:
+                st.info("Cliquez sur le bouton 💬 d’une carte pour ajouter un commentaire sur un élément du WACC.")
+            st.markdown('</div>', unsafe_allow_html=True)
 
         # Export Excel
         st.divider()
