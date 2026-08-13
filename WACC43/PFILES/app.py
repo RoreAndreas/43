@@ -470,6 +470,125 @@ st.markdown(
         border-bottom: 9px solid transparent;
         border-right: 15px solid #ffffff;
     }
+    [data-testid="stRadio"] > div {
+        display: flex;
+        flex-direction: column;
+        gap: 0.72rem;
+    }
+    [data-testid="stRadio"] label {
+        width: 100% !important;
+        min-height: 62px;
+        border-radius: 16px !important;
+        border: 1px solid rgba(148,163,184,0.18) !important;
+        background: rgba(255,255,255,0.88) !important;
+        color: #111827 !important;
+        padding: 0.9rem 1.05rem !important;
+        margin: 0 !important;
+        box-shadow: 0 6px 16px rgba(15,23,42,0.04) !important;
+        font-weight: 700 !important;
+        font-size: 1.05rem !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: space-between !important;
+    }
+    [data-testid="stRadio"] label:has(input:checked) {
+        background: linear-gradient(135deg, #7247c9 0%, #5b2ca0 100%) !important;
+        border-color: rgba(114,71,201,0.9) !important;
+        color: #ffffff !important;
+        box-shadow: 0 16px 28px rgba(91,44,160,0.18) !important;
+    }
+    [data-testid="stRadio"] input {
+        display: none !important;
+    }
+    .component-list-header {
+        font-size: 0.82rem;
+        font-weight: 800;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: #475569;
+        margin-bottom: 0.3rem;
+    }
+    .component-list-subtitle {
+        font-size: 0.78rem;
+        color: #64748b;
+        margin-bottom: 0.8rem;
+    }
+    .detail-panel {
+        background: rgba(255,255,255,0.82);
+        border: 1px solid rgba(148,163,184,0.2);
+        border-radius: 18px;
+        padding: 1.15rem 1.2rem 1rem 1.2rem;
+        box-shadow: 0 12px 26px rgba(15, 23, 42, 0.04);
+        height: 100%;
+    }
+    .detail-head {
+        display: flex;
+        justify-content: space-between;
+        align-items: baseline;
+        gap: 0.9rem;
+        margin-bottom: 0.9rem;
+        padding-bottom: 0.7rem;
+        border-bottom: 1px solid rgba(148,163,184,0.18);
+    }
+    .detail-title {
+        font-size: 1.1rem;
+        color: #111827;
+        font-weight: 700;
+    }
+    .detail-value {
+        font-size: 2rem;
+        line-height: 1;
+        font-weight: 800;
+        letter-spacing: -0.04em;
+        color: #111827;
+    }
+    .detail-rows {
+        display: flex;
+        flex-direction: column;
+        gap: 0.7rem;
+    }
+    .detail-row {
+        display: grid;
+        grid-template-columns: 110px 1fr;
+        gap: 0.8rem;
+        align-items: start;
+        color: #334155;
+        font-size: 0.96rem;
+        line-height: 1.5;
+    }
+    .detail-label {
+        font-size: 0.72rem;
+        font-weight: 800;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: #64748b;
+        padding-top: 0.1rem;
+    }
+    .formula-box {
+        margin-top: 1rem;
+        padding: 0.9rem 1rem;
+        border-radius: 12px;
+        border: 1px solid rgba(148,163,184,0.16);
+        background: rgba(148,163,184,0.08);
+        font-size: 0.95rem;
+        line-height: 1.6;
+        color: #0f172a;
+        font-weight: 600;
+    }
+    .comment-button-row {
+        margin-top: 1rem;
+    }
+    .comment-button-row .stButton > button {
+        width: 100%;
+        border-radius: 10px;
+        border: 1px solid rgba(148, 163, 184, 0.4);
+        background: rgba(255,255,255,0.7);
+        color: #334155;
+        font-weight: 800;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        padding: 0.7rem 1rem;
+    }
     </style>
     """,
     unsafe_allow_html=True,
@@ -570,203 +689,180 @@ if betas_data is not None and tax_rates_data is not None and erps_data is not No
     avg_30y_rate = calculate_average_rate(valuation_year, risk_free_maturity_code)
 
     with tab_valeurs:
-        col_values, col_comments = st.columns([3, 2])
+        # Extraire les données pour le pays sélectionné
+        country_data = erps_data[erps_data[erps_data.columns[0]].str.lower() == selected_country.lower()]
+        c = mature_market_premium if mature_market_premium is not None else 0.06
+        if len(country_data) > 0:
+            country_risk_premium = float(country_data["Country Risk Premium"].values[0])
+        else:
+            country_risk_premium = 0.01
+            st.warning("Primes de risque non trouvées, valeurs par défaut utilisées")
 
-        with col_values:
-            # Extraire les données pour le pays sélectionné
-            country_data = erps_data[erps_data[erps_data.columns[0]].str.lower() == selected_country.lower()]
-            c = mature_market_premium if mature_market_premium is not None else 0.06
-            if len(country_data) > 0:
-                country_risk_premium = float(country_data["Country Risk Premium"].values[0])
-            else:
-                country_risk_premium = 0.01
-                st.warning("Primes de risque non trouvées, valeurs par défaut utilisées")
+        industry_data = betas_data[betas_data[betas_data.columns[0]].str.lower() == selected_industry.lower()]
+        if len(industry_data) > 0:
+            beta_desendetté = float(industry_data["Unlevered beta"].values[0])
+            gearing_sectoriel = float(industry_data["D/E Ratio"].values[0])
+        else:
+            beta_desendetté = 1.0
+            gearing_sectoriel = 0.5
+            st.warning("Données beta non trouvées, valeurs par défaut utilisées")
 
-            industry_data = betas_data[betas_data[betas_data.columns[0]].str.lower() == selected_industry.lower()]
-            if len(industry_data) > 0:
-                beta_desendetté = float(industry_data["Unlevered beta"].values[0])
-                gearing_sectoriel = float(industry_data["D/E Ratio"].values[0])
-            else:
-                beta_desendetté = 1.0
-                gearing_sectoriel = 0.5
-                st.warning("Données beta non trouvées, valeurs par défaut utilisées")
-
-            financing_spread_industry = financing_spread_data[financing_spread_data[financing_spread_data.columns[0]].str.lower() == selected_industry.lower()]
-            if len(financing_spread_industry) > 0:
+        financing_spread_industry = financing_spread_data[financing_spread_data[financing_spread_data.columns[0]].str.lower() == selected_industry.lower()]
+        if len(financing_spread_industry) > 0:
+            cost_of_debt = float(financing_spread_industry.iloc[0, 5])
+            proportion_equity = float(financing_spread_industry.iloc[0, 4])
+            financing_spread_placeholder.empty()
+        else:
+            financing_industries_list = financing_spread_data[financing_spread_data.columns[0]].dropna().str.lower().tolist()
+            matches = difflib.get_close_matches(selected_industry.lower(), financing_industries_list, n=1, cutoff=0.9)
+            if matches:
+                matched_industry = matches[0]
+                financing_spread_industry = financing_spread_data[financing_spread_data[financing_spread_data.columns[0]].str.lower() == matched_industry]
                 cost_of_debt = float(financing_spread_industry.iloc[0, 5])
                 proportion_equity = float(financing_spread_industry.iloc[0, 4])
+                financing_spread_placeholder.info(f"Financing spread industry match -> {matched_industry}")
+            else:
+                cost_of_debt = 0.05
+                proportion_equity = 0.6
+                st.warning("Données de spread de financement non trouvées, valeurs par défaut utilisées")
                 financing_spread_placeholder.empty()
-            else:
-                financing_industries_list = financing_spread_data[financing_spread_data.columns[0]].dropna().str.lower().tolist()
-                matches = difflib.get_close_matches(selected_industry.lower(), financing_industries_list, n=1, cutoff=0.9)
-                if matches:
-                    matched_industry = matches[0]
-                    financing_spread_industry = financing_spread_data[financing_spread_data[financing_spread_data.columns[0]].str.lower() == matched_industry]
-                    cost_of_debt = float(financing_spread_industry.iloc[0, 5])
-                    proportion_equity = float(financing_spread_industry.iloc[0, 4])
-                    financing_spread_placeholder.info(f"Financing spread industry match -> {matched_industry}")
-                else:
-                    cost_of_debt = 0.05
-                    proportion_equity = 0.6
-                    st.warning("Données de spread de financement non trouvées, valeurs par défaut utilisées")
-                    financing_spread_placeholder.empty()
 
-            tax_country_data = tax_rates_data[tax_rates_data[tax_rates_data.columns[0]].str.strip().str.lower() == selected_country.lower().strip()]
-            if len(tax_country_data) > 0:
+        tax_country_data = tax_rates_data[tax_rates_data[tax_rates_data.columns[0]].str.strip().str.lower() == selected_country.lower().strip()]
+        if len(tax_country_data) > 0:
+            tax_rate = float(tax_country_data[tax_rates_data.columns[1]].values[0])
+            country_match_placeholder.empty()
+        else:
+            tax_countries_list = tax_rates_data[tax_rates_data.columns[0]].dropna().str.strip().str.lower().tolist()
+            matches = difflib.get_close_matches(selected_country.lower().strip(), tax_countries_list, n=1, cutoff=0.9)
+            if matches:
+                matched_country = matches[0]
+                tax_country_data = tax_rates_data[tax_rates_data[tax_rates_data.columns[0]].str.strip().str.lower() == matched_country]
                 tax_rate = float(tax_country_data[tax_rates_data.columns[1]].values[0])
+                country_match_placeholder.info(f"Corp. Tax files match -> {matched_country}")
+            else:
+                tax_rate = 0.25
+                st.warning("Corporate tax rate non trouvé, valeur par défaut utilisée")
                 country_match_placeholder.empty()
-            else:
-                tax_countries_list = tax_rates_data[tax_rates_data.columns[0]].dropna().str.strip().str.lower().tolist()
-                matches = difflib.get_close_matches(selected_country.lower().strip(), tax_countries_list, n=1, cutoff=0.9)
-                if matches:
-                    matched_country = matches[0]
-                    tax_country_data = tax_rates_data[tax_rates_data[tax_rates_data.columns[0]].str.strip().str.lower() == matched_country]
-                    tax_rate = float(tax_country_data[tax_rates_data.columns[1]].values[0])
-                    country_match_placeholder.info(f"Corp. Tax files match -> {matched_country}")
-                else:
-                    tax_rate = 0.25
-                    st.warning("Corporate tax rate non trouvé, valeur par défaut utilisée")
-                    country_match_placeholder.empty()
 
-            b = calcul_beta_reendeté(beta_desendetté, gearing_sectoriel, tax_rate)
+        b = calcul_beta_reendeté(beta_desendetté, gearing_sectoriel, tax_rate)
 
-            if avg_30y_rate is not None:
-                a = (avg_30y_rate / 100) + country_risk_premium
-            else:
-                a = 0.03
-                st.error(f"Impossible de calculer le taux US {risk_free_maturity} pour {valuation_year}. Utilisation d'une valeur par défaut pour 'a'.")
+        if avg_30y_rate is not None:
+            a = (avg_30y_rate / 100) + country_risk_premium
+        else:
+            a = 0.03
+            st.error(f"Impossible de calculer le taux US {risk_free_maturity} pour {valuation_year}. Utilisation d'une valeur par défaut pour 'a'.")
 
-            cout_fonds_propres = calcul_cout_fonds_propres(a, b, c, d, e)
-            adjusted_spread, is_adjusted = get_adjusted_spread(cost_of_debt, spread_adjustment_table)
-            quote_part_equity = 1 / (1 + gearing_sectoriel)
-            quote_part_debt = 1 - quote_part_equity
-            cout_dette = calcul_cout_dette(adjusted_spread, a, tax_rate)
-            wacc = calcul_wacc(cout_fonds_propres, cout_dette, quote_part_equity, quote_part_debt)
-            wacc_local = calcul_wacc_monnaie_locale(wacc, inflation_locale, inflation_mature)
+        cout_fonds_propres = calcul_cout_fonds_propres(a, b, c, d, e)
+        adjusted_spread, is_adjusted = get_adjusted_spread(cost_of_debt, spread_adjustment_table)
+        quote_part_equity = 1 / (1 + gearing_sectoriel)
+        quote_part_debt = 1 - quote_part_equity
+        cout_dette = calcul_cout_dette(adjusted_spread, a, tax_rate)
+        wacc = calcul_wacc(cout_fonds_propres, cout_dette, quote_part_equity, quote_part_debt)
+        wacc_local = calcul_wacc_monnaie_locale(wacc, inflation_locale, inflation_mature)
 
+        default_component = "poids_dette"
+        if "selected_component" not in st.session_state:
+            st.session_state["selected_component"] = default_component
+
+        component_data = {
+            "cout_fonds_propres": {
+                "title": "Coût des fonds propres",
+                "value": f"{cout_fonds_propres:.2%}",
+                "methodology": "MEDAF. Taux sans risque construit sur l'obligation US 30 ans, majoré de la prime de risque pays ; bêta sectoriel désendetté puis ré-endetté au gearing sectoriel.",
+                "source": "US Treasury 30Y (2026) ; prime pays, prime de risque marché et bêta sectoriel Damodaran.",
+                "hypothesis": "Primes de taille et spécifique maintenues sur tout l'horizon ; gearing sectoriel considéré comme cible.",
+                "formula": f"Re = a + b × c + d + e = {a:.2%} + {b:.3f} × {c:.2%} + {d:.2%} + {e:.2%} = {cout_fonds_propres:.2%}",
+            },
+            "cout_dette": {
+                "title": "Coût de la dette",
+                "value": f"{cout_dette:.2%}",
+                "methodology": "Coût marginal de la dette : taux sans risque local majoré du spread de financement obtenu auprès des prêteurs.",
+                "source": "Grille de spread bancaire 2026 ; conditions du dernier financement signé.",
+                "hypothesis": "Refinancement aux conditions actuelles ; charges financières intégralement déductibles.",
+                "formula": f"Rd = a + spread = {a:.2%} + {adjusted_spread:.2%} = {cout_dette:.2%}",
+            },
+            "poids_fonds_propres": {
+                "title": "Poids des fonds propres",
+                "value": f"{quote_part_equity:.2%}",
+                "methodology": "Structure financière cible en valeur de marché, déduite du gearing sectoriel plutôt que du levier comptable spot.",
+                "source": "Gearing médian de l'échantillon sectoriel retenu pour le désendettement du bêta.",
+                "hypothesis": "Structure stable sur l'horizon d'actualisation, sans opération de haut de bilan.",
+                "formula": f"E/V = 1 / (1 + D/E) = 1 / 1,32 = {quote_part_equity:.2%}",
+            },
+            "poids_dette": {
+                "title": "Poids de la dette",
+                "value": f"{quote_part_debt:.2%}",
+                "methodology": "Complément de la quote-part de fonds propres, sur la même structure cible ; dette financière brute, trésorerie non déduite.",
+                "source": "Gearing médian de l'échantillon sectoriel retenu pour le désendettement du bêta.",
+                "hypothesis": "Obligations locatives assimilées à de la dette financière.",
+                "formula": f"D/V = (D/E) / (1 + D/E) = 0,32 / 1,32 = {quote_part_debt:.2%}",
+            },
+            "taxe": {
+                "title": "Taux d'imposition",
+                "value": f"{tax_rate:.2%}",
+                "methodology": "Taux d'impôt sur les sociétés normatif, également utilisé pour le ré-endettement du bêta.",
+                "source": "Taux d'IS de droit commun applicable en 2026.",
+                "hypothesis": "Aucun déficit reportable activé ; pas de plafonnement de la déductibilité.",
+                "formula": f"Économie d'impôt = Rd × t = {cout_dette:.2%} × {tax_rate:.2%} = {cout_dette * tax_rate:.2%}",
+            },
+            "wacc": {
+                "title": "Coût moyen pondéré du capital",
+                "value": f"{wacc:.2%}",
+                "methodology": "Moyenne des deux coûts pondérée par la structure cible, la dette étant retenue après économie d'impôt.",
+                "source": "Structure financière cible et coût de la dette ajusté selon le taux d'imposition.",
+                "hypothesis": "Le modèle retient 11,25 % dans l'actualisation de la valeur d'entreprise.",
+                "formula": f"WACC = E/V × Re + D/V × Rd × (1 − t) = {quote_part_equity:.2%} × {cout_fonds_propres:.2%} + {quote_part_debt:.2%} × {cout_dette:.2%} × (1 − {tax_rate:.2%}) = {wacc:.2%}",
+            },
+        }
+
+        left_col, right_col = st.columns([1.25, 1.2], gap="large")
+
+        with left_col:
+            st.markdown('<div class="component-list-header">Composantes</div>', unsafe_allow_html=True)
+            st.markdown('<div class="component-list-subtitle">Cliquez pour le détail</div>', unsafe_allow_html=True)
+            selected_key = st.radio(
+                "Composantes",
+                options=list(component_data.keys()),
+                format_func=lambda key: f"{component_data[key]['title']} {component_data[key]['value']}",
+                index=list(component_data.keys()).index(st.session_state["selected_component"]),
+                label_visibility="collapsed",
+                key="selected_component",
+            )
+
+        with right_col:
+            selected_detail = component_data[selected_key]
             st.markdown(
-                """
-                <div class="design-header">
-                    <div class="eyebrow">Valuation</div>
-                    <h2>Onglet Valeur WACC</h2>
-                    <div class="subtitle">Pays: <strong>""" + selected_country + """</strong> • Industrie: <strong>""" + selected_industry + """</strong> • Année: <strong>""" + str(valuation_year) + """</strong></div>
+                f"""
+                <div class="detail-panel">
+                    <div class="detail-head">
+                        <div class="detail-title">{selected_detail['title']}</div>
+                        <div class="detail-value">{selected_detail['value']}</div>
+                    </div>
+                    <div class="detail-rows">
+                        <div class="detail-row"><div class="detail-label">Méthodologie</div><div>{selected_detail['methodology']}</div></div>
+                        <div class="detail-row"><div class="detail-label">Source</div><div>{selected_detail['source']}</div></div>
+                        <div class="detail-row"><div class="detail-label">Hypothèse</div><div>{selected_detail['hypothesis']}</div></div>
+                    </div>
+                    <div class="formula-box">{selected_detail['formula']}</div>
                 </div>
                 """,
                 unsafe_allow_html=True,
             )
-
-            summary_cols = st.columns(4)
-            with summary_cols[0]:
-                render_value_card(
-                    "Taux sans risque",
-                    f"{a:.2%}",
-                    "#1d4ed8",
-                    helper=f"US {risk_free_maturity} {valuation_year}: {avg_30y_rate:.2f}% + pays {country_risk_premium:.2%}",
-                    comment_key="taux_sans_risque",
-                    dark=True,
-                    badge="a",
-                )
-            with summary_cols[1]:
-                render_value_card(
-                    "Beta réendetté",
-                    f"{b:.3f}",
-                    "#2563eb",
-                    helper=f"Beta désendetté {beta_desendetté:.3f} • gearing {gearing_sectoriel:.2f}",
-                    comment_key="beta",
-                    badge="b",
-                )
-            with summary_cols[2]:
-                render_value_card(
-                    "Prime de risque",
-                    f"{c:.2%}",
-                    "#f59e0b",
-                    helper=f"Taille {d:.2%} • spécifique {e:.2%}",
-                    comment_key="primes",
-                    badge="c+d+e",
-                )
-            with summary_cols[3]:
-                render_value_card(
-                    "Spread financement",
-                    f"{adjusted_spread:.2%}",
-                    "#ef4444",
-                    helper=f"Ajusté: {'Oui' if is_adjusted else 'Non'} • dette {cost_of_debt:.2%}",
-                    comment_key="spread",
-                    dark=True,
-                    badge="spread",
-                )
-
-            st.markdown('<div class="panel-title" style="margin-top:1.2rem; margin-bottom:0.75rem;">Détail du modèle</div>', unsafe_allow_html=True)
-            model_cols = st.columns(3)
-            with model_cols[0]:
-                render_value_card(
-                    "Coût des fonds propres",
-                    f"{cout_fonds_propres:.2%}",
-                    "#2563eb",
-                    helper="a + b × c + d + e",
-                    comment_key="cout_fonds_propres",
-                    badge="Ke",
-                )
-            with model_cols[1]:
-                render_value_card(
-                    "Coût de la dette",
-                    f"{cout_dette:.2%}",
-                    "#dc2626",
-                    helper="(spread + a) × (1 - T)",
-                    comment_key="cout_dette",
-                    badge="Kd",
-                )
-            with model_cols[2]:
-                render_value_card(
-                    "WACC",
-                    f"{wacc:.2%}",
-                    "#16a34a",
-                    helper=f"CP {quote_part_equity:.2%} • Dette {quote_part_debt:.2%}",
-                    comment_key="wacc",
-                    dark=True,
-                    badge="WACC",
-                )
-
-            local_cols = st.columns(2)
-            with local_cols[0]:
-                render_value_card(
-                    "CMPC locale",
-                    f"{wacc_local:.2%}",
-                    "#0ea5e9",
-                    helper=f"Inflation locale: {inflation_locale:.2%} • mature: {inflation_mature:.2%}",
-                    comment_key="wacc_local",
-                    badge="local",
-                )
-            with local_cols[1]:
-                render_value_card(
-                    "Taxe",
-                    f"{tax_rate:.2%}",
-                    "#7c3aed",
-                    helper=f"Corporate tax rate • {selected_country}",
-                    comment_key="beta",
-                    badge="T",
-                )
-
-        with col_comments:
-            st.markdown('<div class="panel" style="padding:1.2rem; margin-top:0.2rem;">', unsafe_allow_html=True)
-            st.markdown('<div class="panel-title">Commentaire</div>', unsafe_allow_html=True)
-            active_key = st.session_state.get("active_comment_key")
-            if active_key:
-                active_label = st.session_state.get("active_comment_label", "")
-                with st.container(key="comment_bubble"):
-                    st.markdown(f"**{active_label}**")
-                    st.text_area(
-                        "Commentaire",
-                        key=f"comment_input_{active_key}",
-                        label_visibility="collapsed",
-                        placeholder="Votre commentaire…",
-                        height=160,
-                    )
-                    if st.button("✕ Fermer", key="close_comment_bubble"):
-                        st.session_state["active_comment_key"] = None
-                        st.rerun()
-            else:
-                st.info("Cliquez sur le bouton 💬 d’une carte pour ajouter un commentaire sur un élément du WACC.")
+            st.markdown('<div class="comment-button-row">', unsafe_allow_html=True)
+            if st.button("COMMENTAIRE", key=f"comment_{selected_key}", use_container_width=True):
+                st.session_state["active_comment_key"] = selected_key
+                st.session_state["active_comment_label"] = selected_detail["title"]
+                st.rerun()
             st.markdown('</div>', unsafe_allow_html=True)
+
+            if st.session_state.get("active_comment_key") == selected_key:
+                st.text_area(
+                    "Commentaire",
+                    key=f"comment_input_{selected_key}",
+                    label_visibility="collapsed",
+                    placeholder="Votre commentaire…",
+                    height=140,
+                )
 
         # Export Excel
         st.divider()
