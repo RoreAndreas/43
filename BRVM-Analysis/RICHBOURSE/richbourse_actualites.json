@@ -1,10 +1,35 @@
 {
-    "last_update": "2026-08-13 15:14:47",
+    "last_update": "2026-08-13 19:30:31",
     "count": 20,
     "weeks": [
         {
             "semaine": "Semaine du 10 Août au 16 Août 2026",
             "publications": [
+                {
+                    "date": "13/08/2026",
+                    "titre": "LNB BN : Bilan semestriel du contrat de liquidité -1er semestre 2026",
+                    "url": "https://www.richbourse.com/common/actualite/details/13-08-2026-lnb-bn-bilan-semestriel-du-contrat-de-liquidite-1er-semestre-2026"
+                },
+                {
+                    "date": "13/08/2026",
+                    "titre": "BRVM : Transactions Sur Dossier",
+                    "url": "https://www.richbourse.com/common/actualite/details/13-08-2026-brvm-transactions-sur-dossier"
+                },
+                {
+                    "date": "13/08/2026",
+                    "titre": "Notation Financière - Nourmony Holding SA 7,25% 2024-2029",
+                    "url": "https://www.richbourse.com/common/actualite/details/13-08-2026-notation-financiere-nourmony-holding-sa-7-25-2024-2029"
+                },
+                {
+                    "date": "13/08/2026",
+                    "titre": "BIIC BN : Bilan semestriel du contrat de liquidité -1er semestre 2026",
+                    "url": "https://www.richbourse.com/common/actualite/details/13-08-2026-biic-bn-bilan-semestriel-du-contrat-de-liquidite-1er-semestre-2026"
+                },
+                {
+                    "date": "13/08/2026",
+                    "titre": "BRVM : Horaires de cotation du 14 août 2026",
+                    "url": "https://www.richbourse.com/common/actualite/details/13-08-2026-brvm-horaires-de-cotation-du-14-aout-2026"
+                },
                 {
                     "date": "12/08/2026",
                     "titre": "SAPH CI : Paiement de dividendes - Exercice 2025",
@@ -52,13 +77,13 @@
                 },
                 {
                     "date": "03/08/2026",
-                    "titre": "AFRICA GLOBAL LOGISTICS CI : Pouvoir - Assemblée Générale Mixte",
-                    "url": "https://www.richbourse.com/common/actualite/details/03-08-2026-africa-global-logistics-ci-pouvoir-assemblee-generale-mixte"
+                    "titre": "AFRICA GLOBAL LOGISTICS CI : Avis de convocation - Assemblée Générale Mixte",
+                    "url": "https://www.richbourse.com/common/actualite/details/03-08-2026-africa-global-logistics-ci-avis-de-convocation-assemblee-generale-mixte"
                 },
                 {
                     "date": "03/08/2026",
-                    "titre": "AFRICA GLOBAL LOGISTICS CI : Avis de convocation - Assemblée Générale Mixte",
-                    "url": "https://www.richbourse.com/common/actualite/details/03-08-2026-africa-global-logistics-ci-avis-de-convocation-assemblee-generale-mixte"
+                    "titre": "AFRICA GLOBAL LOGISTICS CI : Pouvoir - Assemblée Générale Mixte",
+                    "url": "https://www.richbourse.com/common/actualite/details/03-08-2026-africa-global-logistics-ci-pouvoir-assemblee-generale-mixte"
                 },
                 {
                     "date": "03/08/2026",
@@ -89,31 +114,6 @@
                     "date": "30/07/2026",
                     "titre": "CFAO MOTORS CI : Paiement de dividendes - Exercice 2025",
                     "url": "https://www.richbourse.com/common/actualite/details/30-07-2026-cfao-motors-ci-paiement-de-dividendes-exercice-2025"
-                },
-                {
-                    "date": "30/07/2026",
-                    "titre": "CFAO MOTORS CI : Paiement de dividendes - Exercice 2025",
-                    "url": "https://www.richbourse.com/common/actualite/details/30-07-2026-cfao-motors-ci-paiement-de-dividendes-exercice-2025-2"
-                },
-                {
-                    "date": "30/07/2026",
-                    "titre": "NESTLE CI : Paiement de dividendes - Exercice 2025",
-                    "url": "https://www.richbourse.com/common/actualite/details/30-07-2026-nestle-ci-paiement-de-dividendes-exercice-2025"
-                },
-                {
-                    "date": "30/07/2026",
-                    "titre": "NESTLE CI : Paiement de dividendes - Exercice 2025",
-                    "url": "https://www.richbourse.com/common/actualite/details/30-07-2026-nestle-ci-paiement-de-dividendes-exercice-2025-2"
-                },
-                {
-                    "date": "29/07/2026",
-                    "titre": "SONATEL SN : Communiqué - Changement important dans la Direction",
-                    "url": "https://www.richbourse.com/common/actualite/details/sonatel-sn-communique-changement-importa"
-                },
-                {
-                    "date": "29/07/2026",
-                    "titre": "ETI TG : Rapport d'activités - 1er semestre 2026",
-                    "url": "https://www.richbourse.com/common/actualite/details/eti-tg-rapport-d-activites-1er-semestre"
                 }
             ]
         }
