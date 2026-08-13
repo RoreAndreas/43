@@ -1,10 +1,15 @@
 {
-    "last_update": "2026-08-12 07:50:22",
+    "last_update": "2026-08-13 08:26:32",
     "count": 20,
     "weeks": [
         {
             "semaine": "Semaine du 10 Août au 16 Août 2026",
             "publications": [
+                {
+                    "date": "12/08/2026",
+                    "titre": "SAPH CI : Paiement de dividendes - Exercice 2025",
+                    "url": "https://www.richbourse.com/common/actualite/details/12-08-2026-saph-ci-paiement-de-dividendes-exercice-2025"
+                },
                 {
                     "date": "11/08/2026",
                     "titre": "SAFCA CI : Admission à la cote des actions nouvelles",
@@ -109,11 +114,6 @@
                     "date": "29/07/2026",
                     "titre": "ETI TG : Rapport d'activités - 1er semestre 2026",
                     "url": "https://www.richbourse.com/common/actualite/details/eti-tg-rapport-d-activites-1er-semestre"
-                },
-                {
-                    "date": "29/07/2026",
-                    "titre": "ETI TG : Rapport d'examen limité sur les informations financières intermédiaires - 1er semestre 2026",
-                    "url": "https://www.richbourse.com/common/actualite/details/eti-tg-rapport-d-examen-limite-sur-les-i"
                 }
             ]
         }
