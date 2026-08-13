@@ -236,8 +236,6 @@ def build_components(v: dict) -> list:
             "title": "CMPC en monnaie locale",
             "symbol": "CMPC loc.",
             "value": fr_pct(wacc_local),
-            "highlight": True,
-            "tone": "cyan",
             "rows": [
                 {"label": "CMPC, monnaie du taux sans risque", "value": fr_pct(wacc)},
                 {"label": "Inflation, monnaie du taux sans risque", "value": fr_pct(v["inflation_mature"])},

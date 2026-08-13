@@ -12,8 +12,8 @@
     --text-main: #12131a;
     --text-muted: #6b7280;
     --label-muted: #9298a6;
-    --accent: #2563eb;
-    --accent-dark: #1e40af;
+    --accent: #6b3fa0;
+    --accent-dark: #4f2f79;
     --radius-lg: 18px;
     --radius-md: 14px;
     font-variant-numeric: tabular-nums;
@@ -199,7 +199,7 @@
     background: linear-gradient(135deg, var(--accent) 0%, var(--accent-dark) 100%);
     border-color: transparent;
     color: #ffffff;
-    box-shadow: 0 14px 28px rgba(37, 99, 235, 0.22);
+    box-shadow: 0 14px 28px rgba(107, 63, 160, 0.22);
   }
   .card.active .title { color: #ffffff; }
   .card.active .value { color: #ffffff; }
@@ -222,19 +222,6 @@
   .card.highlight.active {
     background: linear-gradient(135deg, #1a9a56 0%, #0f7a44 100%);
     box-shadow: 0 14px 28px rgba(15, 122, 68, 0.24);
-  }
-  /* Variante cyan : CMPC converti en monnaie locale */
-  .card.highlight.cyan {
-    background: #eefafd;
-    border-color: #b6e3ef;
-  }
-  .card.highlight.cyan .title,
-  .card.highlight.cyan .value {
-    color: #0e7490;
-  }
-  .card.highlight.cyan.active {
-    background: linear-gradient(135deg, #06b6d4 0%, #0e7490 100%);
-    box-shadow: 0 14px 28px rgba(14, 116, 144, 0.24);
   }
   /* ---------- Detail panel ---------- */
   .detail-panel {
@@ -493,7 +480,7 @@
 
   function buildCardsOnce() {
     cardList.innerHTML = components.map(c => `
-      <div class="card${c.id === activeId ? " active" : ""}${c.highlight ? " highlight" : ""}${c.tone ? " " + c.tone : ""}"
+      <div class="card${c.id === activeId ? " active" : ""}${c.highlight ? " highlight" : ""}"
            role="button" tabindex="0"
            data-id="${c.id}">
         ${cardBodyHtml(c)}
