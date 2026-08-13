@@ -384,6 +384,38 @@ st.markdown(
         font-weight: 800;
         color: #12131a;
     }
+    /* Onglet Paramètres : mêmes cartes que l'onglet Valeurs */
+    .st-key-param_perimetre, .st-key-param_primes {
+        background: #ffffff;
+        border: 1px solid #e6e8ee;
+        border-radius: 18px;
+        padding: 20px 22px 6px;
+        height: 100%;
+    }
+    .param-title {
+        font-size: 0.68rem;
+        font-weight: 800;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        color: #9298a6;
+        margin-bottom: 6px;
+    }
+    .st-key-param_perimetre [data-testid="stWidgetLabel"] p,
+    .st-key-param_primes [data-testid="stWidgetLabel"] p {
+        font-size: 0.82rem;
+        font-weight: 600;
+        color: #33394a;
+    }
+    .st-key-param_perimetre div[data-baseweb="select"] > div,
+    .st-key-param_primes [data-testid="stNumberInputContainer"] {
+        border-radius: 12px;
+        border-color: #e6e8ee;
+        background: #fbfbfd;
+    }
+    [data-testid="stAlert"] {
+        border-radius: 12px;
+        font-size: 0.82rem;
+    }
     [data-testid="stDownloadButton"] button {
         border-radius: 12px;
         border: 1px solid #e6e8ee;
@@ -430,82 +462,80 @@ with st.spinner("Chargement des données Damodaran..."):
 
 if betas_data is not None and tax_rates_data is not None and erps_data is not None and financing_spread_data is not None:
     with tab_parametres:
-        # Sélection de l'année de valorisation
         current_year = datetime.now().year
-        col_year, col_maturity = st.columns(2)
-        with col_year:
+        col_perimetre, col_primes = st.columns(2, gap="large")
+
+        # ----- Carte 1 : périmètre de calcul -----
+        with col_perimetre, st.container(key="param_perimetre"):
+            st.markdown('<div class="param-title">Périmètre</div>', unsafe_allow_html=True)
+
             valuation_year = st.selectbox(
-                "Sélectionner l'année de valorisation",
+                "Année de valorisation",
                 options=range(current_year, current_year - 10, -1), # 10 dernières années
                 index=0
             )
-        with col_maturity:
+
             risk_free_maturity = st.selectbox(
                 "Maturité du taux sans risque",
                 options=["30Y", "10Y"],
                 index=0,
                 help="Taux des bons du Trésor US utilisé comme taux sans risque"
             )
-        risk_free_maturity_code = "30" if risk_free_maturity == "30Y" else "10"
-        st.divider()
+            risk_free_maturity_code = "30" if risk_free_maturity == "30Y" else "10"
 
-        st.subheader("Sélection Pays et Industrie")
+            countries = sorted(erps_data[erps_data.columns[0]].dropna().unique().tolist())
+            selected_country = st.selectbox(
+                "Pays",
+                countries,
+                key="country_select"
+            )
 
-        # Sélection du pays
-        countries = sorted(erps_data[erps_data.columns[0]].dropna().unique().tolist())
-        selected_country = st.selectbox(
-            "Sélectionner un pays",
-            countries,
-            key="country_select"
-        )
+            industries = sorted(betas_data[betas_data.columns[0]].dropna().unique().tolist())
+            selected_industry = st.selectbox(
+                "Industrie",
+                industries,
+                key="industry_select"
+            )
 
-        # Sélection de l'industrie
-        industries = sorted(betas_data[betas_data.columns[0]].dropna().unique().tolist())
-        selected_industry = st.selectbox(
-            "Sélectionner une industrie",
-            industries,
-            key="industry_select"
-        )
+            # Messages de correspondance approchée, remplis lors du calcul
+            country_match_placeholder = st.empty()
+            financing_spread_placeholder = st.empty()
 
-        st.subheader("Paramètres manuels")
+        # ----- Carte 2 : primes et inflation saisies à la main -----
+        with col_primes, st.container(key="param_primes"):
+            st.markdown('<div class="param-title">Primes et inflation</div>', unsafe_allow_html=True)
 
-        d = st.number_input(
-            "Prime de taille (d)",
-            value=0.01,
-            step=0.001,
-            format="%.2f",
-            help="Exemple: 0.01 pour 1%"
-        )
+            d = st.number_input(
+                "Prime de taille (d)",
+                value=0.01,
+                step=0.001,
+                format="%.3f",
+                help="Exemple: 0.01 pour 1%"
+            )
 
-        e = st.number_input(
-            "Prime spécifique (e)",
-            value=0.005,
-            step=0.001,
-            format="%.2f",
-            help="Prime de risque spécifique"
-        )
+            e = st.number_input(
+                "Prime spécifique (e)",
+                value=0.005,
+                step=0.001,
+                format="%.3f",
+                help="Prime de risque spécifique"
+            )
 
-        inflation_mature = st.number_input(
-            "Inflation, monnaie du taux sans risque",
-            value=0.025,
-            step=0.001,
-            format="%.3f",
-            help="Ex: Cleveland Fed - Ten year expected inflation"
-        )
+            inflation_mature = st.number_input(
+                "Inflation, monnaie du taux sans risque",
+                value=0.025,
+                step=0.001,
+                format="%.3f",
+                help="Ex: Cleveland Fed - Ten year expected inflation"
+            )
 
-        inflation_locale = st.number_input(
-            "Inflation, monnaie locale",
-            value=0.03,
-            step=0.001,
-            format="%.3f",
-            help="Ex: critère de convergence UEMOA (3% plafond)"
-        )
-
-        # Espace réservé pour le message de pays correspondant
-        country_match_placeholder = st.empty()
-        
-        # Espace réservé pour le message de spread de financement correspondant
-        financing_spread_placeholder = st.empty()
+            inflation_locale = st.number_input(
+                "Inflation, monnaie locale",
+                value=0.03,
+                step=0.001,
+                format="%.3f",
+                help="Ex: critère de convergence UEMOA (3% plafond)"
+            )
 
     avg_30y_rate = calculate_average_rate(valuation_year, risk_free_maturity_code)
 

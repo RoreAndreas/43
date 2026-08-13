@@ -223,6 +223,19 @@
     background: linear-gradient(135deg, #1a9a56 0%, #0f7a44 100%);
     box-shadow: 0 14px 28px rgba(15, 122, 68, 0.24);
   }
+  /* Variante cyan : CMPC converti en monnaie locale */
+  .card.highlight.cyan {
+    background: #eefafd;
+    border-color: #b6e3ef;
+  }
+  .card.highlight.cyan .title,
+  .card.highlight.cyan .value {
+    color: #0e7490;
+  }
+  .card.highlight.cyan.active {
+    background: linear-gradient(135deg, #06b6d4 0%, #0e7490 100%);
+    box-shadow: 0 14px 28px rgba(14, 116, 144, 0.24);
+  }
   /* ---------- Detail panel ---------- */
   .detail-panel {
     background: var(--card-bg);
@@ -480,7 +493,7 @@
 
   function buildCardsOnce() {
     cardList.innerHTML = components.map(c => `
-      <div class="card${c.id === activeId ? " active" : ""}${c.highlight ? " highlight" : ""}"
+      <div class="card${c.id === activeId ? " active" : ""}${c.highlight ? " highlight" : ""}${c.tone ? " " + c.tone : ""}"
            role="button" tabindex="0"
            data-id="${c.id}">
         ${cardBodyHtml(c)}
