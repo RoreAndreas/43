@@ -294,18 +294,16 @@ st.set_page_config(
     layout="centered"
 )
 
-# Logo texte "43.", centré au-dessus du titre : même carré noir et même police
-# lourde que l'image de marque d'origine, mais rendu en CSS plutôt qu'en PNG.
+# Logo texte, centré au-dessus du titre : sans carré ni fond, texte noir.
 st.markdown(
-    "<div style='width:170px;height:170px;background:#000;margin:0 auto 16px;"
-    "display:flex;align-items:center;justify-content:center;'>"
-    "<span style=\"color:#fff;font-family:'Arial Black','Helvetica Neue',Arial,sans-serif;"
-    "font-weight:900;font-size:56px;line-height:1;\">43.</span>"
+    "<div style='text-align:center;margin:0 auto 16px;'>"
+    "<span style=\"color:#000;font-family:'Arial Black','Helvetica Neue',Arial,sans-serif;"
+    "font-weight:900;font-size:32px;line-height:1.2;\">Making it the 43. Type of way</span>"
     "</div>",
     unsafe_allow_html=True,
 )
 
-st.title("Calcul du Coût des Fonds Propres")
+st.title("Calcul du Coût Moyen Pondéré du Capital - Méthode indirecte")
 st.markdown("**Formule Coût Fonds Propres:** Coût = a + b × c + d + e")
 st.divider()
 
