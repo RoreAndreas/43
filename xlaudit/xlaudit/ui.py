@@ -82,19 +82,41 @@ def resolve_path(sha: str, work_dir: Path | None = None) -> Path:
     )
 
 
-@st.cache_resource(show_spinner=False, max_entries=3)
-def load_model(sha: str, _path: Path, _progress=None):
-    """Collecte et graphe de dependances, mis en cache par empreinte du fichier.
-
-    Objets lourds et immuables : `cache_resource` les partage sans les serialiser.
-    Les parametres prefixes d'un souligne n'entrent pas dans la clef de cache
-    (convention Streamlit) ; l'empreinte suffit a identifier le classeur.
-    """
-    snapshot, from_cache = get_snapshot(_path, cache_dir=CACHE_DIR, progress=_progress)
+def build_model(path: Path, progress=None):
+    """Collecte et graphe de dependances. Fonction pure, sans cache ni affichage."""
+    snapshot, from_cache = get_snapshot(path, cache_dir=CACHE_DIR, progress=progress)
     if not snapshot.vba:
-        snapshot.vba = load_vba(_path)
-    graph = build_graph(snapshot, progress=_progress)
+        snapshot.vba = load_vba(path)
+    graph = build_graph(snapshot, progress=progress)
     return snapshot, graph, from_cache
+
+
+MODEL_SLOT = "xlaudit_model"
+
+
+def get_model(sha: str, path: Path, progress=None):
+    """Modele courant, conserve d'une interaction a l'autre dans la session.
+
+    Volontairement **hors du cache Streamlit**. Les decorateurs `cache_resource`
+    et `cache_data` enregistrent les ecritures d'elements faites dans la fonction
+    pour les rejouer sur un succes de cache ; une barre de progression creee a
+    l'exterieur et alimentee depuis l'interieur declenche alors une
+    `CacheReplayClosureError`. Or un chargement de plusieurs minutes exige une
+    barre de progression. On garde donc la progression et on gere le cache
+    soi-meme : `st.session_state` suffit, et le cache disque du snapshot evite de
+    toute facon la recollecte.
+
+    Un seul modele est conserve : deposer un autre classeur libere le precedent,
+    ce qui compte quand un modele pese plusieurs centaines de mega-octets en
+    memoire.
+    """
+    slot = st.session_state.get(MODEL_SLOT)
+    if slot is not None and slot[0] == sha:
+        return slot[1]
+    st.session_state.pop(MODEL_SLOT, None)  # libere l'ancien avant d'en batir un autre
+    model = build_model(path, progress)
+    st.session_state[MODEL_SLOT] = (sha, model)
+    return model
 
 
 @st.cache_data(show_spinner=False, max_entries=8)
@@ -103,13 +125,20 @@ def run_rules(
     phases: tuple[int, ...],
     rule_ids: tuple[str, ...],
     mapping_text: str | None,
+    _snapshot,
+    _graph,
 ) -> dict:
     """Execute les regles et rend le document JSON, mis en cache.
+
+    Le snapshot et le graphe sont passes en parametres prefixes d'un souligne :
+    ils ne sont pas hachables et n'entrent pas dans la clef de cache, l'empreinte
+    du classeur les identifiant deja. Aucun element Streamlit n'est ecrit ici,
+    pour que le rejeu de cache reste sans effet de bord.
 
     Le mapping entre dans la clef sous forme de texte : le modifier relance
     l'analyse, ce qui est le comportement attendu.
     """
-    snapshot, graph, _ = load_model(sha, resolve_path(sha))
+    snapshot, graph = _snapshot, _graph
 
     mapping_model = None
     validation: list[dict] = []

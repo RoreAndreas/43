@@ -14,8 +14,8 @@ import pytest
 pytest.importorskip("streamlit", reason="l'extra `ui` n'est pas installe")
 
 from xlaudit.ui import (  # noqa: E402
-    filter_signals, format_number, persist_upload, resolve_path, restore_run_log,
-    restore_signals, run_rules, signal_rows, trace_lines,
+    build_model, filter_signals, format_number, persist_upload, resolve_path,
+    restore_run_log, restore_signals, run_rules, signal_rows, trace_lines,
 )
 
 from .conftest import MAPPING_PATH  # noqa: E402
@@ -155,46 +155,105 @@ class TestTraceLines:
         assert "(profondeur maximale atteinte)" in trace_lines(node)[0]
 
 
+class TestCacheSafety:
+    """Aucune fonction cachée ne doit écrire d'élément Streamlit.
+
+    Sur un succès de cache, Streamlit rejoue les écritures d'éléments faites dans
+    une fonction décorée. Si l'élément visé a été créé à l'extérieur, le rejeu
+    lève `CacheReplayClosureError` — ce qui s'est produit en conditions réelles,
+    après huit minutes de chargement, au deuxième appel de la fonction.
+    """
+
+    def test_model_loading_is_not_streamlit_cached(self):
+        """Le chargement porte une barre de progression : il doit rester hors cache."""
+        import xlaudit.ui as ui
+
+        for name in ("build_model", "get_model"):
+            fn = getattr(ui, name)
+            assert not hasattr(fn, "clear"), (
+                f"{name} est décorée par un cache Streamlit alors qu'elle alimente "
+                f"une barre de progression créée à l'extérieur : le rejeu de cache "
+                f"lèvera CacheReplayClosureError."
+            )
+
+    def test_cached_rules_receive_the_model_instead_of_reloading_it(self):
+        """`run_rules` ne doit pas rappeler le chargeur : il le reçoit en paramètre."""
+        import inspect
+
+        import xlaudit.ui as ui
+
+        params = list(inspect.signature(ui.run_rules).parameters)
+        assert params[-2:] == ["_snapshot", "_graph"], (
+            "le snapshot et le graphe doivent être passés en paramètres non hachés"
+        )
+        # Analyse du corps par AST : une recherche textuelle attraperait le
+        # décorateur `@st.cache_data`, qui est légitime.
+        import ast
+        import textwrap
+
+        tree = ast.parse(textwrap.dedent(inspect.getsource(ui.run_rules)))
+        function = tree.body[0]
+        function.decorator_list = []
+        used = {
+            node.value.id
+            for node in ast.walk(function)
+            if isinstance(node, ast.Attribute)
+            and isinstance(node.value, ast.Name)
+        }
+        assert "st" not in used, (
+            "aucune écriture Streamlit dans le corps d'une fonction cachée : "
+            "elle serait rejouée au succès de cache"
+        )
+        called = {
+            node.func.id
+            for node in ast.walk(function)
+            if isinstance(node, ast.Call) and isinstance(node.func, ast.Name)
+        }
+        assert not ({"get_model", "build_model"} & called), (
+            "run_rules doit recevoir le modèle, pas le recharger"
+        )
+
+
 class TestPipeline:
     """Le chemin complet dépôt → analyse, hors de toute mise en page."""
 
-    def test_scan_from_an_uploaded_workbook(self, faulty_path, tmp_path, monkeypatch):
+    @staticmethod
+    def _prepare(workbook, tmp_path, monkeypatch):
         import xlaudit.ui as ui
 
-        monkeypatch.setattr(ui, "WORK_DIR", tmp_path)
         monkeypatch.setattr(ui, "CACHE_DIR", tmp_path / "cache")
-        _target, sha = persist_upload(FakeUpload(faulty_path), work_dir=tmp_path)
+        target, sha = persist_upload(FakeUpload(workbook), work_dir=tmp_path)
+        snapshot, graph, _from_cache = build_model(target)
+        return sha, snapshot, graph
 
-        document = run_rules(sha, (2,), (), None)
+    def test_scan_from_an_uploaded_workbook(self, faulty_path, tmp_path, monkeypatch):
+        sha, snapshot, graph = self._prepare(faulty_path, tmp_path, monkeypatch)
+        document = run_rules(sha, (2,), (), None, snapshot, graph)
         rules = {s["rule_id"] for s in document["signals"]}
         assert {"R204", "R205", "R206", "R207", "R208"} <= rules
         assert document["run"]["sha256"]
         assert document["validation_mapping"] == []
 
     def test_mapping_drives_phase_three(self, faulty_path, tmp_path, monkeypatch):
-        import xlaudit.ui as ui
-
-        monkeypatch.setattr(ui, "WORK_DIR", tmp_path)
-        monkeypatch.setattr(ui, "CACHE_DIR", tmp_path / "cache")
-        _target, sha = persist_upload(FakeUpload(faulty_path), work_dir=tmp_path)
-
+        sha, snapshot, graph = self._prepare(faulty_path, tmp_path, monkeypatch)
         document = run_rules(
-            sha, (3,), (), MAPPING_PATH.read_text(encoding="utf-8")
+            sha, (3,), (), MAPPING_PATH.read_text(encoding="utf-8"), snapshot, graph
         )
         assert document["validation_mapping"], "la validation doit etre rapportee"
         assert all(v["valide"] for v in document["validation_mapping"])
-        controls = {
-            (s["evidence"] or {}).get("controle") for s in document["signals"]
-        }
+        controls = {(s["evidence"] or {}).get("controle") for s in document["signals"]}
         assert "bilan" in controls
 
-    def test_restored_objects_feed_the_renderers(self, faulty_path, tmp_path, monkeypatch):
-        import xlaudit.ui as ui
+    def test_second_call_is_served_from_cache(self, faulty_path, tmp_path, monkeypatch):
+        """Le rejeu de cache doit passer : c'est lui qui échouait en production."""
+        sha, snapshot, graph = self._prepare(faulty_path, tmp_path, monkeypatch)
+        first = run_rules(sha, (2,), (), None, snapshot, graph)
+        second = run_rules(sha, (2,), (), None, snapshot, graph)
+        assert first == second
 
-        monkeypatch.setattr(ui, "WORK_DIR", tmp_path)
-        monkeypatch.setattr(ui, "CACHE_DIR", tmp_path / "cache")
-        _target, sha = persist_upload(FakeUpload(faulty_path), work_dir=tmp_path)
-        document = run_rules(sha, (2,), (), None)
+    def test_restored_objects_feed_the_renderers(self, faulty_path, tmp_path, monkeypatch):
+        sha, snapshot, graph = self._prepare(faulty_path, tmp_path, monkeypatch)
+        document = run_rules(sha, (2,), (), None, snapshot, graph)
 
         from xlaudit.render.markdown import render_markdown
         from xlaudit.render.xlsx import write_report

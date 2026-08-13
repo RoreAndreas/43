@@ -34,7 +34,7 @@ from xlaudit.render.graphviz import sheet_map_dot
 from xlaudit.render.markdown import render_markdown
 from xlaudit.render.xlsx import write_report
 from xlaudit.ui import (
-    PHASES, WORK_DIR, filter_signals, format_number, load_model, persist_upload,
+    PHASES, WORK_DIR, filter_signals, format_number, get_model, persist_upload,
     restore_run_log, restore_signals, run_rules, signal_rows, trace_lines,
 )
 
@@ -166,6 +166,9 @@ min_confidence = st.sidebar.slider(
 )
 
 if st.sidebar.button("Vider le cache et relire", width="stretch"):
+    from xlaudit.ui import MODEL_SLOT
+
+    st.session_state.pop(MODEL_SLOT, None)  # le modele vit en session, pas au cache
     st.cache_resource.clear()
     st.cache_data.clear()
     st.rerun()
@@ -183,7 +186,7 @@ def report(stage: str, done: int, total: int) -> None:
 
 started = time.perf_counter()
 try:
-    snapshot, graph, from_cache = load_model(sha, path, report)
+    snapshot, graph, from_cache = get_model(sha, path, report)
 except Exception as exc:  # un classeur illisible doit le dire clairement
     progress_slot.empty()
     st.error(f"Lecture impossible : {type(exc).__name__} — {exc}")
@@ -214,9 +217,11 @@ if 3 in selected_phases and not mapping_text:
 
 # ─── Exécution des règles ─────────────────────────────────────────────────────
 
-with st.spinner("Exécution des règles…"):
+with st.spinner("Exécution des règles… (plusieurs minutes sur un gros modèle)"):
     try:
-        document = run_rules(sha, tuple(selected_phases), (), mapping_text)
+        document = run_rules(
+            sha, tuple(selected_phases), (), mapping_text, snapshot, graph
+        )
     except Exception as exc:
         st.error(f"Analyse interrompue : {type(exc).__name__} — {exc}")
         st.stop()
