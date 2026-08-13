@@ -1,6 +1,7 @@
 import streamlit as st
 import pandas as pd
 import requests
+import base64
 from io import BytesIO
 from pathlib import Path
 import subprocess
@@ -295,10 +296,27 @@ st.set_page_config(
     layout="centered"
 )
 
-# Logo optionnel : dépose un fichier DATA/logo.png pour l'afficher ici.
-logo_path = Path("../DATA/logo.png")
-if logo_path.exists():
-    st.image(str(logo_path), width=300)
+# Logo, centré au-dessus du titre.
+# Le chemin est calculé depuis le fichier et non depuis le répertoire courant :
+# un chemin relatif comme "../DATA/logo.png" ne fonctionne que si Streamlit est
+# lancé depuis PFILES, et le logo disparaît silencieusement sinon.
+LOGO_FILE = Path(__file__).resolve().parent.parent / "DATA" / "logo.png"
+
+
+def _logo_b64() -> str:
+    with open(LOGO_FILE, "rb") as fh:
+        return base64.b64encode(fh.read()).decode()
+
+
+if LOGO_FILE.exists():
+    # Encodage base64 dans un bloc HTML centré, comme dans BRVM-Analysis :
+    # st.image ne sait pas centrer une image. La largeur reste proche de la
+    # taille native (154 px) pour ne pas l'afficher floue.
+    st.markdown(
+        f"<div style='display:flex;justify-content:center;margin-bottom:16px'>"
+        f"<img src='data:image/png;base64,{_logo_b64()}' width='170'></div>",
+        unsafe_allow_html=True,
+    )
 
 st.title("Calcul du Coût des Fonds Propres")
 st.markdown("**Formule Coût Fonds Propres:** Coût = a + b × c + d + e")
