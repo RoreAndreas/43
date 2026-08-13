@@ -1,9 +1,7 @@
 import streamlit as st
 import pandas as pd
 import requests
-import base64
 from io import BytesIO
-from pathlib import Path
 import subprocess
 import sys
 import difflib
@@ -296,27 +294,16 @@ st.set_page_config(
     layout="centered"
 )
 
-# Logo, centré au-dessus du titre.
-# Le chemin est calculé depuis le fichier et non depuis le répertoire courant :
-# un chemin relatif comme "../DATA/logo.png" ne fonctionne que si Streamlit est
-# lancé depuis PFILES, et le logo disparaît silencieusement sinon.
-LOGO_FILE = Path(__file__).resolve().parent.parent / "DATA" / "logo.png"
-
-
-def _logo_b64() -> str:
-    with open(LOGO_FILE, "rb") as fh:
-        return base64.b64encode(fh.read()).decode()
-
-
-if LOGO_FILE.exists():
-    # Encodage base64 dans un bloc HTML centré, comme dans BRVM-Analysis :
-    # st.image ne sait pas centrer une image. La largeur reste proche de la
-    # taille native (154 px) pour ne pas l'afficher floue.
-    st.markdown(
-        f"<div style='display:flex;justify-content:center;margin-bottom:16px'>"
-        f"<img src='data:image/png;base64,{_logo_b64()}' width='170'></div>",
-        unsafe_allow_html=True,
-    )
+# Logo texte "43.", centré au-dessus du titre : même carré noir et même police
+# lourde que l'image de marque d'origine, mais rendu en CSS plutôt qu'en PNG.
+st.markdown(
+    "<div style='width:170px;height:170px;background:#000;margin:0 auto 16px;"
+    "display:flex;align-items:center;justify-content:center;'>"
+    "<span style=\"color:#fff;font-family:'Arial Black','Helvetica Neue',Arial,sans-serif;"
+    "font-weight:900;font-size:56px;line-height:1;\">43.</span>"
+    "</div>",
+    unsafe_allow_html=True,
+)
 
 st.title("Calcul du Coût des Fonds Propres")
 st.markdown("**Formule Coût Fonds Propres:** Coût = a + b × c + d + e")
