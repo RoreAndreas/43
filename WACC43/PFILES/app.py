@@ -374,7 +374,7 @@ st.markdown(
         box-shadow: none;
     }
     [data-testid="stTabs"] [data-baseweb="tab-highlight"] {
-        background-color: #6b3fa0;
+        background-color: #2563eb;
     }
     [data-testid="stTabs"] [data-baseweb="tab-border"] {
         display: none;
@@ -425,8 +425,8 @@ st.markdown(
         padding: 0.6rem 1.1rem;
     }
     [data-testid="stDownloadButton"] button:hover {
-        border-color: #6b3fa0;
-        color: #6b3fa0;
+        border-color: #2563eb;
+        color: #2563eb;
     }
     </style>
     """,
