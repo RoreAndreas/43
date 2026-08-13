@@ -31,7 +31,11 @@ Ces points ont tous causé des pertes de temps ou des résultats faux. Traite-le
 
 6. **Noms définis à portée feuille** : `wb.defined_names` ne contient que la portée globale. Balayer aussi `ws.defined_names` de chaque onglet, sinon la moitié du gestionnaire est invisible.
 
-7. **Recalcul hors Excel** : LibreOffice headless n'évalue pas fiablement `XLOOKUP`, `LET`, `LAMBDA`, `FILTER`, `UNIQUE`, et ne rejoue pas les macros. Implémente un **testeur de faisabilité** qui compte ces fonctions et rend un verdict *avant* toute tentative de recalcul. Si le verdict est négatif, refuse le recalcul avec un message explicite plutôt que de produire des chiffres faux.
+7. **Moteur d'évaluation des formules** : le recalcul ne passe pas par LibreOffice, dont la couverture fonctionnelle est trop faible (ni `XLOOKUP`, ni `LET`, ni `FILTER`, ni `UNIQUE`) et qui ne rejoue pas les macros. Utiliser `pycel` (graphe de dépendances, cache, évaluation paresseuse) ou `formulas` (couverture annoncée 483/536 fonctions, gestion des références circulaires via le paramètre `circular`).
+
+   Choisir entre les deux par un test au démarrage du projet, sur un classeur de fixture contenant `XLOOKUP`, `LET`, `FILTER`, `UNIQUE`, `SUMIFS`, une formule matricielle, une circularité simple et 200 000 formules réparties sur 20 onglets. Mesurer : fonctions réellement supportées, temps de chargement, empreinte mémoire, résolution de la circularité, et surtout **comportement sur une fonction non supportée**.
+
+   Ce dernier point est éliminatoire : si le moteur renvoie une valeur sans signaler qu'il ne sait pas évaluer la fonction, il est disqualifié. Un moteur d'audit qui produit un chiffre faux en silence est pire qu'un moteur absent. Quel que soit le moteur retenu, encapsuler son appel derrière une interface `core/evaluator.py` qui lève une exception explicite sur toute fonction non couverte, et consigne la liste de ces fonctions dans le journal d'exécution.
 
 8. **`calcPr` dans `xl/workbook.xml`** : si `calcOnSave="0"`, les valeurs en cache sont celles du dernier calcul de l'utilisateur, pas l'état convergé. Émettre une réserve automatique qui se propage dans tous les rapports.
 
@@ -47,8 +51,9 @@ xlaudit/
 ├── models.py                 # Signal, Finding, Mapping, AuditContext
 ├── core/
 │   ├── loader.py             # double chargement, itération sûre, cache disque
-│   ├── refs.py               # parsing de références, ancrages, A1↔R1C1, fonctions
-│   ├── graph.py              # graphe cellule / ligne / onglet, cycles, dépendants
+│   ├── refs.py               # ancrages $, A1↔R1C1, fonctions appelées (le reste délégué au moteur)
+│   ├── graph.py              # adaptateur sur le graphe du moteur + agrégation ligne/onglet
+│   ├── evaluator.py          # interface unique sur pycel/formulas, échec explicite si non couvert
 │   └── vba.py                # extraction oletools
 ├── rules/
 │   ├── base.py               # classe Rule : id, libellé, phase, run() -> list[Signal]
@@ -68,6 +73,10 @@ xlaudit/
 └── tests/
 ```
 
+Le graphe de dépendances au niveau cellule est fourni par le moteur d'évaluation : **ne pas le réécrire**. `graph.py` est un adaptateur qui l'expose et l'agrège aux niveaux ligne et onglet, seules granularités dont les règles ont besoin.
+
+`refs.py` conserve en propre l'analyse des ancrages `$`. C'est indispensable et non délégable : les parseurs des moteurs normalisent les références et perdent l'information d'ancrage, sur laquelle repose entièrement la règle R205.
+
 ## Modèle de données
 
 ```python
@@ -83,8 +92,12 @@ class Signal:
     evidence: dict                # chiffrage : écart max, colonnes touchées, totaux
     consumers: list[str]          # qui consomme la ligne concernée
     confidence: float             # 0-1, vraisemblance que ce ne soit pas un faux positif
+    severity: str                 # "error" | "warning" | "note" — pour l'export SARIF
+    health_impact: int            # points retirés du score de santé (0 si aucun)
     note: str                     # ce que la règle a détecté, factuellement
 ```
+
+`severity` dérive de `confidence` et de la qualification de l'écart : `error` si l'écart est actif et la confiance ≥ 0,8 ; `warning` si l'écart est latent ou la confiance entre 0,5 et 0,8 ; `note` en dessous. Ce champ n'existe que pour l'export SARIF et **ne remplace pas la criticité d'audit**, qui reste une décision humaine.
 
 `Signal` est l'unique interface entre l'outil et l'humain. Toute règle en émet ; rien d'autre ne sort du moteur.
 
@@ -102,7 +115,11 @@ Implémente-les comme modules indépendants. Les quatre règles de plages (R204 
 
 **R204 Glissement de recopie** — Pour chaque groupe de lignes consécutives structurellement identiques, extraire les bornes de chaque plage. Si les bornes progressent de +1 par ligne alors que le bloc source est fixe, émettre un signal. Enrichir avec : quelles lignes de sous-total sont capturées, quels articles sont omis.
 
-**R205 Ancrage asymétrique** — Dans chaque argument de plage, comparer l'ancrage des deux bornes. Le motif `$O488:S491` (coin initial ancré en colonne, coin final relatif) dans une formule recopiée horizontalement neutralise silencieusement le terme entier : Excel redimensionne depuis le coin supérieur gauche et lit toujours la colonne O. Motif symétrique `O488:$S491` également. **Chiffrer systématiquement** : reconstruire la grandeur attendue, comparer au cache ; si l'écart égale exactement le terme neutralisé, `confidence = 1.0`.
+**R205 Ancrage asymétrique** — Dans chaque argument de plage, comparer l'ancrage des deux bornes. Le motif `$O488:S491` (coin initial ancré en colonne, coin final relatif) dans une formule recopiée horizontalement neutralise silencieusement le terme entier : Excel redimensionne depuis le coin supérieur gauche et lit toujours la colonne O.
+
+C'est la règle la plus différenciante de l'outil : les scanners existants détectent les décalages de plage simples (*off-by-one*) mais pas ce motif, parce qu'il ne produit ni erreur Excel ni écart de bornes — seul l'examen des ancrages le révèle. Traiter les deux motifs symétriques (`$O488:S491` et `O488:$S491`) et ne signaler que dans une formule effectivement recopiée sur plusieurs colonnes.
+
+**Chiffrer systématiquement** : reconstruire la grandeur attendue, comparer au cache ; si l'écart égale exactement le terme neutralisé, `confidence = 1.0`.
 
 **R206 Somme tronquée** — Comparer le nombre de lignes sommées entre colonnes d'une même ligne de total, et comparer la plage sommée à l'étendue réelle du bloc (délimitée par en-tête et sous-total). Signaler l'omission d'une première ou dernière ligne de bloc.
 
@@ -113,6 +130,16 @@ Implémente-les comme modules indépendants. Les quatre règles de plages (R204 
 **R215 Lignes orphelines** — Lignes calculées sans aucun dépendant. Distinguer par le libellé : un libellé significatif (« Impasse de trésorerie », « ADSCR », « Contrôle ») signale un **canal débranché** — un mécanisme qui paraît exister mais ne produit aucun effet. C'est un signal de premier ordre, `confidence` haute.
 
 **Chiffreur d'écart** — Composant transverse appelé par R204 à R208 : reconstruit la grandeur sur **toutes** les colonnes de projection, compare au cache, et qualifie `actif` / `latent` / `nul`. Sans ce chiffrage, ces règles ne produisent que du bruit.
+
+## Score de santé
+
+En complément du décompte par criticité, produire un **score de santé sur 100** et une **liste ordonnée de priorités de correction**. Un commanditaire lit un score ; il ne lit pas un tableau de 400 signaux.
+
+Le score doit être entièrement **explicable** : chaque point retiré est rattaché à un signal identifié, consultable dans le détail. Aucun coefficient opaque, aucune pondération non documentée. `xlaudit score --explain` doit produire la décomposition ligne à ligne.
+
+Barème indicatif, à ajuster : un signal `severity=error` à écart actif retire des points proportionnellement à l'ampleur relative de l'écart ; un signal à écart latent en retire un nombre fixe et faible ; un bouclage en échec pèse davantage qu'une anomalie de forme. Les signaux à confiance basse ne retirent rien tant qu'ils n'ont pas été confirmés — **le score ne doit pas punir le bruit**.
+
+La liste de priorités ordonne les corrections par rapport impact/effort, en réutilisant les champs `evidence.qualification` et l'estimation d'effort.
 
 ## Phase 3 — Bouclages pilotés par mapping
 
@@ -154,13 +181,34 @@ xlaudit validate-mapping MODELE.xlsm --mapping mapping.yaml
 xlaudit ties MODELE.xlsm --mapping mapping.yaml
 xlaudit trace MODELE.xlsm --cell "Onglet!S495" [--depth 3] [--direction up|down]
 xlaudit map MODELE.xlsm --out carte.mmd
-xlaudit feasibility MODELE.xlsm          # recalcul hors Excel possible ?
+xlaudit feasibility MODELE.xlsm    # fonctions non couvertes par le moteur retenu
 xlaudit sensitivity MODELE.xlsm --shock production=-5% --mapping m.yaml
+xlaudit score MODELE.xlsm --mapping m.yaml [--explain]
 xlaudit report constats.json --xlsx sortie.xlsx --md rapport.md
+xlaudit report constats.json --sarif sortie.sarif
 xlaudit diff v1.xlsm v2.xlsm --mapping m.yaml    # non-régression
 ```
 
+`feasibility` conserve son rôle mais change de critère : il ne teste plus la faisabilité d'un recalcul LibreOffice mais recense les **fonctions du classeur non couvertes par le moteur retenu**, et indique **quelles cellules en dépendent**. Une phase 5 partiellement exécutable doit le dire précisément, pas se refuser en bloc.
+
 `trace` est la commande la plus utilisée en pratique : remontée ou descente récursive des dépendances d'une cellule, avec formules et valeurs à chaque niveau. Soigne sa sortie.
+
+## Sortie SARIF
+
+En plus du JSON de signaux, produire un export **SARIF 2.1.0** — format standard des outils d'analyse statique, qui ouvre l'intégration CI/CD et l'affichage dans les IDE sans travail supplémentaire.
+
+Mapping :
+
+| SARIF | Source |
+|---|---|
+| `ruleId` | `Signal.rule_id` |
+| `level` | `Signal.severity` |
+| `message.text` | `Signal.note` |
+| `locations[].physicalLocation.artifactLocation.uri` | chemin du classeur |
+| `locations[].logicalLocations[].fullyQualifiedName` | `Onglet!Cellule` |
+| `properties` | `evidence`, `consumers`, `confidence` |
+
+Déclarer chaque règle dans `runs[].tool.driver.rules` avec son identifiant, son nom court et sa description complète, pour que l'affichage IDE soit lisible sans consulter la documentation.
 
 ## Exigences transverses
 
@@ -172,10 +220,21 @@ xlaudit diff v1.xlsm v2.xlsm --mapping m.yaml    # non-régression
 - **Sortie JSON stable et versionnée** (`schema_version`) : c'est le contrat avec les outils en aval.
 - **Journal d'exécution** horodaté avec l'empreinte du fichier, listant les règles exécutées et celles qui ont été sautées faute de mapping.
 
+## État de l'art
+
+Cette spécification s'appuie sur l'écosystème existant. Ce qui est réutilisé et ce qui ne l'est pas :
+
+**Réutilisé.** `pycel` ou `formulas` pour l'évaluation des formules et le graphe de dépendances au niveau cellule — écrire son propre moteur serait le composant le plus risqué du projet pour aucun gain. `openpyxl` pour toute la lecture statique (formules brutes, formats, noms définis, attributs de masquage), que les moteurs d'évaluation n'exposent pas. `oletools` pour le VBA. Le format SARIF plutôt qu'un format maison.
+
+**Non réutilisé, et pourquoi.** Les scanners génériques de qualité de tableur couvrent les erreurs Excel, les références cassées, les décalages de plage simples et les totaux qui ne se recoupent pas. Ils ne couvrent pas : l'ancrage asymétrique (R205), la reconstruction chiffrée de la grandeur sur toutes les colonnes qui qualifie chaque anomalie en `actif` / `latent` / `nul`, les bouclages de project finance pilotés par mapping (amortissement par tranche, intérêts = CRD × taux, analyse en quatre étapes d'une trésorerie négative), et la détection des canaux débranchés (R215). C'est le périmètre propre de `xlaudit`.
+
+Avant de coder les règles R201 à R203, qui sont les plus classiques, **vérifier qu'un outil existant ne les couvre pas déjà mieux** : si c'est le cas, l'appeler en sous-traitance et se concentrer sur R204 à R208 et R215.
+
 ## Ordre de construction
 
-1. Socle : `loader`, `refs`, `graph`, `models`, plus les fixtures de test. **Ne code aucune règle avant que l'itération sûre et le parsing de références ne soient couverts par des tests** — toutes les règles en dépendent, et un bug à ce niveau contamine l'ensemble.
-2. Phase 2, règles R201 à R203 (les classiques), pour valider la chaîne de bout en bout sur un vrai classeur.
+0. **Benchmark des moteurs d'évaluation**, avant même les fixtures. Construire le classeur de test décrit au point 7 des contraintes techniques, mesurer `pycel` et `formulas`, et trancher. Le critère éliminatoire est le comportement sur fonction non supportée. Tant que ce choix n'est pas fait, ni `evaluator.py` ni `graph.py` ne peuvent être écrits, et le chiffreur d'écart en dépend.
+1. Socle allégé : `loader`, `models`, `evaluator` (interface sur le moteur retenu), `graph` (adaptateur d'agrégation), et l'analyse des ancrages dans `refs`, plus les fixtures de test. **Ne code aucune règle avant que l'itération sûre et l'analyse des ancrages ne soient couvertes par des tests** — toutes les règles en dépendent, et un bug à ce niveau contamine l'ensemble.
+2. Phase 2, règles R201 à R203 (les classiques), pour valider la chaîne de bout en bout sur un vrai classeur — sous réserve de la vérification demandée à la section « État de l'art ».
 3. Phase 2, règles R204 à R208 et R215 avec le chiffreur d'écart — le cœur de la valeur.
 4. Phase 1 (cartographie) et `trace`.
 5. Phase 3 avec mapping, `discover` et `validate-mapping`.
