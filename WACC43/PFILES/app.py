@@ -295,6 +295,27 @@ def render_comment_trigger(key: str, label: str) -> None:
         st.rerun()
 
 
+def render_value_card(title: str, value: str, accent: str, helper: str = "", comment_key: str | None = None, dark: bool = False) -> None:
+    """Affiche une carte de valeur dans le style du design WACC."""
+    bloc_valeur, bloc_bouton = st.columns([10, 1])
+    card_bg = "#2b2b2b" if dark else "#f5f7fb"
+    text_color = "#ffffff" if dark else "#1f2a37"
+    helper_color = "rgba(255,255,255,0.78)" if dark else "#5f6a7a"
+    label_color = "rgba(255,255,255,0.68)" if dark else "#69768a"
+    card_html = f"""
+    <div style="background:{card_bg}; border:1px solid rgba(0,0,0,0.06); border-radius:16px; padding:16px 18px; margin-bottom:14px; box-shadow:0 4px 18px rgba(23,34,52,0.06);">
+        <div style="font-size:11px; font-weight:700; letter-spacing:0.08em; text-transform:uppercase; color:{label_color}; margin-bottom:8px;">{title}</div>
+        <div style="font-size:1.35rem; line-height:1.2; font-weight:800; color:{accent};">{value}</div>
+        {f'<div style="margin-top:8px; font-size:0.82rem; color:{helper_color};">{helper}</div>' if helper else ''}
+    </div>
+    """
+    with bloc_valeur:
+        st.markdown(card_html, unsafe_allow_html=True)
+    if comment_key:
+        with bloc_bouton:
+            render_comment_trigger(comment_key, title)
+
+
 # Configuration de la page
 st.set_page_config(
     page_title="Calcul WACC",
@@ -322,10 +343,11 @@ st.markdown(
     .st-key-comment_bubble {
         position: relative;
         background-color: #ffffff;
-        border: 2px solid #333333;
-        border-radius: 4px;
+        border: 2px solid #2a3b4d;
+        border-radius: 14px;
         padding: 14px 16px;
-        margin: 6px 0 6px 18px;
+        margin: 6px 0 10px 18px;
+        box-shadow: 0 8px 22px rgba(17, 30, 45, 0.08);
     }
     .st-key-comment_bubble::before {
         content: "";
@@ -336,7 +358,7 @@ st.markdown(
         height: 0;
         border-top: 11px solid transparent;
         border-bottom: 11px solid transparent;
-        border-right: 18px solid #333333;
+        border-right: 18px solid #2a3b4d;
     }
     .st-key-comment_bubble::after {
         content: "";
@@ -348,6 +370,22 @@ st.markdown(
         border-top: 9px solid transparent;
         border-bottom: 9px solid transparent;
         border-right: 15px solid #ffffff;
+    }
+    .block-container {
+        padding-top: 1.5rem;
+        padding-bottom: 2rem;
+    }
+    [data-testid="stTab"] {
+        font-weight: 600;
+        letter-spacing: 0.02em;
+    }
+    [data-testid="stTabList"] {
+        gap: 0.5rem;
+    }
+    [data-testid="stTabList"] button[aria-selected="true"] {
+        background: linear-gradient(135deg, #eaf2ff 0%, #dfefff 100%);
+        color: #103870;
+        border-bottom: 2px solid #4f8cff;
     }
     </style>
     """,
@@ -449,42 +487,33 @@ if betas_data is not None and tax_rates_data is not None and erps_data is not No
     avg_30y_rate = calculate_average_rate(valuation_year, risk_free_maturity_code)
 
     with tab_valeurs:
-        col_values, col_comments = st.columns(2)
+        col_values, col_comments = st.columns([3, 2])
 
         with col_values:
             # Extraire les données pour le pays sélectionné
             country_data = erps_data[erps_data[erps_data.columns[0]].str.lower() == selected_country.lower()]
-            # Prime de risque marché actions (c) - prime pour un marché mature (cellule E3)
             c = mature_market_premium if mature_market_premium is not None else 0.06
             if len(country_data) > 0:
-                # Prime de risque pays (pour le calcul de 'a')
                 country_risk_premium = float(country_data["Country Risk Premium"].values[0])
             else:
-                country_risk_premium = 0.01 # Valeur par défaut
+                country_risk_premium = 0.01
                 st.warning("Primes de risque non trouvées, valeurs par défaut utilisées")
 
-            # Extraire les données pour l'industrie sélectionnée
             industry_data = betas_data[betas_data[betas_data.columns[0]].str.lower() == selected_industry.lower()]
             if len(industry_data) > 0:
-                # Beta désendetté (colonne F)
                 beta_desendetté = float(industry_data["Unlevered beta"].values[0])
-                # Gearing sectoriel
                 gearing_sectoriel = float(industry_data["D/E Ratio"].values[0])
             else:
-                beta_desendetté = 1.0  # Valeur par défaut
-                gearing_sectoriel = 0.5  # Valeur par défaut
+                beta_desendetté = 1.0
+                gearing_sectoriel = 0.5
                 st.warning("Données beta non trouvées, valeurs par défaut utilisées")
 
-            # Extraire les données de spread de financement pour l'industrie sélectionnée
             financing_spread_industry = financing_spread_data[financing_spread_data[financing_spread_data.columns[0]].str.lower() == selected_industry.lower()]
             if len(financing_spread_industry) > 0:
-                # Spread de financement - colonne F, index 5 (Std Dev in Stock)
                 cost_of_debt = float(financing_spread_industry.iloc[0, 5])
-                # E/(D+E) - proportion de fonds propres - colonne E, index 4
                 proportion_equity = float(financing_spread_industry.iloc[0, 4])
-                financing_spread_placeholder.empty()  # Effacer le message d'avertissement si trouvé
+                financing_spread_placeholder.empty()
             else:
-                # Fuzzy matching si correspondance exacte échoue
                 financing_industries_list = financing_spread_data[financing_spread_data.columns[0]].dropna().str.lower().tolist()
                 matches = difflib.get_close_matches(selected_industry.lower(), financing_industries_list, n=1, cutoff=0.9)
                 if matches:
@@ -494,180 +523,127 @@ if betas_data is not None and tax_rates_data is not None and erps_data is not No
                     proportion_equity = float(financing_spread_industry.iloc[0, 4])
                     financing_spread_placeholder.info(f"Financing spread industry match -> {matched_industry}")
                 else:
-                    cost_of_debt = 0.05  # Valeur par défaut
-                    proportion_equity = 0.6  # Valeur par défaut
+                    cost_of_debt = 0.05
+                    proportion_equity = 0.6
                     st.warning("Données de spread de financement non trouvées, valeurs par défaut utilisées")
                     financing_spread_placeholder.empty()
 
-            # Tax rate pour le pays (corporate tax rate)
             tax_country_data = tax_rates_data[tax_rates_data[tax_rates_data.columns[0]].str.strip().str.lower() == selected_country.lower().strip()]
             if len(tax_country_data) > 0:
-                tax_rate = float(tax_country_data[tax_rates_data.columns[1]].values[0]) # Corporate tax rate
-                country_match_placeholder.empty() # Effacer le message si une correspondance exacte est trouvée
+                tax_rate = float(tax_country_data[tax_rates_data.columns[1]].values[0])
+                country_match_placeholder.empty()
             else:
-                # Fuzzy matching si correspondance exacte échoue
                 tax_countries_list = tax_rates_data[tax_rates_data.columns[0]].dropna().str.strip().str.lower().tolist()
                 matches = difflib.get_close_matches(selected_country.lower().strip(), tax_countries_list, n=1, cutoff=0.9)
                 if matches:
                     matched_country = matches[0]
                     tax_country_data = tax_rates_data[tax_rates_data[tax_rates_data.columns[0]].str.strip().str.lower() == matched_country]
-                    tax_rate = float(tax_country_data[tax_rates_data.columns[1]].values[0]) # Corporate tax rate
+                    tax_rate = float(tax_country_data[tax_rates_data.columns[1]].values[0])
                     country_match_placeholder.info(f"Corp. Tax files match -> {matched_country}")
                 else:
-                    tax_rate = 0.25  # Valeur par défaut
+                    tax_rate = 0.25
                     st.warning("Corporate tax rate non trouvé, valeur par défaut utilisée")
-                    country_match_placeholder.empty() # Effacer le message si aucune correspondance n'est trouvée
+                    country_match_placeholder.empty()
 
-            # Calcul du beta réendetté
             b = calcul_beta_reendeté(beta_desendetté, gearing_sectoriel, tax_rate)
 
-            # Calcul du Taux sans risque local (a)
             if avg_30y_rate is not None:
-                # Le taux US est déjà en %, on le convertit en décimal
                 a = (avg_30y_rate / 100) + country_risk_premium
             else:
-                a = 0.03 # Fallback si le taux US n'est pas trouvé
+                a = 0.03
                 st.error(f"Impossible de calculer le taux US {risk_free_maturity} pour {valuation_year}. Utilisation d'une valeur par défaut pour 'a'.")
 
-            # Calcul du Coût des fonds propres
             cout_fonds_propres = calcul_cout_fonds_propres(a, b, c, d, e)
-            
-            # Ajuster le spread de financement si applicable
             adjusted_spread, is_adjusted = get_adjusted_spread(cost_of_debt, spread_adjustment_table)
-
-            # ===== AFFICHAGE DANS LE NOUVEL ORDRE =====
-
-            # 1. Tableau de détermination du taux sans risque (bleu)
-            bloc_valeur, bloc_bouton = st.columns([10, 1])
-            with bloc_valeur:
-                if avg_30y_rate is not None:
-                    st.info(
-                        f"""
-                        **Détermination du taux sans risque:**
-                        - Taux US Bond {risk_free_maturity} ({valuation_year}) : {avg_30y_rate:.2f}%
-                        - Prime de risque pays : {country_risk_premium:.2%}
-                        
-                        **Taux sans risque local (a) : {a:.2%}**
-                        """
-                    )
-                else:
-                    country_risk_premium_display = f"{country_risk_premium:.2%}"
-                    st.info(
-                        f"""
-                        **Détermination du taux sans risque:**
-                        - Prime de risque pays : {country_risk_premium_display}
-                        
-                        **Taux sans risque local (a) : {a:.2%}** (valeur par défaut)
-                        """
-                    )
-            with bloc_bouton:
-                render_comment_trigger("taux_sans_risque", "Détermination du taux sans risque")
-
-            # 2 Carré gris foncé avec beta désendetté et autres infos
-            bloc_valeur, bloc_bouton = st.columns([10, 1])
-            with bloc_valeur:
-                st.markdown(f"""
-                <div style="background-color: #404040; padding: 8px; border-radius: 8px; color: white; margin-bottom: 15px;">
-                    <div style="margin-bottom: 4px; font-weight: bold;">Beta désendetté: {beta_desendetté:.3f}</div>
-                    <div style="margin-bottom: 4px;">Gearing sectoriel: {gearing_sectoriel:.2f}</div>
-                    <div style="margin-bottom: 4px;">Corporate Tax Rate: {tax_rate*100:.0f}%</div>
-                    <div style="font-weight: bold;">Beta réendetté (b): {b:.3f}</div>
-                </div>
-                """, unsafe_allow_html=True)
-            with bloc_bouton:
-                render_comment_trigger("beta", "Beta réendetté")
-
-            # 3 Prime de taille et prime spécifique, dans un carré gris clair
-            bloc_valeur, bloc_bouton = st.columns([10, 1])
-            with bloc_valeur:
-                st.markdown(f"""
-                <div style="background-color: #f0f0f0; padding: 8px; border-radius: 8px; margin-bottom: 15px;">
-                    <div style="margin-bottom: 4px;">Prime de risque marché (c): {c:.2%}</div>
-                    <div style="margin-bottom: 4px;">Prime de taille (d): {d:.2%}</div>
-                    <div style="margin-bottom: 2px;">Prime spécifique (e): {e:.2%}</div>
-                </div>
-                """, unsafe_allow_html=True)
-            with bloc_bouton:
-                render_comment_trigger("primes", "Primes de risque")
-
-            # 3.5 Spread de financement
-            if is_adjusted:
-                spread_display = f"{adjusted_spread:.2%}"
-            else:
-                spread_display = f"{adjusted_spread:.2%}"
-
-            bloc_valeur, bloc_bouton = st.columns([10, 1])
-            with bloc_valeur:
-                st.markdown(f"""
-                <div style="background-color: #404040; padding: 9px; border-radius: 8px; color: white; margin-bottom: 15px;">
-                    <div style="margin-bottom: 0px; font-weight: bold; font-size: 0.95em;">Spread de Financement: {spread_display}</div>
-                </div>
-                """, unsafe_allow_html=True)
-            with bloc_bouton:
-                render_comment_trigger("spread", "Spread de Financement")
-
-            # 3.3 Quote-parts des fonds propres et de la dette
             quote_part_equity = 1 / (1 + gearing_sectoriel)
             quote_part_debt = 1 - quote_part_equity
-
-            bloc_valeur, bloc_bouton = st.columns([10, 1])
-            with bloc_valeur:
-                st.markdown(f"""
-                <div style="background-color: #f0f0f0; padding: 8px; border-radius: 8px; margin-bottom: 15px;">
-                    <div style="margin-bottom: 4px;">Quote-part Fonds Propres: {quote_part_equity:.2%}</div>
-                    <div style="margin-bottom: 2px;">Quote-part Dette: {quote_part_debt:.2%}</div>
-                </div>
-                """, unsafe_allow_html=True)
-            with bloc_bouton:
-                render_comment_trigger("quote_parts", "Quote-parts Fonds Propres / Dette")
-
-            # 4 Coût des fonds propres en gras
-            cout_fonds_propres = calcul_cout_fonds_propres(a, b, c, d, e)
-            bloc_valeur, bloc_bouton = st.columns([10, 1])
-            with bloc_valeur:
-                st.markdown(f"""
-                <div style="margin-bottom:5px; font-size: 1.15em; font-weight: bold; color: #1f77b4; text-align: center; padding: 6px; background-color: #f0f0f0; border-radius: 8px;">
-                    Coût des fonds propres: {cout_fonds_propres:.2%}
-                </div>
-                """, unsafe_allow_html=True)
-            with bloc_bouton:
-                render_comment_trigger("cout_fonds_propres", "Coût des fonds propres")
-
-            # 5 Calcul du coût de la dette
             cout_dette = calcul_cout_dette(adjusted_spread, a, tax_rate)
-            bloc_valeur, bloc_bouton = st.columns([10, 1])
-            with bloc_valeur:
-                st.markdown(f"""
-                <div style="margin-bottom:5px;font-size: 1.15em; font-weight: bold; color: #d62728; text-align: center; padding:6px; background-color: #f0f0f0; border-radius: 8px;">
-                    Coût de la Dette: {cout_dette:.2%}
-                </div>
-                """, unsafe_allow_html=True)
-            with bloc_bouton:
-                render_comment_trigger("cout_dette", "Coût de la Dette")
-
-            # 6 Calcul et affichage du WACC
             wacc = calcul_wacc(cout_fonds_propres, cout_dette, quote_part_equity, quote_part_debt)
-            bloc_valeur, bloc_bouton = st.columns([10, 1])
-            with bloc_valeur:
-                st.markdown(f"""
-                <div style="background-color: #f0f0f0;margin-bottom:5px;font-size: 1.2em; font-weight: bold; color: #2ca02c; text-align: center; padding: 6px; background-color: #f0f0f0; border-radius: 8px;">
-                    WACC: {wacc:.2%}
-                </div>
-                """, unsafe_allow_html=True)
-            with bloc_bouton:
-                render_comment_trigger("wacc", "WACC")
-
-            # 7 CMPC en monnaie locale
             wacc_local = calcul_wacc_monnaie_locale(wacc, inflation_locale, inflation_mature)
-            bloc_valeur, bloc_bouton = st.columns([10, 1])
-            with bloc_valeur:
-                st.markdown(f"""
-                <div style="background-color: #f0f0f0;margin-bottom:5px;font-size: 1.2em; font-weight: bold; color: #2ca02c; text-align: center; padding: 6px; background-color: #f0f0f0; border-radius: 8px;">
-                    CMPC en monnaie locale: {wacc_local:.2%}
-                </div>
-                """, unsafe_allow_html=True)
-            with bloc_bouton:
-                render_comment_trigger("wacc_local", "CMPC en monnaie locale")
+
+            st.subheader("Onglet Valeur WACC")
+            st.caption(f"Pays: {selected_country} • Industrie: {selected_industry} • Année de valorisation: {valuation_year}")
+
+            top_cards = st.columns(4)
+            with top_cards[0]:
+                render_value_card(
+                    "Taux sans risque local",
+                    f"{a:.2%}",
+                    "#1b6cff",
+                    helper=f"US {risk_free_maturity} {valuation_year}: {avg_30y_rate:.2f}% + pays {country_risk_premium:.2%}",
+                    comment_key="taux_sans_risque",
+                    dark=True,
+                )
+            with top_cards[1]:
+                render_value_card(
+                    "Beta réendetté",
+                    f"{b:.3f}",
+                    "#2d6cdf",
+                    helper=f"Beta désendetté {beta_desendetté:.3f} • gearing {gearing_sectoriel:.2f}",
+                    comment_key="beta",
+                )
+            with top_cards[2]:
+                render_value_card(
+                    "Prime de risque",
+                    f"{c:.2%}",
+                    "#f59e0b",
+                    helper=f"Taille {d:.2%} • spécifique {e:.2%}",
+                    comment_key="primes",
+                )
+            with top_cards[3]:
+                render_value_card(
+                    "Spread financement",
+                    f"{adjusted_spread:.2%}",
+                    "#ef4444",
+                    helper=f"Ajusté: {'Oui' if is_adjusted else 'Non'} • dette {cost_of_debt:.2%}",
+                    comment_key="spread",
+                    dark=True,
+                )
+
+            middle_cards = st.columns(3)
+            with middle_cards[0]:
+                render_value_card(
+                    "Coût des fonds propres",
+                    f"{cout_fonds_propres:.2%}",
+                    "#2563eb",
+                    helper=f"a + b × c + d + e",
+                    comment_key="cout_fonds_propres",
+                )
+            with middle_cards[1]:
+                render_value_card(
+                    "Coût de la dette",
+                    f"{cout_dette:.2%}",
+                    "#dc2626",
+                    helper=f"(spread + a) × (1 - T)",
+                    comment_key="cout_dette",
+                )
+            with middle_cards[2]:
+                render_value_card(
+                    "WACC",
+                    f"{wacc:.2%}",
+                    "#16a34a",
+                    helper=f"CP {quote_part_equity:.2%} • Dette {quote_part_debt:.2%}",
+                    comment_key="wacc",
+                    dark=True,
+                )
+
+            bottom_cards = st.columns(2)
+            with bottom_cards[0]:
+                render_value_card(
+                    "CMPC locale",
+                    f"{wacc_local:.2%}",
+                    "#0ea5e9",
+                    helper=f"Inflation locale: {inflation_locale:.2%} • mature: {inflation_mature:.2%}",
+                    comment_key="wacc_local",
+                )
+            with bottom_cards[1]:
+                render_value_card(
+                    "Taxe",
+                    f"{tax_rate:.2%}",
+                    "#7c3aed",
+                    helper=f"Corporate tax rate • {selected_country}",
+                    comment_key="beta",
+                )
 
         with col_comments:
             st.subheader("Commentaire")
