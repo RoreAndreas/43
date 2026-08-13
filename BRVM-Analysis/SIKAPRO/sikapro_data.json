@@ -1,5 +1,5 @@
 {
-    "last_update": "2026-08-13 17:18:59",
+    "last_update": "2026-08-13 18:14:06",
     "count": 47,
     "data": [
         {
@@ -1050,8 +1050,8 @@
             "url": "https://pro.sikafinance.com/fiche/PALC.ci",
             "nombre_titres": 15459316.0,
             "capitalisation_mxof": 139134.0,
-            "beta_1an": 0.44,
-            "rsi_14": 59.7,
+            "beta_1an": 0.43,
+            "rsi_14": 55.35,
             "mm_20": 8882.0,
             "mm_50": 8778.1,
             "mm_200": 8382.85,
@@ -1134,8 +1134,8 @@
             "url": "https://pro.sikafinance.com/fiche/SIBC.ci",
             "nombre_titres": 100000000.0,
             "capitalisation_mxof": 910000.0,
-            "beta_1an": 0.84,
-            "rsi_14": 52.29,
+            "beta_1an": 0.83,
+            "rsi_14": 51.76,
             "mm_20": 9045.5,
             "mm_50": 8927.3,
             "mm_200": 7164.75,
