@@ -303,7 +303,7 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
-st.title("Calcul du CMPC - Méthode indirecte"")
+st.title("Calcul du CMPC - Méthode indirecte")
 st.markdown("**Formule Coût Fonds Propres:** Coût = a + b × c + d + e")
 st.divider()
 
