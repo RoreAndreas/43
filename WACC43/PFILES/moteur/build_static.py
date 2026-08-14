@@ -19,7 +19,9 @@ from pathlib import Path
 import wacc_core
 from wacc_html import render_page
 
-SITE = Path(__file__).parent / "site"
+RACINE = Path(__file__).parents[1]
+SITE = RACINE / "site"          # dossier publié par Cloudflare Pages
+DONNEES = RACINE / "donnees"    # jeu de données lisible, hors du dossier publié
 
 # Seuils de vraisemblance du jeu de données extrait (référence : 157 pays,
 # 94 industries). En dessous, la source a probablement changé de format.
@@ -31,7 +33,7 @@ def main():
     parser = argparse.ArgumentParser(description="Génère la page statique du CMPC")
     parser.add_argument("--out", default=str(SITE), help="dossier de sortie (défaut : site/)")
     parser.add_argument("--years", type=int, default=10, help="profondeur d'historique des taux")
-    parser.add_argument("--keep-data", action="store_true", help="écrit aussi data.json à côté")
+    parser.add_argument("--keep-data", action="store_true", help="écrit aussi donnees/data.json")
     args = parser.parse_args()
 
     out = Path(args.out)
@@ -67,7 +69,8 @@ def main():
     target.write_text(page, encoding="utf-8")
 
     if args.keep_data:
-        (out / "data.json").write_text(
+        DONNEES.mkdir(parents=True, exist_ok=True)
+        (DONNEES / "data.json").write_text(
             json.dumps(dataset, ensure_ascii=False, indent=2), encoding="utf-8"
         )
 

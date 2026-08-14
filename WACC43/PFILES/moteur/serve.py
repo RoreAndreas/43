@@ -7,7 +7,7 @@ La page distribuée est celle produite par `build_static.py` : elle calcule tout
 dans le navigateur et n'a besoin d'aucun serveur. `serve.py` sert à deux choses
 en local :
 
-  * prévisualiser la page sans reconstruire le fichier `dist/index.html` ;
+  * prévisualiser la page sans reconstruire le fichier `site/index.html` ;
   * produire le classeur Excel, qui lui réclame Python (openpyxl).
 
 Routes :
@@ -113,11 +113,23 @@ def main():
     parser = argparse.ArgumentParser(description="Prévisualisation locale du calcul de CMPC")
     parser.add_argument("--port", type=int, default=DEFAULT_PORT)
     parser.add_argument("--host", default="127.0.0.1")
+    parser.add_argument(
+        "--years",
+        type=int,
+        default=3,
+        help="profondeur d'historique des taux (3 par défaut : chaque année coûte "
+        "deux requêtes Treasury au démarrage ; la page publiée en propose 10)",
+    )
     parser.add_argument("--no-browser", action="store_true")
     args = parser.parse_args()
 
+    from datetime import datetime
+
+    current = datetime.now().year
+    years = list(range(current, current - args.years, -1))
+
     print("Chargement des données Damodaran...")
-    DATASET = wacc_core.build_dataset(progress=lambda m: print(f"  {m}"))
+    DATASET = wacc_core.build_dataset(years=years, progress=lambda m: print(f"  {m}"))
 
     server = ThreadingHTTPServer((args.host, args.port), Handler)
     url = f"http://127.0.0.1:{args.port}"

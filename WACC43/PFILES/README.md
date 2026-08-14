@@ -8,64 +8,79 @@ embarquées dans le fichier HTML et les formules s'appliquent dans le navigateur
 Aucun serveur à faire tourner, donc aucun coût d'hébergement et rien à
 surveiller.
 
-## Construire la page
+## Organisation
+
+```
+PFILES/
+├── moteur/          le code Python : téléchargement, calcul, construction, export
+├── presentation/    le gabarit — CSS, markup et formules en JavaScript
+├── site/            le livrable publié par Cloudflare Pages (index.html)
+├── donnees/         le jeu de données extrait, lisible, hors du dossier publié
+├── requirements.txt
+└── README.md
+```
+
+| Fichier | Rôle |
+|---|---|
+| `moteur/build_static.py` | **Point d'entrée** — construit `site/index.html` |
+| `moteur/wacc_core.py` | Téléchargement des sources, condensation, formules Python |
+| `moteur/wacc_html.py` | Injecte le jeu de données dans le gabarit |
+| `moteur/get_us_bond_rate.py` | Moyenne annuelle des taux US Treasury |
+| `moteur/export_wacc.py` | Génération du classeur Excel |
+| `moteur/serve.py` | Aperçu local et export Excel |
+| `presentation/wacc_value_tab.html` | Présentation **et** formules en JavaScript |
+
+Le dossier `site/` porte ce nom parce qu'il est déclaré tel quel dans Cloudflare
+Pages (répertoire de sortie et filtre de reconstruction) : le renommer casse le
+déploiement.
+
+## Mettre à jour
+
+Il suffit de pousser :
+
+```powershell
+git add .
+git commit -m "..."
+git pull --rebase
+git push
+```
+
+Le workflow `.github/workflows/build_wacc.yml` reconstruit la page, la committe
+si elle a changé, et Cloudflare redéploie. **L'URL ne change jamais.**
+
+Le workflow se déclenche à chaque push touchant `WACC43/PFILES/` (hors `site/`
+et `donnees/`), tous les trimestres pour rafraîchir les données de marché, et à
+la demande depuis l'onglet Actions.
+
+Pour construire à la main :
 
 ```powershell
 pip install -r requirements.txt
-python build_static.py
+python moteur/build_static.py --keep-data
 ```
 
-Le script télécharge les sources, les condense et écrit `site/index.html`
-(~60 Ko, autonome). Compter environ deux minutes, l'essentiel étant les taux
-Treasury (une requête par année et par maturité).
+Compter environ quatre minutes, l'essentiel étant les taux Treasury (une requête
+par année et par maturité). Le script refuse d'écrire si l'extraction descend
+sous 100 pays ou 60 industries : une source en panne fait échouer la
+construction plutôt que publier une page vide.
 
-À relancer quand Damodaran publie sa mise à jour annuelle, en janvier. Un
-rebuild trimestriel est préférable si l'exercice en cours vous intéresse : son
-taux Treasury est figé à la date de construction.
-
-## Mettre en ligne
-
-Le fichier `site/index.html` se dépose tel quel sur n'importe quel hébergement
-statique gratuit : Cloudflare Pages, GitHub Pages, Netlify. Pour restreindre
-l'accès, Cloudflare Access ajoute un écran de connexion par e-mail, gratuit
-jusqu'à 50 utilisateurs.
-
-Il s'envoie aussi par e-mail ou Teams : le destinataire l'ouvre dans son
-navigateur, sans installation, et peut changer les paramètres — la page
-fonctionne hors ligne.
-
-Les paramètres voyagent dans l'URL
-(`?country=France&industry=Advertising&year=2026`) : copier l'URL partage la
-configuration. Les noms sans accent ni casse exacte sont résolus
-automatiquement.
-
-## Serveur local
+## Aperçu local et export Excel
 
 ```powershell
-python serve.py
+python moteur/serve.py
 ```
 
 Sert la page avec les données du jour sur <http://localhost:8000>, sans passer
 par un build. Il expose aussi `/export.xlsx?country=…&industry=…`, le classeur
 Excel, qui réclame Python et n'existe donc pas dans la version statique.
 
-## Organisation
+## Partager la page
 
-| Fichier | Rôle |
-|---|---|
-| `build_static.py` | Construit `site/index.html` — le livrable |
-| `templates/wacc_value_tab.html` | Présentation **et** formules en JavaScript |
-| `wacc_core.py` | Téléchargement des sources, condensation, formules Python |
-| `wacc_html.py` | Injecte le jeu de données dans le gabarit |
-| `serve.py` | Prévisualisation locale et export Excel |
-| `get_us_bond_rate.py` | Moyenne annuelle des taux US Treasury |
-| `export_wacc.py` | Génération du classeur Excel |
-| `archive/` | Scripts antérieurs, hors application |
-
-> Les formules existent en deux exemplaires : en JavaScript dans le gabarit,
-> pour la page, et en Python dans `wacc_core.py`, pour l'export Excel. Toute
-> modification de la méthode doit être portée des deux côtés. Le script de test
-> compare les deux implémentations sur plusieurs jeux de paramètres.
+`site/index.html` est autonome : il s'envoie par e-mail ou Teams et fonctionne
+hors ligne. Les paramètres voyagent dans l'URL
+(`?country=France&industry=Advertising&year=2026`), donc copier l'URL partage la
+configuration. Les noms sans accent ni casse exacte sont résolus
+automatiquement.
 
 ## Méthode
 
@@ -82,6 +97,10 @@ local
 `c` : prime de risque d'un marché mature (Damodaran). `d` et `e` : primes de
 taille et spécifique, saisies dans l'interface. `E/V = 1/(1 + D/E)`.
 
-Couverture des données : 157 pays et 94 industries. 23 pays n'ont pas de taux
-d'IS dans la base Damodaran — le calcul retient alors 25 %, et la page l'indique
-sous les tuiles de marché.
+Couverture : 157 pays et 94 industries. 23 pays n'ont pas de taux d'IS dans la
+base Damodaran — le calcul retient alors 25 %, et la page l'indique sous les
+tuiles de marché.
+
+> Les formules existent en deux exemplaires : en JavaScript dans le gabarit,
+> pour la page, et en Python dans `moteur/wacc_core.py`, pour l'export Excel.
+> Toute modification de la méthode doit être portée des deux côtés.
