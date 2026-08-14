@@ -1,0 +1,1070 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>wacc43 — Coût moyen pondéré du capital</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Libre+Franklin:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #f7f7f7;
+    --surface: #ffffff;
+    --line: #e4e4e7;
+    --ink: #18181b;
+    --ink-2: #27272a;
+    --ink-3: #3f3f46;
+    --ink-4: #52525b;
+    --muted: #71717a;
+    --muted-2: #a1a1aa;
+    --tile: #fafafa;
+    --field: #f4f4f5;
+    --accent: #6d4bb0;
+    --accent-soft: #e8e0f4;
+    --accent-tint: #faf8fd;
+    --accent-chip: #d8cff0;
+    --green: #0f6f5c;
+    --green-soft: #c9e0d9;
+    --green-tint: #f2f8f6;
+    --green-line: #cfe1dc;
+    --green-ink: #123f36;
+    --green-bar: #7ab3a6;
+    --green-track: #e2efeb;
+    --blue: #1d4ed8;
+    --blue-soft: #d5def8;
+    --blue-tint: #f2f5fd;
+    --blue-ink: #152c66;
+    --mono: 'IBM Plex Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    --sans: 'Libre Franklin', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: var(--sans);
+    -webkit-font-smoothing: antialiased;
+  }
+  .mono { font-family: var(--mono); font-variant-numeric: tabular-nums; }
+  button { font-family: inherit; }
+  button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+  /* ---------- En-tête ---------- */
+  .top {
+    background: var(--surface);
+    border-bottom: 1px solid var(--line);
+  }
+  .top-inner {
+    max-width: 1060px;
+    margin: 0 auto;
+    padding: 22px 32px 0;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+  .brand-row {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 24px;
+    flex-wrap: wrap;
+  }
+  .brand {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .eyebrow {
+    font: 400 10.5px/1 var(--mono);
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+  .brand h1 {
+    margin: 0;
+    font: 600 21px/1.25 var(--sans);
+    letter-spacing: -0.01em;
+    color: var(--ink);
+  }
+  .fiscal {
+    font: 400 11.5px/1.4 var(--mono);
+    color: var(--muted);
+  }
+  .tabs { display: flex; gap: 26px; }
+  .tabs button {
+    font: 400 13px/1 var(--sans);
+    color: var(--muted);
+    padding: 0 0 13px;
+    border: 0;
+    border-bottom: 2px solid transparent;
+    background: transparent;
+    cursor: pointer;
+    transition: color 240ms ease, border-color 240ms ease;
+  }
+  .tabs button.is-active {
+    font-weight: 500;
+    color: var(--ink);
+    border-bottom-color: var(--ink);
+  }
+
+  /* ---------- Onglet Paramètres ---------- */
+  .params {
+    max-width: 1060px;
+    margin: 0 auto;
+    padding: 30px 32px 120px;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 320px;
+    gap: 26px;
+    align-items: start;
+  }
+  .params-main { display: grid; gap: 20px; }
+  .card-block {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 22px 24px;
+    display: grid;
+    gap: 18px;
+  }
+  .card-block h2 {
+    margin: 0;
+    font: 400 10px/1 var(--mono);
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+  .block-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+    flex-wrap: wrap;
+  }
+  .chips { display: flex; gap: 6px; flex-wrap: wrap; }
+  .chip {
+    padding: 5px 9px;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    background: var(--tile);
+    font: 400 10.5px/1 var(--mono);
+    color: var(--ink-3);
+  }
+  .chip.is-accent {
+    border-color: var(--accent-chip);
+    background: var(--accent-tint);
+    color: var(--accent);
+  }
+  .grid-2 {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 20px 22px;
+  }
+  .field { display: grid; gap: 7px; }
+  .field-label {
+    font: 400 11.5px/1.4 var(--sans);
+    color: var(--ink-4);
+  }
+  .field-hint {
+    font: 400 10.5px/1.4 var(--sans);
+    color: var(--muted-2);
+  }
+  .select-wrap { position: relative; display: grid; }
+  .select-wrap select {
+    appearance: none;
+    -webkit-appearance: none;
+    width: 100%;
+    padding: 11px 34px 11px 14px;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: var(--field);
+    font: 400 13.5px/1.2 var(--sans);
+    color: var(--ink);
+    cursor: pointer;
+  }
+  .select-wrap svg {
+    position: absolute;
+    right: 13px;
+    top: 50%;
+    transform: translateY(-50%);
+    pointer-events: none;
+  }
+  .stepper {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 9px 10px 9px 14px;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: var(--field);
+  }
+  .stepper-value {
+    font: 500 14px/1 var(--mono);
+    font-variant-numeric: tabular-nums;
+    color: var(--ink);
+  }
+  .stepper-btns { display: flex; gap: 4px; }
+  .stepper button {
+    width: 26px;
+    height: 26px;
+    display: grid;
+    place-items: center;
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    background: var(--surface);
+    color: var(--ink-3);
+    font: 400 14px/1 var(--mono);
+    cursor: pointer;
+  }
+  .stepper button:hover { background: var(--field); }
+  .tiles {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 1px;
+    background: var(--line);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    overflow: hidden;
+  }
+  .tile {
+    background: var(--tile);
+    padding: 13px 15px;
+    display: grid;
+    gap: 5px;
+  }
+  .tile-label {
+    font: 400 10px/1 var(--mono);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+  .tile-value {
+    font: 500 16px/1 var(--mono);
+    font-variant-numeric: tabular-nums;
+    color: var(--ink);
+  }
+  .note {
+    font: 400 11px/1.6 var(--sans);
+    color: var(--muted-2);
+    text-wrap: pretty;
+  }
+
+  /* ---------- Aside résultat ---------- */
+  .result {
+    position: sticky;
+    top: 24px;
+    display: grid;
+    gap: 14px;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 22px 24px;
+  }
+  .result h2 {
+    margin: 0;
+    font: 400 10px/1 var(--mono);
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+  .result-hero { display: grid; gap: 6px; }
+  .result-hero-row {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+  .result-hero-value {
+    font: 500 34px/1 var(--mono);
+    font-variant-numeric: tabular-nums;
+    letter-spacing: -0.02em;
+    color: var(--green);
+  }
+  .result-rows {
+    display: grid;
+    gap: 1px;
+    background: var(--line);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    overflow: hidden;
+  }
+  .result-row {
+    background: var(--tile);
+    padding: 12px 14px;
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    font: 400 12px/1.4 var(--sans);
+    color: var(--ink-4);
+  }
+  .result-row span:last-child {
+    font-family: var(--mono);
+    font-variant-numeric: tabular-nums;
+    color: var(--ink);
+  }
+  .result-row.is-blue span:last-child { color: var(--blue); }
+  .structure { display: grid; gap: 7px; }
+  .structure-head {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    font: 400 11px/1 var(--mono);
+    color: var(--muted);
+  }
+  .bar {
+    display: flex;
+    height: 6px;
+    border-radius: 3px;
+    overflow: hidden;
+    background: #ececef;
+  }
+  .bar .eq { background: var(--green); }
+  .bar .dt { background: var(--green-bar); }
+  .cta {
+    padding: 11px 14px;
+    border: 1px solid var(--ink);
+    border-radius: 8px;
+    background: var(--ink);
+    color: #fff;
+    font: 400 11.5px/1 var(--mono);
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    cursor: pointer;
+  }
+  .cta:hover { background: var(--ink-2); }
+
+  /* ---------- Onglet CMPC ---------- */
+  .wacc {
+    max-width: 1060px;
+    margin: 0 auto;
+    padding: 30px 32px 120px;
+    display: grid;
+    grid-template-columns: 430px minmax(0, 1fr);
+    gap: 52px;
+    align-items: start;
+  }
+  .stack { display: grid; gap: 9px; }
+  .comp {
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    background: var(--surface);
+    color: var(--ink);
+    overflow: hidden;
+    transition: background-color 340ms cubic-bezier(.4, 0, .2, 1),
+                color 340ms cubic-bezier(.4, 0, .2, 1),
+                border-color 340ms cubic-bezier(.4, 0, .2, 1);
+  }
+  .comp.is-final { margin-top: 9px; }
+  .comp-head {
+    width: 100%;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 20px;
+    padding: 18px 20px;
+    border: 0;
+    background: transparent;
+    color: inherit;
+    text-align: left;
+    cursor: pointer;
+  }
+  .comp.is-final .comp-head { padding: 22px 20px; }
+  .comp-title { font: 500 14.5px/1.35 var(--sans); color: inherit; }
+  .comp.is-final .comp-title { font-weight: 600; }
+  .comp-value {
+    font: 500 24px/1 var(--mono);
+    font-variant-numeric: tabular-nums;
+    letter-spacing: -0.01em;
+    color: inherit;
+  }
+  .comp.is-final .comp-value { font-size: 32px; letter-spacing: -0.02em; }
+  .comp.tone-green { border-color: var(--green-soft); color: var(--green); }
+  .comp.tone-blue { border-color: var(--blue-soft); color: var(--blue); }
+  .comp.is-open { background: var(--accent); border-color: var(--accent); color: #fff; }
+  .comp.tone-green.is-open { background: var(--green); border-color: var(--green); color: #fff; }
+  .comp.tone-blue.is-open { background: var(--blue); border-color: var(--blue); color: #fff; }
+  .comp-wrap {
+    display: grid;
+    grid-template-rows: 0fr;
+    transition: grid-template-rows 380ms cubic-bezier(.4, 0, .2, 1);
+  }
+  .comp.is-open .comp-wrap { grid-template-rows: 1fr; }
+  .comp-clip { overflow: hidden; }
+  .comp-body {
+    opacity: 0;
+    transition: opacity 300ms ease 40ms;
+    padding: 0 20px 18px;
+  }
+  .comp.is-final .comp-body { padding: 0 20px 20px; }
+  .comp.is-open .comp-body { opacity: 1; }
+  .sub-rows {
+    display: grid;
+    border-top: 1px solid rgba(255, 255, 255, .2);
+    padding-top: 4px;
+  }
+  .sub-row {
+    display: flex;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 6px 0;
+    border-bottom: 1px solid rgba(255, 255, 255, .14);
+    font: 400 12.5px/1.45 var(--sans);
+    color: rgba(255, 255, 255, .8);
+  }
+  .sub-row:last-child { border-bottom: 0; }
+  .sub-row.is-strong { font-weight: 500; color: #fff; }
+  .sub-row span:last-child {
+    font-family: var(--mono);
+    font-variant-numeric: tabular-nums;
+    color: #fff;
+  }
+
+  /* ---------- Panneau de détail ---------- */
+  .frame-col { position: relative; height: 620px; }
+  .frame-arrow {
+    position: absolute;
+    left: -7px;
+    width: 13px;
+    height: 13px;
+    background: var(--surface);
+    border-left: 1px solid var(--accent-soft);
+    border-bottom: 1px solid var(--accent-soft);
+    transform: rotate(45deg);
+    opacity: 0;
+    transition: top 420ms cubic-bezier(.4, 0, .2, 1), opacity 300ms ease, border-color 340ms ease;
+  }
+  .frame {
+    position: absolute;
+    inset: 0;
+    background: var(--surface);
+    border: 1px solid var(--accent-soft);
+    border-radius: 10px;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, .04);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 320ms ease, border-color 340ms ease;
+    overflow: hidden;
+  }
+  .frame-col.is-on .frame, .frame-col.is-on .frame-arrow { opacity: 1; }
+  .frame-col.is-on .frame { pointer-events: auto; }
+  .frame-col.tone-green .frame, .frame-col.tone-green .frame-arrow { border-color: var(--green-soft); }
+  .frame-col.tone-blue .frame, .frame-col.tone-blue .frame-arrow { border-color: var(--blue-soft); }
+  .detail {
+    position: absolute;
+    inset: 0;
+    padding: 20px 22px;
+    overflow: auto;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 300ms ease;
+    display: grid;
+    align-content: start;
+    gap: 14px;
+  }
+  .detail.is-shown { opacity: 1; pointer-events: auto; }
+  .detail-head {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+  .detail-title { font: 500 13px/1.3 var(--sans); color: var(--ink); }
+  .detail.tone-green .detail-title { font-weight: 600; color: var(--green); }
+  .detail.tone-blue .detail-title { font-weight: 600; color: var(--blue); }
+  .detail-symbol {
+    font: 400 10.5px/1.3 var(--mono);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--accent);
+  }
+  .detail.tone-green .detail-symbol { color: var(--green); }
+  .detail.tone-blue .detail-symbol { color: var(--blue); }
+  .detail-grid {
+    display: grid;
+    grid-template-columns: 112px minmax(0, 1fr);
+    gap: 10px 18px;
+  }
+  .detail-label {
+    font: 400 10px/1.7 var(--mono);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+  .detail-text {
+    font: 400 13px/1.65 var(--sans);
+    color: var(--ink-3);
+    text-wrap: pretty;
+  }
+  .detail code {
+    font: 400 12.5px/1.7 var(--mono);
+    color: var(--ink-2);
+    background: var(--accent-tint);
+    border: 1px solid var(--accent-soft);
+    border-radius: 6px;
+    padding: 10px 12px;
+    display: block;
+  }
+  .detail.tone-green code {
+    color: var(--green-ink);
+    background: var(--green-tint);
+    border-color: var(--green-line);
+  }
+  .detail.tone-blue code {
+    color: var(--blue-ink);
+    background: var(--blue-tint);
+    border-color: var(--blue-soft);
+  }
+  .composition { display: grid; gap: 8px; }
+  .composition .bar { background: var(--green-track); }
+  .composition-legend {
+    display: flex;
+    gap: 20px;
+    font: 400 11.5px/1.4 var(--mono);
+    color: var(--ink-3);
+  }
+
+  [hidden] { display: none !important; }
+  .is-busy { opacity: .55; transition: opacity 160ms ease; }
+  .is-locked { pointer-events: none; }
+
+  @media (max-width: 940px) {
+    .params, .wacc { grid-template-columns: 1fr; gap: 26px; }
+    .frame-col { height: auto; min-height: 420px; }
+    .frame-arrow { display: none; }
+    .result { position: static; }
+  }
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="top-inner">
+    <div class="brand-row">
+      <div class="brand">
+        <span class="eyebrow">wacc43</span>
+        <h1>Coût moyen pondéré du capital</h1>
+      </div>
+      <span class="fiscal" id="fiscal">Exercice 2026</span>
+    </div>
+    <nav class="tabs">
+      <button type="button" data-tab="params">Paramètres</button>
+      <button type="button" data-tab="wacc" class="is-active">CMPC</button>
+    </nav>
+  </div>
+</header>
+
+<main class="params" id="panel-params" hidden>
+  <div class="params-main" id="paramsMain"></div>
+  <aside class="result" id="paramsResult"></aside>
+</main>
+
+<main class="wacc" id="panel-wacc">
+  <section class="stack" id="stack"></section>
+  <div class="frame-col" id="frameCol">
+    <span class="frame-arrow" id="frameArrow"></span>
+    <div class="frame" id="frame"></div>
+  </div>
+</main>
+
+<script>
+  // ---- Jeu de données injecté au build (wacc_html.py) ----
+  // DATA_START
+  const DATA = {
+    "mature": 0.0423,
+    "adjustment": { "rows": [], "correction": 0 },
+    "rf": { "2026-30": 4.94 },
+    "pays": { "—": { "crp": 0.0064, "tax": 0.25 } },
+    "industries": { "—": { "beta": 1.163, "de": 0.32, "spread": 0.0134 } },
+    "options": { "years": [2026], "maturities": ["30Y", "10Y"], "countries": ["—"], "industries": ["—"] },
+    "defaults": { "year": 2026, "maturity": "30Y", "country": "—", "industry": "—", "d": 0.01, "e": 0.005, "inflation_ref": 0.025, "inflation_local": 0.03 }
+  };
+  // DATA_END
+
+  const STEPS = { d: 0.005, e: 0.005, inflation_ref: 0.005, inflation_local: 0.005 };
+  const MANUAL = [
+    { key: "d", label: "Prime de taille (d)", hint: "Ajustement small cap / PME" },
+    { key: "e", label: "Prime spécifique (e)", hint: "Risques idiosyncratiques" },
+    { key: "inflation_ref", label: "Inflation, monnaie du taux sans risque", hint: "EUR ou USD selon la devise de référence" },
+    { key: "inflation_local", label: "Inflation, monnaie locale", hint: "Projection annuelle du pays cible" }
+  ];
+  const CHEVRON = '<svg width="9" height="6" viewBox="0 0 9 6" fill="none" aria-hidden="true"><path d="M1 1l3.5 3.5L8 1" stroke="#71717a" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+
+  const $ = (id) => document.getElementById(id);
+  const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+  const frPct = (v, dec) => (v * 100).toFixed(dec === undefined ? 2 : dec).replace(".", ",") + " %";
+  const frNum = (v, dec) => v.toFixed(dec === undefined ? 2 : dec).replace(".", ",");
+  const frPts = (v) => (v * 100).toFixed(2).replace(".", ",") + (Math.abs(v * 100) < 2 ? " pt" : " pts");
+
+  let params = Object.assign({}, DATA.defaults);
+  let model = null;
+  let tab = "wacc";
+  let openId = null;
+
+  /* ================= Calcul =================
+     Transcription de wacc_core.py : les mêmes formules, appliquées dans le
+     navigateur aux données embarquées ci-dessus. Aucun appel réseau.
+  */
+
+  function adjustedSpread(costOfDebt) {
+    for (const [threshold, spread] of DATA.adjustment.rows) {
+      if (costOfDebt <= threshold) return { value: spread + DATA.adjustment.correction, adjusted: true };
+    }
+    return { value: costOfDebt, adjusted: false };
+  }
+
+  function computeModel(p) {
+    const notes = [];
+    const country = DATA.pays[p.country] || {};
+    const industry = DATA.industries[p.industry] || {};
+
+    let crp = country.crp;
+    if (crp === undefined) { crp = 0.01; notes.push("Prime de risque pays indisponible, 1,00 % retenu"); }
+    let tax = country.tax;
+    if (tax === undefined) { tax = 0.25; notes.push("Taux d'IS indisponible pour ce pays, 25,00 % retenu"); }
+    let beta = industry.beta, de = industry.de;
+    if (beta === undefined || de === undefined) { beta = 1.0; de = 0.5; notes.push("Bêta sectoriel indisponible, valeurs par défaut retenues"); }
+    let rawSpread = industry.spread;
+    if (rawSpread === undefined) { rawSpread = 0.05; notes.push("Spread de financement indisponible, 5,00 % retenu"); }
+
+    const code = p.maturity === "30Y" ? "30" : "10";
+    let rfPct = DATA.rf[p.year + "-" + code];
+    let a;
+    if (rfPct === undefined) {
+      rfPct = 0;
+      a = 0.03;
+      notes.push("Taux US " + p.maturity + " indisponible pour " + p.year + ", 3,00 % retenu");
+    } else {
+      a = rfPct / 100 + crp;
+    }
+
+    const c = DATA.mature;
+    const b = beta * (1 + de * (1 - tax));
+    const re = a + b * c + p.d + p.e;
+    const spread = adjustedSpread(rawSpread);
+    const rdPre = spread.value + a;
+    const rdPost = rdPre * (1 - tax);
+    const ev = 1 / (1 + de);
+    const dv = 1 - ev;
+    const wacc = re * ev + rdPost * dv;
+    const local = (1 + wacc) * (1 + p.inflation_local) / (1 + p.inflation_ref) - 1;
+
+    const contribFp = re * ev;
+    const contribDette = rdPost * dv;
+    const economieImpot = rdPre * tax;
+    const spreadLabel = spread.adjusted ? "Spread de financement (ajusté)" : "Spread de financement";
+
+    const components = [
+      {
+        id: "re", title: "Coût des fonds propres", symbol: "Re", value: frPct(re), tone: "accent",
+        rows: [
+          { label: "Taux US Bond " + p.maturity + " (" + p.year + ")", value: frPct(rfPct / 100) },
+          { label: "Prime de risque pays", value: frPct(crp) },
+          { label: "Taux sans risque local (a)", value: frPct(a), strong: true },
+          { label: "Beta désendetté", value: frNum(beta, 3) },
+          { label: "Gearing sectoriel", value: frNum(de, 2) },
+          { label: "Beta réendetté (b)", value: frNum(b, 3), strong: true },
+          { label: "Prime de risque marché (c)", value: frPct(c) },
+          { label: "Prime de taille (d)", value: frPct(p.d) },
+          { label: "Prime spécifique (e)", value: frPct(p.e) }
+        ],
+        methodology: "MEDAF. Taux sans risque construit sur l'obligation US " + p.maturity + ", majoré de la prime de risque pays ; bêta sectoriel désendetté puis ré-endetté au gearing sectoriel.",
+        source: "US Treasury " + p.maturity + " (moyenne " + p.year + ") ; prime pays, prime de risque marché et bêta sectoriel Damodaran (" + p.industry + ", " + p.country + ").",
+        hypothesis: "Primes de taille et spécifique maintenues sur tout l'horizon ; gearing sectoriel considéré comme cible.",
+        formula: ["Re = a + b × c + d + e", "= " + frPct(a) + " + " + frNum(b, 3) + " × " + frPct(c) + " + " + frPct(p.d) + " + " + frPct(p.e) + " = " + frPct(re)]
+      },
+      {
+        id: "rd", title: "Coût de la dette", symbol: "Rd", value: frPct(rdPre), tone: "accent",
+        rows: [
+          { label: "Taux sans risque local (a)", value: frPct(a) },
+          { label: spreadLabel, value: frPct(spread.value) },
+          { label: "Coût de la dette avant impôt", value: frPct(rdPre), strong: true },
+          { label: "Coût de la dette après impôt", value: frPct(rdPost) }
+        ],
+        methodology: "Coût marginal de la dette : taux sans risque local majoré du spread de financement sectoriel, puis net d'économie d'impôt.",
+        source: "Spread de financement sectoriel Damodaran (" + p.industry + ")" + (spread.adjusted ? " ; spread ajusté via la table de notation." : "."),
+        hypothesis: "Refinancement aux conditions actuelles ; charges financières intégralement déductibles.",
+        formula: [
+          "Rd = a + spread = " + frPct(a) + " + " + frPct(spread.value) + " = " + frPct(rdPre),
+          "Rd après impôt = " + frPct(rdPre) + " × (1 − " + frPct(tax) + ") = " + frPct(rdPost)
+        ]
+      },
+      {
+        id: "ev", title: "Poids des fonds propres", symbol: "E/V", value: frPct(ev), tone: "accent",
+        rows: [
+          { label: "Gearing sectoriel (D/E)", value: frNum(de, 2) },
+          { label: "Quote-part fonds propres", value: frPct(ev), strong: true },
+          { label: "Quote-part dette", value: frPct(dv) }
+        ],
+        methodology: "Structure financière cible en valeur de marché, déduite du gearing sectoriel plutôt que du levier comptable spot.",
+        source: "Gearing médian de l'échantillon sectoriel retenu pour le désendettement du bêta.",
+        hypothesis: "Structure stable sur l'horizon d'actualisation, sans opération de haut de bilan.",
+        formula: ["E/V = 1 / (1 + D/E) = 1 / " + frNum(1 + de, 2) + " = " + frPct(ev)]
+      },
+      {
+        id: "dv", title: "Poids de la dette", symbol: "D/V", value: frPct(dv), tone: "accent",
+        rows: [
+          { label: "Gearing sectoriel (D/E)", value: frNum(de, 2) },
+          { label: "Quote-part dette", value: frPct(dv), strong: true },
+          { label: "Quote-part fonds propres", value: frPct(ev) }
+        ],
+        methodology: "Complément de la quote-part de fonds propres, sur la même structure cible ; dette financière brute, trésorerie non déduite.",
+        source: "Gearing médian de l'échantillon sectoriel retenu pour le désendettement du bêta.",
+        hypothesis: "Obligations locatives assimilées à de la dette financière.",
+        formula: ["D/V = (D/E) / (1 + D/E) = " + frNum(de, 2) + " / " + frNum(1 + de, 2) + " = " + frPct(dv)]
+      },
+      {
+        id: "tax", title: "Taux d'imposition", symbol: "t", value: frPct(tax), tone: "accent",
+        rows: [
+          { label: "Corporate tax rate", value: frPct(tax), strong: true },
+          { label: "Coût de la dette avant impôt", value: frPct(rdPre) },
+          { label: "Économie d'impôt", value: frPts(economieImpot) }
+        ],
+        methodology: "Taux d'impôt sur les sociétés normatif, également utilisé pour le ré-endettement du bêta.",
+        source: "Taux d'IS de droit commun Damodaran (" + p.country + ").",
+        hypothesis: "Aucun déficit reportable activé ; pas de plafonnement de la déductibilité.",
+        formula: [
+          "Économie d'impôt = Rd × t = " + frPct(rdPre) + " × " + frPct(tax) + " = " + frPts(economieImpot),
+          "Beta réendetté = " + frNum(beta, 3) + " × (1 + " + frNum(de, 2) + " × (1 − " + frPct(tax) + ")) = " + frNum(b, 3)
+        ]
+      },
+      {
+        id: "wacc", title: "Coût moyen pondéré du capital", symbol: "WACC", value: frPct(wacc), tone: "green", final: true,
+        rows: [
+          { label: "Fonds propres " + frPct(re) + " × " + frPct(ev), value: frPts(contribFp) },
+          { label: "Dette " + frPct(rdPost) + " × " + frPct(dv), value: frPts(contribDette) },
+          { label: "WACC", value: frPct(wacc), strong: true }
+        ],
+        composition: {
+          equity: wacc ? frPct(contribFp / wacc, 1) : "—",
+          debt: wacc ? frPct(contribDette / wacc, 1) : "—",
+          equityPct: wacc ? contribFp / wacc * 100 : 50,
+          debtPct: wacc ? contribDette / wacc * 100 : 50
+        },
+        methodology: "Moyenne des deux coûts pondérée par la structure cible, la dette étant retenue après économie d'impôt.",
+        retained: frPct(wacc) + " dans la monnaie du taux sans risque, " + frPct(local) + " en monnaie locale après différentiel d'inflation.",
+        formula: ["WACC = E/V × Re + D/V × Rd après impôt", "= " + frPct(ev) + " × " + frPct(re) + " + " + frPct(dv) + " × " + frPct(rdPost) + " = " + frPct(wacc)]
+      },
+      {
+        id: "loc", title: "CMPC en monnaie locale", symbol: "CMPC loc.", value: frPct(local), tone: "blue", final: true,
+        rows: [
+          { label: "CMPC monnaie du taux sans risque", value: frPct(wacc) },
+          { label: "Inflation monnaie locale", value: frPct(p.inflation_local) },
+          { label: "Inflation monnaie du taux sans risque", value: frPct(p.inflation_ref) },
+          { label: "CMPC en monnaie locale", value: frPct(local), strong: true }
+        ],
+        methodology: "Conversion du CMPC exprimé dans la monnaie du taux sans risque vers la monnaie locale par le différentiel d'inflation attendu, selon la parité des pouvoirs d'achat.",
+        source: "Prévisions d'inflation des deux zones monétaires, saisies dans l'onglet Paramètres.",
+        hypothesis: "Différentiel d'inflation constant sur l'horizon ; les flux actualisés doivent être exprimés dans la même monnaie que ce taux.",
+        formula: [
+          "CMPC loc. = (1 + CMPC) × (1 + infl. loc.) / (1 + infl. réf.) − 1",
+          "= " + frNum(1 + wacc, 4) + " × " + frNum(1 + p.inflation_local, 4) + " / " + frNum(1 + p.inflation_ref, 4) + " − 1 = " + frPct(local)
+        ]
+      }
+    ];
+
+    return {
+      fiscalYear: "Exercice " + p.year,
+      chips: [p.country, p.industry],
+      market: [
+        { label: "Prime de risque pays", value: frPct(crp) },
+        { label: "Beta désendetté", value: frNum(beta, 3) },
+        { label: "Gearing sectoriel", value: frNum(de, 2) }
+      ],
+      notes: notes,
+      result: {
+        wacc: frPct(wacc), ke: frPct(re), kd: frPct(rdPost), local: frPct(local),
+        structure: frPct(ev, 0) + " / " + frPct(dv, 0),
+        equityPct: ev * 100, debtPct: dv * 100
+      },
+      components: components
+    };
+  }
+
+  /* ================= Onglets ================= */
+  function renderTabs() {
+    document.querySelectorAll(".tabs button").forEach((b) => {
+      b.classList.toggle("is-active", b.dataset.tab === tab);
+    });
+    $("panel-params").hidden = tab !== "params";
+    $("panel-wacc").hidden = tab !== "wacc";
+    if (tab === "wacc") requestAnimationFrame(placeArrow);
+  }
+  document.querySelectorAll(".tabs button").forEach((b) => {
+    b.addEventListener("click", () => { tab = b.dataset.tab; renderTabs(); });
+  });
+
+  /* ================= Onglet Paramètres ================= */
+  function selectField(key, label, options) {
+    return `
+      <span class="field">
+        <span class="field-label">${esc(label)}</span>
+        <span class="select-wrap">
+          <select data-param="${key}">
+            ${options.map((o) => `<option value="${esc(o)}"${String(o) === String(params[key]) ? " selected" : ""}>${esc(o)}</option>`).join("")}
+          </select>
+          ${CHEVRON}
+        </span>
+      </span>`;
+  }
+
+  function stepperField(item) {
+    return `
+      <span class="field">
+        <span style="display:grid;gap:2px">
+          <span class="field-label">${esc(item.label)}</span>
+          <span class="field-hint">${esc(item.hint)}</span>
+        </span>
+        <span class="stepper">
+          <span class="stepper-value">${frPct(params[item.key])}</span>
+          <span class="stepper-btns">
+            <button type="button" data-step="${item.key}" data-dir="-1">−</button>
+            <button type="button" data-step="${item.key}" data-dir="1">+</button>
+          </span>
+        </span>
+      </span>`;
+  }
+
+  function renderParams() {
+    const chips = model.chips.map((c) => `<span class="chip">${esc(c)}</span>`).join("");
+
+    $("paramsMain").innerHTML = `
+      <section class="card-block">
+        <h2>Contexte de marché</h2>
+        <div class="grid-2">
+          ${selectField("year", "Année de valorisation", DATA.options.years)}
+          ${selectField("maturity", "Maturité du taux sans risque", DATA.options.maturities)}
+        </div>
+      </section>
+
+      <section class="card-block">
+        <span class="block-head">
+          <h2>Sélection pays et industrie</h2>
+          <span class="chips">${chips}</span>
+        </span>
+        <div class="grid-2">
+          ${selectField("country", "Sélectionner un pays", DATA.options.countries)}
+          ${selectField("industry", "Sélectionner une industrie", DATA.options.industries)}
+        </div>
+        <div class="tiles">
+          ${model.market.map((m) => `
+            <span class="tile">
+              <span class="tile-label">${esc(m.label)}</span>
+              <span class="tile-value">${esc(m.value)}</span>
+            </span>`).join("")}
+        </div>
+        ${model.notes.length ? `<span class="note">${model.notes.map(esc).join(" · ")}</span>` : ""}
+      </section>
+
+      <section class="card-block">
+        <h2>Paramètres manuels</h2>
+        <div class="grid-2">${MANUAL.map(stepperField).join("")}</div>
+      </section>`;
+
+    const r = model.result;
+    $("paramsResult").innerHTML = `
+      <h2>Résultat</h2>
+      <span class="result-hero">
+        <span class="field-label">CMPC calculé</span>
+        <span class="result-hero-row">
+          <span class="result-hero-value">${esc(r.wacc)}</span>
+        </span>
+      </span>
+      <span class="result-rows">
+        <span class="result-row"><span>Ke, capitaux propres</span><span>${esc(r.ke)}</span></span>
+        <span class="result-row"><span>Kd, dette après impôt</span><span>${esc(r.kd)}</span></span>
+        <span class="result-row is-blue"><span>CMPC monnaie locale</span><span>${esc(r.local)}</span></span>
+      </span>
+      <span class="structure">
+        <span class="structure-head"><span>Structure cible</span><span>${esc(r.structure)}</span></span>
+        <span class="bar">
+          <span class="eq" style="width:${r.equityPct}%"></span>
+          <span class="dt" style="width:${r.debtPct}%"></span>
+        </span>
+      </span>
+      <button type="button" class="cta" id="goWacc">Voir le détail du CMPC</button>
+      <span class="note">Le CMPC est recalculé à chaque modification. Le taux sans risque, la prime de risque marché et le bêta proviennent de la base de marché.</span>`;
+
+    $("goWacc").addEventListener("click", () => { tab = "wacc"; renderTabs(); });
+
+    $("paramsMain").querySelectorAll("select[data-param]").forEach((sel) => {
+      sel.addEventListener("change", () => setParam(sel.dataset.param, sel.value));
+    });
+    $("paramsMain").querySelectorAll("button[data-step]").forEach((btn) => {
+      btn.addEventListener("click", () => bumpParam(btn.dataset.step, Number(btn.dataset.dir)));
+    });
+  }
+
+  /* ================= Onglet CMPC ================= */
+  function renderStack() {
+    $("stack").innerHTML = model.components.map((c) => `
+      <div class="comp${c.tone && c.tone !== "accent" ? " tone-" + c.tone : ""}${c.final ? " is-final" : ""}" data-comp="${esc(c.id)}">
+        <button type="button" class="comp-head" aria-expanded="false">
+          <span class="comp-title">${esc(c.title)}</span>
+          <span class="comp-value">${esc(c.value)}</span>
+        </button>
+        <div class="comp-wrap"><div class="comp-clip"><div class="comp-body">
+          <span class="sub-rows">
+            ${c.rows.map((r) => `
+              <span class="sub-row${r.strong ? " is-strong" : ""}">
+                <span>${esc(r.label)}</span><span>${esc(r.value)}</span>
+              </span>`).join("")}
+          </span>
+        </div></div></div>
+      </div>`).join("");
+
+    $("stack").querySelectorAll(".comp").forEach((el) => {
+      el.querySelector(".comp-head").addEventListener("click", () => toggle(el.dataset.comp));
+    });
+  }
+
+  function renderFrame() {
+    $("frame").innerHTML = model.components.map((c) => {
+      const compo = c.composition ? `
+        <span class="composition">
+          <span class="bar">
+            <span class="eq" style="width:${c.composition.equityPct}%"></span>
+            <span class="dt" style="width:${c.composition.debtPct}%"></span>
+          </span>
+          <span class="composition-legend">
+            <span>Fonds propres ${esc(c.composition.equity)}</span>
+            <span>Dette ${esc(c.composition.debt)}</span>
+          </span>
+        </span>` : "";
+      const rows = [
+        ["Méthodologie", c.methodology],
+        ["Source", c.source],
+        ["Hypothèse", c.hypothesis],
+        ["Retenu", c.retained]
+      ].filter(([, t]) => Boolean(t));
+      return `
+        <div class="detail${c.tone && c.tone !== "accent" ? " tone-" + c.tone : ""}" data-detail="${esc(c.id)}">
+          <span class="detail-head">
+            <span class="detail-title">${esc(c.title)}</span>
+            <span class="detail-symbol">${esc(c.symbol)}</span>
+          </span>
+          ${compo}
+          <span class="detail-grid">
+            ${rows.map(([l, t]) => `<span class="detail-label">${esc(l)}</span><span class="detail-text">${esc(t)}</span>`).join("")}
+          </span>
+          ${c.formula && c.formula.length ? `<code>${c.formula.map(esc).join("<br>")}</code>` : ""}
+        </div>`;
+    }).join("");
+  }
+
+  function toggle(id) {
+    openId = openId === id ? null : id;
+    const comp = model.components.find((c) => c.id === openId);
+    const tone = comp && comp.tone && comp.tone !== "accent" ? comp.tone : null;
+
+    $("stack").querySelectorAll(".comp").forEach((el) => {
+      const on = el.dataset.comp === openId;
+      el.classList.toggle("is-open", on);
+      el.querySelector(".comp-head").setAttribute("aria-expanded", on ? "true" : "false");
+    });
+    $("frame").querySelectorAll(".detail").forEach((el) => {
+      el.classList.toggle("is-shown", el.dataset.detail === openId);
+    });
+
+    const col = $("frameCol");
+    col.classList.toggle("is-on", Boolean(openId));
+    col.classList.remove("tone-green", "tone-blue");
+    if (tone) col.classList.add("tone-" + tone);
+
+    placeArrow();
+    setTimeout(placeArrow, 200);
+    setTimeout(placeArrow, 460);
+  }
+
+  function placeArrow() {
+    const col = $("frameCol");
+    const arrow = $("frameArrow");
+    if (!openId) return;
+    const head = $("stack").querySelector('.comp[data-comp="' + CSS.escape(openId) + '"] .comp-head');
+    if (!head) return;
+    const cr = col.getBoundingClientRect();
+    const hr = head.getBoundingClientRect();
+    const max = Math.max(40, cr.height - 30);
+    const y = hr.top + hr.height / 2 - cr.top - 6;
+    arrow.style.top = Math.round(Math.min(max, Math.max(16, y))) + "px";
+  }
+
+  window.addEventListener("resize", placeArrow);
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(placeArrow);
+
+  /* ================= Paramètres et URL ================= */
+  function setParam(key, value) {
+    params[key] = key === "year" ? Number(value) : value;
+    apply();
+  }
+
+  function bumpParam(key, dir) {
+    params[key] = Math.max(0, Math.round((params[key] + dir * STEPS[key]) * 1000) / 1000);
+    apply();
+  }
+
+  function apply() {
+    model = computeModel(params);
+    renderAll();
+    // L'URL porte la configuration : un lien copié rouvre le même calcul.
+    try {
+      if (window.history.replaceState) {
+        window.history.replaceState(null, "", "?" + new URLSearchParams(params));
+      }
+    } catch (err) { /* page ouverte en fichier local : sans effet */ }
+  }
+
+  // Une URL saisie à la main peut perdre les accents ou la casse ("Cote d'Ivoire"
+  // pour "Côte d'Ivoire") : on retrouve l'entrée exacte plutôt que de retomber
+  // silencieusement sur les valeurs par défaut.
+  function normalize(s) {
+    return String(s).normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase().trim();
+  }
+
+  function resolveOption(value, options) {
+    if (options.includes(value)) return value;
+    const target = normalize(value);
+    return options.find((o) => normalize(o) === target) || null;
+  }
+
+  function readUrlParams() {
+    let query;
+    try { query = new URLSearchParams(window.location.search); } catch (err) { return; }
+    if (query.has("maturity") && DATA.options.maturities.includes(query.get("maturity"))) {
+      params.maturity = query.get("maturity");
+    }
+    for (const [key, list] of [["country", DATA.options.countries], ["industry", DATA.options.industries]]) {
+      if (query.has(key)) {
+        const found = resolveOption(query.get(key), list);
+        if (found) params[key] = found;
+      }
+    }
+    if (query.has("year")) {
+      const year = Number(query.get("year"));
+      if (DATA.options.years.includes(year)) params.year = year;
+    }
+    for (const key of ["d", "e", "inflation_ref", "inflation_local"]) {
+      if (query.has(key)) {
+        const value = Number(query.get(key));
+        if (Number.isFinite(value)) params[key] = value;
+      }
+    }
+  }
+
+  function renderAll() {
+    $("fiscal").textContent = model.fiscalYear;
+    renderParams();
+    renderStack();
+    renderFrame();
+    const keep = openId;
+    openId = null;
+    if (keep && model.components.some((c) => c.id === keep)) toggle(keep);
+  }
+
+  readUrlParams();
+  model = computeModel(params);
+  renderTabs();
+  renderAll();
+</script>
+</body>
+</html>
