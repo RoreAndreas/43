@@ -1,0 +1,74 @@
+name: Build WACC page
+
+# Reconstruit WACC43/PFILES/site/index.html — la page servie par Cloudflare Pages.
+# Cloudflare ne construit rien : il publie ce fichier tel qu'il est dans le dépôt.
+# Ce workflow garantit qu'il est toujours à jour, sans reconstruction manuelle.
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'WACC43/PFILES/**'
+      - '!WACC43/PFILES/site/**'   # évite de se redéclencher sur son propre commit
+  schedule:
+    - cron: '0 6 1 1,4,7,10 *'     # 1er janvier, avril, juillet et octobre, 06:00 UTC
+  workflow_dispatch:               # déclenchement manuel depuis l'onglet Actions
+
+permissions:
+  contents: write
+
+concurrency:
+  group: build-wacc
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: WACC43/PFILES
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0   # historique complet, nécessaire pour rebaser avant le push
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: pip
+          cache-dependency-path: WACC43/PFILES/requirements.txt
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Construire la page
+        # build_static.py refuse d'écrire si l'extraction est anormalement pauvre :
+        # une source en panne fait échouer le job plutôt que publier une page vide.
+        run: python build_static.py --keep-data
+
+      - name: Committer et pousser si la page a changé
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add site/index.html site/data.json
+          if git diff --staged --quiet; then
+            echo "Page inchangée, rien à committer."
+            exit 0
+          fi
+          git commit -m "🔄 Reconstruction de la page CMPC (automated)"
+          # Push blindé : le dépôt reçoit d'autres commits automatiques, on rebase et on réessaie
+          for i in 1 2 3 4 5; do
+            if git push; then
+              echo "Push réussi — Cloudflare va redéployer."
+              exit 0
+            fi
+            echo "Push rejeté (tentative $i) — synchronisation puis nouvel essai..."
+            git pull --rebase origin main
+          done
+          echo "Échec du push après 5 tentatives."
+          exit 1

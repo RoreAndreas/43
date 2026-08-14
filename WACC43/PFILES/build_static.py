@@ -21,6 +21,11 @@ from wacc_html import render_page
 
 SITE = Path(__file__).parent / "site"
 
+# Seuils de vraisemblance du jeu de données extrait (référence : 157 pays,
+# 94 industries). En dessous, la source a probablement changé de format.
+MIN_COUNTRIES = 100
+MIN_INDUSTRIES = 60
+
 
 def main():
     parser = argparse.ArgumentParser(description="Génère la page statique du CMPC")
@@ -46,6 +51,16 @@ def main():
 
     print("Téléchargement des sources...")
     dataset = wacc_core.build_dataset(years=years, progress=progress)
+
+    # Garde-fou : si Damodaran change de format ou renvoie une page d'erreur,
+    # l'extraction se vide silencieusement. Mieux vaut échouer que publier
+    # automatiquement une page sans données.
+    if len(dataset["pays"]) < MIN_COUNTRIES:
+        raise SystemExit(f"Seulement {len(dataset['pays'])} pays extraits (minimum {MIN_COUNTRIES}) — page non écrite.")
+    if len(dataset["industries"]) < MIN_INDUSTRIES:
+        raise SystemExit(f"Seulement {len(dataset['industries'])} industries extraites (minimum {MIN_INDUSTRIES}) — page non écrite.")
+    if not dataset["rf"]:
+        raise SystemExit("Aucun taux US Treasury récupéré — page non écrite.")
 
     page = render_page(dataset)
     target = out / "index.html"
