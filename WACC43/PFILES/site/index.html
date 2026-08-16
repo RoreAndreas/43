@@ -434,20 +434,45 @@
     opacity: 0;
     transition: top 420ms cubic-bezier(.4, 0, .2, 1), opacity 300ms ease, border-color 340ms ease;
   }
+  /* Le cadre reste visible même sans sélection : il porte alors un message
+     d'attente. Seule la flèche apparaît quand une carte est dépliée. */
   .frame {
     position: absolute;
     inset: 0;
     background: var(--surface);
-    border: 1px solid var(--accent-soft);
+    border: 1px solid var(--line);
     border-radius: 10px;
     box-shadow: 0 1px 2px rgba(0, 0, 0, .04);
-    opacity: 0;
-    pointer-events: none;
-    transition: opacity 320ms ease, border-color 340ms ease;
+    transition: border-color 340ms ease;
     overflow: hidden;
   }
-  .frame-col.is-on .frame, .frame-col.is-on .frame-arrow { opacity: 1; }
-  .frame-col.is-on .frame { pointer-events: auto; }
+  .frame-col.is-on .frame { border-color: var(--accent-soft); }
+  .frame-col.is-on .frame-arrow { opacity: 1; }
+  .detail-vide {
+    position: absolute;
+    inset: 0;
+    display: grid;
+    place-content: center;
+    justify-items: center;
+    gap: 10px;
+    padding: 24px 32px;
+    text-align: center;
+    opacity: 1;
+    transition: opacity 300ms ease;
+  }
+  .detail-vide.is-cache { opacity: 0; }
+  .detail-vide .titre {
+    font: 400 10px/1 var(--mono);
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+  .detail-vide .texte {
+    max-width: 34ch;
+    font: 400 13px/1.65 var(--sans);
+    color: var(--muted-2);
+    text-wrap: pretty;
+  }
   .frame-col.tone-green .frame, .frame-col.tone-green .frame-arrow { border-color: var(--green-soft); }
   .frame-col.tone-blue .frame, .frame-col.tone-blue .frame-arrow { border-color: var(--blue-soft); }
   .detail {
@@ -537,18 +562,24 @@
     background: var(--tile);
     padding: 11px 14px;
     display: flex;
-    align-items: baseline;
+    align-items: flex-start;
     justify-content: space-between;
     gap: 12px;
   }
   .soc-ident { display: flex; align-items: baseline; gap: 9px; min-width: 0; }
-  .soc-flag { font-size: 15px; line-height: 1; }
+  .soc-flag { font-size: 15px; line-height: 1; flex: none; }
   .soc-nom {
     font: 400 12.5px/1.4 var(--sans);
     color: var(--ink);
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
+    /* Les raisons sociales sont longues : on les laisse passer à la ligne
+       plutôt que de les tronquer. */
+    white-space: normal;
+    overflow-wrap: anywhere;
+  }
+  .soc-line.is-more {
+    justify-content: flex-start;
+    font: 400 11.5px/1.4 var(--sans);
+    color: var(--muted);
   }
   .soc-pays { font: 400 10.5px/1.4 var(--mono); color: var(--muted-2); }
   .soc-cap {
@@ -692,14 +723,29 @@
     (BRVM && BRVM.industries.find((i) => i.nom === params.industrie_brvm)) ||
     (BRVM && BRVM.industries[0]) || null;
 
+  // Separateur de milliers en espace insecable U+00A0 : U+202F manque a IBM Plex Mono.
   const frMontant = (v) =>
-    v == null ? "—" : Math.round(v).toString().replace(/\B(?=(\d{3})+(?!\d))/g, " ") + " M";
+    v == null ? "—" : Math.round(v).toString().replace(/\B(?=(\d{3})+(?!\d))/g, " ") + " M";
 
   // Les deux colonnes de cartes — CMPC et Sociétés — partagent la même mécanique :
   // une carte dépliée à la fois, un panneau de détail, une flèche qui la pointe.
   const PANNEAUX = {
-    cmpc: { stack: "stack", frame: "frame", col: "frameCol", arrow: "frameArrow", ouvert: null, items: [], detail: null },
-    soc:  { stack: "stackSoc", frame: "frameSoc", col: "frameColSoc", arrow: "frameArrowSoc", ouvert: null, items: [], detail: null }
+    cmpc: {
+      stack: "stack", frame: "frame", col: "frameCol", arrow: "frameArrow",
+      ouvert: null, items: [], detail: null,
+      vide: {
+        titre: "Détail de la composante",
+        texte: "Sélectionne une composante à gauche : sa méthodologie, ses sources, ses hypothèses et son calcul s'afficheront ici."
+      }
+    },
+    soc: {
+      stack: "stackSoc", frame: "frameSoc", col: "frameColSoc", arrow: "frameArrowSoc",
+      ouvert: null, items: [], detail: null,
+      vide: {
+        titre: "Détail de la société",
+        texte: "Sélectionne une société à gauche : son activité, son pays et ses trois derniers exercices s'afficheront ici."
+      }
+    }
   };
 
   /* ================= Calcul =================
@@ -956,10 +1002,18 @@
       </section>`;
   }
 
+  const APERCU_MAX = 4;   // aperçu volontairement court : le détail est dans l'onglet Sociétés
+
   function blocBrvm() {
     const ind = industrieBrvm();
     const tickers = ind ? ind.tickers : [];
-    const lignes = tickers.map((t) => {
+    // Les plus grosses capitalisations d'abord : ce sont elles qui portent le secteur.
+    const apercu = tickers.slice()
+      .sort((a, b) => (BRVM.societes[b].capitalisation || 0) - (BRVM.societes[a].capitalisation || 0))
+      .slice(0, APERCU_MAX);
+    const reste = tickers.length - apercu.length;
+
+    const lignes = apercu.map((t) => {
       const s = BRVM.societes[t];
       return `
         <span class="soc-line">
@@ -970,7 +1024,9 @@
           </span>
           <span class="soc-cap">${esc(frMontant(s.capitalisation))}</span>
         </span>`;
-    }).join("");
+    }).join("") + (reste > 0
+      ? `<span class="soc-line is-more">+ ${reste} autre${reste > 1 ? "s" : ""} société${reste > 1 ? "s" : ""} dans l'onglet Sociétés</span>`
+      : "");
 
     return `
       <section class="card-block">
@@ -1104,7 +1160,12 @@
 
   function renderFrame(cle) {
     const pan = PANNEAUX[cle];
-    $(pan.frame).innerHTML = pan.items.map((c) => `
+    const attente = `
+      <div class="detail-vide${pan.ouvert ? " is-cache" : ""}" data-vide="1">
+        <span class="titre">${esc(pan.vide.titre)}</span>
+        <span class="texte">${esc(pan.vide.texte)}</span>
+      </div>`;
+    $(pan.frame).innerHTML = attente + pan.items.map((c) => `
       <div class="detail${c.tone && c.tone !== "accent" ? " tone-" + c.tone : ""}" data-detail="${esc(c.id)}">
         ${pan.detail(c)}
       </div>`).join("");
@@ -1124,6 +1185,8 @@
     $(pan.frame).querySelectorAll(".detail").forEach((el) => {
       el.classList.toggle("is-shown", el.dataset.detail === pan.ouvert);
     });
+    const attente = $(pan.frame).querySelector(".detail-vide");
+    if (attente) attente.classList.toggle("is-cache", Boolean(pan.ouvert));
 
     const col = $(pan.col);
     col.classList.toggle("is-on", Boolean(pan.ouvert));
@@ -1245,11 +1308,27 @@
     renderFrame("cmpc");
   }
 
+  // Marge d'EBITDA du dernier exercice où les deux postes sont renseignés.
+  // Les banques ne publient pas d'EBITDA : la ligne le dit plutôt que d'afficher 0.
+  function margeEbitda(s) {
+    for (const annee of (s.annees || []).slice().reverse()) {
+      const ebitda = (s.ebitda || {})[String(annee)];
+      const ca = (s.ca || {})[String(annee)];
+      if (ebitda != null && ca) {
+        return { label: `Marge d'EBITDA ${annee}`, value: frPct(ebitda / ca, 1) };
+      }
+    }
+    return { label: "Marge d'EBITDA", value: "non publiée" };
+  }
+
   function chargerSocietes() {
     const pan = PANNEAUX.soc;
     pan.detail = detailSociete;
     const ind = industrieBrvm();
-    pan.items = !ind ? [] : ind.tickers.map((t) => {
+    // Même ordre que l'aperçu des paramètres : les plus grosses capitalisations d'abord.
+    const tickers = !ind ? [] : ind.tickers.slice()
+      .sort((a, b) => (BRVM.societes[b].capitalisation || 0) - (BRVM.societes[a].capitalisation || 0));
+    pan.items = tickers.map((t) => {
       const s = BRVM.societes[t];
       const derniere = (s.annees || []).slice(-1)[0];
       const val = (serie) => frMontant((serie || {})[String(derniere)]);
@@ -1263,6 +1342,7 @@
           { label: "Pays", value: s.pays },
           { label: "Bêta 1 an", value: s.beta == null ? "non publié" : frNum(s.beta, 2) },
           { label: `Chiffre d'affaires ${derniere || ""}`.trim(), value: val(s.ca), strong: true },
+          margeEbitda(s),
           { label: `Résultat net ${derniere || ""}`.trim(), value: val(s.rn) },
           { label: `Capitaux propres ${derniere || ""}`.trim(), value: val(s.capitaux_propres) }
         ]
