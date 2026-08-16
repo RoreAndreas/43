@@ -11,6 +11,8 @@ géographie : les Caucase et Asie centrale quittent « Eastern Europe & Russia �
 et Fidji, Papouasie et Salomon quittent « Asia » pour l'Océanie.
 """
 
+import unicodedata
+
 # Zone -> pays. Les libellés doivent reprendre exactement l'orthographe du
 # fichier Damodaran, sinon le rapprochement échoue silencieusement.
 ZONES = {
@@ -132,9 +134,23 @@ ORDRE_CONTINENTS = ["Afrique", "Amériques", "Asie", "Europe", "Océanie"]
 _PAR_PAYS = {pays: zone for zone, pays_list in ZONES.items() for pays in pays_list}
 
 
+def _sans_accent(texte: str) -> str:
+    """Minuscules sans accent ni ponctuation, pour rapprocher deux orthographes."""
+    decompose = unicodedata.normalize("NFKD", str(texte))
+    return "".join(c for c in decompose.lower() if c.isalnum())
+
+
+# Le découpage suit l'orthographe anglaise de Damodaran, mais les sociétés sont
+# libellées en français : « Bénin » et « Sénégal » ne tombaient sur rien. On
+# indexe donc aussi une forme sans accent, sans quoi le rattachement échoue en
+# silence — précisément le risque annoncé en tête de ce module.
+_PAR_PAYS_NORMALISE = {_sans_accent(pays): zone for pays, zone in _PAR_PAYS.items()}
+
+
 def classer(pays: str, region_damodaran: str = None):
     """(continent, zone) d'un pays. Retourne (None, None) si inclassable."""
-    zone = _PAR_PAYS.get(str(pays).strip())
+    libelle = str(pays).strip()
+    zone = _PAR_PAYS.get(libelle) or _PAR_PAYS_NORMALISE.get(_sans_accent(libelle))
     if zone:
         return CONTINENT_DE_LA_ZONE[zone], zone
     if region_damodaran:
@@ -207,7 +223,64 @@ def enrichir_dataset(dataset: dict) -> list:
 
     options = dataset.setdefault("options", {})
     options["countries_grouped"] = grouper_par_continent(sorted(pays))
+
+    # Zones du continent, pour le panneau géographique. Une zone n'apparaît que
+    # si elle compte au moins un pays du jeu de données.
+    par_continent = {}
+    for nom in pays:
+        continent, zone = classer(nom)
+        if continent:
+            par_continent.setdefault(continent, {}).setdefault(zone, []).append(nom)
+    options["zones_par_continent"] = {
+        continent: [[zone, sorted(membres)] for zone, membres in sorted(paniers.items())]
+        for continent, paniers in par_continent.items()
+    }
     return inclassables
+
+
+def indexer_societes(dataset: dict) -> dict:
+    """
+    Compte les sociétés référencées par zone, et par industrie au sein d'une zone.
+
+    Écrit `dataset["zones_societes"]`. Les effectifs sortent des seules sociétés
+    réellement présentes dans le jeu de données : aujourd'hui les 47 valeurs de
+    la place d'Abidjan, qui couvrent sept pays et donc **une seule zone sur les
+    dix-huit**. Les autres zones sortent à zéro, et la page doit le dire au lieu
+    d'afficher un tiret qu'on lirait comme une donnée manquante.
+
+    Rend les pays de sociétés qu'aucune zone ne réclame, pour que le build le
+    signale plutôt que de les perdre.
+    """
+    brvm = dataset.get("brvm") or {}
+    societes = brvm.get("societes") or {}
+    industries = brvm.get("industries") or []
+
+    industrie_du_ticker = {}
+    for entree in industries:
+        for ticker in entree.get("tickers", []):
+            industrie_du_ticker[ticker] = entree.get("nom")
+
+    index, orphelins = {}, []
+    for ticker, societe in societes.items():
+        pays = societe.get("pays")
+        if not pays:
+            continue
+        _continent, zone = classer(pays)
+        if zone is None:
+            orphelins.append(pays)
+            continue
+        seau = index.setdefault(zone, {"total": 0, "places": {}, "industries": {}})
+        seau["total"] += 1
+        seau["places"][pays] = seau["places"].get(pays, 0) + 1
+        nom_industrie = industrie_du_ticker.get(ticker)
+        if nom_industrie:
+            detail = seau["industries"].setdefault(nom_industrie, {"n": 0, "places": {}})
+            detail["n"] += 1
+            detail["places"][pays] = detail["places"].get(pays, 0) + 1
+
+    dataset["zones_societes"] = index
+    dataset["societes_hors_zone"] = sorted(set(orphelins))
+    return dataset["societes_hors_zone"]
 
 
 def index_par_pays(pays_regions) -> dict:

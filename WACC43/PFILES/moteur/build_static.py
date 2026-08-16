@@ -79,6 +79,15 @@ def main():
     # scraper SIKAPRO, qui tourne toutes les 10 minutes dans son propre projet.
     dataset["brvm"] = brvm_core.build_brvm(progress=progress)
 
+    # L'index des sociétés se construit après le volet comparables, dont il
+    # dépend. Les pays de sociétés qu'aucune zone ne réclame sont signalés : ce
+    # sont des libellés à rattacher, pas des sociétés à ignorer.
+    import zones as _zones
+
+    hors_zone = _zones.indexer_societes(dataset)
+    if hors_zone:
+        print(f"  /!\\ sociétés hors zone : {', '.join(hors_zone)}")
+
     page = render_page(dataset)
     target = out / "index.html"
     target.write_text(page, encoding="utf-8")

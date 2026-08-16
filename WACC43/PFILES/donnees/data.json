@@ -1903,7 +1903,266 @@
           "Solomon Islands"
         ]
       ]
-    ]
+    ],
+    "zones_par_continent": {
+      "Asie": [
+        [
+          "Asie centrale et Caucase",
+          [
+            "Armenia",
+            "Azerbaijan",
+            "Georgia",
+            "Kazakhstan",
+            "Kyrgyzstan",
+            "Tajikistan",
+            "Uzbekistan"
+          ]
+        ],
+        [
+          "Asie de l'Est",
+          [
+            "China",
+            "Hong Kong",
+            "Japan",
+            "Korea",
+            "Macao",
+            "Mongolia",
+            "Taiwan"
+          ]
+        ],
+        [
+          "Asie du Sud",
+          [
+            "Bangladesh",
+            "India",
+            "Maldives",
+            "Nepal",
+            "Pakistan",
+            "Sri Lanka"
+          ]
+        ],
+        [
+          "Asie du Sud-Est",
+          [
+            "Cambodia",
+            "Indonesia",
+            "Laos",
+            "Malaysia",
+            "Philippines",
+            "Singapore",
+            "Thailand",
+            "Vietnam"
+          ]
+        ],
+        [
+          "Moyen-Orient",
+          [
+            "Abu Dhabi",
+            "Bahrain",
+            "Iraq",
+            "Israel",
+            "Jordan",
+            "Kuwait",
+            "Lebanon",
+            "Oman",
+            "Qatar",
+            "Ras Al Khaimah (Emirate of)",
+            "Saudi Arabia",
+            "Sharjah",
+            "United Arab Emirates"
+          ]
+        ]
+      ],
+      "Europe": [
+        [
+          "Europe de l'Est",
+          [
+            "Belarus",
+            "Bulgaria",
+            "Czech Republic",
+            "Hungary",
+            "Moldova",
+            "Poland",
+            "Romania",
+            "Slovakia",
+            "Ukraine"
+          ]
+        ],
+        [
+          "Europe de l'Ouest",
+          [
+            "Andorra (Principality of)",
+            "Austria",
+            "Belgium",
+            "France",
+            "Germany",
+            "Guernsey (States of)",
+            "Ireland",
+            "Isle of Man",
+            "Jersey (States of)",
+            "Liechtenstein",
+            "Luxembourg",
+            "Netherlands",
+            "Switzerland",
+            "United Kingdom"
+          ]
+        ],
+        [
+          "Europe du Nord",
+          [
+            "Denmark",
+            "Estonia",
+            "Finland",
+            "Iceland",
+            "Latvia",
+            "Lithuania",
+            "Norway",
+            "Sweden"
+          ]
+        ],
+        [
+          "Europe du Sud",
+          [
+            "Albania",
+            "Bosnia and Herzegovina",
+            "Croatia",
+            "Cyprus",
+            "Greece",
+            "Italy",
+            "Macedonia",
+            "Malta",
+            "Montenegro",
+            "Portugal",
+            "Serbia",
+            "Slovenia",
+            "Spain",
+            "Turkey"
+          ]
+        ]
+      ],
+      "Afrique": [
+        [
+          "Afrique australe",
+          [
+            "Botswana",
+            "Namibia",
+            "South Africa",
+            "Swaziland"
+          ]
+        ],
+        [
+          "Afrique centrale",
+          [
+            "Angola",
+            "Cameroon",
+            "Congo (Democratic Republic of)",
+            "Congo (Republic of)",
+            "Gabon"
+          ]
+        ],
+        [
+          "Afrique de l'Est",
+          [
+            "Ethiopia",
+            "Kenya",
+            "Mauritius",
+            "Mozambique",
+            "Rwanda",
+            "Tanzania",
+            "Uganda",
+            "Zambia"
+          ]
+        ],
+        [
+          "Afrique de l'Ouest",
+          [
+            "Benin",
+            "Burkina Faso",
+            "Cape Verde",
+            "Côte d'Ivoire",
+            "Ghana",
+            "Mali",
+            "Niger",
+            "Nigeria",
+            "Senegal",
+            "Togo"
+          ]
+        ],
+        [
+          "Afrique du Nord",
+          [
+            "Egypt",
+            "Morocco",
+            "Tunisia"
+          ]
+        ]
+      ],
+      "Amériques": [
+        [
+          "Amérique du Nord",
+          [
+            "Canada",
+            "United States"
+          ]
+        ],
+        [
+          "Amérique latine",
+          [
+            "Argentina",
+            "Belize",
+            "Bolivia",
+            "Brazil",
+            "Chile",
+            "Colombia",
+            "Costa Rica",
+            "Ecuador",
+            "El Salvador",
+            "Guatemala",
+            "Honduras",
+            "Mexico",
+            "Nicaragua",
+            "Panama",
+            "Paraguay",
+            "Peru",
+            "Suriname",
+            "Uruguay",
+            "Venezuela"
+          ]
+        ],
+        [
+          "Caraïbes",
+          [
+            "Aruba",
+            "Bahamas",
+            "Barbados",
+            "Bermuda",
+            "Cayman Islands",
+            "Cuba",
+            "Curacao",
+            "Dominican Republic",
+            "Jamaica",
+            "Montserrat",
+            "St. Maarten",
+            "St. Vincent & the Grenadines",
+            "Trinidad and Tobago",
+            "Turks and Caicos Islands"
+          ]
+        ]
+      ],
+      "Océanie": [
+        [
+          "Océanie",
+          [
+            "Australia",
+            "Cook Islands",
+            "Fiji",
+            "New Zealand",
+            "Papua New Guinea",
+            "Solomon Islands"
+          ]
+        ]
+      ]
+    }
   },
   "defaults": {
     "year": 2026,
@@ -5292,5 +5551,104 @@
         ]
       }
     }
-  }
+  },
+  "zones_societes": {
+    "Afrique de l'Ouest": {
+      "total": 47,
+      "places": {
+        "Côte d'Ivoire": 34,
+        "Bénin": 3,
+        "Mali": 1,
+        "Sénégal": 3,
+        "Burkina Faso": 3,
+        "Niger": 1,
+        "Togo": 2
+      },
+      "industries": {
+        "Distribution et négoce": {
+          "n": 3,
+          "places": {
+            "Côte d'Ivoire": 3
+          }
+        },
+        "Banques": {
+          "n": 15,
+          "places": {
+            "Côte d'Ivoire": 6,
+            "Bénin": 2,
+            "Mali": 1,
+            "Sénégal": 1,
+            "Burkina Faso": 2,
+            "Niger": 1,
+            "Togo": 2
+          }
+        },
+        "Transport et logistique": {
+          "n": 1,
+          "places": {
+            "Côte d'Ivoire": 1
+          }
+        },
+        "Distribution de carburants": {
+          "n": 3,
+          "places": {
+            "Côte d'Ivoire": 2,
+            "Sénégal": 1
+          }
+        },
+        "Autres services": {
+          "n": 3,
+          "places": {
+            "Bénin": 1,
+            "Côte d'Ivoire": 2
+          }
+        },
+        "Industrie manufacturière": {
+          "n": 6,
+          "places": {
+            "Côte d'Ivoire": 6
+          }
+        },
+        "Agroalimentaire, boissons et biens de consommation": {
+          "n": 4,
+          "places": {
+            "Côte d'Ivoire": 4
+          }
+        },
+        "Agro-industrie et plantations": {
+          "n": 5,
+          "places": {
+            "Côte d'Ivoire": 5
+          }
+        },
+        "Télécommunications": {
+          "n": 3,
+          "places": {
+            "Sénégal": 1,
+            "Côte d'Ivoire": 1,
+            "Burkina Faso": 1
+          }
+        },
+        "Services publics": {
+          "n": 2,
+          "places": {
+            "Côte d'Ivoire": 2
+          }
+        },
+        "Services financiers": {
+          "n": 1,
+          "places": {
+            "Côte d'Ivoire": 1
+          }
+        },
+        "Bâtiment et travaux publics": {
+          "n": 1,
+          "places": {
+            "Côte d'Ivoire": 1
+          }
+        }
+      }
+    }
+  },
+  "societes_hors_zone": []
 }

@@ -282,33 +282,63 @@
     paint-order: stroke;
   }
   .pin:hover { r: 3.2; }
-  .carte-legende {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 6px;
+  .carte-globe { max-width: 320px; margin: 0 auto; }
+  .globe-mer { fill: #eef1f5; stroke: var(--line); stroke-width: 0.6; }
+
+  /* Zones : contours schématiques, pas des frontières. */
+  .zone {
+    cursor: pointer;
+    fill-opacity: 0.3;
+    stroke: #ffffff;
+    stroke-width: 0.35;
+    stroke-linejoin: round;
+    transition: fill-opacity 120ms ease;
   }
-  .leg {
-    display: inline-flex;
+  .zone:hover { fill-opacity: 0.62; }
+  .zone.is-on { fill-opacity: 0.72; stroke-width: 0.6; }
+
+  /* Deux colonnes : la carte reste à gauche, les choix passent à droite. */
+  .geo {
+    display: grid;
+    grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr);
+    gap: 22px;
+    align-items: start;
+  }
+  .geo-choix { display: grid; gap: 16px; align-content: start; }
+  @media (max-width: 860px) {
+    .geo { grid-template-columns: 1fr; }
+  }
+
+  .zones-liste { display: grid; gap: 4px; }
+  .zone-ligne {
+    display: grid;
+    grid-template-columns: 10px 1fr auto;
     align-items: center;
-    gap: 6px;
-    padding: 4px 9px;
+    gap: 4px 8px;
+    padding: 7px 9px;
     border: 1px solid var(--line);
-    border-radius: 999px;
+    border-radius: 8px;
     background: var(--surface);
-    font: 500 11px/1 var(--sans);
+    font: 400 12px/1.3 var(--sans);
     color: var(--ink);
+    text-align: left;
     cursor: pointer;
   }
-  .leg:hover { border-color: var(--muted); }
-  .leg.is-off { opacity: 0.4; }
-  .leg-dot {
-    width: 8px;
-    height: 8px;
-    border-radius: 50%;
-    display: inline-block;
+  .zone-ligne:hover { border-color: var(--muted); }
+  .zone-ligne.is-on { border-color: var(--accent); background: var(--accent-tint); }
+  .zone-puce { width: 10px; height: 10px; border-radius: 3px; }
+  .zone-nom { font-weight: 500; }
+  .zone-pays { color: var(--muted); font-size: 11px; }
+  .zone-compte {
+    grid-column: 2 / -1;
+    font: 500 11px/1.3 var(--mono);
+    color: var(--green-ink);
   }
-  .leg-tous {
-    background: linear-gradient(135deg, #c2683a 0%, #1d4ed8 35%, #0f6f5c 65%, #6d4bb0 100%);
+  .zone-compte.is-vide { color: var(--muted-2); font-weight: 400; }
+  .zone-places {
+    grid-column: 2 / -1;
+    font-size: 10.5px;
+    color: var(--muted);
   }
 
   /* ---------- Aside résultat ---------- */
@@ -784,7 +814,10 @@
   // `continent` ne vient pas du jeu de données : c'est un filtre d'affichage,
   // sans effet sur le calcul. Il part sur « Tous » pour qu'aucun pays ne soit
   // masqué tant que l'utilisateur n'a rien demandé.
-  let params = Object.assign({ continent: "Tous" }, DATA.defaults);
+  // `continent` et `zone` ne viennent pas du jeu de données : ce sont des
+  // filtres d'affichage, sans effet sur le calcul. On part sur « Tous », donc
+  // sans rien masquer tant que l'utilisateur n'a rien demandé.
+  let params = Object.assign({ continent: "Tous", zone: null }, DATA.defaults);
   if (!params.referentiel) params.referentiel = "damodaran";
   if (!params.industrie_brvm && BRVM && BRVM.industries.length) {
     params.industrie_brvm = BRVM.industries[0].nom;
@@ -1082,22 +1115,23 @@
   /* ================= Découpage géographique ================= */
   const TOUS = "Tous";
 
-  function groupesPays() {
-    return DATA.options.countries_grouped || [];
-  }
+  function groupesPays() { return DATA.options.countries_grouped || []; }
+  function continents() { return groupesPays().map(([c]) => c); }
+  function zonesDuContinent(c) { return (DATA.options.zones_par_continent || {})[c] || []; }
+  function continentDe(pays) { const e = DATA.pays[pays]; return e && e.continent ? e.continent : null; }
+  function zoneDe(pays) { const e = DATA.pays[pays]; return e && e.zone ? e.zone : null; }
 
-  function continents() {
-    return groupesPays().map(([c]) => c);
-  }
-
-  // Le continent choisi restreint la liste des pays. « Tous » rend la liste
-  // groupée complète ; un continant donné rend sa seule liste, à plat — le
-  // regroupement n'apporterait plus rien puisqu'il n'y aurait qu'un groupe.
+  // La zone affine le continent : sans zone on retombe sur le continent, sans
+  // continent sur la liste entière.
   function paysVisibles() {
     const groupes = groupesPays();
-    if (params.continent === TOUS) return groupes.flatMap(([, membres]) => membres);
-    const trouve = groupes.find(([c]) => c === params.continent);
-    return trouve ? trouve[1] : groupes.flatMap(([, membres]) => membres);
+    if (params.continent === TOUS) return groupes.flatMap(([, m]) => m);
+    if (params.zone) {
+      const z = zonesDuContinent(params.continent).find(([nom]) => nom === params.zone);
+      if (z) return z[1];
+    }
+    const t = groupes.find(([c]) => c === params.continent);
+    return t ? t[1] : groupes.flatMap(([, m]) => m);
   }
 
   function champPays(label) {
@@ -1106,69 +1140,230 @@
       : selectField("country", label, paysVisibles());
   }
 
-  function continentDe(pays) {
-    const entree = DATA.pays[pays];
-    return entree && entree.continent ? entree.continent : null;
+  /* ---------- Effectifs de sociétés ---------- */
+  // Les effectifs viennent des seules sociétés réellement référencées. À ce jour
+  // la place d'Abidjan, soit sept pays et une seule zone sur dix-huit : partout
+  // ailleurs le compte est nul, et le panneau doit l'écrire plutôt que d'afficher
+  // un tiret qu'on lirait comme une donnée manquante.
+  function industrieCourante() { return estBrvm() ? params.industrie_brvm : null; }
+
+  function effectif(zone) {
+    const bloc = (DATA.zones_societes || {})[zone];
+    if (!bloc) return { total: 0, n: null, places: [] };
+    const ind = industrieCourante();
+    const detail = ind && bloc.industries ? bloc.industries[ind] : null;
+    return {
+      total: bloc.total || 0,
+      n: detail ? detail.n : null,
+      places: Object.keys((detail ? detail.places : bloc.places) || {}),
+    };
   }
 
-  /* ================= Carte ================= */
-  // Teintes reprises de la palette de la page, une par continent. Elles ne
-  // codent aucune grandeur : elles distinguent les blocs géographiques, rien de
-  // plus. La prime de risque, elle, se lit dans les tuiles.
+  /* ---------- Carte ---------- */
+  // Une teinte par continent, éclaircie zone par zone : les zones d'un même
+  // continent se distinguent sans changer de famille de couleur. Rien ici ne
+  // code un montant.
   const TEINTES = {
-    "Afrique": "#c2683a",
-    "Amériques": "#1d4ed8",
-    "Asie": "#0f6f5c",
-    "Europe": "#6d4bb0",
-    "Océanie": "#8a6d1f",
-    "Autres": "#71717a",
+    "Afrique": "#c2683a", "Amériques": "#1d4ed8", "Asie": "#0f6f5c",
+    "Europe": "#6d4bb0", "Océanie": "#8a6d1f", "Autres": "#71717a",
   };
+  function teinte(continent) { return TEINTES[continent] || TEINTES["Autres"]; }
 
-  function teinte(continent) {
-    return TEINTES[continent] || TEINTES["Autres"];
+  function teinteZone(continent, rang, total) {
+    const base = teinte(continent);
+    const l = total > 1 ? rang / (total - 1) : 0;
+    return "color-mix(in srgb, " + base + " " + (100 - Math.round(l * 45)) + "%, white)";
+  }
+
+  function pointsDe(noms) {
+    const pts = DATA.carte ? DATA.carte.points || {} : {};
+    return noms.map((n) => (pts[n] ? { nom: n, x: pts[n][0], y: pts[n][1] } : null)).filter(Boolean);
+  }
+
+  function enveloppe(points) {
+    if (points.length < 3) return points.slice();
+    const p = points.slice().sort((a, b) => a[0] - b[0] || a[1] - b[1]);
+    const croix = (o, a, b) => (a[0] - o[0]) * (b[1] - o[1]) - (a[1] - o[1]) * (b[0] - o[0]);
+    const bas = [], haut = [];
+    for (const q of p) {
+      while (bas.length >= 2 && croix(bas[bas.length - 2], bas[bas.length - 1], q) <= 0) bas.pop();
+      bas.push(q);
+    }
+    for (let i = p.length - 1; i >= 0; i--) {
+      const q = p[i];
+      while (haut.length >= 2 && croix(haut[haut.length - 2], haut[haut.length - 1], q) <= 0) haut.pop();
+      haut.push(q);
+    }
+    bas.pop(); haut.pop();
+    return bas.concat(haut);
+  }
+
+  // Contour schématique d'une zone : enveloppe convexe de ses pays, dilatée pour
+  // que le trait ne passe pas sur les points eux-mêmes. Ce n'est pas une
+  // frontière, c'est un repère de lecture.
+  function contourZone(points, marge) {
+    if (!points.length) return "";
+    const cx = points.reduce((s, p) => s + p[0], 0) / points.length;
+    const cy = points.reduce((s, p) => s + p[1], 0) / points.length;
+    if (points.length < 3) {
+      const r = (points.length === 1 ? 2.6 : 3.4) + marge;
+      return "M" + (cx - r) + " " + cy + "a" + r + " " + r + " 0 1 0 " + (r * 2) + " 0a" + r + " " + r + " 0 1 0 " + (-r * 2) + " 0Z";
+    }
+    const dilate = enveloppe(points).map(([x, y]) => {
+      const dx = x - cx, dy = y - cy;
+      const d = Math.hypot(dx, dy) || 1;
+      return [x + (dx / d) * marge, y + (dy / d) * marge];
+    });
+    return "M" + dilate.map(([x, y]) => x.toFixed(1) + " " + y.toFixed(1)).join("L") + "Z";
+  }
+
+  function cadre(points, marge) {
+    const xs = points.map((p) => p.x), ys = points.map((p) => p.y);
+    const x0 = Math.min.apply(null, xs) - marge, x1 = Math.max.apply(null, xs) + marge;
+    const y0 = Math.min.apply(null, ys) - marge, y1 = Math.max.apply(null, ys) + marge;
+    // Rapport 2:1 imposé, sinon un continent étiré déforme le fond de carte.
+    let w = x1 - x0, h = y1 - y0;
+    const cx = (x0 + x1) / 2, cy = (y0 + y1) / 2;
+    if (w / h < 2) w = h * 2; else h = w / 2;
+    return { x: cx - w / 2, y: cy - h / 2, w: w, h: h };
+  }
+
+  /* ---------- Globe, pour le continent « Tous » ---------- */
+  let globeLon = 15, globeLat = 12;
+  let anneauxCache = null;
+
+  // Le fond est stocké projeté en équirectangulaire ; on en redéduit lon/lat
+  // pour le reprojeter en orthographique. x = lon + 180 et y = 90 - lat.
+  function anneaux() {
+    if (anneauxCache) return anneauxCache;
+    const fond = DATA.carte ? DATA.carte.fond || "" : "";
+    anneauxCache = fond.split("Z").filter(Boolean).map((bloc) =>
+      bloc.replace("M", "").split("L").map((couple) => {
+        const paire = couple.trim().split(/\s+/).map(Number);
+        return [paire[0] - 180, 90 - paire[1]];
+      })
+    );
+    return anneauxCache;
+  }
+
+  const RAD = Math.PI / 180;
+  function ortho(lon, lat, R, cx, cy) {
+    const dl = (lon - globeLon) * RAD, la = lat * RAD, l0 = globeLat * RAD;
+    const visible = Math.sin(l0) * Math.sin(la) + Math.cos(l0) * Math.cos(la) * Math.cos(dl) > 0;
+    return {
+      visible: visible,
+      x: cx + R * Math.cos(la) * Math.sin(dl),
+      y: cy - R * (Math.cos(l0) * Math.sin(la) - Math.sin(l0) * Math.cos(la) * Math.cos(dl)),
+    };
+  }
+
+  function globeHtml() {
+    const R = 84, cx = 90, cy = 90;
+    const terres = anneaux().map((ring) => {
+      let d = "", ouvert = false;
+      for (const couple of ring) {
+        const p = ortho(couple[0], couple[1], R, cx, cy);
+        if (!p.visible) { ouvert = false; continue; }
+        d += (ouvert ? "L" : "M") + p.x.toFixed(1) + " " + p.y.toFixed(1);
+        ouvert = true;
+      }
+      return d;
+    }).filter(Boolean).join("");
+
+    const pts = DATA.carte ? DATA.carte.points || {} : {};
+    const pastilles = Object.keys(pts).map((nom) => {
+      const p = ortho(pts[nom][0] - 180, 90 - pts[nom][1], R, cx, cy);
+      if (!p.visible) return "";
+      const actif = params.country === nom;
+      return '<circle class="pin' + (actif ? " is-on" : "") + '" cx="' + p.x.toFixed(1) + '" cy="' + p.y.toFixed(1) +
+        '" r="' + (actif ? 3 : 1.6) + '" fill="' + teinte(continentDe(nom)) + '" data-pays="' + esc(nom) +
+        '"><title>' + esc(nom) + "</title></circle>";
+    }).join("");
+
+    return '<svg class="carte carte-globe" viewBox="0 0 180 180" role="img" aria-label="Globe des pays disponibles">' +
+      '<circle class="globe-mer" cx="' + cx + '" cy="' + cy + '" r="' + R + '"/>' +
+      '<path class="carte-fond" d="' + terres + '"/>' + pastilles + "</svg>";
+  }
+
+  /* ---------- Carte d'un continent ---------- */
+  function continentHtml(continent) {
+    const zonesList = zonesDuContinent(continent);
+    const tousPoints = pointsDe(zonesList.flatMap(([, membres]) => membres));
+    if (!tousPoints.length) return "";
+    const vue = cadre(tousPoints, 6);
+    const marge = Math.max(1.5, vue.w * 0.012);
+
+    // Les enveloppes se recouvrent — les Caraïbes tombent dans celle de
+    // l'Amérique latine, le Moyen-Orient dans celle de l'Asie. On trace les plus
+    // étendues en premier pour que les plus petites restent cliquables et
+    // lisibles au-dessus.
+    const aires = zonesList
+      .map(([zone, membres], i) => {
+        const pts = pointsDe(membres).map((p) => [p.x, p.y]);
+        if (!pts.length) return null;
+        const xs = pts.map((p) => p[0]), ys = pts.map((p) => p[1]);
+        const etendue = (Math.max.apply(null, xs) - Math.min.apply(null, xs) + 1) *
+                        (Math.max.apply(null, ys) - Math.min.apply(null, ys) + 1);
+        return { zone: zone, membres: membres, pts: pts, rang: i, etendue: etendue };
+      })
+      .filter(Boolean)
+      .sort((a, b) => b.etendue - a.etendue)
+      .map((z) => '<path class="zone' + (params.zone === z.zone ? " is-on" : "") +
+        '" d="' + contourZone(z.pts, marge) + '" fill="' + teinteZone(continent, z.rang, zonesList.length) +
+        '" data-zone="' + esc(z.zone) + '"><title>' + esc(z.zone) + " — " + z.membres.length +
+        " pays</title></path>")
+      .join("");
+
+    const pastilles = tousPoints.map((p) => {
+      const actif = params.country === p.nom;
+      const attenue = params.zone && zoneDe(p.nom) !== params.zone;
+      return '<circle class="pin' + (actif ? " is-on" : "") + (attenue ? " is-off" : "") +
+        '" cx="' + p.x + '" cy="' + p.y + '" r="' + (actif ? vue.w * 0.014 : vue.w * 0.008).toFixed(2) +
+        '" data-pays="' + esc(p.nom) + '"><title>' + esc(p.nom) + "</title></circle>";
+    }).join("");
+
+    return '<svg class="carte" viewBox="' + vue.x.toFixed(1) + " " + vue.y.toFixed(1) + " " +
+      vue.w.toFixed(1) + " " + vue.h.toFixed(1) + '" role="img" aria-label="Carte de ' + esc(continent) +
+      '" preserveAspectRatio="xMidYMid meet"><path class="carte-fond" d="' + DATA.carte.fond + '"/>' +
+      aires + pastilles + "</svg>";
   }
 
   function carteHtml() {
-    const carte = DATA.carte;
-    if (!carte || !carte.fond) return "";
-    const points = carte.points || {};
-    const filtre = params.continent;
-    const visibles = new Set(paysVisibles());
+    if (!DATA.carte || !DATA.carte.fond) return "";
+    const monde = params.continent === TOUS;
+    const svg = monde ? globeHtml() : continentHtml(params.continent);
+    if (!svg) return "";
+    const note = monde
+      ? "Vue d'ensemble. Choisissez un continent pour en détailler les zones."
+      : "Survolez une zone pour la mettre en évidence, cliquez-la pour n'en garder que les pays. Les teintes distinguent les zones et ne codent aucun montant ; les contours sont schématiques, ce ne sont pas des frontières.";
+    return '<div class="carte-bloc">' + svg + '<span class="note">' + esc(note) + "</span></div>";
+  }
 
-    // Le pays retenu est tracé en dernier pour rester au-dessus de ses voisins.
-    const noms = Object.keys(points).filter((n) => n !== params.country);
-    if (points[params.country]) noms.push(params.country);
-
-    const pastilles = noms.map((nom) => {
-      const [x, y] = points[nom];
-      const continent = continentDe(nom);
-      const actif = params.country === nom;
-      const attenue = filtre !== TOUS && !visibles.has(nom);
-      const r = actif ? 3.4 : 1.9;
-      const cls = "pin" + (actif ? " is-on" : "") + (attenue ? " is-off" : "");
-      return `<circle class="${cls}" cx="${x}" cy="${y}" r="${r}" fill="${teinte(continent)}"
-        data-pays="${esc(nom)}"><title>${esc(nom)}${continent ? " — " + esc(continent) : ""}</title></circle>`;
+  /* ---------- Panneau des zones ---------- */
+  function panneauZones() {
+    if (params.continent === TOUS) {
+      return '<span class="note">Choisissez un continent pour voir ses zones et les sociétés référencées.</span>';
+    }
+    const zonesList = zonesDuContinent(params.continent);
+    const ind = industrieCourante();
+    const lignes = zonesList.map(([zone, membres], i) => {
+      const e = effectif(zone);
+      const valeur = ind ? e.n : e.total;
+      const choisie = params.zone === zone;
+      const compte = valeur ? valeur + " société" + (valeur > 1 ? "s" : "") : "aucune société";
+      const places = valeur && e.places.length
+        ? '<span class="zone-places">' + e.places.map(esc).join(" · ") + "</span>" : "";
+      return '<button type="button" class="zone-ligne' + (choisie ? " is-on" : "") + '" data-zone="' + esc(zone) + '">' +
+        '<span class="zone-puce" style="background:' + teinteZone(params.continent, i, zonesList.length) + '"></span>' +
+        '<span class="zone-nom">' + esc(zone) + "</span>" +
+        '<span class="zone-pays">' + membres.length + " pays</span>" +
+        '<span class="zone-compte' + (valeur ? "" : " is-vide") + '">' + compte + "</span>" +
+        places + "</button>";
     }).join("");
-
-    const legende = continents().map((c) => {
-      const eteint = filtre !== TOUS && filtre !== c;
-      return `<button type="button" class="leg${eteint ? " is-off" : ""}" data-continent="${esc(c)}">
-        <span class="leg-dot" style="background:${teinte(c)}"></span>${esc(c)}</button>`;
-    }).join("");
-
-    return `
-      <div class="carte-bloc">
-        <svg class="carte" viewBox="0 0 360 180" role="img" aria-label="Carte des pays disponibles" preserveAspectRatio="xMidYMid meet">
-          <path class="carte-fond" d="${carte.fond}"/>
-          ${pastilles}
-        </svg>
-        <div class="carte-legende">
-          <button type="button" class="leg${filtre === TOUS ? "" : " is-off"}" data-continent="${TOUS}">
-            <span class="leg-dot leg-tous"></span>${TOUS}</button>
-          ${legende}
-        </div>
-        <span class="note">Cliquez un point pour choisir le pays, un continent pour filtrer la liste. Les couleurs distinguent les blocs géographiques, elles ne codent aucun montant.</span>
-      </div>`;
+    const rappel = ind
+      ? "Effectifs pour « " + ind + " ». Le détail société par société est dans l'onglet Sociétés."
+      : "Les sociétés référencées proviennent de la place d'Abidjan, qui ne couvre qu'une zone à ce jour. Passez au référentiel Comparables pour filtrer par industrie.";
+    return '<div class="zones-liste">' + lignes + '</div><span class="note">' + esc(rappel) + "</span>";
   }
 
   function stepperField(item) {
@@ -1193,13 +1388,9 @@
     return `
       <section class="card-block">
         <span class="block-head">
-          <h2>Sélection pays et industrie</h2>
+          <h2>Données de marché</h2>
           <span class="chips">${chips}</span>
         </span>
-        <div class="grid-2">
-          ${champPays("Sélectionner un pays")}
-          ${selectField("industry", "Sélectionner une industrie", DATA.options.industries)}
-        </div>
         <div class="tiles">
           ${model.market.map((m) => `
             <span class="tile">
@@ -1240,26 +1431,22 @@
     return `
       <section class="card-block">
         <span class="block-head">
-          <h2>Sélection de l'industrie</h2>
+          <h2>Comparables</h2>
           <span class="chips">
             <span class="chip">${tickers.length} société${tickers.length > 1 ? "s" : ""}</span>
-            <span class="chip is-accent">BRVM</span>
+            <span class="chip is-accent">Comparables</span>
           </span>
         </span>
-        <div class="grid-2">
-          <div style="display:grid;gap:20px;align-content:start">
-            ${selectField("industrie_brvm", "Industrie", BRVM.industries.map((i) => i.nom))}
-            ${champPays("Pays — détermine le taux d'imposition")}
-          </div>
-          <div class="soc-list">${lignes}</div>
-        </div>
+        <div class="soc-list">${lignes}</div>
         <span class="note">Sociétés cotées au ${esc((BRVM.maj || "").slice(0, 10))}, capitalisation en millions FCFA. Le détail de chacune est dans l'onglet Sociétés.</span>
       </section>`;
   }
 
   function renderParams() {
     const referentiels = BRVM
-      ? selectField("referentiel", "Référentiel", [["damodaran", "Damodaran"], ["brvm", "BRVM"]])
+      // La valeur reste « brvm » : elle circule dans les liens partagés et dans
+      // estBrvm(). Seul le libellé affiché change.
+      ? selectField("referentiel", "Référentiel", [["damodaran", "Damodaran"], ["brvm", "Comparables"]])
       : "";
 
     // Sous référentiel BRVM, la maturité se choisit sur la courbe souveraine de
@@ -1269,16 +1456,33 @@
       ? selectField("maturite_uemoa", "Maturité sur la courbe souveraine", courbe.points.map((p) => p[0]))
       : selectField("maturity", "Maturité du taux sans risque", DATA.options.maturities);
 
+    // L'industrie change de taxonomie selon le référentiel : les 12 secteurs des
+    // comparables, ou les 94 d'un référentiel de marché.
+    const champIndustrie = estBrvm() && BRVM
+      ? selectField("industrie_brvm", "Industrie", BRVM.industries.map((i) => i.nom))
+      : selectField("industry", "Industrie", DATA.options.industries);
+
     $("paramsMain").innerHTML = `
       <section class="card-block">
         <h2>Contexte de marché</h2>
         <div class="grid-2">
           ${selectField("year", "Année de valorisation", DATA.options.years)}
           ${champMaturite}
-          ${selectField("continent", "Continent", [TOUS].concat(continents()))}
           ${referentiels}
+          ${selectField("continent", "Continent", [TOUS].concat(continents()))}
         </div>
-        ${carteHtml()}
+      </section>
+
+      <section class="card-block">
+        <h2>Zone géographique</h2>
+        <div class="geo">
+          <div class="geo-carte">${carteHtml()}</div>
+          <div class="geo-choix">
+            ${panneauZones()}
+            ${champIndustrie}
+            ${champPays("Pays")}
+          </div>
+        </div>
       </section>
 
       ${estBrvm() ? blocBrvm() : blocDamodaran()}
@@ -1354,8 +1558,8 @@
     $("paramsMain").querySelectorAll("circle[data-pays]").forEach((pin) => {
       pin.addEventListener("click", () => setParam("country", pin.dataset.pays));
     });
-    $("paramsMain").querySelectorAll("button[data-continent]").forEach((btn) => {
-      btn.addEventListener("click", () => setParam("continent", btn.dataset.continent));
+    $("paramsMain").querySelectorAll("[data-zone]").forEach((el) => {
+      el.addEventListener("click", () => setParam("zone", el.dataset.zone));
     });
     $("paramsMain").querySelectorAll("button[data-step]").forEach((btn) => {
       btn.addEventListener("click", () => bumpParam(btn.dataset.step, Number(btn.dataset.dir)));
@@ -1581,6 +1785,13 @@
   }
 
   /* ================= Paramètres et URL ================= */
+  // Après un changement de continent ou de zone, le pays retenu peut être sorti
+  // de la liste visible. On le remplace par le premier de la nouvelle liste.
+  function recalerPays() {
+    const visibles = paysVisibles();
+    if (visibles.length && !visibles.includes(params.country)) params.country = visibles[0];
+  }
+
   function setParam(key, value) {
     if (key === "year") {
       value = Number(value);
@@ -1589,19 +1800,26 @@
       // la liste visible : le menu afficherait alors une valeur absente de ses
       // options, et le navigateur retomberait silencieusement sur la première.
       params.continent = value;
-      const visibles = paysVisibles();
-      if (!visibles.includes(params.country) && visibles.length) {
-        params.country = visibles[0];
-      }
+      params.zone = null;          // la zone appartenait au continent précédent
+      recalerPays();
+      apply();
+      return;
+    } else if (key === "zone") {
+      // Recliquer la zone déjà retenue la désélectionne : c'est le seul moyen de
+      // revenir au continent entier sans passer par le menu.
+      params.zone = params.zone === value ? null : value;
+      recalerPays();
       apply();
       return;
     } else if (key === "country") {
-      // Choisir un pays sur la carte alors qu'un autre continent est filtré :
-      // on suit le pays plutôt que de refuser le clic.
+      // Choisir un pays hors du filtre courant déplace le filtre plutôt que
+      // d'ignorer le clic.
       const cont = continentDe(value);
       if (params.continent !== TOUS && cont && cont !== params.continent) {
         params.continent = cont;
+        params.zone = null;
       }
+      if (params.zone && zoneDe(value) !== params.zone) params.zone = null;
     } else if (key === "industrie_brvm" && BRVM) {
       // Même tolérance que pour l'URL : accents et casse approximatifs acceptés,
       // et on conserve la valeur précédente plutôt qu'un libellé inconnu.
