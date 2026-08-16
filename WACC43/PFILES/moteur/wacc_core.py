@@ -392,9 +392,10 @@ def build_dataset(years=None, progress=None) -> dict:
     if inclassables:
         say(f"{len(inclassables)} pays sans zone : {', '.join(inclassables[:5])}")
 
-    # Carte : fond de trait et position projetée de chaque pays. Un pays sans
-    # position reste sélectionnable, il n'apparaît simplement pas sur la carte.
-    dataset["carte"] = {"fond": carte.FOND, "points": carte.points(pays)}
+    # Carte : le fond mondial sert au globe, les cartes de continent au cadrage
+    # par zone. Les positions ponctuelles ne sont plus embarquées : la page ne
+    # trace plus de pastilles.
+    dataset["carte"] = {"fond": carte.FOND, "continents": carte.CONTINENTS}
     sans_position = carte.verifier_couverture(pays)
     dataset["sans_position"] = sans_position
     if sans_position:

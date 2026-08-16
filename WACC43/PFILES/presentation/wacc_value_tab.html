@@ -285,17 +285,17 @@
   .carte-globe { max-width: 320px; margin: 0 auto; }
   .globe-mer { fill: #eef1f5; stroke: var(--line); stroke-width: 0.6; }
 
-  /* Zones : contours schématiques, pas des frontières. */
+  /* Zones : union des pays qui les composent, frontières réelles. */
   .zone {
     cursor: pointer;
-    fill-opacity: 0.3;
+    fill-opacity: 0.68;
     stroke: #ffffff;
-    stroke-width: 0.35;
+    stroke-width: 0.25;
     stroke-linejoin: round;
     transition: fill-opacity 120ms ease;
   }
-  .zone:hover { fill-opacity: 0.62; }
-  .zone.is-on { fill-opacity: 0.72; stroke-width: 0.6; }
+  .zone:hover { fill-opacity: 0.92; }
+  .zone.is-on { fill-opacity: 1; }
 
   /* Deux colonnes : la carte reste à gauche, les choix passent à droite. Sans
      légende sous le tracé, la carte prend la place qu'elle mérite. */
@@ -310,34 +310,13 @@
     .geo { grid-template-columns: 1fr; }
   }
 
-  /* Une seule ligne par zone : nom, nombre de pays, effectif, places. */
-  .zones-liste { display: grid; gap: 3px; }
-  .zone-ligne {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    padding: 7px 10px;
-    border: 1px solid var(--line);
-    border-radius: 8px;
-    background: var(--surface);
-    font: 400 12px/1.2 var(--sans);
-    color: var(--ink);
-    text-align: left;
-    cursor: pointer;
-  }
-  .zone-ligne:hover { border-color: var(--muted); }
-  .zone-ligne.is-on { border-color: var(--accent); background: var(--accent-tint); }
-  .zone-puce { width: 10px; height: 10px; border-radius: 3px; flex: none; }
-  .zone-nom { font-weight: 500; }
-  .zone-pays { color: var(--muted); font-size: 11px; margin-right: auto; }
-  .zone-compte { font: 600 11px/1 var(--mono); color: var(--green-ink); }
-  .zone-place {
-    font: 500 10px/1 var(--sans);
-    letter-spacing: 0.03em;
-    padding: 3px 6px;
-    border-radius: 4px;
-    background: var(--accent-soft);
-    color: var(--accent);
+  /* Pays du continent absents du jeu de données : tracés en neutre pour que le
+     continent reste entier plutôt que troué. */
+  .carte-hors {
+    fill: #e4e4e7;
+    stroke: #ffffff;
+    stroke-width: 0.25;
+    stroke-linejoin: round;
   }
 
   /* ---------- Aside résultat ---------- */
@@ -1174,59 +1153,6 @@
     return "color-mix(in srgb, " + base + " " + (100 - Math.round(l * 45)) + "%, white)";
   }
 
-  function pointsDe(noms) {
-    const pts = DATA.carte ? DATA.carte.points || {} : {};
-    return noms.map((n) => (pts[n] ? { nom: n, x: pts[n][0], y: pts[n][1] } : null)).filter(Boolean);
-  }
-
-  function enveloppe(points) {
-    if (points.length < 3) return points.slice();
-    const p = points.slice().sort((a, b) => a[0] - b[0] || a[1] - b[1]);
-    const croix = (o, a, b) => (a[0] - o[0]) * (b[1] - o[1]) - (a[1] - o[1]) * (b[0] - o[0]);
-    const bas = [], haut = [];
-    for (const q of p) {
-      while (bas.length >= 2 && croix(bas[bas.length - 2], bas[bas.length - 1], q) <= 0) bas.pop();
-      bas.push(q);
-    }
-    for (let i = p.length - 1; i >= 0; i--) {
-      const q = p[i];
-      while (haut.length >= 2 && croix(haut[haut.length - 2], haut[haut.length - 1], q) <= 0) haut.pop();
-      haut.push(q);
-    }
-    bas.pop(); haut.pop();
-    return bas.concat(haut);
-  }
-
-  // Contour schématique d'une zone : enveloppe convexe de ses pays, dilatée pour
-  // que le trait ne passe pas sur les points eux-mêmes. Ce n'est pas une
-  // frontière, c'est un repère de lecture.
-  function contourZone(points, marge) {
-    if (!points.length) return "";
-    const cx = points.reduce((s, p) => s + p[0], 0) / points.length;
-    const cy = points.reduce((s, p) => s + p[1], 0) / points.length;
-    if (points.length < 3) {
-      const r = (points.length === 1 ? 2.6 : 3.4) + marge;
-      return "M" + (cx - r) + " " + cy + "a" + r + " " + r + " 0 1 0 " + (r * 2) + " 0a" + r + " " + r + " 0 1 0 " + (-r * 2) + " 0Z";
-    }
-    const dilate = enveloppe(points).map(([x, y]) => {
-      const dx = x - cx, dy = y - cy;
-      const d = Math.hypot(dx, dy) || 1;
-      return [x + (dx / d) * marge, y + (dy / d) * marge];
-    });
-    return "M" + dilate.map(([x, y]) => x.toFixed(1) + " " + y.toFixed(1)).join("L") + "Z";
-  }
-
-  function cadre(points, marge) {
-    const xs = points.map((p) => p.x), ys = points.map((p) => p.y);
-    const x0 = Math.min.apply(null, xs) - marge, x1 = Math.max.apply(null, xs) + marge;
-    const y0 = Math.min.apply(null, ys) - marge, y1 = Math.max.apply(null, ys) + marge;
-    // Rapport 2:1 imposé, sinon un continent étiré déforme le fond de carte.
-    let w = x1 - x0, h = y1 - y0;
-    const cx = (x0 + x1) / 2, cy = (y0 + y1) / 2;
-    if (w / h < 2) w = h * 2; else h = w / 2;
-    return { x: cx - w / 2, y: cy - h / 2, w: w, h: h };
-  }
-
   /* ---------- Globe, pour le continent « Tous » ---------- */
   let globeLon = 15, globeLat = 12;
   let anneauxCache = null;
@@ -1275,37 +1201,21 @@
   }
 
   /* ---------- Carte d'un continent ---------- */
+  // Le tracé suit les frontières réelles : chaque zone est l'union des pays qui
+  // la composent. Les pays du continent absents du jeu Damodaran sont dessinés
+  // en neutre, sinon le continent apparaîtrait troué.
   function continentHtml(continent) {
-    const zonesList = zonesDuContinent(continent);
-    const tousPoints = pointsDe(zonesList.flatMap(([, membres]) => membres));
-    if (!tousPoints.length) return "";
-    const vue = cadre(tousPoints, 6);
-    const marge = Math.max(1.5, vue.w * 0.012);
+    const bloc = (DATA.carte.continents || {})[continent];
+    if (!bloc) return "";
+    const noms = Object.keys(bloc.zones || {});
+    const aires = noms.map((zone, i) =>
+      '<path class="zone' + (params.zone === zone ? " is-on" : "") + '" d="' + bloc.zones[zone] +
+      '" fill="' + teinteZone(continent, i, noms.length) + '" data-zone="' + esc(zone) +
+      '"><title>' + esc(zone) + "</title></path>").join("");
 
-    // Les enveloppes se recouvrent — les Caraïbes tombent dans celle de
-    // l'Amérique latine, le Moyen-Orient dans celle de l'Asie. On trace les plus
-    // étendues en premier pour que les plus petites restent cliquables et
-    // lisibles au-dessus.
-    const aires = zonesList
-      .map(([zone, membres], i) => {
-        const pts = pointsDe(membres).map((p) => [p.x, p.y]);
-        if (!pts.length) return null;
-        const xs = pts.map((p) => p[0]), ys = pts.map((p) => p[1]);
-        const etendue = (Math.max.apply(null, xs) - Math.min.apply(null, xs) + 1) *
-                        (Math.max.apply(null, ys) - Math.min.apply(null, ys) + 1);
-        return { zone: zone, membres: membres, pts: pts, rang: i, etendue: etendue };
-      })
-      .filter(Boolean)
-      .sort((a, b) => b.etendue - a.etendue)
-      .map((z) => '<path class="zone' + (params.zone === z.zone ? " is-on" : "") +
-        '" d="' + contourZone(z.pts, marge) + '" fill="' + teinteZone(continent, z.rang, zonesList.length) +
-        '" data-zone="' + esc(z.zone) + '"><title>' + esc(z.zone) + " — " + z.membres.length +
-        " pays</title></path>")
-      .join("");
-
-    return '<svg class="carte" viewBox="' + vue.x.toFixed(1) + " " + vue.y.toFixed(1) + " " +
-      vue.w.toFixed(1) + " " + vue.h.toFixed(1) + '" role="img" aria-label="Carte de ' + esc(continent) +
-      '" preserveAspectRatio="xMidYMid meet"><path class="carte-fond" d="' + DATA.carte.fond + '"/>' +
+    return '<svg class="carte" viewBox="' + bloc.vue.join(" ") + '" role="img" aria-label="Carte de ' +
+      esc(continent) + '" preserveAspectRatio="xMidYMid meet">' +
+      (bloc.autres ? '<path class="carte-hors" d="' + bloc.autres + '"/>' : "") +
       aires + "</svg>";
   }
 
@@ -1315,27 +1225,34 @@
     return svg ? '<div class="carte-bloc">' + svg + "</div>" : "";
   }
 
-  /* ---------- Panneau des zones ---------- */
-  // Une ligne par zone : le nom, le nombre de pays, puis les places de cotation
-  // où des sociétés sont référencées. Une zone sans société n'affiche pas de
-  // place — l'absence se lit d'elle-même, sans qu'il faille l'écrire.
-  function panneauZones() {
+  /* ---------- Bulles de résumé ---------- */
+  // Deux bulles sur la ligne de titre : ce qui est cadré et combien de sociétés
+  // s'y rattachent, puis les places d'où ces sociétés proviennent. Sans zone
+  // retenue, le résumé porte sur le continent entier.
+  function resumeCadrage() {
     if (params.continent === TOUS) return "";
-    const zonesList = zonesDuContinent(params.continent);
     const ind = industrieCourante();
-    return '<div class="zones-liste">' + zonesList.map(([zone, membres], i) => {
+    const perimetre = params.zone || params.continent;
+    const zonesRetenues = params.zone
+      ? [params.zone]
+      : zonesDuContinent(params.continent).map(([z]) => z);
+
+    let n = 0;
+    const places = [];
+    zonesRetenues.forEach((zone) => {
       const e = effectif(zone);
-      const valeur = ind ? e.n : e.total;
-      const places = valeur && e.places.length
-        ? e.places.map((p) => '<span class="zone-place">' + esc(p) + "</span>").join("") : "";
-      return '<button type="button" class="zone-ligne' + (params.zone === zone ? " is-on" : "") +
-        '" data-zone="' + esc(zone) + '">' +
-        '<span class="zone-puce" style="background:' + teinteZone(params.continent, i, zonesList.length) + '"></span>' +
-        '<span class="zone-nom">' + esc(zone) + "</span>" +
-        '<span class="zone-pays">' + membres.length + " pays</span>" +
-        (valeur ? '<span class="zone-compte">' + valeur + "</span>" : "") +
-        places + "</button>";
-    }).join("") + "</div>";
+      n += (ind ? e.n : e.total) || 0;
+      e.places.forEach((p) => { if (places.indexOf(p) === -1) places.push(p); });
+    });
+
+    const libelle = n
+      ? n + " société" + (n > 1 ? "s" : "")
+      : "aucune société";
+    const bulles = ['<span class="chip">' + esc(perimetre) + " · " + libelle + "</span>"];
+    if (n && places.length) {
+      bulles.push('<span class="chip is-accent">' + places.map(esc).join(" · ") + "</span>");
+    }
+    return bulles.join("");
   }
 
   function stepperField(item) {
@@ -1446,11 +1363,13 @@
       </section>
 
       <section class="card-block">
-        <h2>Zone géographique</h2>
+        <span class="block-head">
+          <h2>Cadrage</h2>
+          <span class="chips">${resumeCadrage()}</span>
+        </span>
         <div class="geo">
           <div class="geo-carte">${carteHtml()}</div>
           <div class="geo-choix">
-            ${panneauZones()}
             ${champIndustrie}
             ${champPays("Pays")}
           </div>
