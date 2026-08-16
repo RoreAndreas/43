@@ -188,11 +188,50 @@ def _extract_consensus(tables):
     return out
 
 
-def _extract_finance(session, fiche_url):
-    """Onglet FINANCE (/finance/TICKER) : dernier exercice annuel — résultat net,
-    capitaux propres, dette nette, chiffre d'affaires (en MFCFA)."""
+# Postes suivis dans les tableaux annuels de l'onglet FINANCE. Les motifs sont
+# ancrés en début de libellé pour ne pas attraper « Croissance CA », « Marge
+# nette » ou « Ratio endettement net », qui vivent dans les mêmes tableaux.
+_POSTES_FINANCE = [
+    ("chiffre_affaires",     [r"^Chiffre d'affaires"]),
+    ("ebit",                 [r"^EBIT$"]),
+    ("ebitda",               [r"^EBITDA"]),
+    ("charges_exploitation", [r"^Charges d'exploitation"]),
+    ("resultat_net",         [r"^R[ée]sultat net"]),
+    ("capitaux_propres",     [r"^Capitaux propres", r"^Fonds propres"]),
+    ("dette_nette",          [r"^Dette nette"]),
+    # Trésorerie : permet de reconstituer la dette brute (= dette nette + trésorerie),
+    # seule base saine pour un gearing — la dette nette est négative chez plusieurs
+    # sociétés, et un gearing négatif n'a pas de sens au réendettement du bêta.
+    ("tresorerie",           [r"^Tr[ée]sorerie"]),
+]
+
+_ANNEE = re.compile(r"^(19|20)\d{2}$")
+
+
+def _extract_presentation(soup):
+    """
+    Texte de présentation de la société, tel qu'affiché sur la fiche
+    (activité, actionnariat, historique). Bloc `div.alj` de la zone `fch_z1`.
+    """
+    blocs = soup.select("div.fch_z1 div.alj")
+    texte = " ".join(b.get_text(" ", strip=True) for b in blocs).strip()
+    return texte or None
+
+
+def _extract_finance(session, fiche_url, n_annees=3):
+    """
+    Onglet FINANCE (/finance/TICKER) : séries annuelles en MFCFA.
+
+    Les tableaux portent une ligne d'en-tête d'exercices (2021 | 2022 | …) et
+    une ligne par poste. On reconstruit {poste: {année: valeur}}, puis on ne
+    conserve que les `n_annees` derniers exercices.
+
+    Retourne les clés à plat du dernier exercice renseigné — compatibilité avec
+    l'existant — enrichies d'une clé `finances` portant les séries.
+    """
     out = {"resultat_net_annuel": None, "capitaux_propres": None,
-           "dette_nette_annuelle": None, "chiffre_affaires_annuel": None}
+           "dette_nette_annuelle": None, "chiffre_affaires_annuel": None,
+           "finances": None}
     fin_url = fiche_url.replace("/fiche/", "/finance/")
     try:
         resp = session.get(fin_url, timeout=30)
@@ -203,28 +242,54 @@ def _extract_finance(session, fiche_url):
 
     soup = BeautifulSoup(resp.text, "html.parser")
 
-    def last_value(patterns, exclude=("croissance", "marge", "%")):
-        """Dans une ligne de tableau dont le libellé matche, renvoie la DERNIÈRE
-        valeur numérique (l'exercice le plus récent)."""
-        for table in soup.find_all("table"):
-            for row in table.find_all("tr"):
-                cells = row.find_all(["th", "td"])
-                if len(cells) < 2:
-                    continue
-                head = cells[0].get_text(" ", strip=True)
-                if any(x in head.lower() for x in exclude):
-                    continue
-                if any(re.search(p, head, re.IGNORECASE) for p in patterns):
-                    for cell in reversed(cells[1:]):
-                        v = _parse_price(cell.get_text(" ", strip=True))
-                        if v is not None:
-                            return v
+    series = {poste: {} for poste, _ in _POSTES_FINANCE}
+    annees_vues = set()
+
+    for table in soup.find_all("table"):
+        colonnes = None  # index de colonne -> année, dès qu'on a vu l'en-tête
+        for row in table.find_all("tr"):
+            cells = [c.get_text(" ", strip=True) for c in row.find_all(["th", "td"])]
+            if len(cells) < 2:
+                continue
+
+            annees = {i: int(c) for i, c in enumerate(cells) if _ANNEE.match(c)}
+            if len(annees) >= 2:          # ligne d'en-tête : au moins deux exercices
+                colonnes = annees
+                annees_vues |= set(annees.values())
+                continue
+            if not colonnes:
+                continue
+
+            libelle = cells[0]
+            for poste, motifs in _POSTES_FINANCE:
+                if any(re.search(m, libelle, re.IGNORECASE) for m in motifs):
+                    for i, annee in colonnes.items():
+                        if i < len(cells):
+                            valeur = _parse_price(cells[i])
+                            if valeur is not None:
+                                series[poste][annee] = valeur
+                    break
+
+    if not annees_vues:
+        print(f"[AVERTISSEMENT] Aucun tableau annuel exploitable sur {fin_url}")
+        return out
+
+    retenues = sorted(annees_vues)[-n_annees:]
+    out["finances"] = {
+        "annees": retenues,
+        **{poste: {str(a): series[poste].get(a) for a in retenues} for poste, _ in _POSTES_FINANCE},
+    }
+
+    # Clés historiques : dernier exercice effectivement renseigné.
+    def dernier(poste):
+        for annee in sorted(series[poste], reverse=True):
+            return series[poste][annee]
         return None
 
-    out["resultat_net_annuel"]     = last_value([r"^R[ée]sultat net"])
-    out["capitaux_propres"]        = last_value([r"Capitaux propres", r"Fonds propres"])
-    out["dette_nette_annuelle"]    = last_value([r"Dette nette"])
-    out["chiffre_affaires_annuel"] = last_value([r"Chiffre d'affaires"])
+    out["resultat_net_annuel"]     = dernier("resultat_net")
+    out["capitaux_propres"]        = dernier("capitaux_propres")
+    out["dette_nette_annuelle"]    = dernier("dette_nette")
+    out["chiffre_affaires_annuel"] = dernier("chiffre_affaires")
     return out
 
 
@@ -346,6 +411,7 @@ def scrape_ticker(session, url):
     result = {
         "ticker":               ticker,
         "nom_societe":          nom_societe,
+        "presentation":         _extract_presentation(soup),
         "cours_bas_1mois":      cours_bas_1mois,
         "cours_bas_1mois_str":  cours_bas_1mois_str,
         "cours_haut_1mois":     cours_haut_1mois,

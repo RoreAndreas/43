@@ -524,6 +524,87 @@
     color: var(--ink-3);
   }
 
+  /* ---------- Référentiel BRVM ---------- */
+  .soc-list {
+    display: grid;
+    gap: 1px;
+    background: var(--line);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    overflow: hidden;
+  }
+  .soc-line {
+    background: var(--tile);
+    padding: 11px 14px;
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 12px;
+  }
+  .soc-ident { display: flex; align-items: baseline; gap: 9px; min-width: 0; }
+  .soc-flag { font-size: 15px; line-height: 1; }
+  .soc-nom {
+    font: 400 12.5px/1.4 var(--sans);
+    color: var(--ink);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .soc-pays { font: 400 10.5px/1.4 var(--mono); color: var(--muted-2); }
+  .soc-cap {
+    font: 500 12.5px/1 var(--mono);
+    font-variant-numeric: tabular-nums;
+    color: var(--ink-3);
+    white-space: nowrap;
+  }
+  .fin-table {
+    width: 100%;
+    border-collapse: collapse;
+    font: 400 12.5px/1.5 var(--sans);
+  }
+  .fin-table th, .fin-table td {
+    padding: 7px 0;
+    border-bottom: 1px solid #f1f2f6;
+    text-align: right;
+    font-family: var(--mono);
+    font-variant-numeric: tabular-nums;
+    color: var(--ink);
+    white-space: nowrap;
+  }
+  .fin-table th:first-child, .fin-table td:first-child {
+    text-align: left;
+    font-family: var(--sans);
+    color: var(--ink-4);
+  }
+  .fin-table thead th {
+    font: 400 10px/1.7 var(--mono);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+  .fin-table tbody tr:last-child td { border-bottom: 0; }
+  .notice {
+    border: 1px dashed var(--line);
+    border-radius: var(--radius, 10px);
+    background: var(--tile);
+    padding: 18px 20px;
+    display: grid;
+    gap: 8px;
+  }
+  .notice h3 {
+    margin: 0;
+    font: 400 10px/1 var(--mono);
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+  .notice p {
+    margin: 0;
+    font: 400 13px/1.65 var(--sans);
+    color: var(--ink-3);
+    text-wrap: pretty;
+  }
+
   [hidden] { display: none !important; }
   .is-busy { opacity: .55; transition: opacity 160ms ease; }
   .is-locked { pointer-events: none; }
@@ -550,6 +631,8 @@
     <nav class="tabs">
       <button type="button" data-tab="params" class="is-active">Paramètres</button>
       <button type="button" data-tab="wacc">CMPC</button>
+      <!-- N'apparaît qu'avec le référentiel BRVM -->
+      <button type="button" data-tab="societes" id="tabSocietes" hidden>Sociétés</button>
     </nav>
   </div>
 </header>
@@ -564,6 +647,14 @@
   <div class="frame-col" id="frameCol">
     <span class="frame-arrow" id="frameArrow"></span>
     <div class="frame" id="frame"></div>
+  </div>
+</main>
+
+<main class="wacc" id="panel-societes" hidden>
+  <section class="stack" id="stackSoc"></section>
+  <div class="frame-col" id="frameColSoc">
+    <span class="frame-arrow" id="frameArrowSoc"></span>
+    <div class="frame" id="frameSoc"></div>
   </div>
 </main>
 
@@ -596,10 +687,30 @@
   const frNum = (v, dec) => v.toFixed(dec === undefined ? 2 : dec).replace(".", ",");
   const frPts = (v) => (v * 100).toFixed(2).replace(".", ",") + (Math.abs(v * 100) < 2 ? " pt" : " pts");
 
+  const BRVM = DATA.brvm || null;
+
   let params = Object.assign({}, DATA.defaults);
+  if (!params.referentiel) params.referentiel = "damodaran";
+  if (!params.industrie_brvm && BRVM && BRVM.industries.length) {
+    params.industrie_brvm = BRVM.industries[0].nom;
+  }
   let model = null;
   let tab = "params";   // on règle les hypothèses avant de lire le résultat
-  let openId = null;
+
+  const estBrvm = () => Boolean(BRVM) && params.referentiel === "brvm";
+  const industrieBrvm = () =>
+    (BRVM && BRVM.industries.find((i) => i.nom === params.industrie_brvm)) ||
+    (BRVM && BRVM.industries[0]) || null;
+
+  const frMontant = (v) =>
+    v == null ? "—" : Math.round(v).toString().replace(/\B(?=(\d{3})+(?!\d))/g, " ") + " M";
+
+  // Les deux colonnes de cartes — CMPC et Sociétés — partagent la même mécanique :
+  // une carte dépliée à la fois, un panneau de détail, une flèche qui la pointe.
+  const PANNEAUX = {
+    cmpc: { stack: "stack", frame: "frame", col: "frameCol", arrow: "frameArrow", ouvert: null, items: [], detail: null },
+    soc:  { stack: "stackSoc", frame: "frameSoc", col: "frameColSoc", arrow: "frameArrowSoc", ouvert: null, items: [], detail: null }
+  };
 
   /* ================= Calcul =================
      Transcription de wacc_core.py : les mêmes formules, appliquées dans le
@@ -783,12 +894,17 @@
 
   /* ================= Onglets ================= */
   function renderTabs() {
+    // L'onglet Sociétés n'existe que sous référentiel BRVM.
+    if (!estBrvm() && tab === "societes") tab = "params";
+    $("tabSocietes").hidden = !estBrvm();
+
     document.querySelectorAll(".tabs button").forEach((b) => {
       b.classList.toggle("is-active", b.dataset.tab === tab);
     });
     $("panel-params").hidden = tab !== "params";
     $("panel-wacc").hidden = tab !== "wacc";
-    if (tab === "wacc") requestAnimationFrame(placeArrow);
+    $("panel-societes").hidden = tab !== "societes";
+    if (tab === "wacc" || tab === "societes") requestAnimationFrame(placeArrows);
   }
   document.querySelectorAll(".tabs button").forEach((b) => {
     b.addEventListener("click", () => { tab = b.dataset.tab; renderTabs(); });
@@ -796,12 +912,14 @@
 
   /* ================= Onglet Paramètres ================= */
   function selectField(key, label, options) {
+    // Une option est soit une valeur brute, soit un couple [valeur, libellé].
+    const choix = options.map((o) => (Array.isArray(o) ? o : [o, o]));
     return `
       <span class="field">
         <span class="field-label">${esc(label)}</span>
         <span class="select-wrap">
           <select data-param="${key}">
-            ${options.map((o) => `<option value="${esc(o)}"${String(o) === String(params[key]) ? " selected" : ""}>${esc(o)}</option>`).join("")}
+            ${choix.map(([v, l]) => `<option value="${esc(v)}"${String(v) === String(params[key]) ? " selected" : ""}>${esc(l)}</option>`).join("")}
           </select>
           ${CHEVRON}
         </span>
@@ -825,18 +943,9 @@
       </span>`;
   }
 
-  function renderParams() {
+  function blocDamodaran() {
     const chips = model.chips.map((c) => `<span class="chip">${esc(c)}</span>`).join("");
-
-    $("paramsMain").innerHTML = `
-      <section class="card-block">
-        <h2>Contexte de marché</h2>
-        <div class="grid-2">
-          ${selectField("year", "Année de valorisation", DATA.options.years)}
-          ${selectField("maturity", "Maturité du taux sans risque", DATA.options.maturities)}
-        </div>
-      </section>
-
+    return `
       <section class="card-block">
         <span class="block-head">
           <h2>Sélection pays et industrie</h2>
@@ -854,12 +963,93 @@
             </span>`).join("")}
         </div>
         ${model.notes.length ? `<span class="note">${model.notes.map(esc).join(" · ")}</span>` : ""}
+      </section>`;
+  }
+
+  function blocBrvm() {
+    const ind = industrieBrvm();
+    const tickers = ind ? ind.tickers : [];
+    const lignes = tickers.map((t) => {
+      const s = BRVM.societes[t];
+      return `
+        <span class="soc-line">
+          <span class="soc-ident">
+            <span class="soc-flag">${s.drapeau}</span>
+            <span class="soc-nom">${esc(s.nom)}</span>
+            <span class="soc-pays">${esc(t)}</span>
+          </span>
+          <span class="soc-cap">${esc(frMontant(s.capitalisation))}</span>
+        </span>`;
+    }).join("");
+
+    return `
+      <section class="card-block">
+        <span class="block-head">
+          <h2>Sélection de l'industrie</h2>
+          <span class="chips">
+            <span class="chip">${tickers.length} société${tickers.length > 1 ? "s" : ""}</span>
+            <span class="chip is-accent">BRVM</span>
+          </span>
+        </span>
+        <div class="grid-2">
+          <div style="display:grid;gap:20px;align-content:start">
+            ${selectField("industrie_brvm", "Industrie", BRVM.industries.map((i) => i.nom))}
+            ${selectField("country", "Pays — détermine le taux d'imposition", DATA.options.countries)}
+          </div>
+          <div class="soc-list">${lignes}</div>
+        </div>
+        <span class="note">Sociétés cotées au ${esc((BRVM.maj || "").slice(0, 10))}, capitalisation en millions FCFA. Le détail de chacune est dans l'onglet Sociétés.</span>
+      </section>`;
+  }
+
+  function renderParams() {
+    const referentiels = BRVM
+      ? selectField("referentiel", "Référentiel", [["damodaran", "Damodaran"], ["brvm", "BRVM"]])
+      : "";
+
+    $("paramsMain").innerHTML = `
+      <section class="card-block">
+        <h2>Contexte de marché</h2>
+        <div class="grid-2">
+          ${selectField("year", "Année de valorisation", DATA.options.years)}
+          ${selectField("maturity", "Maturité du taux sans risque", DATA.options.maturities)}
+          ${referentiels}
+        </div>
       </section>
+
+      ${estBrvm() ? blocBrvm() : blocDamodaran()}
 
       <section class="card-block">
         <h2>Paramètres manuels</h2>
         <div class="grid-2">${MANUAL.map(stepperField).join("")}</div>
       </section>`;
+
+    if (estBrvm()) {
+      const ind = industrieBrvm();
+      const tickers = ind ? ind.tickers : [];
+      const betas = tickers.map((t) => BRVM.societes[t].beta).filter((b) => b != null);
+      const caps = tickers.map((t) => BRVM.societes[t].capitalisation).filter((c) => c != null);
+      $("paramsResult").innerHTML = `
+        <h2>Secteur BRVM</h2>
+        <span class="result-hero">
+          <span class="field-label">CMPC calculé</span>
+          <span class="result-hero-row">
+            <span class="result-hero-value" style="color:var(--muted-2)">—</span>
+          </span>
+        </span>
+        <span class="result-rows">
+          <span class="result-row"><span>Sociétés du secteur</span><span>${tickers.length}</span></span>
+          <span class="result-row"><span>Bêta coté moyen</span><span>${betas.length ? frNum(betas.reduce((a, b) => a + b, 0) / betas.length, 2) : "—"}</span></span>
+          <span class="result-row"><span>Capitalisation cumulée</span><span>${esc(frMontant(caps.reduce((a, b) => a + b, 0)))}</span></span>
+          <span class="result-row"><span>Taux sans risque</span><span>à définir</span></span>
+          <span class="result-row"><span>Gearing sectoriel</span><span>à définir</span></span>
+        </span>
+        <button type="button" class="cta" id="goSoc">Voir les sociétés</button>
+        <span class="note">Le CMPC n'est pas calculé sur ce référentiel tant que le taux sans risque local et le gearing sectoriel ne sont pas arrêtés. Les bêtas affichés sont les bêtas cotés à un an, non désendettés.</span>`;
+      $("goSoc").addEventListener("click", () => { tab = "societes"; renderTabs(); });
+      brancherChamps();
+      return;
+    }
 
     const r = model.result;
     $("paramsResult").innerHTML = `
@@ -886,7 +1076,10 @@
       <span class="note">Le CMPC est recalculé à chaque modification. Le taux sans risque, la prime de risque marché et le bêta proviennent de la base de marché.</span>`;
 
     $("goWacc").addEventListener("click", () => { tab = "wacc"; renderTabs(); });
+    brancherChamps();
+  }
 
+  function brancherChamps() {
     $("paramsMain").querySelectorAll("select[data-param]").forEach((sel) => {
       sel.addEventListener("change", () => setParam(sel.dataset.param, sel.value));
     });
@@ -895,17 +1088,18 @@
     });
   }
 
-  /* ================= Onglet CMPC ================= */
-  function renderStack() {
-    $("stack").innerHTML = model.components.map((c) => `
+  /* ================= Colonnes de cartes (CMPC et Sociétés) ================= */
+  function renderStack(cle) {
+    const pan = PANNEAUX[cle];
+    $(pan.stack).innerHTML = pan.items.map((c) => `
       <div class="comp${c.tone && c.tone !== "accent" ? " tone-" + c.tone : ""}${c.final ? " is-final" : ""}" data-comp="${esc(c.id)}">
         <button type="button" class="comp-head" aria-expanded="false">
-          <span class="comp-title">${esc(c.title)}</span>
+          <span class="comp-title">${c.titleHtml || esc(c.title)}</span>
           <span class="comp-value">${esc(c.value)}</span>
         </button>
         <div class="comp-wrap"><div class="comp-clip"><div class="comp-body">
           <span class="sub-rows">
-            ${c.rows.map((r) => `
+            ${(c.rows || []).map((r) => `
               <span class="sub-row${r.strong ? " is-strong" : ""}">
                 <span>${esc(r.label)}</span><span>${esc(r.value)}</span>
               </span>`).join("")}
@@ -913,88 +1107,191 @@
         </div></div></div>
       </div>`).join("");
 
-    $("stack").querySelectorAll(".comp").forEach((el) => {
-      el.querySelector(".comp-head").addEventListener("click", () => toggle(el.dataset.comp));
+    $(pan.stack).querySelectorAll(".comp").forEach((el) => {
+      el.querySelector(".comp-head").addEventListener("click", () => toggle(cle, el.dataset.comp));
     });
   }
 
-  function renderFrame() {
-    $("frame").innerHTML = model.components.map((c) => {
-      const compo = c.composition ? `
-        <span class="composition">
-          <span class="bar">
-            <span class="eq" style="width:${c.composition.equityPct}%"></span>
-            <span class="dt" style="width:${c.composition.debtPct}%"></span>
-          </span>
-          <span class="composition-legend">
-            <span>Fonds propres ${esc(c.composition.equity)}</span>
-            <span>Dette ${esc(c.composition.debt)}</span>
-          </span>
-        </span>` : "";
-      const rows = [
-        ["Méthodologie", c.methodology],
-        ["Source", c.source],
-        ["Hypothèse", c.hypothesis],
-        ["Retenu", c.retained]
-      ].filter(([, t]) => Boolean(t));
-      return `
-        <div class="detail${c.tone && c.tone !== "accent" ? " tone-" + c.tone : ""}" data-detail="${esc(c.id)}">
-          <span class="detail-head">
-            <span class="detail-title">${esc(c.title)}</span>
-            <span class="detail-symbol">${esc(c.symbol)}</span>
-          </span>
-          ${compo}
-          <span class="detail-grid">
-            ${rows.map(([l, t]) => `<span class="detail-label">${esc(l)}</span><span class="detail-text">${esc(t)}</span>`).join("")}
-          </span>
-          ${c.formula && c.formula.length ? `<code>${c.formula.map(esc).join("<br>")}</code>` : ""}
-        </div>`;
-    }).join("");
+  function renderFrame(cle) {
+    const pan = PANNEAUX[cle];
+    $(pan.frame).innerHTML = pan.items.map((c) => `
+      <div class="detail${c.tone && c.tone !== "accent" ? " tone-" + c.tone : ""}" data-detail="${esc(c.id)}">
+        ${pan.detail(c)}
+      </div>`).join("");
   }
 
-  function toggle(id) {
-    openId = openId === id ? null : id;
-    const comp = model.components.find((c) => c.id === openId);
-    const tone = comp && comp.tone && comp.tone !== "accent" ? comp.tone : null;
+  function toggle(cle, id) {
+    const pan = PANNEAUX[cle];
+    pan.ouvert = pan.ouvert === id ? null : id;
+    const item = pan.items.find((c) => c.id === pan.ouvert);
+    const tone = item && item.tone && item.tone !== "accent" ? item.tone : null;
 
-    $("stack").querySelectorAll(".comp").forEach((el) => {
-      const on = el.dataset.comp === openId;
+    $(pan.stack).querySelectorAll(".comp").forEach((el) => {
+      const on = el.dataset.comp === pan.ouvert;
       el.classList.toggle("is-open", on);
       el.querySelector(".comp-head").setAttribute("aria-expanded", on ? "true" : "false");
     });
-    $("frame").querySelectorAll(".detail").forEach((el) => {
-      el.classList.toggle("is-shown", el.dataset.detail === openId);
+    $(pan.frame).querySelectorAll(".detail").forEach((el) => {
+      el.classList.toggle("is-shown", el.dataset.detail === pan.ouvert);
     });
 
-    const col = $("frameCol");
-    col.classList.toggle("is-on", Boolean(openId));
+    const col = $(pan.col);
+    col.classList.toggle("is-on", Boolean(pan.ouvert));
     col.classList.remove("tone-green", "tone-blue");
     if (tone) col.classList.add("tone-" + tone);
 
-    placeArrow();
-    setTimeout(placeArrow, 200);
-    setTimeout(placeArrow, 460);
+    placeArrow(cle);
+    setTimeout(() => placeArrow(cle), 200);
+    setTimeout(() => placeArrow(cle), 460);
   }
 
-  function placeArrow() {
-    const col = $("frameCol");
-    const arrow = $("frameArrow");
-    if (!openId) return;
-    const head = $("stack").querySelector('.comp[data-comp="' + CSS.escape(openId) + '"] .comp-head');
+  function placeArrow(cle) {
+    const pan = PANNEAUX[cle];
+    if (!pan.ouvert) return;
+    const col = $(pan.col);
+    const head = $(pan.stack).querySelector('.comp[data-comp="' + CSS.escape(pan.ouvert) + '"] .comp-head');
     if (!head) return;
     const cr = col.getBoundingClientRect();
     const hr = head.getBoundingClientRect();
     const max = Math.max(40, cr.height - 30);
     const y = hr.top + hr.height / 2 - cr.top - 6;
-    arrow.style.top = Math.round(Math.min(max, Math.max(16, y))) + "px";
+    $(pan.arrow).style.top = Math.round(Math.min(max, Math.max(16, y))) + "px";
   }
 
-  window.addEventListener("resize", placeArrow);
-  if (document.fonts && document.fonts.ready) document.fonts.ready.then(placeArrow);
+  function placeArrows() {
+    Object.keys(PANNEAUX).forEach(placeArrow);
+  }
+
+  window.addEventListener("resize", placeArrows);
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(placeArrows);
+
+  /* ---- Détail d'une composante du CMPC ---- */
+  function detailComposante(c) {
+    const compo = c.composition ? `
+      <span class="composition">
+        <span class="bar">
+          <span class="eq" style="width:${c.composition.equityPct}%"></span>
+          <span class="dt" style="width:${c.composition.debtPct}%"></span>
+        </span>
+        <span class="composition-legend">
+          <span>Fonds propres ${esc(c.composition.equity)}</span>
+          <span>Dette ${esc(c.composition.debt)}</span>
+        </span>
+      </span>` : "";
+    const rows = [
+      ["Méthodologie", c.methodology],
+      ["Source", c.source],
+      ["Hypothèse", c.hypothesis],
+      ["Retenu", c.retained]
+    ].filter(([, t]) => Boolean(t));
+    return `
+      <span class="detail-head">
+        <span class="detail-title">${esc(c.title)}</span>
+        <span class="detail-symbol">${esc(c.symbol)}</span>
+      </span>
+      ${compo}
+      <span class="detail-grid">
+        ${rows.map(([l, t]) => `<span class="detail-label">${esc(l)}</span><span class="detail-text">${esc(t)}</span>`).join("")}
+      </span>
+      ${c.formula && c.formula.length ? `<code>${c.formula.map(esc).join("<br>")}</code>` : ""}`;
+  }
+
+  /* ---- Détail d'une société cotée ---- */
+  function detailSociete(c) {
+    const s = c.societe;
+    const annees = s.annees || [];
+    const postes = [
+      ["Chiffre d'affaires", s.ca],
+      ["EBITDA", s.ebitda],
+      ["Charges d'exploitation", s.charges],
+      ["Résultat net", s.rn],
+      ["Capitaux propres", s.capitaux_propres],
+      ["Dette nette", s.dette_nette]
+    ];
+    const lignes = postes.map(([libelle, serie]) => `
+      <tr>
+        <td>${esc(libelle)}</td>
+        ${annees.map((a) => `<td>${esc(frMontant((serie || {})[String(a)]))}</td>`).join("")}
+      </tr>`).join("");
+
+    return `
+      <span class="detail-head">
+        <span class="detail-title">${s.drapeau} ${esc(s.nom)}</span>
+        <span class="detail-symbol">${esc(c.id)}</span>
+      </span>
+      <span class="detail-grid">
+        <span class="detail-label">Pays</span><span class="detail-text">${esc(s.pays)}</span>
+        <span class="detail-label">Capitalisation</span><span class="detail-text">${esc(frMontant(s.capitalisation))} FCFA</span>
+        <span class="detail-label">Bêta 1 an</span><span class="detail-text">${s.beta == null ? "non publié" : frNum(s.beta, 2)}</span>
+        ${s.presentation ? `<span class="detail-label">Activité</span><span class="detail-text">${esc(s.presentation)}</span>` : ""}
+      </span>
+      <table class="fin-table">
+        <thead><tr><th>En millions FCFA</th>${annees.map((a) => `<th>${a}</th>`).join("")}</tr></thead>
+        <tbody>${lignes}</tbody>
+      </table>`;
+  }
+
+  /* ---- Alimentation des deux colonnes ---- */
+  function chargerCmpc() {
+    const pan = PANNEAUX.cmpc;
+    pan.detail = detailComposante;
+    pan.items = estBrvm() ? [] : model.components;
+    if (estBrvm()) {
+      $(pan.stack).innerHTML = `
+        <div class="notice">
+          <h3>Calcul en attente</h3>
+          <p>Le référentiel BRVM ne dispose pas encore de son taux sans risque ni de son
+          gearing sectoriel : le CMPC n'est donc pas calculé ici. Les bêtas cotés, les
+          capitalisations et les états financiers des sociétés du secteur sont consultables
+          dans l'onglet Sociétés.</p>
+          <p>Bascule sur le référentiel Damodaran pour un calcul complet.</p>
+        </div>`;
+      $(pan.frame).innerHTML = "";
+      $(pan.col).classList.remove("is-on");
+      pan.ouvert = null;
+      return;
+    }
+    renderStack("cmpc");
+    renderFrame("cmpc");
+  }
+
+  function chargerSocietes() {
+    const pan = PANNEAUX.soc;
+    pan.detail = detailSociete;
+    const ind = industrieBrvm();
+    pan.items = !ind ? [] : ind.tickers.map((t) => {
+      const s = BRVM.societes[t];
+      const derniere = (s.annees || []).slice(-1)[0];
+      const val = (serie) => frMontant((serie || {})[String(derniere)]);
+      return {
+        id: t,
+        title: s.nom,
+        titleHtml: `<span class="soc-flag">${s.drapeau}</span> ${esc(s.nom)}`,
+        value: frMontant(s.capitalisation),
+        societe: s,
+        rows: [
+          { label: "Pays", value: s.pays },
+          { label: "Bêta 1 an", value: s.beta == null ? "non publié" : frNum(s.beta, 2) },
+          { label: `Chiffre d'affaires ${derniere || ""}`.trim(), value: val(s.ca), strong: true },
+          { label: `Résultat net ${derniere || ""}`.trim(), value: val(s.rn) },
+          { label: `Capitaux propres ${derniere || ""}`.trim(), value: val(s.capitaux_propres) }
+        ]
+      };
+    });
+    renderStack("soc");
+    renderFrame("soc");
+  }
 
   /* ================= Paramètres et URL ================= */
   function setParam(key, value) {
-    params[key] = key === "year" ? Number(value) : value;
+    if (key === "year") {
+      value = Number(value);
+    } else if (key === "industrie_brvm" && BRVM) {
+      // Même tolérance que pour l'URL : accents et casse approximatifs acceptés,
+      // et on conserve la valeur précédente plutôt qu'un libellé inconnu.
+      value = resolveOption(value, BRVM.industries.map((i) => i.nom)) || params.industrie_brvm;
+    }
+    params[key] = value;
     apply();
   }
 
@@ -1033,6 +1330,13 @@
     if (query.has("maturity") && DATA.options.maturities.includes(query.get("maturity"))) {
       params.maturity = query.get("maturity");
     }
+    if (BRVM && query.has("referentiel") && ["damodaran", "brvm"].includes(query.get("referentiel"))) {
+      params.referentiel = query.get("referentiel");
+    }
+    if (BRVM && query.has("industrie_brvm")) {
+      const trouvee = resolveOption(query.get("industrie_brvm"), BRVM.industries.map((i) => i.nom));
+      if (trouvee) params.industrie_brvm = trouvee;
+    }
     for (const [key, list] of [["country", DATA.options.countries], ["industry", DATA.options.industries]]) {
       if (query.has(key)) {
         const found = resolveOption(query.get(key), list);
@@ -1054,11 +1358,20 @@
   function renderAll() {
     $("fiscal").textContent = model.fiscalYear;
     renderParams();
-    renderStack();
-    renderFrame();
-    const keep = openId;
-    openId = null;
-    if (keep && model.components.some((c) => c.id === keep)) toggle(keep);
+
+    // On mémorise la carte dépliée pour la rouvrir après redessin, si elle existe encore.
+    const ouverts = { cmpc: PANNEAUX.cmpc.ouvert, soc: PANNEAUX.soc.ouvert };
+    PANNEAUX.cmpc.ouvert = null;
+    PANNEAUX.soc.ouvert = null;
+
+    chargerCmpc();
+    if (BRVM) chargerSocietes();
+
+    for (const cle of ["cmpc", "soc"]) {
+      const garde = ouverts[cle];
+      if (garde && PANNEAUX[cle].items.some((c) => c.id === garde)) toggle(cle, garde);
+    }
+    renderTabs();
   }
 
   readUrlParams();

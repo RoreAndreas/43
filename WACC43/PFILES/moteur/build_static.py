@@ -16,6 +16,7 @@ import shutil
 import time
 from pathlib import Path
 
+import brvm_core
 import wacc_core
 from wacc_html import render_page
 
@@ -63,6 +64,10 @@ def main():
         raise SystemExit(f"Seulement {len(dataset['industries'])} industries extraites (minimum {MIN_INDUSTRIES}) — page non écrite.")
     if not dataset["rf"]:
         raise SystemExit("Aucun taux US Treasury récupéré — page non écrite.")
+
+    # Volet BRVM : instantané pris au build. La page ne suit jamais la cadence du
+    # scraper SIKAPRO, qui tourne toutes les 10 minutes dans son propre projet.
+    dataset["brvm"] = brvm_core.build_brvm(progress=progress)
 
     page = render_page(dataset)
     target = out / "index.html"

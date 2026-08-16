@@ -1,0 +1,66 @@
+{
+  "revision": "2026-08-16",
+  "note": "Classification des 47 sociétés cotées à la BRVM en groupes de comparables. Regroupement par métier plutôt que par les 7 secteurs officiels BRVM, afin d'obtenir des groupes homogènes pour le calcul d'un bêta et d'un gearing sectoriels. Le champ 'comparables_suffisants' signale les groupes de moins de 3 sociétés, où une moyenne sectorielle est fragile.",
+  "industries": [
+    {
+      "nom": "Banques",
+      "comparables_suffisants": true,
+      "tickers": ["BICB", "BICC", "BOAB", "BOABF", "BOAC", "BOAM", "BOAN", "BOAS", "CBIBF", "ECOC", "ETIT", "NSBC", "ORGT", "SGBC", "SIBC"]
+    },
+    {
+      "nom": "Services financiers",
+      "comparables_suffisants": false,
+      "tickers": ["SAFC"]
+    },
+    {
+      "nom": "Télécommunications",
+      "comparables_suffisants": true,
+      "tickers": ["ONTBF", "ORAC", "SNTS"]
+    },
+    {
+      "nom": "Distribution de carburants",
+      "comparables_suffisants": true,
+      "tickers": ["SHEC", "TTLC", "TTLS"]
+    },
+    {
+      "nom": "Agro-industrie et plantations",
+      "comparables_suffisants": true,
+      "tickers": ["PALC", "SCRC", "SICC", "SOGC", "SPHC"]
+    },
+    {
+      "nom": "Agroalimentaire, boissons et biens de consommation",
+      "comparables_suffisants": true,
+      "tickers": ["NTLC", "SLBC", "STBC", "UNLC"]
+    },
+    {
+      "nom": "Distribution et négoce",
+      "comparables_suffisants": true,
+      "tickers": ["BNBC", "CFAC", "PRSC"]
+    },
+    {
+      "nom": "Industrie manufacturière",
+      "comparables_suffisants": true,
+      "tickers": ["CABC", "FTSC", "SEMC", "SIVC", "SMBC", "UNXC"]
+    },
+    {
+      "nom": "Services publics",
+      "comparables_suffisants": false,
+      "tickers": ["CIEC", "SDCC"]
+    },
+    {
+      "nom": "Transport et logistique",
+      "comparables_suffisants": false,
+      "tickers": ["SDSC"]
+    },
+    {
+      "nom": "Bâtiment et travaux publics",
+      "comparables_suffisants": false,
+      "tickers": ["STAC"]
+    },
+    {
+      "nom": "Autres services",
+      "comparables_suffisants": true,
+      "tickers": ["ABJC", "LNBB", "NEIC"]
+    }
+  ]
+}
