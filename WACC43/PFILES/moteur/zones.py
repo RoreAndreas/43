@@ -124,6 +124,11 @@ REPLI_PAR_REGION = {
     "Australia & New Zealand": ("Océanie", "Océanie"),
 }
 
+# Ordre d'affichage. Fixé explicitement plutôt que trié : l'ordre alphabétique
+# placerait l'Océanie avant l'Europe selon la locale, et le classement doit être
+# stable d'une machine à l'autre.
+ORDRE_CONTINENTS = ["Afrique", "Amériques", "Asie", "Europe", "Océanie"]
+
 _PAR_PAYS = {pays: zone for zone, pays_list in ZONES.items() for pays in pays_list}
 
 
@@ -137,6 +142,72 @@ def classer(pays: str, region_damodaran: str = None):
         if replis:
             return replis
     return None, None
+
+
+def verifier_couverture(pays_damodaran):
+    """
+    Confronte le découpage à la liste de pays réellement publiée par Damodaran.
+
+    Rend (manquants, fantômes) : les pays Damodaran qu'aucune zone ne réclame,
+    et les pays cités par le découpage que Damodaran ne connaît plus.
+
+    Ce contrôle existe parce que le rapprochement se fait sur le libellé exact.
+    Damodaran republie chaque janvier, et une simple retouche d'orthographe —
+    « Congo (Republic of) » devenant « Republic of Congo » — sortirait le pays du
+    découpage sans provoquer la moindre erreur. C'est le mode de défaillance
+    qu'annonce l'en-tête de ce module : silencieux.
+    """
+    references = {str(p).strip() for p in pays_damodaran}
+    couverts = set(_PAR_PAYS)
+    return sorted(references - couverts), sorted(couverts - references)
+
+
+def grouper_par_continent(pays_noms):
+    """
+    Regroupe des pays par continent, prêt pour un affichage en `<optgroup>`.
+
+    Rend [[continent, [pays triés]], ...] dans l'ordre d'ORDRE_CONTINENTS. Les
+    pays inclassables sont rassemblés sous « Autres » plutôt que d'être écartés :
+    un pays absent du menu serait un pays qu'on ne peut plus sélectionner.
+    """
+    paniers = {}
+    for nom in pays_noms:
+        continent, _zone = classer(nom)
+        paniers.setdefault(continent or "Autres", []).append(nom)
+
+    groupes = []
+    for continent in ORDRE_CONTINENTS:
+        if continent in paniers:
+            groupes.append([continent, sorted(paniers.pop(continent))])
+    for reste in sorted(paniers):  # « Autres », et tout continent non prévu
+        groupes.append([reste, sorted(paniers[reste])])
+    return groupes
+
+
+def enrichir_dataset(dataset: dict) -> list:
+    """
+    Ajoute continent et zone au jeu de données, et le menu groupé.
+
+    Modifie `dataset` sur place : chaque entrée de `pays` reçoit `continent` et
+    `zone`, et `options` reçoit `countries_grouped`. La liste plate
+    `options.countries` est conservée telle quelle — plusieurs endroits de la
+    page s'en servent pour résoudre un paramètre d'URL.
+
+    Rend la liste des pays inclassables, pour que l'appelant décide quoi en faire.
+    """
+    pays = dataset.get("pays") or {}
+    inclassables = []
+    for nom, entree in pays.items():
+        continent, zone = classer(nom)
+        if continent is None:
+            inclassables.append(nom)
+            continue
+        entree["continent"] = continent
+        entree["zone"] = zone
+
+    options = dataset.setdefault("options", {})
+    options["countries_grouped"] = grouper_par_continent(sorted(pays))
+    return inclassables
 
 
 def index_par_pays(pays_regions) -> dict:

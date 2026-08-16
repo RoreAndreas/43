@@ -698,7 +698,7 @@
     "rf": { "2026-30": 4.94 },
     "pays": { "—": { "crp": 0.0064, "tax": 0.25 } },
     "industries": { "—": { "beta": 1.163, "de": 0.32, "spread": 0.0134 } },
-    "options": { "years": [2026], "maturities": ["30Y", "10Y"], "countries": ["—"], "industries": ["—"] },
+    "options": { "years": [2026], "maturities": ["30Y", "10Y"], "countries": ["—"], "countries_grouped": [["—", ["—"]]], "industries": ["—"] },
     "defaults": { "year": 2026, "maturity": "30Y", "country": "—", "industry": "—", "d": 0.01, "e": 0.005, "inflation_ref": 0.025, "inflation_local": 0.03 }
   };
   // DATA_END
@@ -977,15 +977,38 @@
   });
 
   /* ================= Onglet Paramètres ================= */
-  function selectField(key, label, options) {
+  function optionsHtml(key, options) {
     // Une option est soit une valeur brute, soit un couple [valeur, libellé].
-    const choix = options.map((o) => (Array.isArray(o) ? o : [o, o]));
+    return options
+      .map((o) => (Array.isArray(o) ? o : [o, o]))
+      .map(([v, l]) => `<option value="${esc(v)}"${String(v) === String(params[key]) ? " selected" : ""}>${esc(l)}</option>`)
+      .join("");
+  }
+
+  function selectField(key, label, options) {
     return `
       <span class="field">
         <span class="field-label">${esc(label)}</span>
         <span class="select-wrap">
           <select data-param="${key}">
-            ${choix.map(([v, l]) => `<option value="${esc(v)}"${String(v) === String(params[key]) ? " selected" : ""}>${esc(l)}</option>`).join("")}
+            ${optionsHtml(key, options)}
+          </select>
+          ${CHEVRON}
+        </span>
+      </span>`;
+  }
+
+  // Menu à deux niveaux : les pays sont présentés par continent. `groupes` est
+  // [[continent, [pays...]], ...] ; on retombe sur la liste plate si le jeu de
+  // données est ancien et ne porte pas encore le découpage.
+  function selectFieldGroupe(key, label, groupes, repli) {
+    if (!Array.isArray(groupes) || !groupes.length) return selectField(key, label, repli || []);
+    return `
+      <span class="field">
+        <span class="field-label">${esc(label)}</span>
+        <span class="select-wrap">
+          <select data-param="${key}">
+            ${groupes.map(([groupe, membres]) => `<optgroup label="${esc(groupe)}">${optionsHtml(key, membres)}</optgroup>`).join("")}
           </select>
           ${CHEVRON}
         </span>
@@ -1018,7 +1041,7 @@
           <span class="chips">${chips}</span>
         </span>
         <div class="grid-2">
-          ${selectField("country", "Sélectionner un pays", DATA.options.countries)}
+          ${selectFieldGroupe("country", "Sélectionner un pays", DATA.options.countries_grouped, DATA.options.countries)}
           ${selectField("industry", "Sélectionner une industrie", DATA.options.industries)}
         </div>
         <div class="tiles">
@@ -1070,7 +1093,7 @@
         <div class="grid-2">
           <div style="display:grid;gap:20px;align-content:start">
             ${selectField("industrie_brvm", "Industrie", BRVM.industries.map((i) => i.nom))}
-            ${selectField("country", "Pays — détermine le taux d'imposition", DATA.options.countries)}
+            ${selectFieldGroupe("country", "Pays — détermine le taux d'imposition", DATA.options.countries_grouped, DATA.options.countries)}
           </div>
           <div class="soc-list">${lignes}</div>
         </div>

@@ -57,609 +57,923 @@
   },
   "pays": {
     "Abu Dhabi": {
-      "crp": 0.0063906451636495986
+      "crp": 0.0063906451636495986,
+      "continent": "Asie",
+      "zone": "Moyen-Orient"
     },
     "Albania": {
       "crp": 0.04656041476373279,
-      "tax": 0.15
+      "tax": 0.15,
+      "continent": "Europe",
+      "zone": "Europe du Sud"
     },
     "Andorra (Principality of)": {
-      "crp": 0.020693517672770126
+      "crp": 0.020693517672770126,
+      "continent": "Europe",
+      "zone": "Europe de l'Ouest"
     },
     "Angola": {
       "crp": 0.08414349465471971,
-      "tax": 0.25
+      "tax": 0.25,
+      "continent": "Afrique",
+      "zone": "Afrique centrale"
     },
     "Argentina": {
       "crp": 0.09707694320020104,
-      "tax": 0.35
+      "tax": 0.35,
+      "continent": "Amériques",
+      "zone": "Amérique latine"
     },
     "Armenia": {
       "crp": 0.04656041476373279,
-      "tax": 0.18
+      "tax": 0.18,
+      "continent": "Asie",
+      "zone": "Asie centrale et Caucase"
     },
     "Aruba": {
       "crp": 0.028453586800058932,
-      "tax": 0.22
+      "tax": 0.22,
+      "continent": "Amériques",
+      "zone": "Caraïbes"
     },
     "Australia": {
       "crp": 0.0,
-      "tax": 0.3
+      "tax": 0.3,
+      "continent": "Océanie",
+      "zone": "Océanie"
     },
     "Austria": {
       "crp": 0.0035550758137721547,
-      "tax": 0.23
+      "tax": 0.23,
+      "continent": "Europe",
+      "zone": "Europe de l'Ouest"
     },
     "Azerbaijan": {
       "crp": 0.028453586800058932,
-      "tax": 0.2
+      "tax": 0.2,
+      "continent": "Asie",
+      "zone": "Asie centrale et Caucase"
     },
     "Bahamas": {
       "crp": 0.05827659756375704,
-      "tax": 0.0
+      "tax": 0.0,
+      "continent": "Amériques",
+      "zone": "Caraïbes"
     },
     "Bahrain": {
       "crp": 0.07121004610923838,
-      "tax": 0.0
+      "tax": 0.0,
+      "continent": "Asie",
+      "zone": "Moyen-Orient"
     },
     "Bangladesh": {
       "crp": 0.07121004610923838,
-      "tax": 0.275
+      "tax": 0.275,
+      "continent": "Asie",
+      "zone": "Asie du Sud"
     },
     "Barbados": {
       "crp": 0.07121004610923838,
-      "tax": 0.09
+      "tax": 0.09,
+      "continent": "Amériques",
+      "zone": "Caraïbes"
     },
     "Belarus": {
       "crp": 0.26659117303269014,
-      "tax": 0.25
+      "tax": 0.25,
+      "continent": "Europe",
+      "zone": "Europe de l'Est"
     },
     "Belgium": {
       "crp": 0.007760069127288798,
-      "tax": 0.25
+      "tax": 0.25,
+      "continent": "Europe",
+      "zone": "Europe de l'Ouest"
     },
     "Belize": {
       "crp": 0.09707694320020104,
-      "tax": 0.0
+      "tax": 0.0,
+      "continent": "Amériques",
+      "zone": "Amérique latine"
     },
     "Benin": {
       "crp": 0.05827659756375704,
-      "tax": 0.3
+      "tax": 0.3,
+      "continent": "Afrique",
+      "zone": "Afrique de l'Ouest"
     },
     "Bermuda": {
       "crp": 0.010955391709113598,
-      "tax": 0.0
+      "tax": 0.0,
+      "continent": "Amériques",
+      "zone": "Caraïbes"
     },
     "Bolivia": {
-      "crp": 0.1553535407639581
+      "crp": 0.1553535407639581,
+      "continent": "Amériques",
+      "zone": "Amérique latine"
     },
     "Bosnia and Herzegovina": {
       "crp": 0.08414349465471971,
-      "tax": 0.1
+      "tax": 0.1,
+      "continent": "Europe",
+      "zone": "Europe du Sud"
     },
     "Botswana": {
       "crp": 0.020693517672770126,
-      "tax": 0.22
+      "tax": 0.22,
+      "continent": "Afrique",
+      "zone": "Afrique australe"
     },
     "Brazil": {
       "crp": 0.032409700472794394,
-      "tax": 0.34
+      "tax": 0.34,
+      "continent": "Amériques",
+      "zone": "Amérique latine"
     },
     "Bulgaria": {
       "crp": 0.020693517672770126,
-      "tax": 0.1
+      "tax": 0.1,
+      "continent": "Europe",
+      "zone": "Europe de l'Est"
     },
     "Burkina Faso": {
       "crp": 0.09707694320020104,
-      "tax": 0.275
+      "tax": 0.275,
+      "continent": "Afrique",
+      "zone": "Afrique de l'Ouest"
     },
     "Cambodia": {
       "crp": 0.07121004610923838,
-      "tax": 0.2
+      "tax": 0.2,
+      "continent": "Asie",
+      "zone": "Asie du Sud-Est"
     },
     "Cameroon": {
       "crp": 0.09707694320020104,
-      "tax": 0.33
+      "tax": 0.33,
+      "continent": "Afrique",
+      "zone": "Afrique centrale"
     },
     "Canada": {
       "crp": 0.0,
-      "tax": 0.2614
+      "tax": 0.2614,
+      "continent": "Amériques",
+      "zone": "Amérique du Nord"
     },
     "Cape Verde": {
-      "crp": 0.07121004610923838
+      "crp": 0.07121004610923838,
+      "continent": "Afrique",
+      "zone": "Afrique de l'Ouest"
     },
     "Cayman Islands": {
       "crp": 0.007760069127288798,
-      "tax": 0.0
+      "tax": 0.0,
+      "continent": "Amériques",
+      "zone": "Caraïbes"
     },
     "Chile": {
       "crp": 0.010955391709113598,
-      "tax": 0.27
+      "tax": 0.27,
+      "continent": "Amériques",
+      "zone": "Amérique latine"
     },
     "China": {
       "crp": 0.009129493090928,
-      "tax": 0.25
+      "tax": 0.25,
+      "continent": "Asie",
+      "zone": "Asie de l'Est"
     },
     "Colombia": {
       "crp": 0.028453586800058932,
-      "tax": 0.35
+      "tax": 0.35,
+      "continent": "Amériques",
+      "zone": "Amérique latine"
     },
     "Congo (Democratic Republic of)": {
-      "crp": 0.08414349465471971
+      "crp": 0.08414349465471971,
+      "continent": "Afrique",
+      "zone": "Afrique centrale"
     },
     "Congo (Republic of)": {
-      "crp": 0.11655319512751408
+      "crp": 0.11655319512751408,
+      "continent": "Afrique",
+      "zone": "Afrique centrale"
     },
     "Cook Islands": {
       "crp": 0.05827659756375704,
-      "tax": 0.2
+      "tax": 0.2,
+      "continent": "Océanie",
+      "zone": "Océanie"
     },
     "Costa Rica": {
       "crp": 0.038952503854626126,
-      "tax": 0.3
+      "tax": 0.3,
+      "continent": "Amériques",
+      "zone": "Amérique latine"
     },
     "Côte d'Ivoire": {
       "crp": 0.038952503854626126,
-      "tax": 0.25
+      "tax": 0.25,
+      "continent": "Afrique",
+      "zone": "Afrique de l'Ouest"
     },
     "Croatia": {
       "crp": 0.015520138254577596,
-      "tax": 0.18
+      "tax": 0.18,
+      "continent": "Europe",
+      "zone": "Europe du Sud"
     },
     "Cuba": {
       "crp": 0.1553535407639581,
-      "tax": 0.35
+      "tax": 0.35,
+      "continent": "Amériques",
+      "zone": "Caraïbes"
     },
     "Curacao": {
       "crp": 0.028453586800058932,
-      "tax": 0.22
+      "tax": 0.22,
+      "continent": "Amériques",
+      "zone": "Caraïbes"
     },
     "Cyprus": {
       "crp": 0.015520138254577596,
-      "tax": 0.125
+      "tax": 0.125,
+      "continent": "Europe",
+      "zone": "Europe du Sud"
     },
     "Czech Republic": {
-      "crp": 0.007760069127288798
+      "crp": 0.007760069127288798,
+      "continent": "Europe",
+      "zone": "Europe de l'Est"
     },
     "Denmark": {
       "crp": 0.0,
-      "tax": 0.22
+      "tax": 0.22,
+      "continent": "Europe",
+      "zone": "Europe du Nord"
     },
     "Dominican Republic": {
       "crp": 0.038952503854626126,
-      "tax": 0.27
+      "tax": 0.27,
+      "continent": "Amériques",
+      "zone": "Caraïbes"
     },
     "Ecuador": {
       "crp": 0.12948664367299545,
-      "tax": 0.25
+      "tax": 0.25,
+      "continent": "Amériques",
+      "zone": "Amérique latine"
     },
     "Egypt": {
       "crp": 0.09707694320020104,
-      "tax": 0.225
+      "tax": 0.225,
+      "continent": "Afrique",
+      "zone": "Afrique du Nord"
     },
     "El Salvador": {
       "crp": 0.08414349465471971,
-      "tax": 0.3
+      "tax": 0.3,
+      "continent": "Amériques",
+      "zone": "Amérique latine"
     },
     "Estonia": {
       "crp": 0.009129493090928,
-      "tax": 0.2
+      "tax": 0.2,
+      "continent": "Europe",
+      "zone": "Europe du Nord"
     },
     "Ethiopia": {
       "crp": 0.11655319512751408,
-      "tax": 0.3
+      "tax": 0.3,
+      "continent": "Afrique",
+      "zone": "Afrique de l'Est"
     },
     "Fiji": {
       "crp": 0.05827659756375704,
-      "tax": 0.25
+      "tax": 0.25,
+      "continent": "Océanie",
+      "zone": "Océanie"
     },
     "Finland": {
       "crp": 0.0035550758137721547,
-      "tax": 0.2
+      "tax": 0.2,
+      "continent": "Europe",
+      "zone": "Europe du Nord"
     },
     "France": {
       "crp": 0.007760069127288798,
-      "tax": 0.2583
+      "tax": 0.2583,
+      "continent": "Europe",
+      "zone": "Europe de l'Ouest"
     },
     "Gabon": {
       "crp": 0.11655319512751408,
-      "tax": 0.3
+      "tax": 0.3,
+      "continent": "Afrique",
+      "zone": "Afrique centrale"
     },
     "Georgia": {
       "crp": 0.038952503854626126,
-      "tax": 0.15
+      "tax": 0.15,
+      "continent": "Asie",
+      "zone": "Asie centrale et Caucase"
     },
     "Germany": {
       "crp": 0.0,
-      "tax": 0.2993
+      "tax": 0.2993,
+      "continent": "Europe",
+      "zone": "Europe de l'Ouest"
     },
     "Ghana": {
       "crp": 0.09707694320020104,
-      "tax": 0.25
+      "tax": 0.25,
+      "continent": "Afrique",
+      "zone": "Afrique de l'Ouest"
     },
     "Greece": {
       "crp": 0.028453586800058932,
-      "tax": 0.22
+      "tax": 0.22,
+      "continent": "Europe",
+      "zone": "Europe du Sud"
     },
     "Guatemala": {
       "crp": 0.032409700472794394,
-      "tax": 0.25
+      "tax": 0.25,
+      "continent": "Amériques",
+      "zone": "Amérique latine"
     },
     "Guernsey (States of)": {
-      "crp": 0.009129493090928
+      "crp": 0.009129493090928,
+      "continent": "Europe",
+      "zone": "Europe de l'Ouest"
     },
     "Honduras": {
       "crp": 0.05827659756375704,
-      "tax": 0.3
+      "tax": 0.3,
+      "continent": "Amériques",
+      "zone": "Amérique latine"
     },
     "Hong Kong": {
-      "crp": 0.007760069127288798
+      "crp": 0.007760069127288798,
+      "continent": "Asie",
+      "zone": "Asie de l'Est"
     },
     "Hungary": {
       "crp": 0.024649631345505598,
-      "tax": 0.09
+      "tax": 0.09,
+      "continent": "Europe",
+      "zone": "Europe de l'Est"
     },
     "Iceland": {
       "crp": 0.009129493090928,
-      "tax": 0.21
+      "tax": 0.21,
+      "continent": "Europe",
+      "zone": "Europe du Nord"
     },
     "India": {
       "crp": 0.028453586800058932,
-      "tax": 0.3
+      "tax": 0.3,
+      "continent": "Asie",
+      "zone": "Asie du Sud"
     },
     "Indonesia": {
       "crp": 0.024649631345505598,
-      "tax": 0.22
+      "tax": 0.22,
+      "continent": "Asie",
+      "zone": "Asie du Sud-Est"
     },
     "Iraq": {
       "crp": 0.09707694320020104,
-      "tax": 0.15
+      "tax": 0.15,
+      "continent": "Asie",
+      "zone": "Moyen-Orient"
     },
     "Ireland": {
       "crp": 0.007760069127288798,
-      "tax": 0.125
+      "tax": 0.125,
+      "continent": "Europe",
+      "zone": "Europe de l'Ouest"
     },
     "Isle of Man": {
       "crp": 0.007760069127288798,
-      "tax": 0.0
+      "tax": 0.0,
+      "continent": "Europe",
+      "zone": "Europe de l'Ouest"
     },
     "Israel": {
       "crp": 0.020693517672770126,
-      "tax": 0.23
+      "tax": 0.23,
+      "continent": "Asie",
+      "zone": "Moyen-Orient"
     },
     "Italy": {
       "crp": 0.024649631345505598,
-      "tax": 0.2781
+      "tax": 0.2781,
+      "continent": "Europe",
+      "zone": "Europe du Sud"
     },
     "Jamaica": {
       "crp": 0.04656041476373279,
-      "tax": 0.25
+      "tax": 0.25,
+      "continent": "Amériques",
+      "zone": "Caraïbes"
     },
     "Japan": {
       "crp": 0.009129493090928,
-      "tax": 0.2974
+      "tax": 0.2974,
+      "continent": "Asie",
+      "zone": "Asie de l'Est"
     },
     "Jersey (States of)": {
-      "crp": 0.007760069127288798
+      "crp": 0.007760069127288798,
+      "continent": "Europe",
+      "zone": "Europe de l'Ouest"
     },
     "Jordan": {
       "crp": 0.04656041476373279,
-      "tax": 0.2
+      "tax": 0.2,
+      "continent": "Asie",
+      "zone": "Moyen-Orient"
     },
     "Kazakhstan": {
       "crp": 0.020693517672770126,
-      "tax": 0.2
+      "tax": 0.2,
+      "continent": "Asie",
+      "zone": "Asie centrale et Caucase"
     },
     "Kenya": {
       "crp": 0.08414349465471971,
-      "tax": 0.3
+      "tax": 0.3,
+      "continent": "Afrique",
+      "zone": "Afrique de l'Est"
     },
     "Korea": {
-      "crp": 0.0063906451636495986
+      "crp": 0.0063906451636495986,
+      "continent": "Asie",
+      "zone": "Asie de l'Est"
     },
     "Kuwait": {
       "crp": 0.009129493090928,
-      "tax": 0.15
+      "tax": 0.15,
+      "continent": "Asie",
+      "zone": "Moyen-Orient"
     },
     "Kyrgyzstan": {
       "crp": 0.08414349465471971,
-      "tax": 0.1
+      "tax": 0.1,
+      "continent": "Asie",
+      "zone": "Asie centrale et Caucase"
     },
     "Laos": {
-      "crp": 0.11655319512751408
+      "crp": 0.11655319512751408,
+      "continent": "Asie",
+      "zone": "Asie du Sud-Est"
     },
     "Latvia": {
       "crp": 0.015520138254577596,
-      "tax": 0.2
+      "tax": 0.2,
+      "continent": "Europe",
+      "zone": "Europe du Nord"
     },
     "Lebanon": {
       "crp": 0.26659117303269014,
-      "tax": 0.17
+      "tax": 0.17,
+      "continent": "Asie",
+      "zone": "Moyen-Orient"
     },
     "Liechtenstein": {
       "crp": 0.0,
-      "tax": 0.125
+      "tax": 0.125,
+      "continent": "Europe",
+      "zone": "Europe de l'Ouest"
     },
     "Lithuania": {
       "crp": 0.010955391709113598,
-      "tax": 0.15
+      "tax": 0.15,
+      "continent": "Europe",
+      "zone": "Europe du Nord"
     },
     "Luxembourg": {
       "crp": 0.0,
-      "tax": 0.2494
+      "tax": 0.2494,
+      "continent": "Europe",
+      "zone": "Europe de l'Ouest"
     },
     "Macao": {
-      "crp": 0.007760069127288798
+      "crp": 0.007760069127288798,
+      "continent": "Asie",
+      "zone": "Asie de l'Est"
     },
     "Macedonia": {
-      "crp": 0.04656041476373279
+      "crp": 0.04656041476373279,
+      "continent": "Europe",
+      "zone": "Europe du Sud"
     },
     "Malaysia": {
       "crp": 0.015520138254577596,
-      "tax": 0.24
+      "tax": 0.24,
+      "continent": "Asie",
+      "zone": "Asie du Sud-Est"
     },
     "Maldives": {
       "crp": 0.11655319512751408,
-      "tax": 0.15
+      "tax": 0.15,
+      "continent": "Asie",
+      "zone": "Asie du Sud"
     },
     "Mali": {
       "crp": 0.11655319512751408,
-      "tax": 0.3
+      "tax": 0.3,
+      "continent": "Afrique",
+      "zone": "Afrique de l'Ouest"
     },
     "Malta": {
       "crp": 0.010955391709113598,
-      "tax": 0.35
+      "tax": 0.35,
+      "continent": "Europe",
+      "zone": "Europe du Sud"
     },
     "Mauritius": {
       "crp": 0.028453586800058932,
-      "tax": 0.15
+      "tax": 0.15,
+      "continent": "Afrique",
+      "zone": "Afrique de l'Est"
     },
     "Mexico": {
       "crp": 0.024649631345505598,
-      "tax": 0.3
+      "tax": 0.3,
+      "continent": "Amériques",
+      "zone": "Amérique latine"
     },
     "Moldova": {
-      "crp": 0.08414349465471971
+      "crp": 0.08414349465471971,
+      "continent": "Europe",
+      "zone": "Europe de l'Est"
     },
     "Mongolia": {
       "crp": 0.05827659756375704,
-      "tax": 0.25
+      "tax": 0.25,
+      "continent": "Asie",
+      "zone": "Asie de l'Est"
     },
     "Montenegro": {
       "crp": 0.05827659756375704,
-      "tax": 0.15
+      "tax": 0.15,
+      "continent": "Europe",
+      "zone": "Europe du Sud"
     },
     "Montserrat": {
       "crp": 0.028453586800058932,
-      "tax": 0.3
+      "tax": 0.3,
+      "continent": "Amériques",
+      "zone": "Caraïbes"
     },
     "Morocco": {
       "crp": 0.032409700472794394,
-      "tax": 0.33
+      "tax": 0.33,
+      "continent": "Afrique",
+      "zone": "Afrique du Nord"
     },
     "Mozambique": {
       "crp": 0.12948664367299545,
-      "tax": 0.32
+      "tax": 0.32,
+      "continent": "Afrique",
+      "zone": "Afrique de l'Est"
     },
     "Namibia": {
       "crp": 0.05827659756375704,
-      "tax": 0.32
+      "tax": 0.32,
+      "continent": "Afrique",
+      "zone": "Afrique australe"
     },
     "Nepal": {
       "crp": 0.04656041476373279,
-      "tax": 0.25
+      "tax": 0.25,
+      "continent": "Asie",
+      "zone": "Asie du Sud"
     },
     "Netherlands": {
       "crp": 0.0,
-      "tax": 0.258
+      "tax": 0.258,
+      "continent": "Europe",
+      "zone": "Europe de l'Ouest"
     },
     "New Zealand": {
       "crp": 0.0,
-      "tax": 0.28
+      "tax": 0.28,
+      "continent": "Océanie",
+      "zone": "Océanie"
     },
     "Nicaragua": {
       "crp": 0.07121004610923838,
-      "tax": 0.3
+      "tax": 0.3,
+      "continent": "Amériques",
+      "zone": "Amérique latine"
     },
     "Niger": {
       "crp": 0.12948664367299545,
-      "tax": 0.3
+      "tax": 0.3,
+      "continent": "Afrique",
+      "zone": "Afrique de l'Ouest"
     },
     "Nigeria": {
       "crp": 0.08414349465471971,
-      "tax": 0.3
+      "tax": 0.3,
+      "continent": "Afrique",
+      "zone": "Afrique de l'Ouest"
     },
     "Norway": {
       "crp": 0.0,
-      "tax": 0.22
+      "tax": 0.22,
+      "continent": "Europe",
+      "zone": "Europe du Nord"
     },
     "Oman": {
       "crp": 0.028453586800058932,
-      "tax": 0.15
+      "tax": 0.15,
+      "continent": "Asie",
+      "zone": "Moyen-Orient"
     },
     "Pakistan": {
       "crp": 0.09707694320020104,
-      "tax": 0.29
+      "tax": 0.29,
+      "continent": "Asie",
+      "zone": "Asie du Sud"
     },
     "Panama": {
       "crp": 0.028453586800058932,
-      "tax": 0.25
+      "tax": 0.25,
+      "continent": "Amériques",
+      "zone": "Amérique latine"
     },
     "Papua New Guinea": {
       "crp": 0.07121004610923838,
-      "tax": 0.3
+      "tax": 0.3,
+      "continent": "Océanie",
+      "zone": "Océanie"
     },
     "Paraguay": {
       "crp": 0.028453586800058932,
-      "tax": 0.1
+      "tax": 0.1,
+      "continent": "Amériques",
+      "zone": "Amérique latine"
     },
     "Peru": {
       "crp": 0.020693517672770126,
-      "tax": 0.295
+      "tax": 0.295,
+      "continent": "Amériques",
+      "zone": "Amérique latine"
     },
     "Philippines": {
       "crp": 0.024649631345505598,
-      "tax": 0.25
+      "tax": 0.25,
+      "continent": "Asie",
+      "zone": "Asie du Sud-Est"
     },
     "Poland": {
       "crp": 0.010955391709113598,
-      "tax": 0.19
+      "tax": 0.19,
+      "continent": "Europe",
+      "zone": "Europe de l'Est"
     },
     "Portugal": {
       "crp": 0.015520138254577596,
-      "tax": 0.315
+      "tax": 0.315,
+      "continent": "Europe",
+      "zone": "Europe du Sud"
     },
     "Qatar": {
       "crp": 0.0063906451636495986,
-      "tax": 0.1
+      "tax": 0.1,
+      "continent": "Asie",
+      "zone": "Moyen-Orient"
     },
     "Ras Al Khaimah (Emirate of)": {
-      "crp": 0.015520138254577596
+      "crp": 0.015520138254577596,
+      "continent": "Asie",
+      "zone": "Moyen-Orient"
     },
     "Romania": {
       "crp": 0.028453586800058932,
-      "tax": 0.16
+      "tax": 0.16,
+      "continent": "Europe",
+      "zone": "Europe de l'Est"
     },
     "Rwanda": {
       "crp": 0.07121004610923838,
-      "tax": 0.28
+      "tax": 0.28,
+      "continent": "Afrique",
+      "zone": "Afrique de l'Est"
     },
     "Saudi Arabia": {
       "crp": 0.007760069127288798,
-      "tax": 0.2
+      "tax": 0.2,
+      "continent": "Asie",
+      "zone": "Moyen-Orient"
     },
     "Senegal": {
       "crp": 0.09707694320020104,
-      "tax": 0.3
+      "tax": 0.3,
+      "continent": "Afrique",
+      "zone": "Afrique de l'Ouest"
     },
     "Serbia": {
       "crp": 0.038952503854626126,
-      "tax": 0.15
+      "tax": 0.15,
+      "continent": "Europe",
+      "zone": "Europe du Sud"
     },
     "Sharjah": {
-      "crp": 0.032409700472794394
+      "crp": 0.032409700472794394,
+      "continent": "Asie",
+      "zone": "Moyen-Orient"
     },
     "Singapore": {
       "crp": 0.0,
-      "tax": 0.17
+      "tax": 0.17,
+      "continent": "Asie",
+      "zone": "Asie du Sud-Est"
     },
     "Slovakia": {
       "crp": 0.015520138254577596,
-      "tax": 0.21
+      "tax": 0.21,
+      "continent": "Europe",
+      "zone": "Europe de l'Est"
     },
     "Slovenia": {
       "crp": 0.015520138254577596,
-      "tax": 0.22
+      "tax": 0.22,
+      "continent": "Europe",
+      "zone": "Europe du Sud"
     },
     "Solomon Islands": {
       "crp": 0.09707694320020104,
-      "tax": 0.3
+      "tax": 0.3,
+      "continent": "Océanie",
+      "zone": "Océanie"
     },
     "South Africa": {
       "crp": 0.038952503854626126,
-      "tax": 0.27
+      "tax": 0.27,
+      "continent": "Afrique",
+      "zone": "Afrique australe"
     },
     "Spain": {
       "crp": 0.015520138254577596,
-      "tax": 0.25
+      "tax": 0.25,
+      "continent": "Europe",
+      "zone": "Europe du Sud"
     },
     "Sri Lanka": {
       "crp": 0.1553535407639581,
-      "tax": 0.3
+      "tax": 0.3,
+      "continent": "Asie",
+      "zone": "Asie du Sud"
     },
     "St. Maarten": {
-      "crp": 0.038952503854626126
+      "crp": 0.038952503854626126,
+      "continent": "Amériques",
+      "zone": "Caraïbes"
     },
     "St. Vincent & the Grenadines": {
-      "crp": 0.08414349465471971
+      "crp": 0.08414349465471971,
+      "continent": "Amériques",
+      "zone": "Caraïbes"
     },
     "Suriname": {
       "crp": 0.09707694320020104,
-      "tax": 0.36
+      "tax": 0.36,
+      "continent": "Amériques",
+      "zone": "Amérique latine"
     },
     "Swaziland": {
       "crp": 0.07121004610923838,
-      "tax": 0.25
+      "tax": 0.25,
+      "continent": "Afrique",
+      "zone": "Afrique australe"
     },
     "Sweden": {
       "crp": 0.0,
-      "tax": 0.20600000000000002
+      "tax": 0.20600000000000002,
+      "continent": "Europe",
+      "zone": "Europe du Nord"
     },
     "Switzerland": {
       "crp": 0.0,
-      "tax": 0.1961
+      "tax": 0.1961,
+      "continent": "Europe",
+      "zone": "Europe de l'Ouest"
     },
     "Taiwan": {
       "crp": 0.007760069127288798,
-      "tax": 0.2
+      "tax": 0.2,
+      "continent": "Asie",
+      "zone": "Asie de l'Est"
     },
     "Tajikistan": {
       "crp": 0.08414349465471971,
-      "tax": 0.18
+      "tax": 0.18,
+      "continent": "Asie",
+      "zone": "Asie centrale et Caucase"
     },
     "Tanzania": {
-      "crp": 0.05827659756375704
+      "crp": 0.05827659756375704,
+      "continent": "Afrique",
+      "zone": "Afrique de l'Est"
     },
     "Thailand": {
       "crp": 0.020693517672770126,
-      "tax": 0.2
+      "tax": 0.2,
+      "continent": "Asie",
+      "zone": "Asie du Sud-Est"
     },
     "Togo": {
       "crp": 0.08414349465471971,
-      "tax": 0.27
+      "tax": 0.27,
+      "continent": "Afrique",
+      "zone": "Afrique de l'Ouest"
     },
     "Trinidad and Tobago": {
       "crp": 0.038952503854626126,
-      "tax": 0.3
+      "tax": 0.3,
+      "continent": "Amériques",
+      "zone": "Caraïbes"
     },
     "Tunisia": {
       "crp": 0.09707694320020104,
-      "tax": 0.25
+      "tax": 0.25,
+      "continent": "Afrique",
+      "zone": "Afrique du Nord"
     },
     "Turkey": {
       "crp": 0.04656041476373279,
-      "tax": 0.22
+      "tax": 0.22,
+      "continent": "Europe",
+      "zone": "Europe du Sud"
     },
     "Turks and Caicos Islands": {
       "crp": 0.020693517672770126,
-      "tax": 0.0
+      "tax": 0.0,
+      "continent": "Amériques",
+      "zone": "Caraïbes"
     },
     "Uganda": {
       "crp": 0.08414349465471971,
-      "tax": 0.3
+      "tax": 0.3,
+      "continent": "Afrique",
+      "zone": "Afrique de l'Est"
     },
     "Ukraine": {
       "crp": 0.1553535407639581,
-      "tax": 0.18
+      "tax": 0.18,
+      "continent": "Europe",
+      "zone": "Europe de l'Est"
     },
     "United Arab Emirates": {
       "crp": 0.0063906451636495986,
-      "tax": 0.0
+      "tax": 0.0,
+      "continent": "Asie",
+      "zone": "Moyen-Orient"
     },
     "United Kingdom": {
-      "crp": 0.007760069127288798
+      "crp": 0.007760069127288798,
+      "continent": "Europe",
+      "zone": "Europe de l'Ouest"
     },
     "United States": {
-      "crp": 0.002333679169992019
+      "crp": 0.002333679169992019,
+      "continent": "Amériques",
+      "zone": "Amérique du Nord"
     },
     "Uruguay": {
       "crp": 0.020693517672770126,
-      "tax": 0.25
+      "tax": 0.25,
+      "continent": "Amériques",
+      "zone": "Amérique latine"
     },
     "Uzbekistan": {
       "crp": 0.04656041476373279,
-      "tax": 0.12
+      "tax": 0.12,
+      "continent": "Asie",
+      "zone": "Asie centrale et Caucase"
     },
     "Venezuela": {
-      "crp": 0.26659117303269014
+      "crp": 0.26659117303269014,
+      "continent": "Amériques",
+      "zone": "Amérique latine"
     },
     "Vietnam": {
       "crp": 0.038952503854626126,
-      "tax": 0.2
+      "tax": 0.2,
+      "continent": "Asie",
+      "zone": "Asie du Sud-Est"
     },
     "Zambia": {
       "crp": 0.11655319512751408,
-      "tax": 0.35
+      "tax": 0.35,
+      "continent": "Afrique",
+      "zone": "Afrique de l'Est"
     }
   },
   "industries": {
@@ -1405,6 +1719,190 @@
       "Trucking",
       "Utility (General)",
       "Utility (Water)"
+    ],
+    "countries_grouped": [
+      [
+        "Afrique",
+        [
+          "Angola",
+          "Benin",
+          "Botswana",
+          "Burkina Faso",
+          "Cameroon",
+          "Cape Verde",
+          "Congo (Democratic Republic of)",
+          "Congo (Republic of)",
+          "Côte d'Ivoire",
+          "Egypt",
+          "Ethiopia",
+          "Gabon",
+          "Ghana",
+          "Kenya",
+          "Mali",
+          "Mauritius",
+          "Morocco",
+          "Mozambique",
+          "Namibia",
+          "Niger",
+          "Nigeria",
+          "Rwanda",
+          "Senegal",
+          "South Africa",
+          "Swaziland",
+          "Tanzania",
+          "Togo",
+          "Tunisia",
+          "Uganda",
+          "Zambia"
+        ]
+      ],
+      [
+        "Amériques",
+        [
+          "Argentina",
+          "Aruba",
+          "Bahamas",
+          "Barbados",
+          "Belize",
+          "Bermuda",
+          "Bolivia",
+          "Brazil",
+          "Canada",
+          "Cayman Islands",
+          "Chile",
+          "Colombia",
+          "Costa Rica",
+          "Cuba",
+          "Curacao",
+          "Dominican Republic",
+          "Ecuador",
+          "El Salvador",
+          "Guatemala",
+          "Honduras",
+          "Jamaica",
+          "Mexico",
+          "Montserrat",
+          "Nicaragua",
+          "Panama",
+          "Paraguay",
+          "Peru",
+          "St. Maarten",
+          "St. Vincent & the Grenadines",
+          "Suriname",
+          "Trinidad and Tobago",
+          "Turks and Caicos Islands",
+          "United States",
+          "Uruguay",
+          "Venezuela"
+        ]
+      ],
+      [
+        "Asie",
+        [
+          "Abu Dhabi",
+          "Armenia",
+          "Azerbaijan",
+          "Bahrain",
+          "Bangladesh",
+          "Cambodia",
+          "China",
+          "Georgia",
+          "Hong Kong",
+          "India",
+          "Indonesia",
+          "Iraq",
+          "Israel",
+          "Japan",
+          "Jordan",
+          "Kazakhstan",
+          "Korea",
+          "Kuwait",
+          "Kyrgyzstan",
+          "Laos",
+          "Lebanon",
+          "Macao",
+          "Malaysia",
+          "Maldives",
+          "Mongolia",
+          "Nepal",
+          "Oman",
+          "Pakistan",
+          "Philippines",
+          "Qatar",
+          "Ras Al Khaimah (Emirate of)",
+          "Saudi Arabia",
+          "Sharjah",
+          "Singapore",
+          "Sri Lanka",
+          "Taiwan",
+          "Tajikistan",
+          "Thailand",
+          "United Arab Emirates",
+          "Uzbekistan",
+          "Vietnam"
+        ]
+      ],
+      [
+        "Europe",
+        [
+          "Albania",
+          "Andorra (Principality of)",
+          "Austria",
+          "Belarus",
+          "Belgium",
+          "Bosnia and Herzegovina",
+          "Bulgaria",
+          "Croatia",
+          "Cyprus",
+          "Czech Republic",
+          "Denmark",
+          "Estonia",
+          "Finland",
+          "France",
+          "Germany",
+          "Greece",
+          "Guernsey (States of)",
+          "Hungary",
+          "Iceland",
+          "Ireland",
+          "Isle of Man",
+          "Italy",
+          "Jersey (States of)",
+          "Latvia",
+          "Liechtenstein",
+          "Lithuania",
+          "Luxembourg",
+          "Macedonia",
+          "Malta",
+          "Moldova",
+          "Montenegro",
+          "Netherlands",
+          "Norway",
+          "Poland",
+          "Portugal",
+          "Romania",
+          "Serbia",
+          "Slovakia",
+          "Slovenia",
+          "Spain",
+          "Sweden",
+          "Switzerland",
+          "Turkey",
+          "Ukraine",
+          "United Kingdom"
+        ]
+      ],
+      [
+        "Océanie",
+        [
+          "Australia",
+          "Cook Islands",
+          "Fiji",
+          "New Zealand",
+          "Papua New Guinea",
+          "Solomon Islands"
+        ]
+      ]
     ]
   },
   "defaults": {

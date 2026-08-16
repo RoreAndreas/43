@@ -12,6 +12,8 @@ from io import BytesIO
 import pandas as pd
 import requests
 
+import zones
+
 BETAS_URL = "https://pages.stern.nyu.edu/~adamodar/pc/datasets/betaemerg.xls"
 TAX_URL = "https://www.stern.nyu.edu/~adamodar/pc/datasets/countrytaxrates.xls"
 ERPS_URL = "https://www.stern.nyu.edu/~adamodar/pc/datasets/ctryprem.xlsx"
@@ -357,7 +359,7 @@ def build_dataset(years=None, progress=None) -> dict:
 
     available_years = sorted({int(key.split("-")[0]) for key in rf}, reverse=True)
 
-    return {
+    dataset = {
         "mature": mature_market_premium,
         "adjustment": {"rows": adjustment_rows, "correction": adjustment["adjustment"]},
         "rf": rf,
@@ -380,6 +382,16 @@ def build_dataset(years=None, progress=None) -> dict:
             "inflation_local": 0.03,
         },
     }
+
+    # Découpage géographique : continent et zone sur chaque pays, plus le menu
+    # groupé. Les pays inclassables restent dans le jeu de données et remontent
+    # à l'appelant, qui décide s'il publie ou non.
+    inclassables = zones.enrichir_dataset(dataset)
+    dataset["inclassables"] = inclassables
+    if inclassables:
+        say(f"{len(inclassables)} pays sans zone : {', '.join(inclassables[:5])}")
+
+    return dataset
 
 
 def default_params() -> dict:

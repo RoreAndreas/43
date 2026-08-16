@@ -65,6 +65,16 @@ def main():
     if not dataset["rf"]:
         raise SystemExit("Aucun taux US Treasury récupéré — page non écrite.")
 
+    # Le découpage géographique se rapproche sur le libellé exact. Damodaran
+    # republie chaque janvier, et une retouche d'orthographe sortirait un pays du
+    # découpage sans erreur visible. On ne bloque pas la publication pour autant :
+    # le pays reste sélectionnable, il apparaît seulement sous « Autres ».
+    inclassables = dataset.get("inclassables") or []
+    if inclassables:
+        print(f"  /!\\ {len(inclassables)} pays sans zone, à rattacher dans zones.py :")
+        for nom in inclassables:
+            print(f"       - {nom}")
+
     # Volet BRVM : instantané pris au build. La page ne suit jamais la cadence du
     # scraper SIKAPRO, qui tourne toutes les 10 minutes dans son propre projet.
     dataset["brvm"] = brvm_core.build_brvm(progress=progress)
@@ -82,6 +92,8 @@ def main():
     payload = len(json.dumps(dataset, ensure_ascii=False, separators=(",", ":")).encode("utf-8"))
     print()
     print(f"  pays        : {len(dataset['pays'])}")
+    for continent, membres in dataset["options"]["countries_grouped"]:
+        print(f"     {continent:<12}: {len(membres)}")
     print(f"  industries  : {len(dataset['industries'])}")
     print(f"  taux        : {len(dataset['rf'])} couples (année, maturité)")
     print(f"  données     : {payload / 1024:.1f} Ko")
