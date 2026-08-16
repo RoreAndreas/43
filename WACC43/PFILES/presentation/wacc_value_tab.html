@@ -250,6 +250,67 @@
     text-wrap: pretty;
   }
 
+  /* ---------- Carte ---------- */
+  .carte-bloc {
+    display: grid;
+    gap: 10px;
+    margin-top: 18px;
+  }
+  .carte {
+    width: 100%;
+    height: auto;
+    display: block;
+    background: var(--tile);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+  }
+  .carte-fond {
+    fill: #e8e8ea;
+    stroke: #d6d6da;
+    /* Le tracé est dessiné dans un cadre de 360 unités affiché sur ~700 px :
+       une épaisseur en unités du cadre serait deux fois trop épaisse. */
+    stroke-width: 0.3;
+  }
+  .pin {
+    cursor: pointer;
+    transition: r 120ms ease, opacity 120ms ease;
+  }
+  .pin.is-off { opacity: 0.18; }
+  .pin.is-on {
+    stroke: var(--surface);
+    stroke-width: 1.1;
+    paint-order: stroke;
+  }
+  .pin:hover { r: 3.2; }
+  .carte-legende {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+  .leg {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 9px;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    background: var(--surface);
+    font: 500 11px/1 var(--sans);
+    color: var(--ink);
+    cursor: pointer;
+  }
+  .leg:hover { border-color: var(--muted); }
+  .leg.is-off { opacity: 0.4; }
+  .leg-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    display: inline-block;
+  }
+  .leg-tous {
+    background: linear-gradient(135deg, #c2683a 0%, #1d4ed8 35%, #0f6f5c 65%, #6d4bb0 100%);
+  }
+
   /* ---------- Aside résultat ---------- */
   .result {
     position: sticky;
@@ -720,7 +781,10 @@
 
   const BRVM = DATA.brvm || null;
 
-  let params = Object.assign({}, DATA.defaults);
+  // `continent` ne vient pas du jeu de données : c'est un filtre d'affichage,
+  // sans effet sur le calcul. Il part sur « Tous » pour qu'aucun pays ne soit
+  // masqué tant que l'utilisateur n'a rien demandé.
+  let params = Object.assign({ continent: "Tous" }, DATA.defaults);
   if (!params.referentiel) params.referentiel = "damodaran";
   if (!params.industrie_brvm && BRVM && BRVM.industries.length) {
     params.industrie_brvm = BRVM.industries[0].nom;
@@ -1015,6 +1079,98 @@
       </span>`;
   }
 
+  /* ================= Découpage géographique ================= */
+  const TOUS = "Tous";
+
+  function groupesPays() {
+    return DATA.options.countries_grouped || [];
+  }
+
+  function continents() {
+    return groupesPays().map(([c]) => c);
+  }
+
+  // Le continent choisi restreint la liste des pays. « Tous » rend la liste
+  // groupée complète ; un continant donné rend sa seule liste, à plat — le
+  // regroupement n'apporterait plus rien puisqu'il n'y aurait qu'un groupe.
+  function paysVisibles() {
+    const groupes = groupesPays();
+    if (params.continent === TOUS) return groupes.flatMap(([, membres]) => membres);
+    const trouve = groupes.find(([c]) => c === params.continent);
+    return trouve ? trouve[1] : groupes.flatMap(([, membres]) => membres);
+  }
+
+  function champPays(label) {
+    return params.continent === TOUS
+      ? selectFieldGroupe("country", label, groupesPays(), DATA.options.countries)
+      : selectField("country", label, paysVisibles());
+  }
+
+  function continentDe(pays) {
+    const entree = DATA.pays[pays];
+    return entree && entree.continent ? entree.continent : null;
+  }
+
+  /* ================= Carte ================= */
+  // Teintes reprises de la palette de la page, une par continent. Elles ne
+  // codent aucune grandeur : elles distinguent les blocs géographiques, rien de
+  // plus. La prime de risque, elle, se lit dans les tuiles.
+  const TEINTES = {
+    "Afrique": "#c2683a",
+    "Amériques": "#1d4ed8",
+    "Asie": "#0f6f5c",
+    "Europe": "#6d4bb0",
+    "Océanie": "#8a6d1f",
+    "Autres": "#71717a",
+  };
+
+  function teinte(continent) {
+    return TEINTES[continent] || TEINTES["Autres"];
+  }
+
+  function carteHtml() {
+    const carte = DATA.carte;
+    if (!carte || !carte.fond) return "";
+    const points = carte.points || {};
+    const filtre = params.continent;
+    const visibles = new Set(paysVisibles());
+
+    // Le pays retenu est tracé en dernier pour rester au-dessus de ses voisins.
+    const noms = Object.keys(points).filter((n) => n !== params.country);
+    if (points[params.country]) noms.push(params.country);
+
+    const pastilles = noms.map((nom) => {
+      const [x, y] = points[nom];
+      const continent = continentDe(nom);
+      const actif = params.country === nom;
+      const attenue = filtre !== TOUS && !visibles.has(nom);
+      const r = actif ? 3.4 : 1.9;
+      const cls = "pin" + (actif ? " is-on" : "") + (attenue ? " is-off" : "");
+      return `<circle class="${cls}" cx="${x}" cy="${y}" r="${r}" fill="${teinte(continent)}"
+        data-pays="${esc(nom)}"><title>${esc(nom)}${continent ? " — " + esc(continent) : ""}</title></circle>`;
+    }).join("");
+
+    const legende = continents().map((c) => {
+      const eteint = filtre !== TOUS && filtre !== c;
+      return `<button type="button" class="leg${eteint ? " is-off" : ""}" data-continent="${esc(c)}">
+        <span class="leg-dot" style="background:${teinte(c)}"></span>${esc(c)}</button>`;
+    }).join("");
+
+    return `
+      <div class="carte-bloc">
+        <svg class="carte" viewBox="0 0 360 180" role="img" aria-label="Carte des pays disponibles" preserveAspectRatio="xMidYMid meet">
+          <path class="carte-fond" d="${carte.fond}"/>
+          ${pastilles}
+        </svg>
+        <div class="carte-legende">
+          <button type="button" class="leg${filtre === TOUS ? "" : " is-off"}" data-continent="${TOUS}">
+            <span class="leg-dot leg-tous"></span>${TOUS}</button>
+          ${legende}
+        </div>
+        <span class="note">Cliquez un point pour choisir le pays, un continent pour filtrer la liste. Les couleurs distinguent les blocs géographiques, elles ne codent aucun montant.</span>
+      </div>`;
+  }
+
   function stepperField(item) {
     return `
       <span class="field">
@@ -1041,7 +1197,7 @@
           <span class="chips">${chips}</span>
         </span>
         <div class="grid-2">
-          ${selectFieldGroupe("country", "Sélectionner un pays", DATA.options.countries_grouped, DATA.options.countries)}
+          ${champPays("Sélectionner un pays")}
           ${selectField("industry", "Sélectionner une industrie", DATA.options.industries)}
         </div>
         <div class="tiles">
@@ -1093,7 +1249,7 @@
         <div class="grid-2">
           <div style="display:grid;gap:20px;align-content:start">
             ${selectField("industrie_brvm", "Industrie", BRVM.industries.map((i) => i.nom))}
-            ${selectFieldGroupe("country", "Pays — détermine le taux d'imposition", DATA.options.countries_grouped, DATA.options.countries)}
+            ${champPays("Pays — détermine le taux d'imposition")}
           </div>
           <div class="soc-list">${lignes}</div>
         </div>
@@ -1119,8 +1275,10 @@
         <div class="grid-2">
           ${selectField("year", "Année de valorisation", DATA.options.years)}
           ${champMaturite}
+          ${selectField("continent", "Continent", [TOUS].concat(continents()))}
           ${referentiels}
         </div>
+        ${carteHtml()}
       </section>
 
       ${estBrvm() ? blocBrvm() : blocDamodaran()}
@@ -1192,6 +1350,12 @@
   function brancherChamps() {
     $("paramsMain").querySelectorAll("select[data-param]").forEach((sel) => {
       sel.addEventListener("change", () => setParam(sel.dataset.param, sel.value));
+    });
+    $("paramsMain").querySelectorAll("circle[data-pays]").forEach((pin) => {
+      pin.addEventListener("click", () => setParam("country", pin.dataset.pays));
+    });
+    $("paramsMain").querySelectorAll("button[data-continent]").forEach((btn) => {
+      btn.addEventListener("click", () => setParam("continent", btn.dataset.continent));
     });
     $("paramsMain").querySelectorAll("button[data-step]").forEach((btn) => {
       btn.addEventListener("click", () => bumpParam(btn.dataset.step, Number(btn.dataset.dir)));
@@ -1420,6 +1584,24 @@
   function setParam(key, value) {
     if (key === "year") {
       value = Number(value);
+    } else if (key === "continent") {
+      // Changer de continent ne doit jamais laisser un pays sélectionné hors de
+      // la liste visible : le menu afficherait alors une valeur absente de ses
+      // options, et le navigateur retomberait silencieusement sur la première.
+      params.continent = value;
+      const visibles = paysVisibles();
+      if (!visibles.includes(params.country) && visibles.length) {
+        params.country = visibles[0];
+      }
+      apply();
+      return;
+    } else if (key === "country") {
+      // Choisir un pays sur la carte alors qu'un autre continent est filtré :
+      // on suit le pays plutôt que de refuser le clic.
+      const cont = continentDe(value);
+      if (params.continent !== TOUS && cont && cont !== params.continent) {
+        params.continent = cont;
+      }
     } else if (key === "industrie_brvm" && BRVM) {
       // Même tolérance que pour l'URL : accents et casse approximatifs acceptés,
       // et on conserve la valeur précédente plutôt qu'un libellé inconnu.

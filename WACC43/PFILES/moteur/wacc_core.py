@@ -12,6 +12,7 @@ from io import BytesIO
 import pandas as pd
 import requests
 
+import carte
 import zones
 
 BETAS_URL = "https://pages.stern.nyu.edu/~adamodar/pc/datasets/betaemerg.xls"
@@ -390,6 +391,14 @@ def build_dataset(years=None, progress=None) -> dict:
     dataset["inclassables"] = inclassables
     if inclassables:
         say(f"{len(inclassables)} pays sans zone : {', '.join(inclassables[:5])}")
+
+    # Carte : fond de trait et position projetée de chaque pays. Un pays sans
+    # position reste sélectionnable, il n'apparaît simplement pas sur la carte.
+    dataset["carte"] = {"fond": carte.FOND, "points": carte.points(pays)}
+    sans_position = carte.verifier_couverture(pays)
+    dataset["sans_position"] = sans_position
+    if sans_position:
+        say(f"{len(sans_position)} pays sans position : {', '.join(sans_position[:5])}")
 
     return dataset
 
