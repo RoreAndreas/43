@@ -26,6 +26,8 @@ PFILES/
 | `moteur/wacc_core.py` | Téléchargement des sources, condensation, formules Python |
 | `moteur/wacc_html.py` | Injecte le jeu de données dans le gabarit |
 | `moteur/get_us_bond_rate.py` | Moyenne annuelle des taux US Treasury |
+| `moteur/brvm_core.py` | Instantané des 47 sociétés cotées BRVM |
+| `moteur/taux_uemoa.py` | Courbes souveraines UEMOA (UMOA-Titres) |
 | `moteur/export_wacc.py` | Génération du classeur Excel |
 | `moteur/serve.py` | Aperçu local et export Excel |
 | `presentation/wacc_value_tab.html` | Présentation **et** formules en JavaScript |
@@ -96,6 +98,12 @@ local
 
 `c` : prime de risque d'un marché mature (Damodaran). `d` et `e` : primes de
 taille et spécifique, saisies dans l'interface. `E/V = 1/(1 + D/E)`.
+
+Sous référentiel BRVM, le taux sans risque vient de la courbe souveraine de
+l'État retenu, publiée chaque semaine par UMOA-Titres. Il porte déjà le risque
+pays : aucune prime ne s'y ajoute, et le coût du capital qui en découle est
+directement en monnaie locale. La profondeur des courbes va de 7 ans (Niger,
+Guinée-Bissau) à 15 ans (Côte d'Ivoire, Sénégal, Togo).
 
 Couverture : 157 pays et 94 industries. 23 pays n'ont pas de taux d'IS dans la
 base Damodaran — le calcul retient alors 25 %, et la page l'indique sous les

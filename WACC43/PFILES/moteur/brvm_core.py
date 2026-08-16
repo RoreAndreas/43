@@ -96,4 +96,23 @@ def build_brvm(progress=None) -> dict:
         "revision_classification": classification.get("revision"),
         "industries": industries,
         "societes": societes,
+        "courbes": _courbes(say),
     }
+
+
+def _courbes(say):
+    """
+    Courbes souveraines UEMOA. Une indisponibilité du site UMOA-Titres ne doit
+    pas faire échouer la construction : le référentiel BRVM reste consultable,
+    seul le taux sans risque manque.
+    """
+    try:
+        import taux_uemoa
+
+        say("Courbes de taux UEMOA...")
+        courbes = taux_uemoa.charger_courbes()
+        say(f"Courbes au {courbes['date']} — {len(courbes['pays'])} États.")
+        return courbes
+    except Exception as exc:
+        say(f"Courbes UEMOA indisponibles ({type(exc).__name__}) — taux sans risque absent.")
+        return None

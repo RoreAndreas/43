@@ -728,7 +728,27 @@
   let model = null;
   let tab = "params";   // on règle les hypothèses avant de lire le résultat
 
+  if (!params.maturite_uemoa) params.maturite_uemoa = "10 ans";
+
   const estBrvm = () => Boolean(BRVM) && params.referentiel === "brvm";
+
+  // La courbe souveraine de l'État sélectionné. Les libellés de pays diffèrent
+  // entre Damodaran et UMOA-Titres (Senegal / Sénégal) : on les rapproche par
+  // la même normalisation que pour les paramètres d'URL.
+  function courbePays() {
+    if (!BRVM || !BRVM.courbes) return null;
+    const trouve = resolveOption(params.country, Object.keys(BRVM.courbes.pays));
+    return trouve ? { pays: trouve, points: BRVM.courbes.pays[trouve] } : null;
+  }
+
+  // Taux sans risque local : il porte déjà le risque pays, aucune prime à ajouter.
+  function tauxSansRisque() {
+    const courbe = courbePays();
+    if (!courbe) return null;
+    const point = courbe.points.find((p) => p[0] === params.maturite_uemoa)
+      || courbe.points[courbe.points.length - 1];
+    return { pays: courbe.pays, libelle: point[0], taux: point[2] };
+  }
   const industrieBrvm = () =>
     (BRVM && BRVM.industries.find((i) => i.nom === params.industrie_brvm)) ||
     (BRVM && BRVM.industries[0]) || null;
@@ -1063,12 +1083,19 @@
       ? selectField("referentiel", "Référentiel", [["damodaran", "Damodaran"], ["brvm", "BRVM"]])
       : "";
 
+    // Sous référentiel BRVM, la maturité se choisit sur la courbe souveraine de
+    // l'État retenu, dont la profondeur varie de 7 à 15 ans selon l'émetteur.
+    const courbe = estBrvm() ? courbePays() : null;
+    const champMaturite = courbe
+      ? selectField("maturite_uemoa", "Maturité sur la courbe souveraine", courbe.points.map((p) => p[0]))
+      : selectField("maturity", "Maturité du taux sans risque", DATA.options.maturities);
+
     $("paramsMain").innerHTML = `
       <section class="card-block">
         <h2>Contexte de marché</h2>
         <div class="grid-2">
           ${selectField("year", "Année de valorisation", DATA.options.years)}
-          ${selectField("maturity", "Maturité du taux sans risque", DATA.options.maturities)}
+          ${champMaturite}
           ${referentiels}
         </div>
       </section>
@@ -1085,6 +1112,8 @@
       const tickers = ind ? ind.tickers : [];
       const betas = tickers.map((t) => BRVM.societes[t].beta).filter((b) => b != null);
       const caps = tickers.map((t) => BRVM.societes[t].capitalisation).filter((c) => c != null);
+      const rf = tauxSansRisque();
+      const dateCourbe = BRVM.courbes ? (BRVM.courbes.date || "") : "";
       $("paramsResult").innerHTML = `
         <h2>Secteur BRVM</h2>
         <span class="result-hero">
@@ -1097,11 +1126,13 @@
           <span class="result-row"><span>Sociétés du secteur</span><span>${tickers.length}</span></span>
           <span class="result-row"><span>Bêta coté moyen</span><span>${betas.length ? frNum(betas.reduce((a, b) => a + b, 0) / betas.length, 2) : "—"}</span></span>
           <span class="result-row"><span>Capitalisation cumulée</span><span>${esc(frMontant(caps.reduce((a, b) => a + b, 0)))}</span></span>
-          <span class="result-row"><span>Taux sans risque</span><span>à définir</span></span>
+          <span class="result-row"><span>Taux sans risque ${rf ? esc(rf.libelle) : ""}</span><span>${rf ? frPct(rf.taux) : "indisponible"}</span></span>
           <span class="result-row"><span>Gearing sectoriel</span><span>à définir</span></span>
         </span>
         <button type="button" class="cta" id="goSoc">Voir les sociétés</button>
-        <span class="note">Le CMPC n'est pas calculé sur ce référentiel tant que le taux sans risque local et le gearing sectoriel ne sont pas arrêtés. Les bêtas affichés sont les bêtas cotés à un an, non désendettés.</span>`;
+        <span class="note">${rf
+          ? `Taux souverain ${esc(rf.pays)} au ${esc(dateCourbe)}, publié par UMOA-Titres. Il porte déjà le risque pays : aucune prime ne s'y ajoute, et le coût du capital qui en découlera sera directement en monnaie locale.`
+          : "Courbe souveraine indisponible pour ce pays."} Le CMPC reste en attente du gearing sectoriel. Les bêtas affichés sont les bêtas cotés à un an, non désendettés.</span>`;
       $("goSoc").addEventListener("click", () => { tab = "societes"; renderTabs(); });
       brancherChamps();
       return;
