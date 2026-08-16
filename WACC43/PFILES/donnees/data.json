@@ -1915,6 +1915,7 @@
     "inflation_ref": 0.025,
     "inflation_local": 0.03
   },
+  "inclassables": [],
   "brvm": {
     "maj": "2026-08-16 15:53:18",
     "revision_classification": "2026-08-16",
