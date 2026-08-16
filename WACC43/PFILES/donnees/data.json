@@ -5556,95 +5556,79 @@
     "Afrique de l'Ouest": {
       "total": 47,
       "places": {
-        "Côte d'Ivoire": 34,
-        "Bénin": 3,
-        "Mali": 1,
-        "Sénégal": 3,
-        "Burkina Faso": 3,
-        "Niger": 1,
-        "Togo": 2
+        "BRVM": 47
       },
       "industries": {
         "Distribution et négoce": {
           "n": 3,
           "places": {
-            "Côte d'Ivoire": 3
+            "BRVM": 3
           }
         },
         "Banques": {
           "n": 15,
           "places": {
-            "Côte d'Ivoire": 6,
-            "Bénin": 2,
-            "Mali": 1,
-            "Sénégal": 1,
-            "Burkina Faso": 2,
-            "Niger": 1,
-            "Togo": 2
+            "BRVM": 15
           }
         },
         "Transport et logistique": {
           "n": 1,
           "places": {
-            "Côte d'Ivoire": 1
+            "BRVM": 1
           }
         },
         "Distribution de carburants": {
           "n": 3,
           "places": {
-            "Côte d'Ivoire": 2,
-            "Sénégal": 1
+            "BRVM": 3
           }
         },
         "Autres services": {
           "n": 3,
           "places": {
-            "Bénin": 1,
-            "Côte d'Ivoire": 2
+            "BRVM": 3
           }
         },
         "Industrie manufacturière": {
           "n": 6,
           "places": {
-            "Côte d'Ivoire": 6
+            "BRVM": 6
           }
         },
         "Agroalimentaire, boissons et biens de consommation": {
           "n": 4,
           "places": {
-            "Côte d'Ivoire": 4
+            "BRVM": 4
           }
         },
         "Agro-industrie et plantations": {
           "n": 5,
           "places": {
-            "Côte d'Ivoire": 5
+            "BRVM": 5
           }
         },
         "Télécommunications": {
           "n": 3,
           "places": {
-            "Sénégal": 1,
-            "Côte d'Ivoire": 1,
-            "Burkina Faso": 1
+            "BRVM": 3
           }
         },
         "Services publics": {
           "n": 2,
           "places": {
-            "Côte d'Ivoire": 2
+            "BRVM": 2
           }
         },
         "Services financiers": {
           "n": 1,
           "places": {
-            "Côte d'Ivoire": 1
+            "BRVM": 1
           }
         },
         "Bâtiment et travaux publics": {
           "n": 1,
           "places": {
-            "Côte d'Ivoire": 1
+            "BRVM": 1
           }
         }
       }

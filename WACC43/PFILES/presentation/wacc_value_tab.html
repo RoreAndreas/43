@@ -297,10 +297,11 @@
   .zone:hover { fill-opacity: 0.62; }
   .zone.is-on { fill-opacity: 0.72; stroke-width: 0.6; }
 
-  /* Deux colonnes : la carte reste à gauche, les choix passent à droite. */
+  /* Deux colonnes : la carte reste à gauche, les choix passent à droite. Sans
+     légende sous le tracé, la carte prend la place qu'elle mérite. */
   .geo {
     display: grid;
-    grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr);
+    grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr);
     gap: 22px;
     align-items: start;
   }
@@ -309,36 +310,34 @@
     .geo { grid-template-columns: 1fr; }
   }
 
-  .zones-liste { display: grid; gap: 4px; }
+  /* Une seule ligne par zone : nom, nombre de pays, effectif, places. */
+  .zones-liste { display: grid; gap: 3px; }
   .zone-ligne {
-    display: grid;
-    grid-template-columns: 10px 1fr auto;
+    display: flex;
     align-items: center;
-    gap: 4px 8px;
-    padding: 7px 9px;
+    gap: 8px;
+    padding: 7px 10px;
     border: 1px solid var(--line);
     border-radius: 8px;
     background: var(--surface);
-    font: 400 12px/1.3 var(--sans);
+    font: 400 12px/1.2 var(--sans);
     color: var(--ink);
     text-align: left;
     cursor: pointer;
   }
   .zone-ligne:hover { border-color: var(--muted); }
   .zone-ligne.is-on { border-color: var(--accent); background: var(--accent-tint); }
-  .zone-puce { width: 10px; height: 10px; border-radius: 3px; }
+  .zone-puce { width: 10px; height: 10px; border-radius: 3px; flex: none; }
   .zone-nom { font-weight: 500; }
-  .zone-pays { color: var(--muted); font-size: 11px; }
-  .zone-compte {
-    grid-column: 2 / -1;
-    font: 500 11px/1.3 var(--mono);
-    color: var(--green-ink);
-  }
-  .zone-compte.is-vide { color: var(--muted-2); font-weight: 400; }
-  .zone-places {
-    grid-column: 2 / -1;
-    font-size: 10.5px;
-    color: var(--muted);
+  .zone-pays { color: var(--muted); font-size: 11px; margin-right: auto; }
+  .zone-compte { font: 600 11px/1 var(--mono); color: var(--green-ink); }
+  .zone-place {
+    font: 500 10px/1 var(--sans);
+    letter-spacing: 0.03em;
+    padding: 3px 6px;
+    border-radius: 4px;
+    background: var(--accent-soft);
+    color: var(--accent);
   }
 
   /* ---------- Aside résultat ---------- */
@@ -1270,19 +1269,9 @@
       return d;
     }).filter(Boolean).join("");
 
-    const pts = DATA.carte ? DATA.carte.points || {} : {};
-    const pastilles = Object.keys(pts).map((nom) => {
-      const p = ortho(pts[nom][0] - 180, 90 - pts[nom][1], R, cx, cy);
-      if (!p.visible) return "";
-      const actif = params.country === nom;
-      return '<circle class="pin' + (actif ? " is-on" : "") + '" cx="' + p.x.toFixed(1) + '" cy="' + p.y.toFixed(1) +
-        '" r="' + (actif ? 3 : 1.6) + '" fill="' + teinte(continentDe(nom)) + '" data-pays="' + esc(nom) +
-        '"><title>' + esc(nom) + "</title></circle>";
-    }).join("");
-
-    return '<svg class="carte carte-globe" viewBox="0 0 180 180" role="img" aria-label="Globe des pays disponibles">' +
+    return '<svg class="carte carte-globe" viewBox="0 0 180 180" role="img" aria-label="Globe des continents">' +
       '<circle class="globe-mer" cx="' + cx + '" cy="' + cy + '" r="' + R + '"/>' +
-      '<path class="carte-fond" d="' + terres + '"/>' + pastilles + "</svg>";
+      '<path class="carte-fond" d="' + terres + '"/></svg>';
   }
 
   /* ---------- Carte d'un continent ---------- */
@@ -1314,56 +1303,39 @@
         " pays</title></path>")
       .join("");
 
-    const pastilles = tousPoints.map((p) => {
-      const actif = params.country === p.nom;
-      const attenue = params.zone && zoneDe(p.nom) !== params.zone;
-      return '<circle class="pin' + (actif ? " is-on" : "") + (attenue ? " is-off" : "") +
-        '" cx="' + p.x + '" cy="' + p.y + '" r="' + (actif ? vue.w * 0.014 : vue.w * 0.008).toFixed(2) +
-        '" data-pays="' + esc(p.nom) + '"><title>' + esc(p.nom) + "</title></circle>";
-    }).join("");
-
     return '<svg class="carte" viewBox="' + vue.x.toFixed(1) + " " + vue.y.toFixed(1) + " " +
       vue.w.toFixed(1) + " " + vue.h.toFixed(1) + '" role="img" aria-label="Carte de ' + esc(continent) +
       '" preserveAspectRatio="xMidYMid meet"><path class="carte-fond" d="' + DATA.carte.fond + '"/>' +
-      aires + pastilles + "</svg>";
+      aires + "</svg>";
   }
 
   function carteHtml() {
     if (!DATA.carte || !DATA.carte.fond) return "";
-    const monde = params.continent === TOUS;
-    const svg = monde ? globeHtml() : continentHtml(params.continent);
-    if (!svg) return "";
-    const note = monde
-      ? "Vue d'ensemble. Choisissez un continent pour en détailler les zones."
-      : "Survolez une zone pour la mettre en évidence, cliquez-la pour n'en garder que les pays. Les teintes distinguent les zones et ne codent aucun montant ; les contours sont schématiques, ce ne sont pas des frontières.";
-    return '<div class="carte-bloc">' + svg + '<span class="note">' + esc(note) + "</span></div>";
+    const svg = params.continent === TOUS ? globeHtml() : continentHtml(params.continent);
+    return svg ? '<div class="carte-bloc">' + svg + "</div>" : "";
   }
 
   /* ---------- Panneau des zones ---------- */
+  // Une ligne par zone : le nom, le nombre de pays, puis les places de cotation
+  // où des sociétés sont référencées. Une zone sans société n'affiche pas de
+  // place — l'absence se lit d'elle-même, sans qu'il faille l'écrire.
   function panneauZones() {
-    if (params.continent === TOUS) {
-      return '<span class="note">Choisissez un continent pour voir ses zones et les sociétés référencées.</span>';
-    }
+    if (params.continent === TOUS) return "";
     const zonesList = zonesDuContinent(params.continent);
     const ind = industrieCourante();
-    const lignes = zonesList.map(([zone, membres], i) => {
+    return '<div class="zones-liste">' + zonesList.map(([zone, membres], i) => {
       const e = effectif(zone);
       const valeur = ind ? e.n : e.total;
-      const choisie = params.zone === zone;
-      const compte = valeur ? valeur + " société" + (valeur > 1 ? "s" : "") : "aucune société";
       const places = valeur && e.places.length
-        ? '<span class="zone-places">' + e.places.map(esc).join(" · ") + "</span>" : "";
-      return '<button type="button" class="zone-ligne' + (choisie ? " is-on" : "") + '" data-zone="' + esc(zone) + '">' +
+        ? e.places.map((p) => '<span class="zone-place">' + esc(p) + "</span>").join("") : "";
+      return '<button type="button" class="zone-ligne' + (params.zone === zone ? " is-on" : "") +
+        '" data-zone="' + esc(zone) + '">' +
         '<span class="zone-puce" style="background:' + teinteZone(params.continent, i, zonesList.length) + '"></span>' +
         '<span class="zone-nom">' + esc(zone) + "</span>" +
         '<span class="zone-pays">' + membres.length + " pays</span>" +
-        '<span class="zone-compte' + (valeur ? "" : " is-vide") + '">' + compte + "</span>" +
+        (valeur ? '<span class="zone-compte">' + valeur + "</span>" : "") +
         places + "</button>";
-    }).join("");
-    const rappel = ind
-      ? "Effectifs pour « " + ind + " ». Le détail société par société est dans l'onglet Sociétés."
-      : "Les sociétés référencées proviennent de la place d'Abidjan, qui ne couvre qu'une zone à ce jour. Passez au référentiel Comparables pour filtrer par industrie.";
-    return '<div class="zones-liste">' + lignes + '</div><span class="note">' + esc(rappel) + "</span>";
+    }).join("") + "</div>";
   }
 
   function stepperField(item) {
@@ -1485,7 +1457,7 @@
         </div>
       </section>
 
-      ${estBrvm() ? blocBrvm() : blocDamodaran()}
+      ${estBrvm() ? "" : blocDamodaran()}
 
       <section class="card-block">
         <h2>Paramètres manuels</h2>
@@ -1500,7 +1472,7 @@
       const rf = tauxSansRisque();
       const dateCourbe = BRVM.courbes ? (BRVM.courbes.date || "") : "";
       $("paramsResult").innerHTML = `
-        <h2>Secteur BRVM</h2>
+        <h2>Secteur comparable</h2>
         <span class="result-hero">
           <span class="field-label">CMPC calculé</span>
           <span class="result-hero-row">
@@ -1554,9 +1526,6 @@
   function brancherChamps() {
     $("paramsMain").querySelectorAll("select[data-param]").forEach((sel) => {
       sel.addEventListener("change", () => setParam(sel.dataset.param, sel.value));
-    });
-    $("paramsMain").querySelectorAll("circle[data-pays]").forEach((pin) => {
-      pin.addEventListener("click", () => setParam("country", pin.dataset.pays));
     });
     $("paramsMain").querySelectorAll("[data-zone]").forEach((el) => {
       el.addEventListener("click", () => setParam("zone", el.dataset.zone));
@@ -1725,7 +1694,7 @@
       $(pan.stack).innerHTML = `
         <div class="notice">
           <h3>Calcul en attente</h3>
-          <p>Le référentiel BRVM ne dispose pas encore de son taux sans risque ni de son
+          <p>Le référentiel Comparables ne dispose pas encore de son taux sans risque ni de son
           gearing sectoriel : le CMPC n'est donc pas calculé ici. Les bêtas cotés, les
           capitalisations et les états financiers des sociétés du secteur sont consultables
           dans l'onglet Sociétés.</p>

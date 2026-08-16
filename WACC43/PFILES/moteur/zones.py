@@ -269,14 +269,18 @@ def indexer_societes(dataset: dict) -> dict:
         if zone is None:
             orphelins.append(pays)
             continue
+        # La place de cotation, pas le pays du siège : les 47 valeurs du jeu de
+        # données sont toutes cotées à Abidjan. Le jour où une autre place entre
+        # dans le périmètre, ce libellé devra venir de la donnée et non d'ici.
+        place = societe.get("place") or "BRVM"
         seau = index.setdefault(zone, {"total": 0, "places": {}, "industries": {}})
         seau["total"] += 1
-        seau["places"][pays] = seau["places"].get(pays, 0) + 1
+        seau["places"][place] = seau["places"].get(place, 0) + 1
         nom_industrie = industrie_du_ticker.get(ticker)
         if nom_industrie:
             detail = seau["industries"].setdefault(nom_industrie, {"n": 0, "places": {}})
             detail["n"] += 1
-            detail["places"][pays] = detail["places"].get(pays, 0) + 1
+            detail["places"][place] = detail["places"].get(place, 0) + 1
 
     dataset["zones_societes"] = index
     dataset["societes_hors_zone"] = sorted(set(orphelins))
