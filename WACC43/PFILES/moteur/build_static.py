@@ -30,6 +30,28 @@ MIN_COUNTRIES = 100
 MIN_INDUSTRIES = 60
 
 
+def _reclasser_brvm(brvm: dict, univers: dict):
+    """Range les sociétés BRVM dans la nomenclature de l'export.
+
+    Rend (industries, sociétés restées hors export). Les industries sont celles
+    de l'export qui comptent au moins une société cotée à Abidjan : ce sont les
+    seules pour lesquelles un bêta coté est disponible, et donc les seules où le
+    coût des fonds propres peut être calculé.
+    """
+    par_ticker = univers.get("industrie_par_ticker") or {}
+    paniers, restants = {}, []
+    for ticker in brvm.get("societes", {}):
+        nom = par_ticker.get(ticker)
+        if nom is None:
+            restants.append(ticker)
+            continue
+        paniers.setdefault(nom, []).append(ticker)
+    return (
+        [{"nom": nom, "tickers": sorted(t)} for nom, t in sorted(paniers.items())],
+        sorted(restants),
+    )
+
+
 def main():
     parser = argparse.ArgumentParser(description="Génère la page statique du CMPC")
     parser.add_argument("--out", default=str(SITE), help="dossier de sortie (défaut : site/)")
@@ -79,14 +101,36 @@ def main():
     # scraper SIKAPRO, qui tourne toutes les 10 minutes dans son propre projet.
     dataset["brvm"] = brvm_core.build_brvm(progress=progress)
 
-    # L'index des sociétés se construit après le volet comparables, dont il
-    # dépend. Les pays de sociétés qu'aucune zone ne réclame sont signalés : ce
-    # sont des libellés à rattacher, pas des sociétés à ignorer.
+    import comparables as _comparables
     import zones as _zones
 
-    hors_zone = _zones.indexer_societes(dataset)
-    if hors_zone:
-        print(f"  /!\\ sociétés hors zone : {', '.join(hors_zone)}")
+    # Univers de comparables : l'export S&P déposé dans le dossier du projet.
+    # Il donne la nomenclature d'industries, le gearing sectoriel observé, et
+    # une couverture continentale que la seule place d'Abidjan ne permettait pas.
+    univers = _comparables.construire(RACINE, progress=progress)
+    if univers is None:
+        print("  /!\\ aucun export SPGlobal_Export_*.xlsx : univers de comparables absent")
+        hors_zone = _zones.indexer_societes(dataset)
+        if hors_zone:
+            print(f"  /!\\ sociétés hors zone : {', '.join(hors_zone)}")
+    else:
+        index, orphelins = _comparables.indexer_par_zone(univers, _zones.classer)
+        dataset["comparables"] = {
+            "source": univers["source"],
+            "industries": univers["industries"],
+            "zones": index,
+        }
+        dataset["zones_societes"] = index
+        if orphelins:
+            print(f"  /!\\ pays de comparables sans zone : {', '.join(orphelins)}")
+
+        # Les bêtas cotés viennent de la BRVM, classés selon ses douze secteurs.
+        # On les reclasse dans la nomenclature de l'export pour n'avoir qu'une
+        # seule taxonomie ; les sociétés absentes de l'export gardent la leur.
+        reclasse, restants = _reclasser_brvm(dataset["brvm"], univers)
+        dataset["brvm"]["industries"] = reclasse
+        if restants:
+            print(f"  /!\\ sociétés BRVM hors export : {', '.join(restants)}")
 
     page = render_page(dataset)
     target = out / "index.html"

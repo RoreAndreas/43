@@ -1169,10 +1169,14 @@
   // la place d'Abidjan, soit sept pays et une seule zone sur dix-huit : partout
   // ailleurs le compte est nul, et le panneau doit l'écrire plutôt que d'afficher
   // un tiret qu'on lirait comme une donnée manquante.
+  // L'industrie qui filtre les effectifs. Sous Comparables, la nomenclature est
+  // celle de l'univers ; sous Damodaran, aucune correspondance n'existe entre
+  // ses 94 secteurs et ceux de l'export, donc on ne filtre pas.
   function industrieCourante() { return estBrvm() ? params.industrie_brvm : null; }
 
   function effectif(zone) {
-    const bloc = (DATA.zones_societes || {})[zone];
+    const source = (DATA.comparables || {}).zones || DATA.zones_societes || {};
+    const bloc = source[zone];
     if (!bloc) return { total: 0, n: null, places: [] };
     const ind = industrieCourante();
     const detail = ind && bloc.industries ? bloc.industries[ind] : null;
@@ -1193,10 +1197,16 @@
   };
   function teinte(continent) { return TEINTES[continent] || TEINTES["Autres"]; }
 
+  // Une couleur franche par zone, et non des nuances d'une même teinte : sur une
+  // carte, deux nuances voisines d'un même continent se confondent dès que les
+  // blocs sont contigus. La palette est fixe et ordonnée, pour qu'une zone garde
+  // sa couleur d'un continent à l'autre et d'une session à l'autre.
+  const PALETTE_ZONES = [
+    "#c1553b", "#2f7fb5", "#3f9e78", "#8a63b8", "#c99a2e",
+    "#5b8c5a", "#b4577f", "#4a7fa5",
+  ];
   function teinteZone(continent, rang, total) {
-    const base = teinte(continent);
-    const l = total > 1 ? rang / (total - 1) : 0;
-    return "color-mix(in srgb, " + base + " " + (100 - Math.round(l * 45)) + "%, white)";
+    return PALETTE_ZONES[rang % PALETTE_ZONES.length];
   }
 
   /* ---------- Globe, pour le continent « Tous » ---------- */
@@ -1277,24 +1287,39 @@
   // au taux souverain : c'est l'hypothèse la plus neutre disponible, et
   // certainement optimiste pour un émetteur privé. Elle est écrite sous le
   // résultat plutôt que dissimulée dans le calcul.
+  // Gearing observé du secteur : dette totale cumulée rapportée à la
+  // capitalisation cumulée sur l'univers de comparables. Il sert de valeur de
+  // départ au champ de saisie, qui reste modifiable.
+  function gearingSectoriel(nomIndustrie) {
+    const liste = (DATA.comparables || {}).industries || [];
+    const trouve = liste.find((i) => i.nom === nomIndustrie);
+    return trouve && trouve.gearing != null ? trouve.gearing : null;
+  }
+
+  function gearingRetenu() {
+    if (params.gearing_brvm != null && params.gearing_brvm !== "") {
+      return Number(params.gearing_brvm);
+    }
+    return gearingSectoriel(params.industrie_brvm);
+  }
+
   function cmpcComparables() {
     if (!estBrvm() || !BRVM) return null;
     const ind = industrieBrvm();
     const tickers = ind ? ind.tickers : [];
     const betas = tickers.map((t) => BRVM.societes[t].beta).filter((b) => b != null);
     const rf = tauxSansRisque();
-    const g = Number(params.gearing_brvm);
+    const g = gearingRetenu();
     const pays = DATA.pays[params.country] || {};
-    if (!rf || !betas.length || !(g >= 0) || params.gearing_brvm === "" ||
-        params.gearing_brvm == null || pays.tax == null) {
-      return null;
-    }
+    if (!rf || !betas.length || g == null || !(g >= 0) || pays.tax == null) return null;
+    const saisi = params.gearing_brvm != null && params.gearing_brvm !== "";
     const beta = betas.reduce((a, b) => a + b, 0) / betas.length;
     const ke = rf.taux + beta * DATA.mature + Number(params.d) + Number(params.e);
     const kd = rf.taux * (1 - pays.tax);
     const we = 1 / (1 + g);
     return {
-      beta: beta, rf: rf, tax: pays.tax, gearing: g,
+      beta: beta, rf: rf, tax: pays.tax, gearing: g, gearingSaisi: saisi,
+      societes: betas.length,
       ke: ke, kd: kd, we: we, wd: 1 - we,
       wacc: ke * we + kd * (1 - we),
     };
@@ -1328,8 +1353,12 @@
           equityPct: (cc.we * 100).toFixed(1), debtPct: (cc.wd * 100).toFixed(1),
         },
         methodology: "Déduite du gearing : fonds propres / valeur = 1 / (1 + D/E).",
-        source: "Saisie manuelle.",
-        hypothesis: "Le gearing n'est pas publié pour ce référentiel : il est saisi à la main dans l'onglet Paramètres.",
+        source: cc.gearingSaisi
+          ? "Saisie manuelle."
+          : "Dette totale cumulée rapportée à la capitalisation cumulée du secteur, sur l'univers de comparables.",
+        hypothesis: cc.gearingSaisi
+          ? "Gearing saisi à la main dans l'onglet Paramètres, il remplace celui observé sur le secteur."
+          : "Gearing observé sur le secteur : un rapport d'agrégats, et non une moyenne de rapports, qui donnerait autant de poids à une micro-capitalisation très endettée qu'à la première capitalisation du secteur.",
         retained: "Gearing D/E = " + frNum(cc.gearing, 2) + ".",
         formula: ["FP / V = 1 / (1 + " + frNum(cc.gearing, 2) + ") = " + frPct(cc.we)],
       },
@@ -1527,7 +1556,8 @@
           <span class="result-row">
             <span>Gearing sectoriel (D/E)</span>
             <input class="mini-input" type="number" step="0.05" min="0" inputmode="decimal"
-                   data-num="gearing_brvm" placeholder="à définir"
+                   data-num="gearing_brvm"
+                   placeholder="${gearingSectoriel(params.industrie_brvm) == null ? "à définir" : frNum(gearingSectoriel(params.industrie_brvm), 2)}"
                    value="${params.gearing_brvm == null ? "" : esc(params.gearing_brvm)}">
           </span>
           ${cc ? `

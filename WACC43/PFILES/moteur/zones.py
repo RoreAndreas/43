@@ -17,20 +17,35 @@ import unicodedata
 # fichier Damodaran, sinon le rapprochement échoue silencieusement.
 ZONES = {
     # ---- Afrique ----
-    "Afrique du Nord": ["Egypt", "Morocco", "Tunisia"],
+    # Couverture complète du continent, et non des seuls pays notés par
+    # Damodaran : la carte doit rester entière, et l'univers de comparables
+    # compte des sociétés au Zimbabwe, au Malawi ou en Algérie.
+    "Afrique du Nord": ["Algeria", "Egypt", "Libya", "Morocco", "Sudan", "Tunisia"],
     "Afrique de l'Ouest": [
-        "Benin", "Burkina Faso", "Cape Verde", "Côte d'Ivoire", "Ghana",
-        "Mali", "Niger", "Nigeria", "Senegal", "Togo",
+        "Benin", "Burkina Faso", "Cape Verde", "Côte d'Ivoire", "Gambia", "Ghana",
+        "Guinea", "Guinea-Bissau", "Liberia", "Mali", "Mauritania", "Niger",
+        "Nigeria", "Senegal", "Sierra Leone", "Togo",
     ],
     "Afrique centrale": [
-        "Angola", "Cameroon", "Congo (Democratic Republic of)",
-        "Congo (Republic of)", "Gabon",
+        "Angola", "Cameroon", "Central African Republic", "Chad",
+        "Congo (Democratic Republic of)", "Congo (Republic of)",
+        "Equatorial Guinea", "Gabon", "Sao Tome and Principe",
     ],
     "Afrique de l'Est": [
-        "Ethiopia", "Kenya", "Mauritius", "Mozambique", "Rwanda",
-        "Tanzania", "Uganda", "Zambia",
+        "Burundi", "Comoros", "Djibouti", "Eritrea", "Ethiopia", "Kenya",
+        "Madagascar", "Mauritius", "Rwanda", "Seychelles", "Somalia",
+        "South Sudan", "Tanzania", "Uganda",
     ],
-    "Afrique australe": ["Botswana", "Namibia", "South Africa", "Swaziland"],
+    # Écart assumé par rapport au M49 des Nations unies, qui range Zambie,
+    # Zimbabwe, Malawi et Mozambique en Afrique de l'Est. Ces quatre marchés
+    # relèvent de la SADC et se lisent, en pratique financière, avec l'Afrique
+    # australe — c'est aussi ce que la carte donne à voir, le bloc étant
+    # contigu. L'Angola, membre de la SADC lui aussi, reste en Afrique centrale :
+    # son économie pétrolière et sa position le rattachent au golfe de Guinée.
+    "Afrique australe": [
+        "Botswana", "Lesotho", "Malawi", "Mozambique", "Namibia", "South Africa",
+        "Swaziland", "Zambia", "Zimbabwe",
+    ],
 
     # ---- Asie ----
     "Asie de l'Est": ["China", "Hong Kong", "Japan", "Korea", "Macao", "Mongolia", "Taiwan"],
@@ -146,11 +161,31 @@ def _sans_accent(texte: str) -> str:
 # silence — précisément le risque annoncé en tête de ce module.
 _PAR_PAYS_NORMALISE = {_sans_accent(pays): zone for pays, zone in _PAR_PAYS.items()}
 
+# Libellés que d'autres sources écrivent autrement. S&P abrège la République
+# démocratique du Congo, Natural Earth a suivi les renommages officiels.
+_ALIAS = {
+    "demrepcongo": "Congo (Democratic Republic of)",
+    "democraticrepublicofthecongo": "Congo (Democratic Republic of)",
+    "republicofthecongo": "Congo (Republic of)",
+    "congo": "Congo (Republic of)",
+    "southkorea": "Korea",
+    "northmacedonia": "Macedonia",
+    "eswatini": "Swaziland",
+    "capeverde": "Cape Verde",
+    "caboverde": "Cape Verde",
+    "ivorycoast": "Côte d'Ivoire",
+    "thegambia": "Gambia",
+    "saotomeandprincipe": "Sao Tome and Principe",
+}
+
 
 def classer(pays: str, region_damodaran: str = None):
     """(continent, zone) d'un pays. Retourne (None, None) si inclassable."""
     libelle = str(pays).strip()
-    zone = _PAR_PAYS.get(libelle) or _PAR_PAYS_NORMALISE.get(_sans_accent(libelle))
+    cle = _sans_accent(libelle)
+    zone = _PAR_PAYS.get(libelle) or _PAR_PAYS_NORMALISE.get(cle)
+    if zone is None and cle in _ALIAS:
+        zone = _PAR_PAYS.get(_ALIAS[cle])
     if zone:
         return CONTINENT_DE_LA_ZONE[zone], zone
     if region_damodaran:
@@ -164,8 +199,13 @@ def verifier_couverture(pays_damodaran):
     """
     Confronte le découpage à la liste de pays réellement publiée par Damodaran.
 
-    Rend (manquants, fantômes) : les pays Damodaran qu'aucune zone ne réclame,
-    et les pays cités par le découpage que Damodaran ne connaît plus.
+    Rend (manquants, hors_damodaran) : les pays Damodaran qu'aucune zone ne
+    réclame, et les pays du découpage absents du jeu Damodaran.
+
+    Seul le premier terme est une anomalie. Le second est attendu : le découpage
+    couvre les continents en entier, alors que Damodaran ne note que les pays
+    dotés d'une prime de risque. Un pays du Sahel sans notation doit tout de même
+    être colorié sur la carte et pouvoir accueillir des comparables.
 
     Ce contrôle existe parce que le rapprochement se fait sur le libellé exact.
     Damodaran republie chaque janvier, et une simple retouche d'orthographe —
