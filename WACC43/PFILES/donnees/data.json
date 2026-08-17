@@ -34,8 +34,8 @@
     "correction": 0.0023
   },
   "rf": {
-    "2026-30": 4.940576923076923,
-    "2026-10": 4.375320512820513,
+    "2026-30": 4.942929936305732,
+    "2026-10": 4.377515923566879,
     "2025-30": 4.777309236947791,
     "2025-10": 4.293212851405621,
     "2024-30": 4.407280000000002,
@@ -2256,7 +2256,7 @@
   },
   "sans_position": [],
   "brvm": {
-    "maj": "2026-08-17 17:04:26",
+    "maj": "2026-08-17 20:10:26",
     "revision_classification": "2026-08-16",
     "industries": [
       {
@@ -2427,7 +2427,7 @@
         "drapeau": "🇨🇮",
         "presentation": "TRACTAFRIC Motors CI est une filiale du groupe TRACTAFRIC Motors Corporation, elle-même filiale de la Compagnie OPTORG. \nLe groupe est présent en Côte d'Ivoire depuis 1960 et est présent dans plusieurs pays d'Afrique. TRACTAFRIC MOTORS CI importe et vend les marques Hyundai, Ford, Mazda, BMW et Mini en Côte d'Ivoire grâce à ses différentes concessions automobiles et offre également des services de location de véhicules EUROPCAR et un service pneumatique MICHELIN. \nLa société est la deuxième plus grande compagnie de distribution de véhicule en termes de part de marché avec environ 19.4% à la fin de 2017.",
         "capitalisation": 45568.0,
-        "beta": 0.34,
+        "beta": 0.28,
         "annees": [
           2023,
           2024,
@@ -2470,7 +2470,7 @@
         "drapeau": "🇨🇮",
         "presentation": "Le capital social de NSIA BANQUE CÔTE D'IVOIRE était de 20 milliards FCFA. Les actionnaires majoritaires sont pour la plupart des personnes morales. Ses activités s'articulent autour de deux pôles d'activités stratégiques: la banque de détail et la banque de financement et d'investissement. \n\nle 27 novembre 2017, le groupe NSIA, présidé et dirigé par Jean Kacou DIAGOU, a finalisé le 24 novembre l’achat du groupe bancaire ouest-africain Diamond Bank SA, filiale pour l’Afrique francophone du géant nigérian Diamond Bank. Le leader des assurances de l’Afrique subsaharienne francophone aura déboursé un total de 61 millions d’euros, via trois de ses sociétés (Manzi Finance SA, NSIA Banque Côte d’Ivoire et NSIA Vie Assurances Côte d’Ivoire), pour acquérir de 1 985 000 actions de Diamond Bank SA, soit 97,07 % de son capital social.",
         "capitalisation": 570132.0,
-        "beta": 1.04,
+        "beta": 0.98,
         "annees": [
           2023,
           2024,
@@ -2685,7 +2685,7 @@
         "drapeau": "🇨🇮",
         "presentation": "VIVO ENERGY Côte d'Ivoire est l'un des principaux acteurs du marché des carburants différenciés et des lubrifiants. \nLe groupe a obtenu le 1er  décembre 2011 la licence pour distribuer et commercialiser des combustibles et des lubrifiants de marque Shell. \nVIVO ENERGY Côte d’ivoire possède environ 170 stations-service, dont près de la moitié sont situées à Abidjan, les sites restants étant répartis dans tout le pays, ce qui donne à l'entreprise une couverture nationale.",
         "capitalisation": 148050.0,
-        "beta": 0.7,
+        "beta": 0.72,
         "annees": [
           2023,
           2024,
@@ -2728,7 +2728,7 @@
         "drapeau": "🇧🇯",
         "presentation": "La Loterie Nationale du Bénin (LNB) est une institution publique béninoise chargée de l’organisation et de la régulation des jeux de hasard et de loterie. Créée pour générer des revenus pour l'État, elle propose divers produits, tels que des jeux de tirage, des tickets à gratter et des paris sportifs. La LNB joue également un rôle socio-économique en soutenant des initiatives sociales et en finançant des projets dans des domaines tels que l’éducation, la santé et le développement communautaire. Elle s'efforce de promouvoir le jeu responsable tout en contribuant au développement du pays.",
         "capitalisation": 81100.0,
-        "beta": 0.01,
+        "beta": 0.0,
         "annees": [
           2023,
           2024,
@@ -2771,7 +2771,7 @@
         "drapeau": "🇨🇮",
         "presentation": "UNIWAX, leader de l'industrie textile en Côte d'Ivoire conçoit, produit et commercialise des tissus uniques et colorés. Ces textiles expressifs de haute qualité sont distribués dans les pays africains. UNIWAX, un véritable leader du marché, a inspiré la mode ivoirienne depuis de nombreuses années avec le tissu \"Wax Hollandais\", symbole de la culture africaine.\n\nUNIWAX fait partie de Vlisco Helmond BV aux côtés de deux autres filiales; GTP et Woodin. Le groupe, précédemment détenu par GAMMA holding, a été racheté par ACTIS, un fonds d'investissement axé sur les marchés émergents en septembre 2010.",
         "capitalisation": 43679.0,
-        "beta": 0.15,
+        "beta": 0.07,
         "annees": [
           2023,
           2024,
@@ -2814,7 +2814,7 @@
         "drapeau": "🇨🇮",
         "presentation": "Unilever Côte d'Ivoire (ou Unilever CI) est une filiale du groupe Unilever. \nEn 2008, UNILEVER CI a redéfini sa stratégie en cédant son activité huile au Groupe SIFCA et a acquis les activités Savon de Cosmivoire (groupe SIFCA). \nLa société est aujourd’hui le leader dans la fabrication et la commercialisation de produits alimentaires et d'entretien. Unilever grâce à ses opérations basées à Abidjan fournit ses produits aux pays membres de l'UEMOA.",
         "capitalisation": 532545.0,
-        "beta": 0.22,
+        "beta": 0.32,
         "annees": [
           2021,
           2022,
@@ -2857,7 +2857,7 @@
         "drapeau": "🇸🇳",
         "presentation": "Présent au Sénégal depuis 1954, TOTAL est le leader du marketing des produits pétroliers dans le pays. La société est cotée à la bourse régionale (BRVM) depuis le 20 février 2015. \nTOTAL SENEGAL possède le plus grand réseau de stations-service avec 173 stations à l'échelle nationale en 2016. \nL'ensemble des activités de TOTAL Sénégal comprend l'importation, le stockage et la distribution de produits pétroliers. Ces produits sont répartis entre les métiers suivants: le réseau des stations-service, les clients industriels et commerciaux, les carburants d'aviation, les carburants pour la marine, les lubrifiants et le GPL.",
         "capitalisation": 120537.0,
-        "beta": 0.53,
+        "beta": 0.56,
         "annees": [
           2023,
           2024,
@@ -2943,7 +2943,7 @@
         "drapeau": "🇨🇮",
         "presentation": "SUCRIVOIRE, filiale du groupe agro-industriel SIFCA, a été introduite le 29 décembre 2016, à la Bourse Régionale des Valeurs Mobilières (BRVM). \nL’activité de SUCRIVOIRE est répartie en trois principaux volets, à savoir : l’agriculture, la production et la distribution. Elle possède 11 382 hectares de plantations de canne à sucre reparties sur deux unités industrielles d’une capacité de plus de 110 000 tonnes. \nL’offre de SUCRIVOIRE est exclusivement dédiée au marché national et plus particulièrement auprès des grossistes, grandes et moyennes surfaces de distribution, et industriels.",
         "capitalisation": 70364.0,
-        "beta": 0.99,
+        "beta": 0.98,
         "annees": [
           2023,
           2024,
@@ -2986,7 +2986,7 @@
         "drapeau": "🇸🇳",
         "presentation": "La Société Nationale des Télécommunications du Sénégal (SONATEL), premier opérateur téléphonique au Sénégal, a été créée en 1985 suite à la fusion du «Bureau des postes et télécommunications» et de «TV Senegal». \nSONATEL est devenue une entreprise privée en 1997 lorsque France Télécom a pris une participation de 42,33% dans le capital. Afin de faire face à la concurrence croissante, la société a entrepris une stratégie de croissance externe, aidée par son partenaire stratégique Orange. \nDepuis 2002 SONATEL est présente au Mali, en 2007, la société a été créée en Guinée et en Guinée Bissau. L'acquisition la plus récente de la société en 2016 a été l'opérateur leader en Sierra Leone (Airtel). \nGrâce à sa marque Orange, SONATEL fournit des solutions de télécommunications dans les domaines du téléphone, du mobile, de l'internet, de la télévision et des données à plus de 30 millions d’abonnés et dispose d'un parc actif Orange money de 4,5 millions d’abonnés.\nComme la plupart des opérateurs globaux de télécommunications intégrées, l'objectif de SONATEL est de tirer pleinement parti de la convergence du mobile, de l'internet et de télévision sous une seule marque.",
         "capitalisation": 3190000.0,
-        "beta": 1.18,
+        "beta": 1.17,
         "annees": [
           2023,
           2024,
@@ -3029,7 +3029,7 @@
         "drapeau": "🇨🇮",
         "presentation": "SOLIBRA (Societé de Limonaderie et Brasserie d'Afrique) produit et distribue de la bière, d'autres boissons alcooliques et non alcoolisées en côte d’ivoire. \nC'est la société leader sur le marché des boissons alcoolisées, de boissons gazeuses et sur le marché des eaux minérales. En mai 2017, SOLIBRA a procèdé à la fusion absorption de « Les Brasseries Ivoiriennes » (LBI) racheté 2 ans plus tôt par le groupe BGI formant ainsi le groupe SOLIBRA. \nLe portefeuille de la marque SOLIBRA intègre 16 marques et plus de 92 produits. Le principal produit sur le segment de la bière est «BOCK». Avec une capacité installée de 5,54 millions Hl, SOLIBRA dispose de quatre (4) sites de production dont deux (2) situés à Abidjan Yopougon, un (1) à Abidjan Zone III et un (1) à Bouaflé.",
         "capitalisation": 625512.0,
-        "beta": 1.13,
+        "beta": 1.05,
         "annees": [
           2023,
           2024,
@@ -3115,7 +3115,7 @@
         "drapeau": "🇨🇮",
         "presentation": "La Société africaine de crédit automobile (Safca), est établie en Côte d'ivoire depuis 1958. Elle est spécialisée dans le crédit-bail et assure le financement des biens mobiliers et immobiliers à travers divers produits financiers.",
         "capitalisation": 68014.0,
-        "beta": 1.45,
+        "beta": 1.44,
         "annees": [
           2023,
           2024,
@@ -3287,7 +3287,7 @@
         "drapeau": "🇨🇮",
         "presentation": "SERVAIR ABIDJAN anciennement Abidjan Catering, est une société créée en 1968 opérant sur l'avitaillement, la fourniture de repas et le nettoyage des compagnies aériennes qui desservent l'aéroport d'Abidjan. Depuis 2012, SERVAIR ABIDJAN développe aussi des activités Hors Aérienne. En effet, afin de développer son portefeuille clients  et tirer profit de la croissance économique du pays, la société a commencé à développer la restauration collective (scolaire, entreprise), son service traiteur événementiel (Grain de Sel) et propose ses services pour le catering  et l’avitaillement de Bases Vies (FOXTROT).",
         "capitalisation": 36010.0,
-        "beta": 0.24,
+        "beta": 0.23,
         "annees": [
           2023,
           2024,
@@ -3330,7 +3330,7 @@
         "drapeau": "🇨🇮",
         "presentation": "La SETAO est une filiale du groupe Bouygues dont les activités en Côte d'Ivoire ont débuté en 1950. La société est spécialisée dans les prestations de conseil et d'ingénierie dans le domaine du BTP. Plusieurs réalisations sont à son actif notamment: la construction du 3éme pont d’Abidjan, l’extension du centre commercial CAP SUD, la construction du complexe universitaire de Yamoussoukro (ex-INSET ou actuel INPHB).",
         "capitalisation": 34205.0,
-        "beta": 0.43,
+        "beta": 0.32,
         "annees": [
           2023,
           2024,
@@ -3373,7 +3373,7 @@
         "drapeau": "🇨🇮",
         "presentation": "Le Groupe Orange Côte d’Ivoire (Groupe OCI) est une entreprise intégrée de télécommunications qui offre des solutions dans les domaines du fixe, du mobile, de l’Internet, des services de paiement mobile et des données au service des particuliers et des entreprises. Le Groupe OCI est leader en Côte d’Ivoire, ainsi qu’au \nBurkina Faso et au Libéria où il est présent depuis 2016. Le Groupe OCI est un opérateur global et sous régional de référence.",
         "capitalisation": 2794657.0,
-        "beta": 1.53,
+        "beta": 1.57,
         "annees": [
           2023,
           2024,
@@ -3588,7 +3588,7 @@
         "drapeau": "🇨🇮",
         "presentation": "Crée en 1976, la SICABLE est une entreprise ivoirienne, filiale du Groupe PRYSMIAN, elle est spécialisée dans la fabrication de câbles électriques. La société commercialise des câbles de basse, moyenne et haute tension pour l’utilisation dans l'industrie, la construction, l'infrastructure et les réseaux aériens. La SICABLE exporte vers les pays de la sous-région ouest africain.",
         "capitalisation": 21312.0,
-        "beta": 0.04,
+        "beta": 0.13,
         "annees": [
           2023,
           2024,
@@ -3803,7 +3803,7 @@
         "drapeau": "🇨🇮",
         "presentation": "Filtisac ou filature tissage sac, est une unité de fabrication de sacs en fibre naturelle de l'entreprise IPS (Industrial Promotion Services). Fondée en 1965, la société s’est aujourd’hui diversifiée avec la création d’une unité de fabrication d’emballages en fibres synthétiques pour des produits tels que: le coton, le riz, les engrais, le cacao, le café et l’anacarde ainsi que la production d'emballages rigides (préformes, bouteilles, boîtes). Leader en Afrique subsaharienne, FILTISAC possède de nombreuses filiales en Afrique de l'Ouest et du Centre.",
         "capitalisation": 30323.0,
-        "beta": 1.09,
+        "beta": 1.12,
         "annees": [
           2023,
           2024,
@@ -3932,7 +3932,7 @@
         "drapeau": "🇧🇫",
         "presentation": "ONATEL offre des services de téléphonie mobile. Premier opérateur Burkinabé de télécommunication mobile, ONATEL possède le plus important réseau en termes de couverture, la plus importante part de marché en termes de chiffre d'affaires et le plus important réseau de distributeurs. ONATEL dispose ainsi en fin 2017 d’un parc mobile et fixe de 7 millions d’abonnés. Depuis le 29 décembre 2006, le groupe Maroc Telecom est le nouvel actionnaire majoritaire de Onatel.",
         "capitalisation": 197200.0,
-        "beta": 0.17,
+        "beta": 0.19,
         "annees": [
           2023,
           2024,
@@ -3975,7 +3975,7 @@
         "drapeau": "🇹🇬",
         "presentation": "ORAGROUP SA est une holding au capital social de 63,3 milliards de FCFA basée au Togo. C’est la société mère du groupe bancaire ORABANK. Historiquement, ORAGROUP a connu une extraordinaire croissance en l’espace d’une décennie (de 2008 à 2018), multipliant son total bilan par 9 (1 794 milliards de FCFA à fin 2017), étendant sa présence géographique de 5 à 12 pays (Burkina \nFaso, Bénin, Côte d'Ivoire, Gabon, Guinée, Guinée-Bissau, Mauritanie, Mali, Niger, Sénégal, Tchad, Togo) et revendiquant désormais un demi-million de clients.\nLe groupe est détenu à 50,01% par ECP Financial Holdings LLC (EFH) qui en est l’actionnaire principal.",
         "capitalisation": 212410.0,
-        "beta": 0.12,
+        "beta": 0.09,
         "annees": [
           2023,
           2024,
@@ -4018,7 +4018,7 @@
         "drapeau": "🇨🇮",
         "presentation": "PALMCI est une filiale du groupe agro-industriel ivoirien SIFCA. Elle est le principal producteur d’huile de palme brute de la région.\n Créée en 1997, la société produit plus de 280 000 tonnes d’huile de palme brute par an sur 8 sites de production implantés en Côte d'Ivoire, soit 70% de la production totale du pays. Elle exploite près de 40 000 hectares de plantations industrielles et s’approvisionne auprès de 30 000 petits planteurs\nEntre 2016 et 2017, le rendement à l’hectare de ses champs passe de 15,6t/h à 15,8t/h, soit une légère hausse de 1%. De même, ses achats de régimes aux planteurs villageois (PV) se chiffre à 726 168 tonnes en 2017 contre 612 892 tonnes en 2016.\nPALMCI enregistre un volume en tonnage de régimes usinés en hausse de 9% passant de 1 174 523 T en 2016 à 1 282 599 T en 2017, soit la meilleure performance jamais réalisée depuis 2007.",
         "capitalisation": 143772.0,
-        "beta": 0.43,
+        "beta": 0.44,
         "annees": [
           2023,
           2024,
@@ -4104,7 +4104,7 @@
         "drapeau": "🇨🇮",
         "presentation": "La Société Générale de Banques en Côte d’Ivoire (SGBCI) est une filiale de la Société Générale, l’un des plus grands groupes bancaires au monde. Présente depuis plus de 50 ans dans le pays, elle occupe une position dominante depuis de longue date en Côte dIvoire et joue un rôle prépondérant dans le financement de l’économie ivoirienne et ouest africaine. Première banque ivoirienne avec un produit net bancaire de 150 milliards FCFA et un total bilan de 2 152 milliards FCFA. La banque occupe également la 1ère place en termes de prêts à la clientèle et la 1ère place en termes de dépôts clients avec près 20% de part de marché. Malgré la concurrence intense sur le marché, la banque a toujours réussi à rester comme étant l'une des plus grandes banques du pays.",
         "capitalisation": 1222667.0,
-        "beta": 0.93,
+        "beta": 0.92,
         "annees": [
           2023,
           2024,
@@ -4147,7 +4147,7 @@
         "drapeau": "🇨🇮",
         "presentation": "La Société Ivoirienne de Banque (SIB) est une Société anonyme de droit ivoirien créée en 1962. Elle fait partie des cinq principales banques de la Côte d'ivoire, quatrième banque de côte d’Ivoire en termes de dépôts à la clientèle et troisième en Prêts clientèle. La SIB est implantée dans 15 villes avec un réseau fort de 54 agences, et plus de 300 000 clients Particuliers, Professionnels et Entreprises de toute taille. En septembre 2015, le groupe Attijariwafa bank, à travers sa filiale Attijari Ivoire Holding Offshore SA, a procédé à l’acquisition de 39% du capital et des droits de vote de la Société Ivoirienne de Banque auprès de l’Etat de Côte d’Ivoire, modifiant ainsi la structure du capital et la composition du Conseil d’Administration. Ainsi, le groupe Attijariwafa bank qui détenait 51% du capital de la SIB depuis 2009 renforce sa position d’actionnaire de référence, disposant désormais de 75% après son introduction en bourse.",
         "capitalisation": 930000.0,
-        "beta": 0.83,
+        "beta": 0.85,
         "annees": [
           2023,
           2024,
@@ -4276,7 +4276,7 @@
         "drapeau": "🇨🇮",
         "presentation": "SMB, la Compagnie Multinationale de Bitumes, a été créée en 1976, avec pour mission le désenclavement des régions éloignées des pôles de développement. \nLa société assure l'approvisionnement national en produits bitumineux. Elle participe à la construction et la maintenance d'une partie importante du réseau routier de l'Afrique de l'Ouest.",
         "capitalisation": 128192.0,
-        "beta": 0.27,
+        "beta": 0.28,
         "annees": [
           2023,
           2024,
@@ -4319,7 +4319,7 @@
         "drapeau": "🇨🇮",
         "presentation": "Créée en 1969 dans le but de désenclaver la région du sud-ouest, la SOGB dispose d’un centre agro-industriel qui couvre 34 712 hectares divisés en 16 840 ha pour le caoutchouc, 7 471 ha pour l'huile de palme et le reste pour les usines et les plantations villageoises. L'activité principale de SOGB est la culture du caoutchouc et la vente de produits en caoutchouc fabriqués ainsi que la transformation et la fabrication de l'huile de palme.",
         "capitalisation": 169574.0,
-        "beta": 0.41,
+        "beta": 0.39,
         "annees": [
           2023,
           2024,
@@ -4362,7 +4362,7 @@
         "drapeau": "🇨🇮",
         "presentation": "Filiale de SIFCA depuis 1999, la Société Africaine de Plantations d’Hévéas (SAPH) est le 1er producteur de caoutchouc naturel d’Afrique de l’Ouest, avec plus de 163 000 tonnes usinées par an. Forte de 5 400 employés et d’un réseau de 5 Unités Agricoles Intégrées, SAPH exploite 24 400 hectares de plantations indus-trielles, et assure l’encadrement de quelques 29 000 planteurs d’hévéa. La société est cotée à la Bourse Régionale des Valeurs Mobilières (BRVM - Abidjan) depuis 1996. Son capital social est de 14,6 milliards de FCFA.\nA fin 2017, SAPH exploite 23 022 hectares de plantations d'hévéas implantés en Côte d'Ivoire.",
         "capitalisation": 214687.0,
-        "beta": 0.72,
+        "beta": 0.74,
         "annees": [
           2023,
           2024,
@@ -4405,7 +4405,7 @@
         "drapeau": "🇨🇮",
         "presentation": "La Société Ivoirienne des Tabacs (Sitab), filiale du britannique Imperial Brands est le leader du marché ivoirien et le seul fabricant de cigarettes en côte d’ivoire. La Sitab, contrôle environ 60 % du marché ivoirien des cigarettes. L'acquisition de la SITAB par Imperial Tobacco Group en avril 2011 a permis à la société de se positionner sur le marché du tabac en Afrique de l'Ouest avec l'ambition de servir les pays de la sous-région.",
         "capitalisation": 412965.0,
-        "beta": 0.39,
+        "beta": 0.38,
         "annees": [
           2023,
           2024,
@@ -5051,529 +5051,6 @@
       }
     }
   },
-  "zones_societes": {
-    "Afrique de l'Est": {
-      "total": 89,
-      "places": {
-        "MUSE": 70,
-        "DAR": 17,
-        "TSXV": 1,
-        "NMSE": 1
-      },
-      "industries": {
-        "Specialty Retail": {
-          "n": 1,
-          "places": {
-            "MUSE": 1
-          }
-        },
-        "Banks": {
-          "n": 10,
-          "places": {
-            "MUSE": 3,
-            "DAR": 7
-          }
-        },
-        "Independent Power and Renewable Electricity Producers": {
-          "n": 2,
-          "places": {
-            "MUSE": 2
-          }
-        },
-        "Capital Markets": {
-          "n": 8,
-          "places": {
-            "DAR": 3,
-            "MUSE": 4,
-            "NMSE": 1
-          }
-        },
-        "Real Estate Management and Development": {
-          "n": 10,
-          "places": {
-            "MUSE": 10
-          }
-        },
-        "Metals and Mining": {
-          "n": 1,
-          "places": {
-            "TSXV": 1
-          }
-        },
-        "Industrial Conglomerates": {
-          "n": 4,
-          "places": {
-            "MUSE": 4
-          }
-        },
-        "Trading Companies and Distributors": {
-          "n": 2,
-          "places": {
-            "MUSE": 2
-          }
-        },
-        "Distributors": {
-          "n": 1,
-          "places": {
-            "MUSE": 1
-          }
-        },
-        "Hotels, Restaurants and Leisure": {
-          "n": 12,
-          "places": {
-            "MUSE": 12
-          }
-        },
-        "Consumer Finance": {
-          "n": 1,
-          "places": {
-            "MUSE": 1
-          }
-        },
-        "Textiles, Apparel and Luxury Goods": {
-          "n": 1,
-          "places": {
-            "MUSE": 1
-          }
-        },
-        "Financial Services": {
-          "n": 5,
-          "places": {
-            "MUSE": 5
-          }
-        },
-        "Food Products": {
-          "n": 8,
-          "places": {
-            "MUSE": 7,
-            "DAR": 1
-          }
-        },
-        "Chemicals": {
-          "n": 3,
-          "places": {
-            "MUSE": 2,
-            "DAR": 1
-          }
-        },
-        "Personal Care Products": {
-          "n": 1,
-          "places": {
-            "MUSE": 1
-          }
-        },
-        "Air Freight and Logistics": {
-          "n": 2,
-          "places": {
-            "MUSE": 2
-          }
-        },
-        "Insurance": {
-          "n": 3,
-          "places": {
-            "MUSE": 3
-          }
-        },
-        "Health Care Providers and Services": {
-          "n": 1,
-          "places": {
-            "MUSE": 1
-          }
-        },
-        "Paper and Forest Products": {
-          "n": 1,
-          "places": {
-            "MUSE": 1
-          }
-        },
-        "Beverages": {
-          "n": 3,
-          "places": {
-            "MUSE": 2,
-            "DAR": 1
-          }
-        },
-        "Containers and Packaging": {
-          "n": 1,
-          "places": {
-            "MUSE": 1
-          }
-        },
-        "Ground Transportation": {
-          "n": 2,
-          "places": {
-            "MUSE": 2
-          }
-        },
-        "Transportation Infrastructure": {
-          "n": 1,
-          "places": {
-            "DAR": 1
-          }
-        },
-        "Tobacco": {
-          "n": 1,
-          "places": {
-            "DAR": 1
-          }
-        },
-        "Construction Materials": {
-          "n": 2,
-          "places": {
-            "DAR": 1,
-            "MUSE": 1
-          }
-        },
-        "Oil, Gas and Consumable Fuels": {
-          "n": 1,
-          "places": {
-            "MUSE": 1
-          }
-        },
-        "Wireless Telecommunication Services": {
-          "n": 1,
-          "places": {
-            "DAR": 1
-          }
-        }
-      }
-    },
-    "Afrique australe": {
-      "total": 64,
-      "places": {
-        "BSM": 21,
-        "LUSE": 16,
-        "NMSE": 10,
-        "MAL": 13,
-        "OFEX": 1,
-        "OTCQB": 1,
-        "NASDAQGS": 1,
-        "OTCQX": 1
-      },
-      "industries": {
-        "Banks": {
-          "n": 13,
-          "places": {
-            "BSM": 3,
-            "NMSE": 3,
-            "MAL": 5,
-            "LUSE": 2
-          }
-        },
-        "Chemicals": {
-          "n": 1,
-          "places": {
-            "LUSE": 1
-          }
-        },
-        "Specialty Retail": {
-          "n": 2,
-          "places": {
-            "NMSE": 2
-          }
-        },
-        "Wireless Telecommunication Services": {
-          "n": 4,
-          "places": {
-            "MAL": 2,
-            "LUSE": 1,
-            "NMSE": 1
-          }
-        },
-        "Insurance": {
-          "n": 3,
-          "places": {
-            "BSM": 1,
-            "MAL": 1,
-            "LUSE": 1
-          }
-        },
-        "Diversified Telecommunication Services": {
-          "n": 2,
-          "places": {
-            "BSM": 1,
-            "NMSE": 1
-          }
-        },
-        "Tobacco": {
-          "n": 1,
-          "places": {
-            "LUSE": 1
-          }
-        },
-        "Distributors": {
-          "n": 1,
-          "places": {
-            "BSM": 1
-          }
-        },
-        "Construction Materials": {
-          "n": 1,
-          "places": {
-            "LUSE": 1
-          }
-        },
-        "Hotels, Restaurants and Leisure": {
-          "n": 3,
-          "places": {
-            "BSM": 2,
-            "MAL": 1
-          }
-        },
-        "Consumer Staples Distribution and Retail": {
-          "n": 2,
-          "places": {
-            "BSM": 2
-          }
-        },
-        "Oil, Gas and Consumable Fuels": {
-          "n": 2,
-          "places": {
-            "BSM": 1,
-            "LUSE": 1
-          }
-        },
-        "Commercial Services and Supplies": {
-          "n": 1,
-          "places": {
-            "BSM": 1
-          }
-        },
-        "Real Estate Management and Development": {
-          "n": 10,
-          "places": {
-            "MAL": 2,
-            "BSM": 6,
-            "NMSE": 1,
-            "LUSE": 1
-          }
-        },
-        "Food Products": {
-          "n": 4,
-          "places": {
-            "MAL": 1,
-            "BSM": 1,
-            "LUSE": 2
-          }
-        },
-        "Capital Markets": {
-          "n": 2,
-          "places": {
-            "OFEX": 1,
-            "NMSE": 1
-          }
-        },
-        "Leisure Products": {
-          "n": 1,
-          "places": {
-            "OTCQB": 1
-          }
-        },
-        "Financial Services": {
-          "n": 1,
-          "places": {
-            "NASDAQGS": 1
-          }
-        },
-        "Consumer Finance": {
-          "n": 1,
-          "places": {
-            "BSM": 1
-          }
-        },
-        "Health Care Equipment and Supplies": {
-          "n": 1,
-          "places": {
-            "OTCQX": 1
-          }
-        },
-        "Electrical Equipment": {
-          "n": 1,
-          "places": {
-            "LUSE": 1
-          }
-        },
-        "Beverages": {
-          "n": 3,
-          "places": {
-            "NMSE": 1,
-            "LUSE": 2
-          }
-        },
-        "Building Products": {
-          "n": 1,
-          "places": {
-            "BSM": 1
-          }
-        },
-        "Industrial Conglomerates": {
-          "n": 1,
-          "places": {
-            "MAL": 1
-          }
-        },
-        "Textiles, Apparel and Luxury Goods": {
-          "n": 1,
-          "places": {
-            "LUSE": 1
-          }
-        },
-        "Paper and Forest Products": {
-          "n": 1,
-          "places": {
-            "LUSE": 1
-          }
-        }
-      }
-    },
-    "Afrique de l'Ouest": {
-      "total": 56,
-      "places": {
-        "GHSE": 24,
-        "BRVM": 32
-      },
-      "industries": {
-        "Banks": {
-          "n": 20,
-          "places": {
-            "GHSE": 9,
-            "BRVM": 11
-          }
-        },
-        "Air Freight and Logistics": {
-          "n": 1,
-          "places": {
-            "BRVM": 1
-          }
-        },
-        "Chemicals": {
-          "n": 1,
-          "places": {
-            "BRVM": 1
-          }
-        },
-        "Food Products": {
-          "n": 8,
-          "places": {
-            "GHSE": 4,
-            "BRVM": 4
-          }
-        },
-        "Trading Companies and Distributors": {
-          "n": 1,
-          "places": {
-            "BRVM": 1
-          }
-        },
-        "IT Services": {
-          "n": 1,
-          "places": {
-            "GHSE": 1
-          }
-        },
-        "Media": {
-          "n": 1,
-          "places": {
-            "GHSE": 1
-          }
-        },
-        "Insurance": {
-          "n": 2,
-          "places": {
-            "GHSE": 2
-          }
-        },
-        "Oil, Gas and Consumable Fuels": {
-          "n": 5,
-          "places": {
-            "GHSE": 2,
-            "BRVM": 3
-          }
-        },
-        "Beverages": {
-          "n": 2,
-          "places": {
-            "GHSE": 1,
-            "BRVM": 1
-          }
-        },
-        "Pharmaceuticals": {
-          "n": 1,
-          "places": {
-            "GHSE": 1
-          }
-        },
-        "Diversified Consumer Services": {
-          "n": 1,
-          "places": {
-            "GHSE": 1
-          }
-        },
-        "Diversified Telecommunication Services": {
-          "n": 2,
-          "places": {
-            "BRVM": 2
-          }
-        },
-        "Wireless Telecommunication Services": {
-          "n": 2,
-          "places": {
-            "BRVM": 1,
-            "GHSE": 1
-          }
-        },
-        "Electrical Equipment": {
-          "n": 1,
-          "places": {
-            "BRVM": 1
-          }
-        },
-        "Automobile Components": {
-          "n": 1,
-          "places": {
-            "BRVM": 1
-          }
-        },
-        "Construction and Engineering": {
-          "n": 1,
-          "places": {
-            "BRVM": 1
-          }
-        },
-        "Tobacco": {
-          "n": 1,
-          "places": {
-            "BRVM": 1
-          }
-        },
-        "Specialty Retail": {
-          "n": 1,
-          "places": {
-            "BRVM": 1
-          }
-        },
-        "Distributors": {
-          "n": 1,
-          "places": {
-            "BRVM": 1
-          }
-        },
-        "Household Products": {
-          "n": 1,
-          "places": {
-            "GHSE": 1
-          }
-        },
-        "Textiles, Apparel and Luxury Goods": {
-          "n": 1,
-          "places": {
-            "BRVM": 1
-          }
-        }
-      }
-    }
-  },
-  "societes_hors_zone": [],
   "comparables": {
     "source": "SPGlobal_Export_8-17-2026_b9ab2100-ac18-47fb-b9d5-3d571edbc751.xlsx",
     "industries": [
@@ -6683,6 +6160,528 @@
             "places": {
               "BRVM": 1
             }
+          }
+        }
+      }
+    }
+  },
+  "zones_societes": {
+    "Afrique de l'Est": {
+      "total": 89,
+      "places": {
+        "MUSE": 70,
+        "DAR": 17,
+        "TSXV": 1,
+        "NMSE": 1
+      },
+      "industries": {
+        "Specialty Retail": {
+          "n": 1,
+          "places": {
+            "MUSE": 1
+          }
+        },
+        "Banks": {
+          "n": 10,
+          "places": {
+            "MUSE": 3,
+            "DAR": 7
+          }
+        },
+        "Independent Power and Renewable Electricity Producers": {
+          "n": 2,
+          "places": {
+            "MUSE": 2
+          }
+        },
+        "Capital Markets": {
+          "n": 8,
+          "places": {
+            "DAR": 3,
+            "MUSE": 4,
+            "NMSE": 1
+          }
+        },
+        "Real Estate Management and Development": {
+          "n": 10,
+          "places": {
+            "MUSE": 10
+          }
+        },
+        "Metals and Mining": {
+          "n": 1,
+          "places": {
+            "TSXV": 1
+          }
+        },
+        "Industrial Conglomerates": {
+          "n": 4,
+          "places": {
+            "MUSE": 4
+          }
+        },
+        "Trading Companies and Distributors": {
+          "n": 2,
+          "places": {
+            "MUSE": 2
+          }
+        },
+        "Distributors": {
+          "n": 1,
+          "places": {
+            "MUSE": 1
+          }
+        },
+        "Hotels, Restaurants and Leisure": {
+          "n": 12,
+          "places": {
+            "MUSE": 12
+          }
+        },
+        "Consumer Finance": {
+          "n": 1,
+          "places": {
+            "MUSE": 1
+          }
+        },
+        "Textiles, Apparel and Luxury Goods": {
+          "n": 1,
+          "places": {
+            "MUSE": 1
+          }
+        },
+        "Financial Services": {
+          "n": 5,
+          "places": {
+            "MUSE": 5
+          }
+        },
+        "Food Products": {
+          "n": 8,
+          "places": {
+            "MUSE": 7,
+            "DAR": 1
+          }
+        },
+        "Chemicals": {
+          "n": 3,
+          "places": {
+            "MUSE": 2,
+            "DAR": 1
+          }
+        },
+        "Personal Care Products": {
+          "n": 1,
+          "places": {
+            "MUSE": 1
+          }
+        },
+        "Air Freight and Logistics": {
+          "n": 2,
+          "places": {
+            "MUSE": 2
+          }
+        },
+        "Insurance": {
+          "n": 3,
+          "places": {
+            "MUSE": 3
+          }
+        },
+        "Health Care Providers and Services": {
+          "n": 1,
+          "places": {
+            "MUSE": 1
+          }
+        },
+        "Paper and Forest Products": {
+          "n": 1,
+          "places": {
+            "MUSE": 1
+          }
+        },
+        "Beverages": {
+          "n": 3,
+          "places": {
+            "MUSE": 2,
+            "DAR": 1
+          }
+        },
+        "Containers and Packaging": {
+          "n": 1,
+          "places": {
+            "MUSE": 1
+          }
+        },
+        "Ground Transportation": {
+          "n": 2,
+          "places": {
+            "MUSE": 2
+          }
+        },
+        "Transportation Infrastructure": {
+          "n": 1,
+          "places": {
+            "DAR": 1
+          }
+        },
+        "Tobacco": {
+          "n": 1,
+          "places": {
+            "DAR": 1
+          }
+        },
+        "Construction Materials": {
+          "n": 2,
+          "places": {
+            "DAR": 1,
+            "MUSE": 1
+          }
+        },
+        "Oil, Gas and Consumable Fuels": {
+          "n": 1,
+          "places": {
+            "MUSE": 1
+          }
+        },
+        "Wireless Telecommunication Services": {
+          "n": 1,
+          "places": {
+            "DAR": 1
+          }
+        }
+      }
+    },
+    "Afrique australe": {
+      "total": 64,
+      "places": {
+        "BSM": 21,
+        "LUSE": 16,
+        "NMSE": 10,
+        "MAL": 13,
+        "OFEX": 1,
+        "OTCQB": 1,
+        "NASDAQGS": 1,
+        "OTCQX": 1
+      },
+      "industries": {
+        "Banks": {
+          "n": 13,
+          "places": {
+            "BSM": 3,
+            "NMSE": 3,
+            "MAL": 5,
+            "LUSE": 2
+          }
+        },
+        "Chemicals": {
+          "n": 1,
+          "places": {
+            "LUSE": 1
+          }
+        },
+        "Specialty Retail": {
+          "n": 2,
+          "places": {
+            "NMSE": 2
+          }
+        },
+        "Wireless Telecommunication Services": {
+          "n": 4,
+          "places": {
+            "MAL": 2,
+            "LUSE": 1,
+            "NMSE": 1
+          }
+        },
+        "Insurance": {
+          "n": 3,
+          "places": {
+            "BSM": 1,
+            "MAL": 1,
+            "LUSE": 1
+          }
+        },
+        "Diversified Telecommunication Services": {
+          "n": 2,
+          "places": {
+            "BSM": 1,
+            "NMSE": 1
+          }
+        },
+        "Tobacco": {
+          "n": 1,
+          "places": {
+            "LUSE": 1
+          }
+        },
+        "Distributors": {
+          "n": 1,
+          "places": {
+            "BSM": 1
+          }
+        },
+        "Construction Materials": {
+          "n": 1,
+          "places": {
+            "LUSE": 1
+          }
+        },
+        "Hotels, Restaurants and Leisure": {
+          "n": 3,
+          "places": {
+            "BSM": 2,
+            "MAL": 1
+          }
+        },
+        "Consumer Staples Distribution and Retail": {
+          "n": 2,
+          "places": {
+            "BSM": 2
+          }
+        },
+        "Oil, Gas and Consumable Fuels": {
+          "n": 2,
+          "places": {
+            "BSM": 1,
+            "LUSE": 1
+          }
+        },
+        "Commercial Services and Supplies": {
+          "n": 1,
+          "places": {
+            "BSM": 1
+          }
+        },
+        "Real Estate Management and Development": {
+          "n": 10,
+          "places": {
+            "MAL": 2,
+            "BSM": 6,
+            "NMSE": 1,
+            "LUSE": 1
+          }
+        },
+        "Food Products": {
+          "n": 4,
+          "places": {
+            "MAL": 1,
+            "BSM": 1,
+            "LUSE": 2
+          }
+        },
+        "Capital Markets": {
+          "n": 2,
+          "places": {
+            "OFEX": 1,
+            "NMSE": 1
+          }
+        },
+        "Leisure Products": {
+          "n": 1,
+          "places": {
+            "OTCQB": 1
+          }
+        },
+        "Financial Services": {
+          "n": 1,
+          "places": {
+            "NASDAQGS": 1
+          }
+        },
+        "Consumer Finance": {
+          "n": 1,
+          "places": {
+            "BSM": 1
+          }
+        },
+        "Health Care Equipment and Supplies": {
+          "n": 1,
+          "places": {
+            "OTCQX": 1
+          }
+        },
+        "Electrical Equipment": {
+          "n": 1,
+          "places": {
+            "LUSE": 1
+          }
+        },
+        "Beverages": {
+          "n": 3,
+          "places": {
+            "NMSE": 1,
+            "LUSE": 2
+          }
+        },
+        "Building Products": {
+          "n": 1,
+          "places": {
+            "BSM": 1
+          }
+        },
+        "Industrial Conglomerates": {
+          "n": 1,
+          "places": {
+            "MAL": 1
+          }
+        },
+        "Textiles, Apparel and Luxury Goods": {
+          "n": 1,
+          "places": {
+            "LUSE": 1
+          }
+        },
+        "Paper and Forest Products": {
+          "n": 1,
+          "places": {
+            "LUSE": 1
+          }
+        }
+      }
+    },
+    "Afrique de l'Ouest": {
+      "total": 56,
+      "places": {
+        "GHSE": 24,
+        "BRVM": 32
+      },
+      "industries": {
+        "Banks": {
+          "n": 20,
+          "places": {
+            "GHSE": 9,
+            "BRVM": 11
+          }
+        },
+        "Air Freight and Logistics": {
+          "n": 1,
+          "places": {
+            "BRVM": 1
+          }
+        },
+        "Chemicals": {
+          "n": 1,
+          "places": {
+            "BRVM": 1
+          }
+        },
+        "Food Products": {
+          "n": 8,
+          "places": {
+            "GHSE": 4,
+            "BRVM": 4
+          }
+        },
+        "Trading Companies and Distributors": {
+          "n": 1,
+          "places": {
+            "BRVM": 1
+          }
+        },
+        "IT Services": {
+          "n": 1,
+          "places": {
+            "GHSE": 1
+          }
+        },
+        "Media": {
+          "n": 1,
+          "places": {
+            "GHSE": 1
+          }
+        },
+        "Insurance": {
+          "n": 2,
+          "places": {
+            "GHSE": 2
+          }
+        },
+        "Oil, Gas and Consumable Fuels": {
+          "n": 5,
+          "places": {
+            "GHSE": 2,
+            "BRVM": 3
+          }
+        },
+        "Beverages": {
+          "n": 2,
+          "places": {
+            "GHSE": 1,
+            "BRVM": 1
+          }
+        },
+        "Pharmaceuticals": {
+          "n": 1,
+          "places": {
+            "GHSE": 1
+          }
+        },
+        "Diversified Consumer Services": {
+          "n": 1,
+          "places": {
+            "GHSE": 1
+          }
+        },
+        "Diversified Telecommunication Services": {
+          "n": 2,
+          "places": {
+            "BRVM": 2
+          }
+        },
+        "Wireless Telecommunication Services": {
+          "n": 2,
+          "places": {
+            "BRVM": 1,
+            "GHSE": 1
+          }
+        },
+        "Electrical Equipment": {
+          "n": 1,
+          "places": {
+            "BRVM": 1
+          }
+        },
+        "Automobile Components": {
+          "n": 1,
+          "places": {
+            "BRVM": 1
+          }
+        },
+        "Construction and Engineering": {
+          "n": 1,
+          "places": {
+            "BRVM": 1
+          }
+        },
+        "Tobacco": {
+          "n": 1,
+          "places": {
+            "BRVM": 1
+          }
+        },
+        "Specialty Retail": {
+          "n": 1,
+          "places": {
+            "BRVM": 1
+          }
+        },
+        "Distributors": {
+          "n": 1,
+          "places": {
+            "BRVM": 1
+          }
+        },
+        "Household Products": {
+          "n": 1,
+          "places": {
+            "GHSE": 1
+          }
+        },
+        "Textiles, Apparel and Luxury Goods": {
+          "n": 1,
+          "places": {
+            "BRVM": 1
           }
         }
       }
