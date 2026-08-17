@@ -1,7 +1,22 @@
 {
-    "last_update": "2026-08-17 17:04:25",
+    "last_update": "2026-08-17 18:16:51",
     "count": 20,
     "weeks": [
+        {
+            "semaine": "Semaine du 17 Août au 23 Août 2026",
+            "publications": [
+                {
+                    "date": "17/08/2026",
+                    "titre": "SITAB CI : Rapport d'activités - 2eme trimestre 2026",
+                    "url": "https://www.richbourse.com/common/actualite/details/17-08-2026-sitab-ci-rapport-d-activites-2eme-trimestre-2026"
+                },
+                {
+                    "date": "17/08/2026",
+                    "titre": "ETI TG : Communiqué de Presse",
+                    "url": "https://www.richbourse.com/common/actualite/details/17-08-2026-eti-tg-communique-de-presse"
+                }
+            ]
+        },
         {
             "semaine": "Semaine du 10 Août au 16 Août 2026",
             "publications": [
@@ -87,28 +102,18 @@
                 },
                 {
                     "date": "03/08/2026",
-                    "titre": "AFRICA GLOBAL LOGISTICS CI : Avis de convocation - Assemblée Générale Mixte",
-                    "url": "https://www.richbourse.com/common/actualite/details/03-08-2026-africa-global-logistics-ci-avis-de-convocation-assemblee-generale-mixte"
-                },
-                {
-                    "date": "03/08/2026",
                     "titre": "AFRICA GLOBAL LOGISTICS CI : Etats financiers - Exercice 2025",
                     "url": "https://www.richbourse.com/common/actualite/details/03-08-2026-africa-global-logistics-ci-etats-financiers-exercice-2025"
                 },
                 {
                     "date": "03/08/2026",
-                    "titre": "AFRICA GLOBAL LOGISTICS CI : Pouvoir - Assemblée Générale Mixte",
-                    "url": "https://www.richbourse.com/common/actualite/details/03-08-2026-africa-global-logistics-ci-pouvoir-assemblee-generale-mixte"
+                    "titre": "AFRICA GLOBAL LOGISTICS CI : Avis de convocation - Assemblée Générale Mixte",
+                    "url": "https://www.richbourse.com/common/actualite/details/03-08-2026-africa-global-logistics-ci-avis-de-convocation-assemblee-generale-mixte"
                 },
                 {
                     "date": "03/08/2026",
                     "titre": "AFRICA GLOBAL LOGISTICS CI : Projet de résolutions - Assemblée Générale Mixte",
                     "url": "https://www.richbourse.com/common/actualite/details/03-08-2026-africa-global-logistics-ci-projet-de-resolutions-assemblee-generale-mixte"
-                },
-                {
-                    "date": "03/08/2026",
-                    "titre": "AFRICA GLOBAL LOGISTICS CI : Formulaire de vote par correspondance - Assemblée Générale Mixte",
-                    "url": "https://www.richbourse.com/common/actualite/details/03-08-2026-africa-global-logistics-ci-formulaire-de-vote-par-correspondance-assemblee-generale-mixte"
                 }
             ]
         }
