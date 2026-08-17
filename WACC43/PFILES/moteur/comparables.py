@@ -4,9 +4,22 @@ Univers de comparables, lu depuis l'export S&P Global déposé dans WACC43.
 L'export tient en trois onglets qui partagent la même liste de sociétés, dans le
 même ordre, appariés par `Entity ID` :
 
-    Sheet1  produits, EBITDA, marge, résultat net (FY2022 à FY2025)
+    Sheet1  produits, EBITDA, marge, résultat net (FY2022 à FY2025),
+            puis bêta 1 an (colonne S) et bêta 3 ans (colonne T)
     Sheet2  géographie, pays, industrie, industrie primaire, description
     Sheet3  dette totale, capitalisation boursière
+
+Seules les sociétés **complètes** alimentent la plateforme : pays, industrie,
+les deux bêtas, dette, capitalisation, chiffre d'affaires sur quatre exercices
+et résultat net sur trois. Les autres sont conservées dans l'univers mais
+marquées `visible: False`, et n'entrent ni dans les médianes ni dans les
+effectifs affichés.
+
+L'EBITDA est délibérément hors critère. S&P n'en publie pas pour les banques ni
+les assureurs — la notion n'a pas de sens pour elles — et l'exiger ferait tomber
+le secteur bancaire de 112 sociétés à 1, alors qu'il est le premier des places
+africaines. Un critère qui détruit le secteur principal ne mesure plus la
+complétude, il mesure le modèle comptable.
 
 L'industrie retenue est la colonne E de Sheet2 (`IQ_INDUSTRY`), soit une
 soixantaine de secteurs. La colonne F (`IQ_PRIMARY_INDUSTRY`) est plus fine mais
@@ -115,7 +128,7 @@ def charger(chemin: Path, progress=None) -> dict:
 
         comptes = {}
         for ligne in wb["Sheet1"].iter_rows(
-            min_row=PREMIERE_LIGNE, min_col=1, max_col=18, values_only=True
+            min_row=PREMIERE_LIGNE, min_col=1, max_col=20, values_only=True
         ):
             ident = ligne[1]
             if not ident:
@@ -124,6 +137,8 @@ def charger(chemin: Path, progress=None) -> dict:
                 "ca": {a: _nombre(ligne[2 + i]) for i, a in enumerate(EXERCICES)},
                 "ebitda": {a: _nombre(ligne[6 + i]) for i, a in enumerate(EXERCICES)},
                 "rn": {a: _nombre(ligne[14 + i]) for i, a in enumerate(EXERCICES[:3])},
+                "beta_1an": _nombre(ligne[18]),
+                "beta_3ans": _nombre(ligne[19]),
             }
 
         marche = {}
@@ -150,9 +165,11 @@ def charger(chemin: Path, progress=None) -> dict:
         entree = dict(base)
         entree.update(comptes.get(ident, {}))
         entree.update(marche.get(ident, {}))
+        entree["visible"] = _est_complete(entree)
         societes[ident] = entree
 
-    dire(f"Comparables : {len(societes)} sociétés retenues.")
+    visibles = sum(1 for s in societes.values() if s["visible"])
+    dire(f"Comparables : {visibles} sociétés complètes sur {len(societes)}.")
     return {
         "source": chemin.name,
         "societes": societes,
@@ -166,38 +183,58 @@ def charger(chemin: Path, progress=None) -> dict:
     }
 
 
+def _est_complete(s: dict) -> bool:
+    """La société porte-t-elle toutes les valeurs dont la plateforme se sert ?
+
+    Bêtas, dette et capitalisation alimentent le coût du capital ; chiffre
+    d'affaires et résultat net alimentent l'affichage. L'EBITDA est hors critère,
+    pour la raison exposée en tête de module.
+    """
+    if not s.get("pays") or not s.get("industrie"):
+        return False
+    if s.get("beta_1an") is None or s.get("beta_3ans") is None:
+        return False
+    if s.get("dette") is None or not s.get("capitalisation"):
+        return False
+    ca = s.get("ca") or {}
+    rn = s.get("rn") or {}
+    if any(ca.get(a) is None for a in EXERCICES):
+        return False
+    if any(rn.get(a) is None for a in EXERCICES[:3]):
+        return False
+    return True
+
+
 def _industries(societes: dict) -> list:
-    """Secteurs de l'univers, avec leur gearing observé.
+    """Secteurs de l'univers, avec leurs bêtas et leur gearing médians.
 
-    Le gearing sectoriel est le rapport de la dette totale cumulée à la
-    capitalisation cumulée. Un rapport d'agrégats, et non une moyenne de
-    rapports : celle-ci donnerait autant de poids à une micro-capitalisation
-    très endettée qu'à la première capitalisation du secteur.
+    La médiane, et non la moyenne ni un rapport d'agrégats : sur des marchés
+    africains où quelques capitalisations écrasent la distribution, une moyenne
+    dit surtout ce que fait la plus grosse valeur du secteur. La médiane décrit
+    la société typique, qui est ce qu'on cherche pour un comparable.
 
-    La médiane des rapports individuels est fournie à côté, pour que l'écart
-    entre les deux signale à lui seul un secteur dominé par quelques valeurs.
+    Seules les sociétés complètes entrent dans le calcul.
     """
     paniers = {}
     for ident, s in societes.items():
-        paniers.setdefault(s["industrie"], []).append((ident, s))
+        if s.get("visible"):
+            paniers.setdefault(s["industrie"], []).append((ident, s))
+
+    def mediane(valeurs):
+        return round(statistics.median(valeurs), 4) if valeurs else None
 
     sortie = []
     for nom, membres in sorted(paniers.items()):
-        dettes = [s["dette"] for _i, s in membres if s.get("dette") is not None]
-        caps = [s["capitalisation"] for _i, s in membres if s.get("capitalisation")]
-        ratios = [
-            s["dette"] / s["capitalisation"]
-            for _i, s in membres
-            if s.get("dette") is not None and s.get("capitalisation")
-        ]
-        gearing = (sum(dettes) / sum(caps)) if dettes and caps and sum(caps) else None
+        b1 = [s["beta_1an"] for _i, s in membres]
+        b3 = [s["beta_3ans"] for _i, s in membres]
+        ratios = [s["dette"] / s["capitalisation"] for _i, s in membres]
         sortie.append({
             "nom": nom,
             "tickers": [i for i, _s in membres],
             "societes": len(membres),
-            "gearing": round(gearing, 4) if gearing is not None else None,
-            "gearing_median": round(statistics.median(ratios), 4) if ratios else None,
-            "echantillon_gearing": len(ratios),
+            "beta_1an": mediane(b1),
+            "beta_3ans": mediane(b3),
+            "gearing": mediane(ratios),
         })
     return sortie
 
@@ -211,6 +248,8 @@ def indexer_par_zone(univers: dict, classer) -> tuple[dict, list]:
     """
     index, orphelins = {}, []
     for s in univers["societes"].values():
+        if not s.get("visible"):
+            continue  # une société incomplète ne se compte pas sur la carte
         _continent, zone = classer(s["pays"])
         if zone is None:
             orphelins.append(s["pays"])

@@ -1290,10 +1290,14 @@
   // Gearing observé du secteur : dette totale cumulée rapportée à la
   // capitalisation cumulée sur l'univers de comparables. Il sert de valeur de
   // départ au champ de saisie, qui reste modifiable.
-  function gearingSectoriel(nomIndustrie) {
+  function secteurComparable(nom) {
     const liste = (DATA.comparables || {}).industries || [];
-    const trouve = liste.find((i) => i.nom === nomIndustrie);
-    return trouve && trouve.gearing != null ? trouve.gearing : null;
+    return liste.find((i) => i.nom === nom) || null;
+  }
+
+  function gearingSectoriel(nomIndustrie) {
+    const s = secteurComparable(nomIndustrie);
+    return s && s.gearing != null ? s.gearing : null;
   }
 
   function gearingRetenu() {
@@ -1303,23 +1307,28 @@
     return gearingSectoriel(params.industrie_brvm);
   }
 
+  // Le bêta et le gearing sont les **médianes** du secteur sur l'univers de
+  // comparables, calculées sur les seules sociétés complètes. Le bêta à trois
+  // ans est retenu : sur des marchés peu liquides, celui à un an bouge trop pour
+  // servir de base à un coût du capital.
   function cmpcComparables() {
-    if (!estBrvm() || !BRVM) return null;
-    const ind = industrieBrvm();
-    const tickers = ind ? ind.tickers : [];
-    const betas = tickers.map((t) => BRVM.societes[t].beta).filter((b) => b != null);
+    if (!estBrvm()) return null;
+    const secteur = secteurComparable(params.industrie_brvm);
     const rf = tauxSansRisque();
     const g = gearingRetenu();
     const pays = DATA.pays[params.country] || {};
-    if (!rf || !betas.length || g == null || !(g >= 0) || pays.tax == null) return null;
+    if (!rf || !secteur || secteur.beta_3ans == null || g == null || !(g >= 0) ||
+        pays.tax == null) {
+      return null;
+    }
     const saisi = params.gearing_brvm != null && params.gearing_brvm !== "";
-    const beta = betas.reduce((a, b) => a + b, 0) / betas.length;
+    const beta = secteur.beta_3ans;
     const ke = rf.taux + beta * DATA.mature + Number(params.d) + Number(params.e);
     const kd = rf.taux * (1 - pays.tax);
     const we = 1 / (1 + g);
     return {
-      beta: beta, rf: rf, tax: pays.tax, gearing: g, gearingSaisi: saisi,
-      societes: betas.length,
+      beta: beta, beta1: secteur.beta_1an, rf: rf, tax: pays.tax,
+      gearing: g, gearingSaisi: saisi, societes: secteur.societes,
       ke: ke, kd: kd, we: we, wd: 1 - we,
       wacc: ke * we + kd * (1 - we),
     };
@@ -1330,10 +1339,10 @@
     return [
       {
         id: "ke", title: "Coût des fonds propres", symbol: "Ke", value: frPct(cc.ke), tone: "blue",
-        methodology: "Taux sans risque + bêta coté x prime de marché + prime de taille + prime spécifique.",
-        source: "Bêtas cotés à un an des sociétés du secteur, taux souverain UMOA-Titres, prime de marché mature Damodaran.",
-        hypothesis: "Le bêta coté est employé tel quel : il est déjà endetté, aucun réendettement ne lui est appliqué. Le taux souverain porte déjà le risque pays, aucune prime pays ne s'y ajoute.",
-        retained: "Bêta moyen " + frNum(cc.beta, 2) + ", taux sans risque " + frPct(cc.rf.taux) + ", prime de marché " + frPct(DATA.mature) + ".",
+        methodology: "Taux sans risque + bêta médian du secteur x prime de marché + prime de taille + prime spécifique.",
+        source: "Bêtas à trois ans médians sur " + cc.societes + " société(s) complète(s) du secteur, taux souverain UMOA-Titres, prime de marché mature Damodaran.",
+        hypothesis: "Le bêta est employé tel quel : il est déjà endetté, aucun réendettement ne lui est appliqué. Le taux souverain porte déjà le risque pays, aucune prime pays ne s'y ajoute. Attention : les bêtas africains publiés sont très faibles — médiane 0,05 à trois ans, souvent proches de zéro faute de liquidité — ce qui écrase mécaniquement le coût des fonds propres vers le taux sans risque.",
+        retained: "Bêta médian 3 ans " + frNum(cc.beta, 3) + (cc.beta1 == null ? "" : " (1 an : " + frNum(cc.beta1, 3) + ")") + ", taux sans risque " + frPct(cc.rf.taux) + ", prime de marché " + frPct(DATA.mature) + ".",
         formula: ["Ke = " + frPct(cc.rf.taux) + " + " + frNum(cc.beta, 2) + " x " + frPct(DATA.mature) +
                   " + " + frPct(Number(params.d)) + " + " + frPct(Number(params.e)) + " = " + frPct(cc.ke)],
       },
@@ -1355,10 +1364,10 @@
         methodology: "Déduite du gearing : fonds propres / valeur = 1 / (1 + D/E).",
         source: cc.gearingSaisi
           ? "Saisie manuelle."
-          : "Dette totale cumulée rapportée à la capitalisation cumulée du secteur, sur l'univers de comparables.",
+          : "Médiane des rapports dette / capitalisation du secteur, sur les sociétés complètes de l'univers de comparables.",
         hypothesis: cc.gearingSaisi
-          ? "Gearing saisi à la main dans l'onglet Paramètres, il remplace celui observé sur le secteur."
-          : "Gearing observé sur le secteur : un rapport d'agrégats, et non une moyenne de rapports, qui donnerait autant de poids à une micro-capitalisation très endettée qu'à la première capitalisation du secteur.",
+          ? "Gearing saisi à la main dans l'onglet Paramètres, il remplace la médiane du secteur."
+          : "Médiane et non moyenne : sur des marchés où quelques capitalisations écrasent la distribution, une moyenne dit surtout ce que fait la plus grosse valeur du secteur.",
         retained: "Gearing D/E = " + frNum(cc.gearing, 2) + ".",
         formula: ["FP / V = 1 / (1 + " + frNum(cc.gearing, 2) + ") = " + frPct(cc.we)],
       },
@@ -1496,8 +1505,13 @@
 
     // L'industrie change de taxonomie selon le référentiel : les 12 secteurs des
     // comparables, ou les 94 d'un référentiel de marché.
-    const champIndustrie = estBrvm() && BRVM
-      ? selectField("industrie_brvm", "Industrie", BRVM.industries.map((i) => i.nom))
+    // Sous Comparables, les secteurs sont ceux de l'univers : ce sont eux qui
+    // portent les bêtas et le gearing médians. Ne sont listés que ceux comptant
+    // au moins une société complète, les seuls où le calcul aboutit.
+    const secteurs = ((DATA.comparables || {}).industries || []).map((i) => i.nom);
+    const champIndustrie = estBrvm()
+      ? selectField("industrie_brvm", "Industrie",
+                    secteurs.length ? secteurs : (BRVM ? BRVM.industries.map((i) => i.nom) : []))
       : selectField("industry", "Industrie", DATA.options.industries);
 
     $("paramsMain").innerHTML = `
@@ -1890,10 +1904,14 @@
         params.zone = null;
       }
       if (params.zone && zoneDe(value) !== params.zone) params.zone = null;
-    } else if (key === "industrie_brvm" && BRVM) {
+    } else if (key === "industrie_brvm") {
       // Même tolérance que pour l'URL : accents et casse approximatifs acceptés,
       // et on conserve la valeur précédente plutôt qu'un libellé inconnu.
-      value = resolveOption(value, BRVM.industries.map((i) => i.nom)) || params.industrie_brvm;
+      const secteurs = ((DATA.comparables || {}).industries || []).map((i) => i.nom);
+      const connus = secteurs.length ? secteurs : (BRVM ? BRVM.industries.map((i) => i.nom) : []);
+      value = resolveOption(value, connus) || params.industrie_brvm;
+      // Un gearing saisi valait pour le secteur précédent : il devient caduc.
+      params.gearing_brvm = null;
     }
     params[key] = value;
     apply();

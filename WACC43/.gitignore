@@ -9,3 +9,6 @@ BackUP/
 # Caches Python
 __pycache__/
 *.pyc
+
+# Dossier de travail local : jamais versionne (1,3 Go de PDF et de captures)
+Downloads/
