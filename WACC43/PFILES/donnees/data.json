@@ -2256,23 +2256,11 @@
   },
   "sans_position": [],
   "brvm": {
-    "maj": "2026-08-17 05:54:57",
+    "maj": "2026-08-17 16:38:08",
     "revision_classification": "2026-08-16",
     "industries": [
       {
-        "nom": "Air Freight and Logistics",
-        "tickers": [
-          "SDSC"
-        ]
-      },
-      {
-        "nom": "Automobile Components",
-        "tickers": [
-          "SPHC"
-        ]
-      },
-      {
-        "nom": "Banks",
+        "nom": "Banques",
         "tickers": [
           "BICB",
           "BICC",
@@ -2284,6 +2272,7 @@
           "BOAS",
           "CBIBF",
           "ECOC",
+          "ETIT",
           "NSBC",
           "ORGT",
           "SGBC",
@@ -2291,132 +2280,90 @@
         ]
       },
       {
-        "nom": "Beverages",
-        "tickers": [
-          "SLBC"
-        ]
-      },
-      {
-        "nom": "Chemicals",
-        "tickers": [
-          "SIVC"
-        ]
-      },
-      {
-        "nom": "Construction and Engineering",
-        "tickers": [
-          "STAC"
-        ]
-      },
-      {
-        "nom": "Containers and Packaging",
-        "tickers": [
-          "FTSC",
-          "SEMC"
-        ]
-      },
-      {
-        "nom": "Distributors",
-        "tickers": [
-          "CFAC",
-          "PRSC"
-        ]
-      },
-      {
-        "nom": "Diversified Telecommunication Services",
-        "tickers": [
-          "ONTBF",
-          "SNTS"
-        ]
-      },
-      {
-        "nom": "Electric Utilities",
-        "tickers": [
-          "CIEC"
-        ]
-      },
-      {
-        "nom": "Electrical Equipment",
-        "tickers": [
-          "CABC"
-        ]
-      },
-      {
-        "nom": "Financial Services",
+        "nom": "Services financiers",
         "tickers": [
           "SAFC"
         ]
       },
       {
-        "nom": "Food Products",
+        "nom": "Télécommunications",
         "tickers": [
-          "NTLC",
-          "PALC",
-          "SCRC",
-          "SICC",
-          "SOGC"
+          "ONTBF",
+          "ORAC",
+          "SNTS"
         ]
       },
       {
-        "nom": "Hotels, Restaurants and Leisure",
-        "tickers": [
-          "LNBB"
-        ]
-      },
-      {
-        "nom": "Media",
-        "tickers": [
-          "NEIC"
-        ]
-      },
-      {
-        "nom": "Oil, Gas and Consumable Fuels",
+        "nom": "Distribution de carburants",
         "tickers": [
           "SHEC",
-          "SMBC",
-          "TTLC"
-        ]
-      },
-      {
-        "nom": "Personal Care Products",
-        "tickers": [
-          "UNLC"
-        ]
-      },
-      {
-        "nom": "Specialty Retail",
-        "tickers": [
+          "TTLC",
           "TTLS"
         ]
       },
       {
-        "nom": "Textiles, Apparel and Luxury Goods",
+        "nom": "Agro-industrie et plantations",
         "tickers": [
+          "PALC",
+          "SCRC",
+          "SICC",
+          "SOGC",
+          "SPHC"
+        ]
+      },
+      {
+        "nom": "Agroalimentaire, boissons et biens de consommation",
+        "tickers": [
+          "NTLC",
+          "SLBC",
+          "STBC",
+          "UNLC"
+        ]
+      },
+      {
+        "nom": "Distribution et négoce",
+        "tickers": [
+          "BNBC",
+          "CFAC",
+          "PRSC"
+        ]
+      },
+      {
+        "nom": "Industrie manufacturière",
+        "tickers": [
+          "CABC",
+          "FTSC",
+          "SEMC",
+          "SIVC",
+          "SMBC",
           "UNXC"
         ]
       },
       {
-        "nom": "Tobacco",
+        "nom": "Services publics",
         "tickers": [
-          "STBC"
-        ]
-      },
-      {
-        "nom": "Trading Companies and Distributors",
-        "tickers": [
-          "BNBC"
-        ]
-      },
-      {
-        "nom": "Water Utilities",
-        "tickers": [
+          "CIEC",
           "SDCC"
         ]
       },
       {
-        "nom": "Wireless Telecommunication Services",
+        "nom": "Transport et logistique",
         "tickers": [
-          "ORAC"
+          "SDSC"
+        ]
+      },
+      {
+        "nom": "Bâtiment et travaux publics",
+        "tickers": [
+          "STAC"
+        ]
+      },
+      {
+        "nom": "Autres services",
+        "tickers": [
+          "ABJC",
+          "LNBB",
+          "NEIC"
         ]
       }
     ],
@@ -2426,7 +2373,7 @@
         "pays": "Côte d'Ivoire",
         "drapeau": "🇨🇮",
         "presentation": "TRACTAFRIC Motors CI est une filiale du groupe TRACTAFRIC Motors Corporation, elle-même filiale de la Compagnie OPTORG. \nLe groupe est présent en Côte d'Ivoire depuis 1960 et est présent dans plusieurs pays d'Afrique. TRACTAFRIC MOTORS CI importe et vend les marques Hyundai, Ford, Mazda, BMW et Mini en Côte d'Ivoire grâce à ses différentes concessions automobiles et offre également des services de location de véhicules EUROPCAR et un service pneumatique MICHELIN. \nLa société est la deuxième plus grande compagnie de distribution de véhicule en termes de part de marché avec environ 19.4% à la fin de 2017.",
-        "capitalisation": 46029.0,
+        "capitalisation": 45568.0,
         "beta": 0.34,
         "annees": [
           2023,
@@ -2469,7 +2416,7 @@
         "pays": "Côte d'Ivoire",
         "drapeau": "🇨🇮",
         "presentation": "Le capital social de NSIA BANQUE CÔTE D'IVOIRE était de 20 milliards FCFA. Les actionnaires majoritaires sont pour la plupart des personnes morales. Ses activités s'articulent autour de deux pôles d'activités stratégiques: la banque de détail et la banque de financement et d'investissement. \n\nle 27 novembre 2017, le groupe NSIA, présidé et dirigé par Jean Kacou DIAGOU, a finalisé le 24 novembre l’achat du groupe bancaire ouest-africain Diamond Bank SA, filiale pour l’Afrique francophone du géant nigérian Diamond Bank. Le leader des assurances de l’Afrique subsaharienne francophone aura déboursé un total de 61 millions d’euros, via trois de ses sociétés (Manzi Finance SA, NSIA Banque Côte d’Ivoire et NSIA Vie Assurances Côte d’Ivoire), pour acquérir de 1 985 000 actions de Diamond Bank SA, soit 97,07 % de son capital social.",
-        "capitalisation": 569266.0,
+        "capitalisation": 570132.0,
         "beta": 1.04,
         "annees": [
           2023,
@@ -2512,8 +2459,8 @@
         "pays": "Côte d'Ivoire",
         "drapeau": "🇨🇮",
         "presentation": "MEDITERRANEAN SHIPPING COMPANY CI (MSC CI) est l'un des principaux acteurs du secteur du transport, de la manutention et de la logistique. La société est connue pour ses offres multisectorielles et multi-entreprises. Sa mission est de contrôler l'ensemble de la chaîne d'approvisionnement, ce qui permet à l'entreprise de fournir à ses clients un service complet: expédition de fret, manutention (levage et terrain), distribution (groupage et express) et logistique contractuelle.",
-        "capitalisation": 151058.0,
-        "beta": 0.36,
+        "capitalisation": 146975.0,
+        "beta": 0.37,
         "annees": [
           2023,
           2024,
@@ -2555,8 +2502,8 @@
         "pays": "Bénin",
         "drapeau": "🇧🇯",
         "presentation": "BANK OF AFRICA BENIN, est une filiale du groupe BOA, ouverte au public en janvier 1990. Elle est la seule banque et la seule entreprise béninoise cotée en bourse à la Bourse Régionale des Valeurs Mobilière (BRVM). Leader du secteur bancaire du Bénin en termes de total d'actif  suivie par Ecobank et Diamond Bank. Elle est profondément impliquée dans le financement de l'économie béninoise, en particulier les activités agricoles et portuaires. En fin 2024, la banque affichait un total bilan de 940 milliards FCFA, un total dépôt de la clientèle de 734 milliards FCFA.",
-        "capitalisation": 352881.0,
-        "beta": 0.25,
+        "capitalisation": 356937.0,
+        "beta": 0.22,
         "annees": [
           2023,
           2024,
@@ -2598,8 +2545,8 @@
         "pays": "Côte d'Ivoire",
         "drapeau": "🇨🇮",
         "presentation": "BOA CI est une filiale du groupe BOA. Elle a été ouverte en 1996 (après les filiales du Mali, du Bénin et du Niger). À la fin décembre 2024, la banque affichait un total bilan de  1 075 milliards FCFA et un total dépôt de la clientèle de 856 milliards FCFA.Comme les autres banques du Groupe BOA, BOA  COTE D'IVOIRE est une banque commerciale universelle intervenant sur les marchés Retail et Corporate.",
-        "capitalisation": 516000.0,
-        "beta": 0.53,
+        "capitalisation": 536000.0,
+        "beta": 0.54,
         "annees": [
           2023,
           2024,
@@ -2641,8 +2588,8 @@
         "pays": "Mali",
         "drapeau": "🇲🇱",
         "presentation": "BANK OF AFRICA - MALI (BOA-MALI), ouverte au public en janvier 1982, détient actuellement un capital de 27,45 milliards FCFA. Selon les statistiques de décembre 2024, la banque se hisse au cinquième rang en total bilan avec 543 milliards FCFA.\n\nBOA-MALI fait son introduction à la Bourse Régionale des Valeurs Mobilières (BRVM) fin mai 2016, et devient la 1ère entreprise et banque malienne cotée en bourse.",
-        "capitalisation": 168818.0,
-        "beta": 0.05,
+        "capitalisation": 169778.0,
+        "beta": 0.15,
         "annees": [
           2023,
           2024,
@@ -2684,7 +2631,7 @@
         "pays": "Côte d'Ivoire",
         "drapeau": "🇨🇮",
         "presentation": "VIVO ENERGY Côte d'Ivoire est l'un des principaux acteurs du marché des carburants différenciés et des lubrifiants. \nLe groupe a obtenu le 1er  décembre 2011 la licence pour distribuer et commercialiser des combustibles et des lubrifiants de marque Shell. \nVIVO ENERGY Côte d’ivoire possède environ 170 stations-service, dont près de la moitié sont situées à Abidjan, les sites restants étant répartis dans tout le pays, ce qui donne à l'entreprise une couverture nationale.",
-        "capitalisation": 138600.0,
+        "capitalisation": 148050.0,
         "beta": 0.7,
         "annees": [
           2023,
@@ -2727,7 +2674,7 @@
         "pays": "Bénin",
         "drapeau": "🇧🇯",
         "presentation": "La Loterie Nationale du Bénin (LNB) est une institution publique béninoise chargée de l’organisation et de la régulation des jeux de hasard et de loterie. Créée pour générer des revenus pour l'État, elle propose divers produits, tels que des jeux de tirage, des tickets à gratter et des paris sportifs. La LNB joue également un rôle socio-économique en soutenant des initiatives sociales et en finançant des projets dans des domaines tels que l’éducation, la santé et le développement communautaire. Elle s'efforce de promouvoir le jeu responsable tout en contribuant au développement du pays.",
-        "capitalisation": 82000.0,
+        "capitalisation": 81100.0,
         "beta": 0.01,
         "annees": [
           2023,
@@ -2770,7 +2717,7 @@
         "pays": "Côte d'Ivoire",
         "drapeau": "🇨🇮",
         "presentation": "UNIWAX, leader de l'industrie textile en Côte d'Ivoire conçoit, produit et commercialise des tissus uniques et colorés. Ces textiles expressifs de haute qualité sont distribués dans les pays africains. UNIWAX, un véritable leader du marché, a inspiré la mode ivoirienne depuis de nombreuses années avec le tissu \"Wax Hollandais\", symbole de la culture africaine.\n\nUNIWAX fait partie de Vlisco Helmond BV aux côtés de deux autres filiales; GTP et Woodin. Le groupe, précédemment détenu par GAMMA holding, a été racheté par ACTIS, un fonds d'investissement axé sur les marchés émergents en septembre 2010.",
-        "capitalisation": 41500.0,
+        "capitalisation": 43679.0,
         "beta": 0.15,
         "annees": [
           2023,
@@ -2813,7 +2760,7 @@
         "pays": "Côte d'Ivoire",
         "drapeau": "🇨🇮",
         "presentation": "Unilever Côte d'Ivoire (ou Unilever CI) est une filiale du groupe Unilever. \nEn 2008, UNILEVER CI a redéfini sa stratégie en cédant son activité huile au Groupe SIFCA et a acquis les activités Savon de Cosmivoire (groupe SIFCA). \nLa société est aujourd’hui le leader dans la fabrication et la commercialisation de produits alimentaires et d'entretien. Unilever grâce à ses opérations basées à Abidjan fournit ses produits aux pays membres de l'UEMOA.",
-        "capitalisation": 532637.0,
+        "capitalisation": 532545.0,
         "beta": 0.22,
         "annees": [
           2021,
@@ -2856,7 +2803,7 @@
         "pays": "Sénégal",
         "drapeau": "🇸🇳",
         "presentation": "Présent au Sénégal depuis 1954, TOTAL est le leader du marketing des produits pétroliers dans le pays. La société est cotée à la bourse régionale (BRVM) depuis le 20 février 2015. \nTOTAL SENEGAL possède le plus grand réseau de stations-service avec 173 stations à l'échelle nationale en 2016. \nL'ensemble des activités de TOTAL Sénégal comprend l'importation, le stockage et la distribution de produits pétroliers. Ces produits sont répartis entre les métiers suivants: le réseau des stations-service, les clients industriels et commerciaux, les carburants d'aviation, les carburants pour la marine, les lubrifiants et le GPL.",
-        "capitalisation": 116791.0,
+        "capitalisation": 120537.0,
         "beta": 0.53,
         "annees": [
           2023,
@@ -2899,7 +2846,7 @@
         "pays": "Côte d'Ivoire",
         "drapeau": "🇨🇮",
         "presentation": "TOTAL CI fait partie du Total Group, qui est la quatrième plus grande société internationale de pétrole et de gaz intégrée en bourse dans le monde avec une présence dans plus de 100 pays. La société existe en Côte d'Ivoire depuis 1947. \nLa filiale ivoirienne du géant français opère dans la distribution de produits pétroliers et services associés ainsi que du trading. Avec un réseau de plus de 170 stations-service à travers le pays, Total CI est le leader de la distribution de carburant.",
-        "capitalisation": 198329.0,
+        "capitalisation": 202107.0,
         "beta": 0.56,
         "annees": [
           2023,
@@ -2942,7 +2889,7 @@
         "pays": "Côte d'Ivoire",
         "drapeau": "🇨🇮",
         "presentation": "SUCRIVOIRE, filiale du groupe agro-industriel SIFCA, a été introduite le 29 décembre 2016, à la Bourse Régionale des Valeurs Mobilières (BRVM). \nL’activité de SUCRIVOIRE est répartie en trois principaux volets, à savoir : l’agriculture, la production et la distribution. Elle possède 11 382 hectares de plantations de canne à sucre reparties sur deux unités industrielles d’une capacité de plus de 110 000 tonnes. \nL’offre de SUCRIVOIRE est exclusivement dédiée au marché national et plus particulièrement auprès des grossistes, grandes et moyennes surfaces de distribution, et industriels.",
-        "capitalisation": 71736.0,
+        "capitalisation": 70364.0,
         "beta": 0.99,
         "annees": [
           2023,
@@ -3028,7 +2975,7 @@
         "pays": "Côte d'Ivoire",
         "drapeau": "🇨🇮",
         "presentation": "SOLIBRA (Societé de Limonaderie et Brasserie d'Afrique) produit et distribue de la bière, d'autres boissons alcooliques et non alcoolisées en côte d’ivoire. \nC'est la société leader sur le marché des boissons alcoolisées, de boissons gazeuses et sur le marché des eaux minérales. En mai 2017, SOLIBRA a procèdé à la fusion absorption de « Les Brasseries Ivoiriennes » (LBI) racheté 2 ans plus tôt par le groupe BGI formant ainsi le groupe SOLIBRA. \nLe portefeuille de la marque SOLIBRA intègre 16 marques et plus de 92 produits. Le principal produit sur le segment de la bière est «BOCK». Avec une capacité installée de 5,54 millions Hl, SOLIBRA dispose de quatre (4) sites de production dont deux (2) situés à Abidjan Yopougon, un (1) à Abidjan Zone III et un (1) à Bouaflé.",
-        "capitalisation": 613166.0,
+        "capitalisation": 625512.0,
         "beta": 1.13,
         "annees": [
           2023,
@@ -3071,7 +3018,7 @@
         "pays": "Côte d'Ivoire",
         "drapeau": "🇨🇮",
         "presentation": "La Société de Distribution d’Eau de Côte d’Ivoire « SODECI » a été créée en 1959 en tant que successeur et filiale de la société française « Saur ». \nLa compagnie a la charge exclusive de production et de distribution de l'eau potable dans les zones urbaines de la Côte d'Ivoire depuis 1987. De même, elle est chargée de maintenir et redimensionner l'assainissement, de contrôler la qualité des effluents industriels de la ville d'Abidjan. \nLa SODECI est liée à l'État de la Côte d'Ivoire par un contrat d’affermage qui a été renouvelé en Octobre 2007 pour une période de 16 ans.",
-        "capitalisation": 104490.0,
+        "capitalisation": 107055.0,
         "beta": 0.65,
         "annees": [
           2023,
@@ -3114,7 +3061,7 @@
         "pays": "Côte d'Ivoire",
         "drapeau": "🇨🇮",
         "presentation": "La Société africaine de crédit automobile (Safca), est établie en Côte d'ivoire depuis 1958. Elle est spécialisée dans le crédit-bail et assure le financement des biens mobiliers et immobiliers à travers divers produits financiers.",
-        "capitalisation": 69319.0,
+        "capitalisation": 68014.0,
         "beta": 1.45,
         "annees": [
           2023,
@@ -3157,8 +3104,8 @@
         "pays": "Sénégal",
         "drapeau": "🇸🇳",
         "presentation": "BOAS , ouverte au public en 2001, détient actuellement un capital de 24 milliards FCFA. Elle est la seule banque sénégalaise cotée à la BRVM.\nElle affiche au 31/12/2024, un total bilan de plus de 783 milliards FCFA , un total dépôt de la clientèle de plus de 586 milliards FCFA et possède plus de 200 000 comptes.",
-        "capitalisation": 277200.0,
-        "beta": 0.62,
+        "capitalisation": 280800.0,
+        "beta": 0.63,
         "annees": [
           2023,
           2024,
@@ -3200,7 +3147,7 @@
         "pays": "Côte d'Ivoire",
         "drapeau": "🇨🇮",
         "presentation": "BERNABE CI a été créé en 1951 par Descours & Cabaud (Afrique). Avec 61 ans d'existence, BERNABE excelle dans la commercialisation et la distribution de produits de quincaillerie, de matériel industriel, de produits métallurgiques et de matériaux de construction. BERNABE CI offre des produits à travers un réseau de distribution de 3 agences en Côte-d'Ivoire.",
-        "capitalisation": 13248.0,
+        "capitalisation": 13149.0,
         "beta": null,
         "annees": [
           2023,
@@ -3243,8 +3190,8 @@
         "pays": "Côte d'Ivoire",
         "drapeau": "🇨🇮",
         "presentation": "Créé le 24 août 1990 par le groupe français BOUYGUES et la société d'électricité EDF, CIE est une société privée ivoirienne de monopole qui détient une concession de service public pour la production, le transport, l'exportation, l'importation, la distribution et la commercialisation d'électricité. Après deux périodes de quinze années chacune de collaboration (allant de 1990 à 2005 et de 2005 à 2020), l'état de Côte d'Ivoire et la CIE ont renouvelé leur partenariat pour une période 12 ans, soit de 2020 à 2032. La compagnie exporte de l'électricité vers le Bénin, le Burkina Faso, le Ghana, le Togo, le Mali et bientôt la Guinée.",
-        "capitalisation": 308840.0,
-        "beta": 1.05,
+        "capitalisation": 331520.0,
+        "beta": 1.09,
         "annees": [
           2023,
           2024,
@@ -3286,7 +3233,7 @@
         "pays": "Côte d'Ivoire",
         "drapeau": "🇨🇮",
         "presentation": "SERVAIR ABIDJAN anciennement Abidjan Catering, est une société créée en 1968 opérant sur l'avitaillement, la fourniture de repas et le nettoyage des compagnies aériennes qui desservent l'aéroport d'Abidjan. Depuis 2012, SERVAIR ABIDJAN développe aussi des activités Hors Aérienne. En effet, afin de développer son portefeuille clients  et tirer profit de la croissance économique du pays, la société a commencé à développer la restauration collective (scolaire, entreprise), son service traiteur événementiel (Grain de Sel) et propose ses services pour le catering  et l’avitaillement de Bases Vies (FOXTROT).",
-        "capitalisation": 34591.0,
+        "capitalisation": 36010.0,
         "beta": 0.24,
         "annees": [
           2023,
@@ -3329,7 +3276,7 @@
         "pays": "Côte d'Ivoire",
         "drapeau": "🇨🇮",
         "presentation": "La SETAO est une filiale du groupe Bouygues dont les activités en Côte d'Ivoire ont débuté en 1950. La société est spécialisée dans les prestations de conseil et d'ingénierie dans le domaine du BTP. Plusieurs réalisations sont à son actif notamment: la construction du 3éme pont d’Abidjan, l’extension du centre commercial CAP SUD, la construction du complexe universitaire de Yamoussoukro (ex-INSET ou actuel INPHB).",
-        "capitalisation": 35414.0,
+        "capitalisation": 34205.0,
         "beta": 0.43,
         "annees": [
           2023,
@@ -3372,7 +3319,7 @@
         "pays": "Côte d'Ivoire",
         "drapeau": "🇨🇮",
         "presentation": "Le Groupe Orange Côte d’Ivoire (Groupe OCI) est une entreprise intégrée de télécommunications qui offre des solutions dans les domaines du fixe, du mobile, de l’Internet, des services de paiement mobile et des données au service des particuliers et des entreprises. Le Groupe OCI est leader en Côte d’Ivoire, ainsi qu’au \nBurkina Faso et au Libéria où il est présent depuis 2016. Le Groupe OCI est un opérateur global et sous régional de référence.",
-        "capitalisation": 2711796.0,
+        "capitalisation": 2794657.0,
         "beta": 1.53,
         "annees": [
           2023,
@@ -3415,8 +3362,8 @@
         "pays": "Burkina Faso",
         "drapeau": "🇧🇫",
         "presentation": "BOA BURKINA est une filiale du groupe BOA. Elle a été mis en place en 1998 (après les filiales du Mali, du Bénin, du Niger et de la Côte d'Ivoire).\n\nBOA BURKINA est l'un des grands acteurs du pays. En tant que banque commerciale, elle est profondément impliquée dans le financement de l'économie burkinabé. Malgré une forte intensité concurrentielle dans le secteur bancaire, BOA BF s’impose comme l’un des acteurs majeurs de la place bancaire burkinabé avec un total bilan de 1 079 milliards de FCFA. Au 31 décembre 2024, la Banque présentait un total dépôt de la clientèle de près de 813 milliards de F CFA.",
-        "capitalisation": 312400.0,
-        "beta": 0.32,
+        "capitalisation": 321200.0,
+        "beta": 0.35,
         "annees": [
           2023,
           2024,
@@ -3458,8 +3405,8 @@
         "pays": "Niger",
         "drapeau": "🇳🇪",
         "presentation": "BANK OF AFRICA - NIGER (BOA-NIGER) est issue d’une reprise des activités de la NIGERIA INTERNATIONAL BANK (NIB, banque affiliée à la CITIBANK) par le Groupe BANK OF AFRICA.\n\nOuverte au public le 25 avril 1994 sous la forme de Société Anonyme avec Conseil d’Administration, elle détient actuellement un capital de 10 milliards de F CFA.\n\nBOA-NIGER fait son introduction à la Bourse Régionale des Valeurs Mobilières (BRVM) en décembre 2003 et est à ce jour la seule Banque nigérienne cotée en bourse.\n\nElle affiche un total bilan de 322 milliards FCFAs.",
-        "capitalisation": 106496.0,
-        "beta": 0.41,
+        "capitalisation": 107120.0,
+        "beta": 0.39,
         "annees": [
           2023,
           2024,
@@ -3501,8 +3448,8 @@
         "pays": "Bénin",
         "drapeau": "🇧🇯",
         "presentation": "Issue de la fusion réussie, en 2020, entre la Banque Africaine de l’Industrie et du Commerce (BAIC) et la Banque Internationale du Bénin pour l’Économie (BIBE), la Banque Internationale pour l’Industrie et le Commerce (BIIC) s’est rapidement imposée comme l’un des acteurs majeurs du secteur bancaire au Bénin. Dotée d’un capital de 82,514 milliards de FCFA, la BIIC se distingue par sa solidité, son esprit d’innovation et sa volonté affirmée d’accompagner les ambitions de ses clients tout en contribuant activement au développement de l’économie nationale.",
-        "capitalisation": 490958.0,
-        "beta": 0.33,
+        "capitalisation": 490670.0,
+        "beta": 0.32,
         "annees": [
           2023,
           2024,
@@ -3544,8 +3491,8 @@
         "pays": "Côte d'Ivoire",
         "drapeau": "🇨🇮",
         "presentation": "La Banque internationale pour le commerce et l'industrie de la Côte d'Ivoire, abrégée en BICICI. Elle est une banque générale, de gros et de détail, qui offre aux entreprises et aux particuliers du secteur formel tout un ensemble de crédits à court et moyen terme.\nL'activité s'organise essentiellement autour de 3 pôles : banque de détail ; banque de financement et d'investissement. \nA fin 2024, le groupe gère 549 milliards FCFA d'encours de dépôts et 1 015 milliards FCFA d'encours de crédits.La commercialisation des produits et services est assurée au travers d'un réseau de 43 agences implantées en Côte d'Ivoire.",
-        "capitalisation": 477833.0,
-        "beta": 0.79,
+        "capitalisation": 483250.0,
+        "beta": 0.81,
         "annees": [
           2023,
           2024,
@@ -3587,7 +3534,7 @@
         "pays": "Côte d'Ivoire",
         "drapeau": "🇨🇮",
         "presentation": "Crée en 1976, la SICABLE est une entreprise ivoirienne, filiale du Groupe PRYSMIAN, elle est spécialisée dans la fabrication de câbles électriques. La société commercialise des câbles de basse, moyenne et haute tension pour l’utilisation dans l'industrie, la construction, l'infrastructure et les réseaux aériens. La SICABLE exporte vers les pays de la sous-région ouest africain.",
-        "capitalisation": 20720.0,
+        "capitalisation": 21312.0,
         "beta": 0.04,
         "annees": [
           2023,
@@ -3630,8 +3577,8 @@
         "pays": "Burkina Faso",
         "drapeau": "🇧🇫",
         "presentation": "Coris Bank International (CBI) est une banque commerciale fortement orientée vers le financement des activités agricoles et des petites et moyennes entreprises (PME). Fondé en 2008 sur une ancienne institution financière non bancaire « l’ex Financière du Burkina » (FIB-SA), Coris Bank International est le premier groupe bancaire burkinabé avec un total bilan de 2 683 milliards FCFA à fin 2024. Déjà présente en Côte d’Ivoire, au Benin, au Mali, au Sénégal et au Togo, la banque continue de poursuivre sa stratégie de croissance en Afrique de l’ouest.",
-        "capitalisation": 918400.0,
-        "beta": 0.47,
+        "capitalisation": 906080.0,
+        "beta": 0.46,
         "annees": [
           2023,
           2024,
@@ -3674,7 +3621,7 @@
         "drapeau": "🇨🇮",
         "presentation": "CFAO MOTORS est une filiale du groupe CFAO, détenue à plus de 97% par TTC Japan (Toyota). Le groupe est présent en Côte d'Ivoire depuis 1973 et est le distributeur exclusif de huit marques de renommée mondiale : Citroën, Peugeot, Toyota, Mitsubishi, Yamaha, Suzuki,  JCB et Bridgestone. La société est actuellement le leader du marché avec plus de 38% de part de marché au 1er trimestre 2018.",
         "capitalisation": 301984.0,
-        "beta": 1.22,
+        "beta": 1.18,
         "annees": [
           2023,
           2024,
@@ -3716,8 +3663,8 @@
         "pays": "Côte d'Ivoire",
         "drapeau": "🇨🇮",
         "presentation": "Créée en 1988, Ecobank Côte d’Ivoire constitue l’une des premières fliales du Groupe ECOBANK. Elle a démarré ses activités commerciales en 1989 avec un capital social de 2 milliards FCFA suite à l’acquisition de la Chase Manhattan Bank. Au fil des années, Ecobank Côte d’Ivoire a su se hisser parmi les banques leaders du marché ivoirien grâce à un réseau densifié et à une importante capacité de collecte et de distribution de crédits sur les segments des particuliers, PME et Institutionnels. Ecobank Côte d’Ivoire se positionne, au 31 décembre 2024 comme la cinquième (5eme) banque du marché ivoirien avec un total bilan de 2 050 milliards FCFA.",
-        "capitalisation": 880810.0,
-        "beta": 0.87,
+        "capitalisation": 881085.0,
+        "beta": 0.81,
         "annees": [
           2023,
           2024,
@@ -3759,8 +3706,8 @@
         "pays": "Togo",
         "drapeau": "🇹🇬",
         "presentation": "Ecobank Transnational Incorporated (ETI) est une banque fondée au Togo en 1985 et présente dans 36 pays du continent. \nEn fin 2024, le Groupe affichait un total bilan de 17 651 milliards FCFA et 1 133 milliards FCFA en capitaux propres.\nEcobank Transnational Incorporated est côté sur les principales bourses de la sous-région : la Nigerian Stock Exchange (NSE) à Lagos, la Ghana Stock exchange (GSE) à Accra et la Bourse Régionale des Valeurs Mobilières (BRVM) à Abidjan.",
-        "capitalisation": 1229719.0,
-        "beta": 1.78,
+        "capitalisation": 1175467.0,
+        "beta": 1.77,
         "annees": [
           2023,
           2024,
@@ -3802,7 +3749,7 @@
         "pays": "Côte d'Ivoire",
         "drapeau": "🇨🇮",
         "presentation": "Filtisac ou filature tissage sac, est une unité de fabrication de sacs en fibre naturelle de l'entreprise IPS (Industrial Promotion Services). Fondée en 1965, la société s’est aujourd’hui diversifiée avec la création d’une unité de fabrication d’emballages en fibres synthétiques pour des produits tels que: le coton, le riz, les engrais, le cacao, le café et l’anacarde ainsi que la production d'emballages rigides (préformes, bouteilles, boîtes). Leader en Afrique subsaharienne, FILTISAC possède de nombreuses filiales en Afrique de l'Ouest et du Centre.",
-        "capitalisation": 30887.0,
+        "capitalisation": 30323.0,
         "beta": 1.09,
         "annees": [
           2023,
@@ -3845,7 +3792,7 @@
         "pays": "Côte d'Ivoire",
         "drapeau": "🇨🇮",
         "presentation": "Les Nouvelles Editions Ivoirienne (NEI) est une maison d’édition fondée en 1992 en côte d’ivoire. En 2012, NEI réalisent une fusion absorption avec le Centre d’Edition et de Diffusion Africaine (CEDA) pour former NEI-CEDA. Cette nouvelle société est specialisée dans la distribution des titres de manuels de l’enseignement primaire et secondaire et propose des collections de littérature populaire.",
-        "capitalisation": 28085.0,
+        "capitalisation": 27766.0,
         "beta": null,
         "annees": [
           2023,
@@ -3888,7 +3835,7 @@
         "pays": "Côte d'Ivoire",
         "drapeau": "🇨🇮",
         "presentation": "En Côte d'Ivoire, NESTLÉ est le leader dans la fabrication de produits de café, du thé, la production de soupes déshydratées, les assaisonnements et la distribution de produits laitiers pour enfants.  La société dispose de deux grandes usines et d'un centre de recherche & développement à Abidjan.",
-        "capitalisation": 385128.0,
+        "capitalisation": 384025.0,
         "beta": 0.51,
         "annees": [
           2023,
@@ -3931,7 +3878,7 @@
         "pays": "Burkina Faso",
         "drapeau": "🇧🇫",
         "presentation": "ONATEL offre des services de téléphonie mobile. Premier opérateur Burkinabé de télécommunication mobile, ONATEL possède le plus important réseau en termes de couverture, la plus importante part de marché en termes de chiffre d'affaires et le plus important réseau de distributeurs. ONATEL dispose ainsi en fin 2017 d’un parc mobile et fixe de 7 millions d’abonnés. Depuis le 29 décembre 2006, le groupe Maroc Telecom est le nouvel actionnaire majoritaire de Onatel.",
-        "capitalisation": 190400.0,
+        "capitalisation": 197200.0,
         "beta": 0.17,
         "annees": [
           2023,
@@ -4017,7 +3964,7 @@
         "pays": "Côte d'Ivoire",
         "drapeau": "🇨🇮",
         "presentation": "PALMCI est une filiale du groupe agro-industriel ivoirien SIFCA. Elle est le principal producteur d’huile de palme brute de la région.\n Créée en 1997, la société produit plus de 280 000 tonnes d’huile de palme brute par an sur 8 sites de production implantés en Côte d'Ivoire, soit 70% de la production totale du pays. Elle exploite près de 40 000 hectares de plantations industrielles et s’approvisionne auprès de 30 000 petits planteurs\nEntre 2016 et 2017, le rendement à l’hectare de ses champs passe de 15,6t/h à 15,8t/h, soit une légère hausse de 1%. De même, ses achats de régimes aux planteurs villageois (PV) se chiffre à 726 168 tonnes en 2017 contre 612 892 tonnes en 2016.\nPALMCI enregistre un volume en tonnage de régimes usinés en hausse de 9% passant de 1 174 523 T en 2016 à 1 282 599 T en 2017, soit la meilleure performance jamais réalisée depuis 2007.",
-        "capitalisation": 140912.0,
+        "capitalisation": 143772.0,
         "beta": 0.43,
         "annees": [
           2023,
@@ -4060,8 +4007,8 @@
         "pays": "Côte d'Ivoire",
         "drapeau": "🇨🇮",
         "presentation": "En Côte-d’Ivoire, CROWN SIEM est leader dans la conception et la fabrication des emballages métalliques. Elle est rattachée à une organisation qui regroupe des unités dans la fabrication de boites alimentaires et non alimentaires. Les produits sont destinés notamment au conditionnement de boissons (limonades, jus de fruits, boissons énergétiques), des produits alimentaires (poissons, fruits, salades, plats préparés, aliments pour bébés, condiments) et des produits divers (chimie, insecticide, peinture, colle, bouchon couronne).",
-        "capitalisation": 37533.0,
-        "beta": 0.38,
+        "capitalisation": 37281.0,
+        "beta": 0.34,
         "annees": [
           2022,
           2023,
@@ -4103,7 +4050,7 @@
         "pays": "Côte d'Ivoire",
         "drapeau": "🇨🇮",
         "presentation": "La Société Générale de Banques en Côte d’Ivoire (SGBCI) est une filiale de la Société Générale, l’un des plus grands groupes bancaires au monde. Présente depuis plus de 50 ans dans le pays, elle occupe une position dominante depuis de longue date en Côte dIvoire et joue un rôle prépondérant dans le financement de l’économie ivoirienne et ouest africaine. Première banque ivoirienne avec un produit net bancaire de 150 milliards FCFA et un total bilan de 2 152 milliards FCFA. La banque occupe également la 1ère place en termes de prêts à la clientèle et la 1ère place en termes de dépôts clients avec près 20% de part de marché. Malgré la concurrence intense sur le marché, la banque a toujours réussi à rester comme étant l'une des plus grandes banques du pays.",
-        "capitalisation": 1213333.0,
+        "capitalisation": 1222667.0,
         "beta": 0.93,
         "annees": [
           2023,
@@ -4146,7 +4093,7 @@
         "pays": "Côte d'Ivoire",
         "drapeau": "🇨🇮",
         "presentation": "La Société Ivoirienne de Banque (SIB) est une Société anonyme de droit ivoirien créée en 1962. Elle fait partie des cinq principales banques de la Côte d'ivoire, quatrième banque de côte d’Ivoire en termes de dépôts à la clientèle et troisième en Prêts clientèle. La SIB est implantée dans 15 villes avec un réseau fort de 54 agences, et plus de 300 000 clients Particuliers, Professionnels et Entreprises de toute taille. En septembre 2015, le groupe Attijariwafa bank, à travers sa filiale Attijari Ivoire Holding Offshore SA, a procédé à l’acquisition de 39% du capital et des droits de vote de la Société Ivoirienne de Banque auprès de l’Etat de Côte d’Ivoire, modifiant ainsi la structure du capital et la composition du Conseil d’Administration. Ainsi, le groupe Attijariwafa bank qui détenait 51% du capital de la SIB depuis 2009 renforce sa position d’actionnaire de référence, disposant désormais de 75% après son introduction en bourse.",
-        "capitalisation": 917500.0,
+        "capitalisation": 930000.0,
         "beta": 0.83,
         "annees": [
           2023,
@@ -4189,7 +4136,7 @@
         "pays": "Côte d'Ivoire",
         "drapeau": "🇨🇮",
         "presentation": "La Société Ivoirienne de Coco Râpé (SICOR) est une entreprise engagée dans le secteur de fabrication de produits alimentaires. Elle commercialise des noix de coco et des produits dérivés, notamment le coco desséché. SICOR est l’unique entreprise de transformation de noix de  coco en Afrique de l’ouest.",
-        "capitalisation": 6048.0,
+        "capitalisation": 6120.0,
         "beta": null,
         "annees": [
           2022,
@@ -4232,8 +4179,8 @@
         "pays": "Côte d'Ivoire",
         "drapeau": "🇨🇮",
         "presentation": "Air Liquide est présent en Côte d’Ivoire depuis bientôt 70 ans. La société est spécialisée dans la production et la distribution de gaz industriels et médicaux (azote gazeux, azote liquide, oxygène gazeux, oxygène liquide, acétylène, argon, propane, butane, protoxyde d'azote, monoxyde d'azote, etc.). La société opère dans différents secteurs d’activités : Gaz et pétrole, mines et carrières, Agro-alimentaires, fabrication métallique et construction, santé, industrie pharmaceutique, laboratoires et centres de recherche.",
-        "capitalisation": 21224.0,
-        "beta": 0.19,
+        "capitalisation": 21049.0,
+        "beta": 0.17,
         "annees": [
           2023,
           2024,
@@ -4275,7 +4222,7 @@
         "pays": "Côte d'Ivoire",
         "drapeau": "🇨🇮",
         "presentation": "SMB, la Compagnie Multinationale de Bitumes, a été créée en 1976, avec pour mission le désenclavement des régions éloignées des pôles de développement. \nLa société assure l'approvisionnement national en produits bitumineux. Elle participe à la construction et la maintenance d'une partie importante du réseau routier de l'Afrique de l'Ouest.",
-        "capitalisation": 127490.0,
+        "capitalisation": 128192.0,
         "beta": 0.27,
         "annees": [
           2023,
@@ -4361,7 +4308,7 @@
         "pays": "Côte d'Ivoire",
         "drapeau": "🇨🇮",
         "presentation": "Filiale de SIFCA depuis 1999, la Société Africaine de Plantations d’Hévéas (SAPH) est le 1er producteur de caoutchouc naturel d’Afrique de l’Ouest, avec plus de 163 000 tonnes usinées par an. Forte de 5 400 employés et d’un réseau de 5 Unités Agricoles Intégrées, SAPH exploite 24 400 hectares de plantations indus-trielles, et assure l’encadrement de quelques 29 000 planteurs d’hévéa. La société est cotée à la Bourse Régionale des Valeurs Mobilières (BRVM - Abidjan) depuis 1996. Son capital social est de 14,6 milliards de FCFA.\nA fin 2017, SAPH exploite 23 022 hectares de plantations d'hévéas implantés en Côte d'Ivoire.",
-        "capitalisation": 204592.0,
+        "capitalisation": 214687.0,
         "beta": 0.72,
         "annees": [
           2023,
@@ -4404,7 +4351,7 @@
         "pays": "Côte d'Ivoire",
         "drapeau": "🇨🇮",
         "presentation": "La Société Ivoirienne des Tabacs (Sitab), filiale du britannique Imperial Brands est le leader du marché ivoirien et le seul fabricant de cigarettes en côte d’ivoire. La Sitab, contrôle environ 60 % du marché ivoirien des cigarettes. L'acquisition de la SITAB par Imperial Tobacco Group en avril 2011 a permis à la société de se positionner sur le marché du tabac en Afrique de l'Ouest avec l'ambition de servir les pays de la sous-région.",
-        "capitalisation": 421853.0,
+        "capitalisation": 412965.0,
         "beta": 0.39,
         "annees": [
           2023,
@@ -5052,4417 +4999,86 @@
     }
   },
   "zones_societes": {
-    "Afrique australe": {
-      "total": 439,
-      "places": {
-        "JSE": 286,
-        "BSM": 26,
-        "LUSE": 21,
-        "hors cote": 53,
-        "NMSE": 13,
-        "MAL": 15,
-        "AIM": 3,
-        "OTCEM": 1,
-        "ZMSE": 5,
-        "NYSE": 1,
-        "PSGM": 3,
-        "HMSE": 1,
-        "OFEX": 1,
-        "OTCQB": 1,
-        "NASDAQGS": 1,
-        "OTCQX": 1,
-        "LSE": 2,
-        "OTCBB": 1,
-        "NASDAQGM": 2,
-        "OTCPK": 1,
-        "ENXTPA": 1
-      },
-      "industries": {
-        "IT Services": {
-          "n": 10,
-          "places": {
-            "JSE": 9,
-            "hors cote": 1
-          }
-        },
-        "Banks": {
-          "n": 24,
-          "places": {
-            "BSM": 5,
-            "JSE": 5,
-            "NMSE": 3,
-            "hors cote": 4,
-            "MAL": 5,
-            "LUSE": 2
-          }
-        },
-        "Metals and Mining": {
-          "n": 44,
-          "places": {
-            "JSE": 31,
-            "AIM": 2,
-            "OTCEM": 1,
-            "hors cote": 6,
-            "NYSE": 1,
-            "LSE": 1,
-            "NASDAQGM": 1,
-            "ENXTPA": 1
-          }
-        },
-        "Retail REITs": {
-          "n": 8,
-          "places": {
-            "JSE": 8
-          }
-        },
-        "Real Estate Management and Development": {
-          "n": 23,
-          "places": {
-            "JSE": 10,
-            "LUSE": 2,
-            "hors cote": 2,
-            "MAL": 2,
-            "BSM": 6,
-            "NMSE": 1
-          }
-        },
-        "Capital Markets": {
-          "n": 44,
-          "places": {
-            "JSE": 32,
-            "PSGM": 2,
-            "hors cote": 5,
-            "OFEX": 1,
-            "NMSE": 1,
-            "LSE": 1,
-            "NASDAQGM": 1,
-            "ZMSE": 1
-          }
-        },
-        "Professional Services": {
-          "n": 7,
-          "places": {
-            "JSE": 6,
-            "hors cote": 1
-          }
-        },
-        "Hotels, Restaurants and Leisure": {
-          "n": 19,
-          "places": {
-            "JSE": 14,
-            "MAL": 2,
-            "BSM": 2,
-            "hors cote": 1
-          }
-        },
-        "Diversified Consumer Services": {
-          "n": 2,
-          "places": {
-            "JSE": 2
-          }
-        },
-        "Chemicals": {
-          "n": 8,
-          "places": {
-            "JSE": 5,
-            "LUSE": 1,
-            "hors cote": 2
-          }
-        },
-        "Food Products": {
-          "n": 27,
-          "places": {
-            "JSE": 16,
-            "hors cote": 6,
-            "MAL": 1,
-            "AIM": 1,
-            "BSM": 1,
-            "LUSE": 2
-          }
-        },
-        "Specialty Retail": {
-          "n": 20,
-          "places": {
-            "JSE": 16,
-            "NMSE": 2,
-            "hors cote": 2
-          }
-        },
-        "Consumer Finance": {
-          "n": 4,
-          "places": {
-            "JSE": 2,
-            "BSM": 1,
-            "NMSE": 1
-          }
-        },
-        "Beverages": {
-          "n": 9,
-          "places": {
-            "hors cote": 2,
-            "ZMSE": 1,
-            "NMSE": 1,
-            "LUSE": 2,
-            "JSE": 2,
-            "BSM": 1
-          }
-        },
-        "Media": {
-          "n": 4,
-          "places": {
-            "JSE": 3,
-            "hors cote": 1
-          }
-        },
-        "Construction Materials": {
-          "n": 6,
-          "places": {
-            "JSE": 4,
-            "LUSE": 1,
-            "hors cote": 1
-          }
-        },
-        "Financial Services": {
-          "n": 16,
-          "places": {
-            "JSE": 9,
-            "MAL": 1,
-            "LUSE": 1,
-            "NASDAQGS": 1,
-            "hors cote": 2,
-            "ZMSE": 1,
-            "NMSE": 1
-          }
-        },
-        "Wireless Telecommunication Services": {
-          "n": 7,
-          "places": {
-            "MAL": 2,
-            "LUSE": 1,
-            "JSE": 3,
-            "NMSE": 1
-          }
-        },
-        "Independent Power and Renewable Electricity Producers": {
-          "n": 2,
-          "places": {
-            "NMSE": 1,
-            "JSE": 1
-          }
-        },
-        "Electrical Equipment": {
-          "n": 5,
-          "places": {
-            "hors cote": 1,
-            "JSE": 3,
-            "LUSE": 1
-          }
-        },
-        "Distributors": {
-          "n": 3,
-          "places": {
-            "JSE": 2,
-            "BSM": 1
-          }
-        },
-        "Hotel and Resort REITs": {
-          "n": 1,
-          "places": {
-            "JSE": 1
-          }
-        },
-        "Building Products": {
-          "n": 6,
-          "places": {
-            "JSE": 3,
-            "BSM": 1,
-            "ZMSE": 1,
-            "hors cote": 1
-          }
-        },
-        "Diversified REITs": {
-          "n": 13,
-          "places": {
-            "JSE": 13
-          }
-        },
-        "Pharmaceuticals": {
-          "n": 2,
-          "places": {
-            "JSE": 2
-          }
-        },
-        "Construction and Engineering": {
-          "n": 6,
-          "places": {
-            "JSE": 5,
-            "hors cote": 1
-          }
-        },
-        "Household Durables": {
-          "n": 3,
-          "places": {
-            "JSE": 3
-          }
-        },
-        "Machinery": {
-          "n": 3,
-          "places": {
-            "JSE": 1,
-            "hors cote": 2
-          }
-        },
-        "Consumer Staples Distribution and Retail": {
-          "n": 12,
-          "places": {
-            "JSE": 8,
-            "BSM": 2,
-            "hors cote": 2
-          }
-        },
-        "Diversified Telecommunication Services": {
-          "n": 6,
-          "places": {
-            "JSE": 4,
-            "BSM": 1,
-            "NMSE": 1
-          }
-        },
-        "Insurance": {
-          "n": 18,
-          "places": {
-            "BSM": 1,
-            "JSE": 10,
-            "hors cote": 3,
-            "LUSE": 3,
-            "MAL": 1
-          }
-        },
-        "Tobacco": {
-          "n": 2,
-          "places": {
-            "LUSE": 1,
-            "hors cote": 1
-          }
-        },
-        "Commercial Services and Supplies": {
-          "n": 6,
-          "places": {
-            "JSE": 5,
-            "BSM": 1
-          }
-        },
-        "Industrial Conglomerates": {
-          "n": 8,
-          "places": {
-            "hors cote": 2,
-            "JSE": 5,
-            "MAL": 1
-          }
-        },
-        "Technology Hardware, Storage and Peripherals": {
-          "n": 2,
-          "places": {
-            "JSE": 2
-          }
-        },
-        "Electric Utilities": {
-          "n": 1,
-          "places": {
-            "LUSE": 1
-          }
-        },
-        "Electronic Equipment, Instruments and Components": {
-          "n": 3,
-          "places": {
-            "JSE": 3
-          }
-        },
-        "Office REITs": {
-          "n": 2,
-          "places": {
-            "JSE": 2
-          }
-        },
-        "Oil, Gas and Consumable Fuels": {
-          "n": 11,
-          "places": {
-            "JSE": 4,
-            "BSM": 3,
-            "HMSE": 1,
-            "OTCBB": 1,
-            "LUSE": 1,
-            "PSGM": 1
-          }
-        },
-        "Trading Companies and Distributors": {
-          "n": 6,
-          "places": {
-            "JSE": 5,
-            "hors cote": 1
-          }
-        },
-        "Industrial REITs": {
-          "n": 1,
-          "places": {
-            "JSE": 1
-          }
-        },
-        "Ground Transportation": {
-          "n": 4,
-          "places": {
-            "JSE": 2,
-            "hors cote": 2
-          }
-        },
-        "Transportation Infrastructure": {
-          "n": 1,
-          "places": {
-            "JSE": 1
-          }
-        },
-        "Containers and Packaging": {
-          "n": 6,
-          "places": {
-            "hors cote": 1,
-            "JSE": 4,
-            "ZMSE": 1
-          }
-        },
-        "Software": {
-          "n": 4,
-          "places": {
-            "JSE": 4
-          }
-        },
-        "Semiconductors and Semiconductor Equipment": {
-          "n": 1,
-          "places": {
-            "JSE": 1
-          }
-        },
-        "Leisure Products": {
-          "n": 1,
-          "places": {
-            "OTCQB": 1
-          }
-        },
-        "Health Care Providers and Services": {
-          "n": 3,
-          "places": {
-            "JSE": 3
-          }
-        },
-        "Health Care Equipment and Supplies": {
-          "n": 2,
-          "places": {
-            "JSE": 1,
-            "OTCQX": 1
-          }
-        },
-        "Automobile Components": {
-          "n": 1,
-          "places": {
-            "JSE": 1
-          }
-        },
-        "Broadline Retail": {
-          "n": 3,
-          "places": {
-            "JSE": 2,
-            "OTCPK": 1
-          }
-        },
-        "Paper and Forest Products": {
-          "n": 4,
-          "places": {
-            "JSE": 3,
-            "LUSE": 1
-          }
-        },
-        "Marine Transportation": {
-          "n": 1,
-          "places": {
-            "JSE": 1
-          }
-        },
-        "Air Freight and Logistics": {
-          "n": 1,
-          "places": {
-            "JSE": 1
-          }
-        },
-        "Specialized REITs": {
-          "n": 1,
-          "places": {
-            "JSE": 1
-          }
-        },
-        "Automobiles": {
-          "n": 1,
-          "places": {
-            "JSE": 1
-          }
-        },
-        "Textiles, Apparel and Luxury Goods": {
-          "n": 1,
-          "places": {
-            "LUSE": 1
-          }
-        }
-      }
-    },
     "Afrique de l'Ouest": {
-      "total": 231,
+      "total": 47,
       "places": {
-        "NGSE": 145,
-        "hors cote": 2,
-        "GHSE": 32,
-        "BRVM": 45,
-        "NYSE": 1,
-        "OTCEM": 2,
-        "ENXTPA": 1,
-        "LSE": 2,
-        "TSXV": 1
+        "BRVM": 47
       },
       "industries": {
-        "Financial Services": {
-          "n": 6,
-          "places": {
-            "NGSE": 5,
-            "BRVM": 1
-          }
-        },
-        "Ground Transportation": {
-          "n": 1,
-          "places": {
-            "NGSE": 1
-          }
-        },
-        "Commercial Services and Supplies": {
-          "n": 4,
-          "places": {
-            "NGSE": 3,
-            "GHSE": 1
-          }
-        },
-        "Banks": {
-          "n": 40,
-          "places": {
-            "hors cote": 1,
-            "GHSE": 10,
-            "NGSE": 15,
-            "BRVM": 14
-          }
-        },
-        "Air Freight and Logistics": {
+        "Distribution et négoce": {
           "n": 3,
           "places": {
-            "BRVM": 1,
-            "NGSE": 2
-          }
-        },
-        "Capital Markets": {
-          "n": 8,
-          "places": {
-            "NGSE": 6,
-            "hors cote": 1,
-            "GHSE": 1
-          }
-        },
-        "Insurance": {
-          "n": 25,
-          "places": {
-            "NGSE": 22,
-            "GHSE": 2,
-            "ENXTPA": 1
-          }
-        },
-        "Media": {
-          "n": 6,
-          "places": {
-            "NGSE": 4,
-            "GHSE": 1,
-            "BRVM": 1
-          }
-        },
-        "Oil, Gas and Consumable Fuels": {
-          "n": 14,
-          "places": {
-            "NGSE": 6,
-            "OTCEM": 1,
-            "GHSE": 3,
-            "LSE": 1,
             "BRVM": 3
           }
         },
-        "Chemicals": {
-          "n": 8,
+        "Banques": {
+          "n": 15,
           "places": {
-            "BRVM": 1,
-            "NGSE": 7
+            "BRVM": 15
           }
         },
-        "Metals and Mining": {
-          "n": 5,
-          "places": {
-            "NGSE": 2,
-            "NYSE": 1,
-            "LSE": 1,
-            "TSXV": 1
-          }
-        },
-        "Machinery": {
+        "Transport et logistique": {
           "n": 1,
           "places": {
-            "NGSE": 1
+            "BRVM": 1
           }
         },
-        "Pharmaceuticals": {
-          "n": 9,
+        "Distribution de carburants": {
+          "n": 3,
           "places": {
-            "GHSE": 4,
-            "OTCEM": 1,
-            "NGSE": 4
+            "BRVM": 3
           }
         },
-        "Food Products": {
-          "n": 25,
+        "Autres services": {
+          "n": 3,
           "places": {
-            "GHSE": 4,
-            "NGSE": 16,
+            "BRVM": 3
+          }
+        },
+        "Industrie manufacturière": {
+          "n": 6,
+          "places": {
+            "BRVM": 6
+          }
+        },
+        "Agroalimentaire, boissons et biens de consommation": {
+          "n": 4,
+          "places": {
+            "BRVM": 4
+          }
+        },
+        "Agro-industrie et plantations": {
+          "n": 5,
+          "places": {
             "BRVM": 5
           }
         },
-        "Trading Companies and Distributors": {
-          "n": 2,
-          "places": {
-            "BRVM": 1,
-            "NGSE": 1
-          }
-        },
-        "Containers and Packaging": {
+        "Télécommunications": {
           "n": 3,
           "places": {
-            "NGSE": 1,
-            "BRVM": 2
+            "BRVM": 3
           }
         },
-        "Diversified Telecommunication Services": {
-          "n": 4,
-          "places": {
-            "NGSE": 2,
-            "BRVM": 2
-          }
-        },
-        "Construction Materials": {
-          "n": 4,
-          "places": {
-            "NGSE": 4
-          }
-        },
-        "Energy Equipment and Services": {
-          "n": 2,
-          "places": {
-            "NGSE": 2
-          }
-        },
-        "Distributors": {
+        "Services publics": {
           "n": 2,
           "places": {
             "BRVM": 2
           }
         },
-        "Beverages": {
-          "n": 9,
-          "places": {
-            "NGSE": 6,
-            "GHSE": 2,
-            "BRVM": 1
-          }
-        },
-        "Software": {
-          "n": 1,
-          "places": {
-            "NGSE": 1
-          }
-        },
-        "Industrial Conglomerates": {
-          "n": 3,
-          "places": {
-            "NGSE": 3
-          }
-        },
-        "IT Services": {
-          "n": 3,
-          "places": {
-            "GHSE": 1,
-            "NGSE": 2
-          }
-        },
-        "Electric Utilities": {
-          "n": 3,
-          "places": {
-            "BRVM": 1,
-            "NGSE": 2
-          }
-        },
-        "Electrical Equipment": {
-          "n": 3,
-          "places": {
-            "NGSE": 2,
-            "BRVM": 1
-          }
-        },
-        "Health Care Providers and Services": {
-          "n": 1,
-          "places": {
-            "NGSE": 1
-          }
-        },
-        "Household Durables": {
-          "n": 3,
-          "places": {
-            "NGSE": 3
-          }
-        },
-        "Hotels, Restaurants and Leisure": {
-          "n": 5,
-          "places": {
-            "NGSE": 4,
-            "BRVM": 1
-          }
-        },
-        "Consumer Staples Distribution and Retail": {
-          "n": 1,
-          "places": {
-            "NGSE": 1
-          }
-        },
-        "Construction and Engineering": {
-          "n": 3,
-          "places": {
-            "NGSE": 2,
-            "BRVM": 1
-          }
-        },
-        "Diversified Consumer Services": {
-          "n": 1,
-          "places": {
-            "GHSE": 1
-          }
-        },
-        "Household Products": {
-          "n": 4,
-          "places": {
-            "NGSE": 3,
-            "GHSE": 1
-          }
-        },
-        "Wireless Telecommunication Services": {
-          "n": 3,
-          "places": {
-            "NGSE": 1,
-            "BRVM": 1,
-            "GHSE": 1
-          }
-        },
-        "Transportation Infrastructure": {
-          "n": 2,
-          "places": {
-            "NGSE": 2
-          }
-        },
-        "Technology Hardware, Storage and Peripherals": {
-          "n": 1,
-          "places": {
-            "NGSE": 1
-          }
-        },
-        "Specialty Retail": {
-          "n": 2,
-          "places": {
-            "NGSE": 1,
-            "BRVM": 1
-          }
-        },
-        "Real Estate Management and Development": {
-          "n": 2,
-          "places": {
-            "NGSE": 2
-          }
-        },
-        "Automobile Components": {
+        "Services financiers": {
           "n": 1,
           "places": {
             "BRVM": 1
           }
         },
-        "Water Utilities": {
+        "Bâtiment et travaux publics": {
           "n": 1,
           "places": {
             "BRVM": 1
-          }
-        },
-        "Tobacco": {
-          "n": 1,
-          "places": {
-            "BRVM": 1
-          }
-        },
-        "Paper and Forest Products": {
-          "n": 1,
-          "places": {
-            "NGSE": 1
-          }
-        },
-        "Independent Power and Renewable Electricity Producers": {
-          "n": 1,
-          "places": {
-            "NGSE": 1
-          }
-        },
-        "Diversified REITs": {
-          "n": 2,
-          "places": {
-            "NGSE": 2
-          }
-        },
-        "Personal Care Products": {
-          "n": 1,
-          "places": {
-            "BRVM": 1
-          }
-        },
-        "Textiles, Apparel and Luxury Goods": {
-          "n": 1,
-          "places": {
-            "BRVM": 1
-          }
-        }
-      }
-    },
-    "Afrique de l'Est": {
-      "total": 193,
-      "places": {
-        "MUSE": 84,
-        "NASE": 65,
-        "DAR": 21,
-        "UGSE": 11,
-        "TSXV": 1,
-        "OTCPK": 1,
-        "JSE": 3,
-        "LUSE": 1,
-        "LSE": 1,
-        "OFEX": 1,
-        "NYSE": 1,
-        "NMSE": 1,
-        "BVMT": 1,
-        "OTCEM": 1
-      },
-      "industries": {
-        "Specialty Retail": {
-          "n": 4,
-          "places": {
-            "MUSE": 2,
-            "NASE": 1,
-            "JSE": 1
-          }
-        },
-        "Banks": {
-          "n": 27,
-          "places": {
-            "MUSE": 3,
-            "NASE": 13,
-            "UGSE": 3,
-            "DAR": 8
-          }
-        },
-        "Independent Power and Renewable Electricity Producers": {
-          "n": 3,
-          "places": {
-            "MUSE": 2,
-            "NASE": 1
-          }
-        },
-        "Capital Markets": {
-          "n": 18,
-          "places": {
-            "MUSE": 7,
-            "DAR": 3,
-            "JSE": 2,
-            "NASE": 4,
-            "NYSE": 1,
-            "NMSE": 1
-          }
-        },
-        "Food Products": {
-          "n": 19,
-          "places": {
-            "NASE": 8,
-            "MUSE": 9,
-            "DAR": 2
-          }
-        },
-        "Pharmaceuticals": {
-          "n": 2,
-          "places": {
-            "MUSE": 1,
-            "UGSE": 1
-          }
-        },
-        "Wireless Telecommunication Services": {
-          "n": 4,
-          "places": {
-            "UGSE": 1,
-            "MUSE": 1,
-            "NASE": 1,
-            "DAR": 1
-          }
-        },
-        "Real Estate Management and Development": {
-          "n": 14,
-          "places": {
-            "MUSE": 11,
-            "LSE": 1,
-            "NASE": 2
-          }
-        },
-        "Industrial REITs": {
-          "n": 1,
-          "places": {
-            "NASE": 1
-          }
-        },
-        "Metals and Mining": {
-          "n": 2,
-          "places": {
-            "TSXV": 1,
-            "OFEX": 1
-          }
-        },
-        "Industrial Conglomerates": {
-          "n": 6,
-          "places": {
-            "MUSE": 5,
-            "NASE": 1
-          }
-        },
-        "Trading Companies and Distributors": {
-          "n": 3,
-          "places": {
-            "MUSE": 2,
-            "NASE": 1
-          }
-        },
-        "Distributors": {
-          "n": 2,
-          "places": {
-            "MUSE": 1,
-            "NASE": 1
-          }
-        },
-        "Hotels, Restaurants and Leisure": {
-          "n": 16,
-          "places": {
-            "MUSE": 15,
-            "NASE": 1
-          }
-        },
-        "Construction and Engineering": {
-          "n": 2,
-          "places": {
-            "OTCPK": 1,
-            "BVMT": 1
-          }
-        },
-        "Construction Materials": {
-          "n": 6,
-          "places": {
-            "NASE": 2,
-            "DAR": 2,
-            "MUSE": 1,
-            "UGSE": 1
-          }
-        },
-        "Consumer Finance": {
-          "n": 1,
-          "places": {
-            "MUSE": 1
-          }
-        },
-        "Chemicals": {
-          "n": 6,
-          "places": {
-            "NASE": 3,
-            "MUSE": 2,
-            "DAR": 1
-          }
-        },
-        "Insurance": {
-          "n": 10,
-          "places": {
-            "NASE": 6,
-            "MUSE": 3,
-            "UGSE": 1
-          }
-        },
-        "Tobacco": {
-          "n": 3,
-          "places": {
-            "NASE": 1,
-            "UGSE": 1,
-            "DAR": 1
-          }
-        },
-        "Electric Utilities": {
-          "n": 3,
-          "places": {
-            "LUSE": 1,
-            "NASE": 1,
-            "UGSE": 1
-          }
-        },
-        "Textiles, Apparel and Luxury Goods": {
-          "n": 1,
-          "places": {
-            "MUSE": 1
-          }
-        },
-        "Financial Services": {
-          "n": 6,
-          "places": {
-            "MUSE": 6
-          }
-        },
-        "Beverages": {
-          "n": 4,
-          "places": {
-            "NASE": 1,
-            "MUSE": 2,
-            "DAR": 1
-          }
-        },
-        "Electrical Equipment": {
-          "n": 2,
-          "places": {
-            "NASE": 2
-          }
-        },
-        "Commercial Services and Supplies": {
-          "n": 1,
-          "places": {
-            "NASE": 1
-          }
-        },
-        "Media": {
-          "n": 6,
-          "places": {
-            "NASE": 5,
-            "UGSE": 1
-          }
-        },
-        "Passenger Airlines": {
-          "n": 2,
-          "places": {
-            "NASE": 1,
-            "DAR": 1
-          }
-        },
-        "Oil, Gas and Consumable Fuels": {
-          "n": 3,
-          "places": {
-            "NASE": 2,
-            "MUSE": 1
-          }
-        },
-        "Diversified REITs": {
-          "n": 1,
-          "places": {
-            "NASE": 1
-          }
-        },
-        "Personal Care Products": {
-          "n": 1,
-          "places": {
-            "MUSE": 1
-          }
-        },
-        "Air Freight and Logistics": {
-          "n": 2,
-          "places": {
-            "MUSE": 2
-          }
-        },
-        "Diversified Telecommunication Services": {
-          "n": 1,
-          "places": {
-            "UGSE": 1
-          }
-        },
-        "Health Care Providers and Services": {
-          "n": 1,
-          "places": {
-            "MUSE": 1
-          }
-        },
-        "Building Products": {
-          "n": 1,
-          "places": {
-            "NASE": 1
-          }
-        },
-        "Paper and Forest Products": {
-          "n": 1,
-          "places": {
-            "MUSE": 1
-          }
-        },
-        "Containers and Packaging": {
-          "n": 2,
-          "places": {
-            "MUSE": 1,
-            "NASE": 1
-          }
-        },
-        "Ground Transportation": {
-          "n": 3,
-          "places": {
-            "MUSE": 2,
-            "OTCEM": 1
-          }
-        },
-        "Transportation Infrastructure": {
-          "n": 1,
-          "places": {
-            "DAR": 1
-          }
-        },
-        "Office REITs": {
-          "n": 1,
-          "places": {
-            "NASE": 1
-          }
-        },
-        "Consumer Staples Distribution and Retail": {
-          "n": 1,
-          "places": {
-            "NASE": 1
-          }
-        }
-      }
-    },
-    "Afrique du Nord": {
-      "total": 165,
-      "places": {
-        "OTCPK": 1,
-        "BVMT": 73,
-        "CBSE": 77,
-        "DFM": 1,
-        "hors cote": 12,
-        "ADX": 1
-      },
-      "industries": {
-        "Commercial Services and Supplies": {
-          "n": 3,
-          "places": {
-            "OTCPK": 1,
-            "BVMT": 2
-          }
-        },
-        "IT Services": {
-          "n": 4,
-          "places": {
-            "BVMT": 2,
-            "CBSE": 2
-          }
-        },
-        "Insurance": {
-          "n": 13,
-          "places": {
-            "CBSE": 5,
-            "BVMT": 7,
-            "hors cote": 1
-          }
-        },
-        "Building Products": {
-          "n": 6,
-          "places": {
-            "CBSE": 2,
-            "BVMT": 4
-          }
-        },
-        "Oil, Gas and Consumable Fuels": {
-          "n": 2,
-          "places": {
-            "CBSE": 1,
-            "BVMT": 1
-          }
-        },
-        "Chemicals": {
-          "n": 6,
-          "places": {
-            "BVMT": 3,
-            "CBSE": 3
-          }
-        },
-        "Health Care Providers and Services": {
-          "n": 3,
-          "places": {
-            "CBSE": 3
-          }
-        },
-        "Banks": {
-          "n": 20,
-          "places": {
-            "DFM": 1,
-            "BVMT": 10,
-            "hors cote": 2,
-            "CBSE": 7
-          }
-        },
-        "Diversified Telecommunication Services": {
-          "n": 4,
-          "places": {
-            "hors cote": 1,
-            "CBSE": 1,
-            "BVMT": 1,
-            "ADX": 1
-          }
-        },
-        "Real Estate Management and Development": {
-          "n": 11,
-          "places": {
-            "CBSE": 6,
-            "BVMT": 4,
-            "hors cote": 1
-          }
-        },
-        "Financial Services": {
-          "n": 9,
-          "places": {
-            "BVMT": 7,
-            "CBSE": 2
-          }
-        },
-        "Distributors": {
-          "n": 1,
-          "places": {
-            "CBSE": 1
-          }
-        },
-        "Specialty Retail": {
-          "n": 7,
-          "places": {
-            "CBSE": 2,
-            "BVMT": 5
-          }
-        },
-        "Construction Materials": {
-          "n": 4,
-          "places": {
-            "BVMT": 2,
-            "CBSE": 2
-          }
-        },
-        "Food Products": {
-          "n": 10,
-          "places": {
-            "CBSE": 6,
-            "BVMT": 4
-          }
-        },
-        "Electronic Equipment, Instruments and Components": {
-          "n": 4,
-          "places": {
-            "BVMT": 2,
-            "CBSE": 2
-          }
-        },
-        "Ground Transportation": {
-          "n": 1,
-          "places": {
-            "CBSE": 1
-          }
-        },
-        "Trading Companies and Distributors": {
-          "n": 4,
-          "places": {
-            "CBSE": 4
-          }
-        },
-        "Metals and Mining": {
-          "n": 5,
-          "places": {
-            "CBSE": 5
-          }
-        },
-        "Construction and Engineering": {
-          "n": 6,
-          "places": {
-            "CBSE": 6
-          }
-        },
-        "Pharmaceuticals": {
-          "n": 6,
-          "places": {
-            "hors cote": 2,
-            "CBSE": 2,
-            "BVMT": 2
-          }
-        },
-        "Hotels, Restaurants and Leisure": {
-          "n": 2,
-          "places": {
-            "hors cote": 1,
-            "CBSE": 1
-          }
-        },
-        "Leisure Products": {
-          "n": 1,
-          "places": {
-            "BVMT": 1
-          }
-        },
-        "Diversified REITs": {
-          "n": 1,
-          "places": {
-            "CBSE": 1
-          }
-        },
-        "Software": {
-          "n": 3,
-          "places": {
-            "CBSE": 3
-          }
-        },
-        "Consumer Staples Distribution and Retail": {
-          "n": 2,
-          "places": {
-            "CBSE": 1,
-            "BVMT": 1
-          }
-        },
-        "Electrical Equipment": {
-          "n": 3,
-          "places": {
-            "BVMT": 3
-          }
-        },
-        "Beverages": {
-          "n": 3,
-          "places": {
-            "CBSE": 2,
-            "BVMT": 1
-          }
-        },
-        "Capital Markets": {
-          "n": 2,
-          "places": {
-            "hors cote": 1,
-            "BVMT": 1
-          }
-        },
-        "Tobacco": {
-          "n": 1,
-          "places": {
-            "hors cote": 1
-          }
-        },
-        "Paper and Forest Products": {
-          "n": 2,
-          "places": {
-            "BVMT": 1,
-            "CBSE": 1
-          }
-        },
-        "Consumer Finance": {
-          "n": 3,
-          "places": {
-            "CBSE": 3
-          }
-        },
-        "Textiles, Apparel and Luxury Goods": {
-          "n": 2,
-          "places": {
-            "BVMT": 2
-          }
-        },
-        "Personal Care Products": {
-          "n": 1,
-          "places": {
-            "BVMT": 1
-          }
-        },
-        "Transportation Infrastructure": {
-          "n": 1,
-          "places": {
-            "CBSE": 1
-          }
-        },
-        "Broadline Retail": {
-          "n": 2,
-          "places": {
-            "BVMT": 2
-          }
-        },
-        "Passenger Airlines": {
-          "n": 1,
-          "places": {
-            "BVMT": 1
-          }
-        },
-        "Containers and Packaging": {
-          "n": 2,
-          "places": {
-            "BVMT": 2
-          }
-        },
-        "Automobile Components": {
-          "n": 1,
-          "places": {
-            "BVMT": 1
-          }
-        },
-        "Electric Utilities": {
-          "n": 1,
-          "places": {
-            "hors cote": 1
-          }
-        },
-        "Independent Power and Renewable Electricity Producers": {
-          "n": 2,
-          "places": {
-            "hors cote": 1,
-            "CBSE": 1
-          }
-        }
-      }
-    },
-    "Afrique centrale": {
-      "total": 2,
-      "places": {
-        "hors cote": 1,
-        "ENXTPA": 1
-      },
-      "industries": {
-        "Banks": {
-          "n": 1,
-          "places": {
-            "hors cote": 1
-          }
-        },
-        "Oil, Gas and Consumable Fuels": {
-          "n": 1,
-          "places": {
-            "ENXTPA": 1
           }
         }
       }
     }
   },
-  "societes_hors_zone": [],
-  "comparables": {
-    "source": "SPGlobal_Export_8-17-2026_6f602bc0-705d-4f0a-b117-a466ab4f8bb4.xlsx",
-    "industries": [
-      {
-        "nom": "Air Freight and Logistics",
-        "tickers": [
-          "4995250",
-          "4995019",
-          "4995258",
-          "4995194",
-          "4995107",
-          "100415787"
-        ],
-        "societes": 6,
-        "gearing": 1.3375,
-        "gearing_median": 0.2319,
-        "echantillon_gearing": 6
-      },
-      {
-        "nom": "Automobile Components",
-        "tickers": [
-          "4910461",
-          "4913656",
-          "4915918"
-        ],
-        "societes": 3,
-        "gearing": 1.1021,
-        "gearing_median": 6.3291,
-        "echantillon_gearing": 3
-      },
-      {
-        "nom": "Automobiles",
-        "tickers": [
-          "7783351"
-        ],
-        "societes": 1,
-        "gearing": null,
-        "gearing_median": null,
-        "echantillon_gearing": 0
-      },
-      {
-        "nom": "Banks",
-        "tickers": [
-          "4537836",
-          "4254283",
-          "4254295",
-          "4183948",
-          "4998299",
-          "4416626",
-          "4544222",
-          "4400261",
-          "4401256",
-          "4338501",
-          "4393233",
-          "4414156",
-          "4998326",
-          "4252319",
-          "4399150",
-          "4437697",
-          "4422098",
-          "4245145",
-          "4416283",
-          "4565824",
-          "4437734",
-          "4310373",
-          "4393940",
-          "4396369",
-          "4423880",
-          "4253548",
-          "4392407",
-          "4400774",
-          "135543931",
-          "4250630",
-          "4392634",
-          "4609748",
-          "4538219",
-          "4998331",
-          "4388378",
-          "4393634",
-          "4395663",
-          "4401386",
-          "6203517",
-          "4819184",
-          "4403513",
-          "4272619",
-          "4396957",
-          "4574328",
-          "4575695",
-          "4392487",
-          "4315670",
-          "4547956",
-          "4403778",
-          "4376046",
-          "4402764",
-          "4577841",
-          "4562481",
-          "4393101",
-          "4560223",
-          "4392642",
-          "4946978",
-          "4405891",
-          "4397234",
-          "4395655",
-          "4535017",
-          "4403436",
-          "4391813",
-          "4429688",
-          "4422334",
-          "4572519",
-          "4393043",
-          "5000183",
-          "4997529",
-          "4536625",
-          "4574330",
-          "5000195",
-          "4997521",
-          "4396290",
-          "4560228",
-          "4403776",
-          "4147035",
-          "4403992",
-          "4263768",
-          "4649573",
-          "4997531",
-          "4798488",
-          "4562417",
-          "4430237",
-          "4585173",
-          "4418173",
-          "4400796",
-          "4251104",
-          "4251090",
-          "4406214",
-          "4427082",
-          "4395659",
-          "4401019",
-          "4223749",
-          "4418536",
-          "4250387",
-          "4401017",
-          "4265653",
-          "4431474",
-          "4341281",
-          "5000169",
-          "4395952",
-          "4609438",
-          "4250795",
-          "4251127",
-          "4391773",
-          "4402777",
-          "4402786",
-          "4712810",
-          "4603986",
-          "4263811",
-          "4368086"
-        ],
-        "societes": 112,
-        "gearing": 0.5936,
-        "gearing_median": 0.2169,
-        "echantillon_gearing": 97
-      },
-      {
-        "nom": "Beverages",
-        "tickers": [
-          "4914877",
-          "4917036",
-          "4914801",
-          "4914101",
-          "4913489",
-          "4915347",
-          "4916336",
-          "4916359",
-          "19280605",
-          "4911169",
-          "4912293",
-          "4915000",
-          "4915803",
-          "4812348",
-          "4914077",
-          "4911158",
-          "28678400",
-          "4912586",
-          "4916628",
-          "4914089",
-          "4911067",
-          "4997282",
-          "4910292",
-          "4273219",
-          "4914989"
-        ],
-        "societes": 25,
-        "gearing": 0.1273,
-        "gearing_median": 0.079,
-        "echantillon_gearing": 20
-      },
-      {
-        "nom": "Broadline Retail",
-        "tickers": [
-          "4277730",
-          "4915729",
-          "4914333",
-          "4573663",
-          "4559641"
-        ],
-        "societes": 5,
-        "gearing": 0.651,
-        "gearing_median": 0.4527,
-        "echantillon_gearing": 4
-      },
-      {
-        "nom": "Building Products",
-        "tickers": [
-          "4987635",
-          "4987263",
-          "4993165",
-          "4987217",
-          "7089551",
-          "4987152",
-          "4987355",
-          "6629828",
-          "4987383",
-          "4987480",
-          "4987510",
-          "4987351",
-          "4987243"
-        ],
-        "societes": 13,
-        "gearing": 0.5696,
-        "gearing_median": 0.4775,
-        "echantillon_gearing": 10
-      },
-      {
-        "nom": "Capital Markets",
-        "tickers": [
-          "4999991",
-          "105706694",
-          "124705847",
-          "4648102",
-          "4435027",
-          "4772760",
-          "4309638",
-          "4977383",
-          "5000130",
-          "4998858",
-          "146891653",
-          "4999068",
-          "5000543",
-          "4145112",
-          "4998832",
-          "4575307",
-          "4998568",
-          "4200014",
-          "4998288",
-          "4772240",
-          "5000630",
-          "4976747",
-          "4999720",
-          "4998956",
-          "5000095",
-          "4999860",
-          "4999081",
-          "4999054",
-          "4998699",
-          "5000112",
-          "4772927",
-          "4041201",
-          "4773611",
-          "4999128",
-          "4772925",
-          "4998287",
-          "4515558",
-          "4772274",
-          "4999236",
-          "4550900",
-          "4998766",
-          "4772264",
-          "4772645",
-          "15102886",
-          "4772356",
-          "5000600",
-          "19937873",
-          "4979491",
-          "4999440",
-          "4577077",
-          "4773348",
-          "4773240",
-          "6871470",
-          "139493170",
-          "4982091",
-          "135323852",
-          "4998460",
-          "4773533",
-          "4864515",
-          "4999599",
-          "4771949",
-          "4636097",
-          "4715869",
-          "4998463",
-          "13690921",
-          "4999153",
-          "4379828",
-          "4976405",
-          "4999744",
-          "4978231",
-          "4773091",
-          "138058341"
-        ],
-        "societes": 72,
-        "gearing": 0.4634,
-        "gearing_median": 0.0304,
-        "echantillon_gearing": 39
-      },
-      {
-        "nom": "Chemicals",
-        "tickers": [
-          "4273231",
-          "4986268",
-          "4985251",
-          "4982682",
-          "4986264",
-          "4982689",
-          "4986686",
-          "4982683",
-          "4985777",
-          "6394904",
-          "4985625",
-          "4986321",
-          "4982693",
-          "4986518",
-          "4982686",
-          "4986344",
-          "4985255",
-          "4986320",
-          "4985961",
-          "4986336",
-          "4986781",
-          "4986898",
-          "4516696",
-          "4986331",
-          "4986968",
-          "4981055",
-          "4466036",
-          "4916530"
-        ],
-        "societes": 28,
-        "gearing": 1.1668,
-        "gearing_median": 0.073,
-        "echantillon_gearing": 24
-      },
-      {
-        "nom": "Commercial Services and Supplies",
-        "tickers": [
-          "4987947",
-          "4988026",
-          "4988096",
-          "4988566",
-          "4989391",
-          "4994098",
-          "4996426",
-          "4612050",
-          "4988005",
-          "4989290",
-          "4988359",
-          "6533771",
-          "4988756",
-          "4987990"
-        ],
-        "societes": 14,
-        "gearing": 0.396,
-        "gearing_median": 0.1388,
-        "echantillon_gearing": 8
-      },
-      {
-        "nom": "Construction Materials",
-        "tickers": [
-          "4509834",
-          "4981932",
-          "6408410",
-          "19767199",
-          "4982198",
-          "4985514",
-          "4982053",
-          "4985357",
-          "4985513",
-          "4985125",
-          "4985356",
-          "4985494",
-          "4982058",
-          "4982011",
-          "4365732",
-          "4982020",
-          "4466009",
-          "4985453",
-          "4985368",
-          "4982012"
-        ],
-        "societes": 20,
-        "gearing": 0.1076,
-        "gearing_median": 0.1348,
-        "echantillon_gearing": 18
-      },
-      {
-        "nom": "Construction and Engineering",
-        "tickers": [
-          "4275592",
-          "4995595",
-          "4990552",
-          "4987505",
-          "4989752",
-          "4990616",
-          "4995634",
-          "101390255",
-          "4991458",
-          "4989663",
-          "6626549",
-          "4989956",
-          "4989654",
-          "4989444",
-          "10114341",
-          "4990543",
-          "4368081"
-        ],
-        "societes": 17,
-        "gearing": 0.0955,
-        "gearing_median": 0.2377,
-        "echantillon_gearing": 13
-      },
-      {
-        "nom": "Consumer Finance",
-        "tickers": [
-          "4772623",
-          "4576001",
-          "4578778",
-          "4558557",
-          "4781694",
-          "4415792",
-          "4416235",
-          "4567245"
-        ],
-        "societes": 8,
-        "gearing": 4.2532,
-        "gearing_median": 5.2099,
-        "echantillon_gearing": 8
-      },
-      {
-        "nom": "Consumer Staples Distribution and Retail",
-        "tickers": [
-          "4910539",
-          "124797663",
-          "4912246",
-          "4273208",
-          "4237418",
-          "4915867",
-          "6414132",
-          "4915805",
-          "4914943",
-          "4914955",
-          "4408268",
-          "4772397",
-          "4264950",
-          "4911725",
-          "4313504",
-          "4914032"
-        ],
-        "societes": 16,
-        "gearing": 0.4018,
-        "gearing_median": 0.2925,
-        "echantillon_gearing": 14
-      },
-      {
-        "nom": "Containers and Packaging",
-        "tickers": [
-          "4982571",
-          "4983439",
-          "4981310",
-          "4981402",
-          "4982531",
-          "6366103",
-          "4264688",
-          "4982167",
-          "4981047",
-          "138481315",
-          "4982542",
-          "4982466",
-          "4981170"
-        ],
-        "societes": 13,
-        "gearing": 1.135,
-        "gearing_median": 0.5657,
-        "echantillon_gearing": 9
-      },
-      {
-        "nom": "Distributors",
-        "tickers": [
-          "4966794",
-          "4911161",
-          "4911184",
-          "5241619",
-          "4993825",
-          "4969559",
-          "4913893",
-          "4914188"
-        ],
-        "societes": 8,
-        "gearing": 0.0453,
-        "gearing_median": 0.1036,
-        "echantillon_gearing": 5
-      },
-      {
-        "nom": "Diversified Consumer Services",
-        "tickers": [
-          "4913236",
-          "4916520",
-          "8353529"
-        ],
-        "societes": 3,
-        "gearing": 0.1023,
-        "gearing_median": 0.1462,
-        "echantillon_gearing": 3
-      },
-      {
-        "nom": "Diversified REITs",
-        "tickers": [
-          "4430760",
-          "4538104",
-          "4502225",
-          "4259693",
-          "4627652",
-          "4222576",
-          "7079707",
-          "10484073",
-          "110366114",
-          "4863369",
-          "4685986",
-          "4685667",
-          "4260026",
-          "4259694",
-          "4980225",
-          "4864272",
-          "4864398"
-        ],
-        "societes": 17,
-        "gearing": 0.959,
-        "gearing_median": 0.7873,
-        "echantillon_gearing": 14
-      },
-      {
-        "nom": "Diversified Telecommunication Services",
-        "tickers": [
-          "4432356",
-          "4313498",
-          "4999239",
-          "27722393",
-          "4999305",
-          "4730135",
-          "134937682",
-          "6332839",
-          "9159592",
-          "8008024",
-          "4999615",
-          "4999658",
-          "4999771",
-          "4999268",
-          "4292679"
-        ],
-        "societes": 15,
-        "gearing": 0.2488,
-        "gearing_median": 0.3735,
-        "echantillon_gearing": 12
-      },
-      {
-        "nom": "Electric Utilities",
-        "tickers": [
-          "6570126",
-          "5001153",
-          "4501811",
-          "6939272",
-          "5001207",
-          "5001283",
-          "19901589",
-          "5001240"
-        ],
-        "societes": 8,
-        "gearing": 0.2831,
-        "gearing_median": 0.9503,
-        "echantillon_gearing": 6
-      },
-      {
-        "nom": "Electrical Equipment",
-        "tickers": [
-          "4991148",
-          "4990912",
-          "4991259",
-          "4990838",
-          "4992068",
-          "4991334",
-          "4990935",
-          "4987663",
-          "4991118",
-          "4991190",
-          "4990945",
-          "4991232",
-          "4762006"
-        ],
-        "societes": 13,
-        "gearing": 0.3943,
-        "gearing_median": 0.3547,
-        "echantillon_gearing": 11
-      },
-      {
-        "nom": "Electronic Equipment, Instruments and Components",
-        "tickers": [
-          "4972856",
-          "4627121",
-          "5265846",
-          "4970940",
-          "4966797",
-          "5426608",
-          "4968629"
-        ],
-        "societes": 7,
-        "gearing": 0.5618,
-        "gearing_median": 0.4787,
-        "echantillon_gearing": 5
-      },
-      {
-        "nom": "Energy Equipment and Services",
-        "tickers": [
-          "4977580",
-          "4978205"
-        ],
-        "societes": 2,
-        "gearing": 1.7431,
-        "gearing_median": 2.3739,
-        "echantillon_gearing": 2
-      },
-      {
-        "nom": "Financial Services",
-        "tickers": [
-          "4772762",
-          "4772629",
-          "4772885",
-          "4551794",
-          "4772658",
-          "4432502",
-          "4547008",
-          "4393081",
-          "7655039",
-          "4772730",
-          "4772128",
-          "7813302",
-          "4998132",
-          "4772877",
-          "5304964",
-          "4971746",
-          "4773036",
-          "4182893",
-          "4649575",
-          "4968525",
-          "4515360",
-          "4772410",
-          "4104267",
-          "6675991",
-          "4997440",
-          "4577087",
-          "4998157",
-          "4290421",
-          "4182891",
-          "4998120",
-          "4419025",
-          "4773324",
-          "13415411",
-          "9857909",
-          "4557153",
-          "4402267",
-          "4649565"
-        ],
-        "societes": 37,
-        "gearing": 0.2429,
-        "gearing_median": 0.6036,
-        "echantillon_gearing": 31
-      },
-      {
-        "nom": "Food Products",
-        "tickers": [
-          "4997195",
-          "4914193",
-          "4914824",
-          "4997169",
-          "4911665",
-          "4910577",
-          "4912606",
-          "4772122",
-          "101483398",
-          "4916348",
-          "4911961",
-          "4916864",
-          "4911092",
-          "4911112",
-          "4910148",
-          "4915208",
-          "4916118",
-          "4916925",
-          "4997244",
-          "4916444",
-          "4916302",
-          "124706735",
-          "4910309",
-          "4915784",
-          "4915785",
-          "4912767",
-          "4915887",
-          "4910708",
-          "4915961",
-          "4911139",
-          "26526117",
-          "4916600",
-          "4913603",
-          "4916518",
-          "4911140",
-          "4910992",
-          "7669160",
-          "4914010",
-          "4913641",
-          "4916621",
-          "4911295",
-          "4915731",
-          "4913416",
-          "4997197",
-          "106584843",
-          "4915007",
-          "5799397",
-          "4915754",
-          "4913590",
-          "4916533",
-          "4916857",
-          "4911864",
-          "4489727",
-          "4913752",
-          "4720731",
-          "6425745",
-          "4910939",
-          "4911293",
-          "118447148",
-          "4911452",
-          "4913621",
-          "6546151",
-          "5454397",
-          "4243848",
-          "4911647",
-          "4914513",
-          "4916883",
-          "4914896",
-          "4913812",
-          "6225906",
-          "4910410",
-          "4911068",
-          "4910651",
-          "4270381",
-          "4995418",
-          "4913443",
-          "4911147",
-          "4913982",
-          "4915079",
-          "4912272",
-          "139152211"
-        ],
-        "societes": 81,
-        "gearing": 0.1582,
-        "gearing_median": 0.1645,
-        "echantillon_gearing": 68
-      },
-      {
-        "nom": "Ground Transportation",
-        "tickers": [
-          "4994084",
-          "4994141",
-          "10198036",
-          "4994146",
-          "4993838",
-          "27670698",
-          "4994277",
-          "4976463",
-          "6334019"
-        ],
-        "societes": 9,
-        "gearing": 5.1791,
-        "gearing_median": 0.4166,
-        "echantillon_gearing": 7
-      },
-      {
-        "nom": "Health Care Equipment and Supplies",
-        "tickers": [
-          "4966800",
-          "106320626"
-        ],
-        "societes": 2,
-        "gearing": 0.0003,
-        "gearing_median": 0.0003,
-        "echantillon_gearing": 1
-      },
-      {
-        "nom": "Health Care Providers and Services",
-        "tickers": [
-          "19517479",
-          "4813011",
-          "4238063",
-          "4970783",
-          "4241917",
-          "4989920",
-          "149213570",
-          "133849740"
-        ],
-        "societes": 8,
-        "gearing": 0.3489,
-        "gearing_median": 0.3001,
-        "echantillon_gearing": 6
-      },
-      {
-        "nom": "Hotel and Resort REITs",
-        "tickers": [
-          "101499536"
-        ],
-        "societes": 1,
-        "gearing": 0.0,
-        "gearing_median": 0.0,
-        "echantillon_gearing": 1
-      },
-      {
-        "nom": "Hotels, Restaurants and Leisure",
-        "tickers": [
-          "4981485",
-          "4980970",
-          "4988678",
-          "4980850",
-          "4981204",
-          "4654147",
-          "4981102",
-          "4771300",
-          "4980736",
-          "4980903",
-          "4981218",
-          "4265269",
-          "4988501",
-          "4345113",
-          "4980618",
-          "4980930",
-          "4981471",
-          "125813521",
-          "4988659",
-          "4982367",
-          "4981257",
-          "4977715",
-          "4988438",
-          "4825271",
-          "4989176",
-          "101243340",
-          "4982076",
-          "4981013",
-          "124811836",
-          "4988671",
-          "14430966",
-          "4264431",
-          "4988990",
-          "12352181",
-          "4988633",
-          "4219265",
-          "4980715",
-          "4916578",
-          "4980734",
-          "4980814",
-          "4982101",
-          "4656858"
-        ],
-        "societes": 42,
-        "gearing": 0.5194,
-        "gearing_median": 0.4527,
-        "echantillon_gearing": 32
-      },
-      {
-        "nom": "Household Durables",
-        "tickers": [
-          "4864195",
-          "4984967",
-          "125224667",
-          "4914850",
-          "4910566",
-          "4915858"
-        ],
-        "societes": 6,
-        "gearing": 0.9995,
-        "gearing_median": 0.0467,
-        "echantillon_gearing": 4
-      },
-      {
-        "nom": "Household Products",
-        "tickers": [
-          "4915772",
-          "4915744",
-          "4916877",
-          "4916603"
-        ],
-        "societes": 4,
-        "gearing": 0.0135,
-        "gearing_median": 0.0226,
-        "echantillon_gearing": 4
-      },
-      {
-        "nom": "IT Services",
-        "tickers": [
-          "7968383",
-          "4972330",
-          "4408286",
-          "4969155",
-          "4970118",
-          "4971425",
-          "4968840",
-          "4966636",
-          "4969923",
-          "4968213",
-          "4971263",
-          "4969896",
-          "4329575",
-          "4773003",
-          "4972321",
-          "4966793",
-          "4969216"
-        ],
-        "societes": 17,
-        "gearing": 0.229,
-        "gearing_median": 0.1819,
-        "echantillon_gearing": 12
-      },
-      {
-        "nom": "Independent Power and Renewable Electricity Producers",
-        "tickers": [
-          "13451580",
-          "10913130",
-          "5001324",
-          "5000974",
-          "5001361",
-          "5001363",
-          "5000765",
-          "4689036"
-        ],
-        "societes": 8,
-        "gearing": 3.0713,
-        "gearing_median": 0.5394,
-        "echantillon_gearing": 6
-      },
-      {
-        "nom": "Industrial Conglomerates",
-        "tickers": [
-          "4910621",
-          "4987915",
-          "4995449",
-          "135413986",
-          "4987887",
-          "4987936",
-          "4988465",
-          "4987925",
-          "4244464",
-          "4990771",
-          "4990782",
-          "4987873",
-          "4987890",
-          "4418341",
-          "4264178",
-          "4995441",
-          "4273211"
-        ],
-        "societes": 17,
-        "gearing": 1.35,
-        "gearing_median": 0.4956,
-        "echantillon_gearing": 14
-      },
-      {
-        "nom": "Industrial REITs",
-        "tickers": [
-          "145502153",
-          "4544019"
-        ],
-        "societes": 2,
-        "gearing": 0.8239,
-        "gearing_median": 0.8239,
-        "echantillon_gearing": 1
-      },
-      {
-        "nom": "Insurance",
-        "tickers": [
-          "5000342",
-          "5000205",
-          "5000311",
-          "4287418",
-          "4196551",
-          "4643298",
-          "4429592",
-          "4571070",
-          "4174319",
-          "4770877",
-          "4022858",
-          "4433862",
-          "4174336",
-          "4950443",
-          "5000362",
-          "4416635",
-          "4198001",
-          "4182896",
-          "4418358",
-          "5000218",
-          "4978742",
-          "5000365",
-          "4622928",
-          "5000582",
-          "5000590",
-          "4177576",
-          "4616999",
-          "106165117",
-          "5000354",
-          "4418761",
-          "5000694",
-          "5000332",
-          "5000210",
-          "4564835",
-          "4672742",
-          "4617002",
-          "4194447",
-          "5000368",
-          "4559522",
-          "4056128",
-          "4323601",
-          "5000335",
-          "4193956",
-          "5000659",
-          "4617004",
-          "5000225",
-          "4622802",
-          "4365574",
-          "4435633",
-          "4180351",
-          "4423302",
-          "4436844",
-          "4180714",
-          "4196168",
-          "4196211",
-          "4655731",
-          "4203668",
-          "4430458",
-          "5000204",
-          "4181154",
-          "5000366",
-          "5000674",
-          "4203786",
-          "5000338",
-          "4813931",
-          "4743655"
-        ],
-        "societes": 66,
-        "gearing": 0.3007,
-        "gearing_median": 0.0167,
-        "echantillon_gearing": 55
-      },
-      {
-        "nom": "Leisure Products",
-        "tickers": [
-          "4915367",
-          "4810494"
-        ],
-        "societes": 2,
-        "gearing": 0.1733,
-        "gearing_median": 0.2004,
-        "echantillon_gearing": 2
-      },
-      {
-        "nom": "Machinery",
-        "tickers": [
-          "4990802",
-          "4265138",
-          "4989029",
-          "4996333"
-        ],
-        "societes": 4,
-        "gearing": 0.2314,
-        "gearing_median": 0.1162,
-        "echantillon_gearing": 2
-      },
-      {
-        "nom": "Marine Transportation",
-        "tickers": [
-          "4994789"
-        ],
-        "societes": 1,
-        "gearing": null,
-        "gearing_median": null,
-        "echantillon_gearing": 0
-      },
-      {
-        "nom": "Media",
-        "tickers": [
-          "4981645",
-          "4989901",
-          "4993452",
-          "4981993",
-          "10488188",
-          "4981953",
-          "27425174",
-          "7086707",
-          "4993946",
-          "4994034",
-          "4993445",
-          "4993916",
-          "4993976",
-          "4993932",
-          "4989921",
-          "4993973"
-        ],
-        "societes": 16,
-        "gearing": 0.5714,
-        "gearing_median": 0.106,
-        "echantillon_gearing": 14
-      },
-      {
-        "nom": "Metals and Mining",
-        "tickers": [
-          "4982870",
-          "4188197",
-          "4347936",
-          "4982676",
-          "9500910",
-          "4348118",
-          "4356562",
-          "4983687",
-          "4348361",
-          "4983700",
-          "4983109",
-          "4417713",
-          "4349189",
-          "4349371",
-          "110698350",
-          "114855161",
-          "4349804",
-          "4983136",
-          "4983741",
-          "4983113",
-          "4417426",
-          "4144674",
-          "4982929",
-          "29389691",
-          "4155293",
-          "4360747",
-          "4351190",
-          "4351643",
-          "4351694",
-          "4983100",
-          "4352028",
-          "19814618",
-          "4356153",
-          "4983311",
-          "4352188",
-          "4982732",
-          "4264043",
-          "4353200",
-          "4365035",
-          "4983578",
-          "4353828",
-          "4983335",
-          "4365498",
-          "4379789",
-          "4983347",
-          "4983199",
-          "4407044",
-          "4982960",
-          "4367116",
-          "4367262",
-          "4348055",
-          "4983148",
-          "4351799",
-          "4355312",
-          "4355602",
-          "7785322"
-        ],
-        "societes": 56,
-        "gearing": 0.1108,
-        "gearing_median": 0.0752,
-        "echantillon_gearing": 28
-      },
-      {
-        "nom": "Office REITs",
-        "tickers": [
-          "4685676",
-          "4685981",
-          "147746393"
-        ],
-        "societes": 3,
-        "gearing": 3.1975,
-        "gearing_median": 7.1242,
-        "echantillon_gearing": 2
-      },
-      {
-        "nom": "Oil, Gas and Consumable Fuels",
-        "tickers": [
-          "4980650",
-          "4976781",
-          "119973541",
-          "8334568",
-          "4976982",
-          "6424088",
-          "4977136",
-          "6624225",
-          "4226974",
-          "4980452",
-          "4544835",
-          "4608766",
-          "4980573",
-          "4363088",
-          "4976666",
-          "4978890",
-          "4976784",
-          "4979462",
-          "4978855",
-          "4985283",
-          "27858772",
-          "4979631",
-          "4978444",
-          "4976983",
-          "4976644",
-          "4976979",
-          "4978852",
-          "4976778",
-          "4976632",
-          "4487978",
-          "145865522"
-        ],
-        "societes": 31,
-        "gearing": 0.4789,
-        "gearing_median": 0.1263,
-        "echantillon_gearing": 22
-      },
-      {
-        "nom": "Paper and Forest Products",
-        "tickers": [
-          "4985009",
-          "4984232",
-          "4978370",
-          "4983833",
-          "4095274",
-          "4984294",
-          "4984940",
-          "7686127"
-        ],
-        "societes": 8,
-        "gearing": 2.0072,
-        "gearing_median": 0.5561,
-        "echantillon_gearing": 7
-      },
-      {
-        "nom": "Passenger Airlines",
-        "tickers": [
-          "4994526",
-          "6623566",
-          "4786171"
-        ],
-        "societes": 3,
-        "gearing": 11.428,
-        "gearing_median": 11.6839,
-        "echantillon_gearing": 3
-      },
-      {
-        "nom": "Personal Care Products",
-        "tickers": [
-          "4915675",
-          "4915716",
-          "4914091"
-        ],
-        "societes": 3,
-        "gearing": 0.2404,
-        "gearing_median": 0.3808,
-        "echantillon_gearing": 3
-      },
-      {
-        "nom": "Pharmaceuticals",
-        "tickers": [
-          "27470251",
-          "4812387",
-          "4812954",
-          "107481873",
-          "5321170",
-          "4972094",
-          "4812139",
-          "4812114",
-          "4970296",
-          "4810871",
-          "4812879",
-          "114076002",
-          "4812849",
-          "5181743",
-          "4810506",
-          "4811224",
-          "4969790",
-          "4812828",
-          "4812685"
-        ],
-        "societes": 19,
-        "gearing": 0.4137,
-        "gearing_median": 0.2122,
-        "echantillon_gearing": 13
-      },
-      {
-        "nom": "Professional Services",
-        "tickers": [
-          "4264237",
-          "4996107",
-          "4996129",
-          "4996604",
-          "4649812",
-          "4996813",
-          "4996498"
-        ],
-        "societes": 7,
-        "gearing": 2.5407,
-        "gearing_median": 0.5241,
-        "echantillon_gearing": 3
-      },
-      {
-        "nom": "Real Estate Management and Development",
-        "tickers": [
-          "4979877",
-          "4864478",
-          "29294913",
-          "4862864",
-          "13981277",
-          "13306276",
-          "4773479",
-          "4418239",
-          "4979502",
-          "4864257",
-          "4864108",
-          "4686019",
-          "4977945",
-          "4982103",
-          "4864000",
-          "12656591",
-          "4864009",
-          "4864059",
-          "4303220",
-          "4979386",
-          "4686014",
-          "26633783",
-          "4864407",
-          "11537792",
-          "13509961",
-          "7085034",
-          "4762055",
-          "4917015",
-          "4864192",
-          "4864331",
-          "9024220",
-          "4863813",
-          "4864113",
-          "4861729",
-          "4863862",
-          "4863855",
-          "4863094",
-          "4913581",
-          "19116725",
-          "4862819",
-          "6624489",
-          "4863792",
-          "4863960",
-          "4416231",
-          "4864520",
-          "4772234",
-          "4863868",
-          "4863694",
-          "4863848",
-          "4434418"
-        ],
-        "societes": 50,
-        "gearing": 0.7446,
-        "gearing_median": 0.7131,
-        "echantillon_gearing": 43
-      },
-      {
-        "nom": "Retail REITs",
-        "tickers": [
-          "4423637",
-          "9382066",
-          "4685993",
-          "10721065",
-          "4627654",
-          "4259862",
-          "4260027",
-          "4261042"
-        ],
-        "societes": 8,
-        "gearing": 0.6807,
-        "gearing_median": 0.7242,
-        "echantillon_gearing": 8
-      },
-      {
-        "nom": "Semiconductors and Semiconductor Equipment",
-        "tickers": [
-          "4967799"
-        ],
-        "societes": 1,
-        "gearing": 0.1223,
-        "gearing_median": 0.1223,
-        "echantillon_gearing": 1
-      },
-      {
-        "nom": "Software",
-        "tickers": [
-          "4970579",
-          "4970896",
-          "4970287",
-          "4971054",
-          "4972479",
-          "4969079",
-          "4967800",
-          "4969879"
-        ],
-        "societes": 8,
-        "gearing": 0.0297,
-        "gearing_median": 0.0172,
-        "echantillon_gearing": 5
-      },
-      {
-        "nom": "Specialized REITs",
-        "tickers": [
-          "4864506"
-        ],
-        "societes": 1,
-        "gearing": 0.4907,
-        "gearing_median": 0.4907,
-        "echantillon_gearing": 1
-      },
-      {
-        "nom": "Specialty Retail",
-        "tickers": [
-          "4551038",
-          "4911495",
-          "7161105",
-          "4911176",
-          "4916042",
-          "4913653",
-          "4265030",
-          "4914182",
-          "4538753",
-          "4912301",
-          "4916594",
-          "4969882",
-          "4911303",
-          "4911493",
-          "8508554",
-          "4265091",
-          "4912714",
-          "4773531",
-          "4966542",
-          "7933986",
-          "4916017",
-          "4911496",
-          "101440984",
-          "4913575",
-          "4968869",
-          "4290956",
-          "4976646",
-          "4916587",
-          "4559623",
-          "4916671",
-          "116675975",
-          "4916777",
-          "124706140"
-        ],
-        "societes": 33,
-        "gearing": 0.3972,
-        "gearing_median": 0.3431,
-        "echantillon_gearing": 29
-      },
-      {
-        "nom": "Technology Hardware, Storage and Peripherals",
-        "tickers": [
-          "4966452",
-          "4967810",
-          "4971408"
-        ],
-        "societes": 3,
-        "gearing": 1.6679,
-        "gearing_median": 0.9177,
-        "echantillon_gearing": 2
-      },
-      {
-        "nom": "Textiles, Apparel and Luxury Goods",
-        "tickers": [
-          "4440411",
-          "4915285",
-          "4910883",
-          "4913039",
-          "4915078"
-        ],
-        "societes": 5,
-        "gearing": 1.4569,
-        "gearing_median": 0.0127,
-        "echantillon_gearing": 5
-      },
-      {
-        "nom": "Tobacco",
-        "tickers": [
-          "4914867",
-          "4913476",
-          "4913807",
-          "4915024",
-          "4997320",
-          "4914120",
-          "4910295"
-        ],
-        "societes": 7,
-        "gearing": 0.0004,
-        "gearing_median": 0.0,
-        "echantillon_gearing": 5
-      },
-      {
-        "nom": "Trading Companies and Distributors",
-        "tickers": [
-          "6474823",
-          "4993221",
-          "4611129",
-          "11082460",
-          "4993137",
-          "4993555",
-          "4270596",
-          "4988925",
-          "4880472",
-          "5199985",
-          "4913311",
-          "4989067",
-          "4391186",
-          "4993689",
-          "4993129"
-        ],
-        "societes": 15,
-        "gearing": 0.6715,
-        "gearing_median": 0.3967,
-        "echantillon_gearing": 14
-      },
-      {
-        "nom": "Transportation Infrastructure",
-        "tickers": [
-          "4265234",
-          "4994554",
-          "7435629",
-          "4995359",
-          "4994729"
-        ],
-        "societes": 5,
-        "gearing": 0.0412,
-        "gearing_median": 0.0323,
-        "echantillon_gearing": 5
-      },
-      {
-        "nom": "Water Utilities",
-        "tickers": [
-          "5000805"
-        ],
-        "societes": 1,
-        "gearing": 1.7784,
-        "gearing_median": 1.7784,
-        "echantillon_gearing": 1
-      },
-      {
-        "nom": "Wireless Telecommunication Services",
-        "tickers": [
-          "19667844",
-          "4999945",
-          "7631355",
-          "4274918",
-          "7431973",
-          "6218493",
-          "4209629",
-          "6355224",
-          "109411958",
-          "4999918",
-          "6372105",
-          "4999791",
-          "4999851",
-          "6372119"
-        ],
-        "societes": 14,
-        "gearing": 0.3091,
-        "gearing_median": 0.3065,
-        "echantillon_gearing": 14
-      }
-    ],
-    "zones": {
-      "Afrique australe": {
-        "total": 439,
-        "places": {
-          "JSE": 286,
-          "BSM": 26,
-          "LUSE": 21,
-          "hors cote": 53,
-          "NMSE": 13,
-          "MAL": 15,
-          "AIM": 3,
-          "OTCEM": 1,
-          "ZMSE": 5,
-          "NYSE": 1,
-          "PSGM": 3,
-          "HMSE": 1,
-          "OFEX": 1,
-          "OTCQB": 1,
-          "NASDAQGS": 1,
-          "OTCQX": 1,
-          "LSE": 2,
-          "OTCBB": 1,
-          "NASDAQGM": 2,
-          "OTCPK": 1,
-          "ENXTPA": 1
-        },
-        "industries": {
-          "IT Services": {
-            "n": 10,
-            "places": {
-              "JSE": 9,
-              "hors cote": 1
-            }
-          },
-          "Banks": {
-            "n": 24,
-            "places": {
-              "BSM": 5,
-              "JSE": 5,
-              "NMSE": 3,
-              "hors cote": 4,
-              "MAL": 5,
-              "LUSE": 2
-            }
-          },
-          "Metals and Mining": {
-            "n": 44,
-            "places": {
-              "JSE": 31,
-              "AIM": 2,
-              "OTCEM": 1,
-              "hors cote": 6,
-              "NYSE": 1,
-              "LSE": 1,
-              "NASDAQGM": 1,
-              "ENXTPA": 1
-            }
-          },
-          "Retail REITs": {
-            "n": 8,
-            "places": {
-              "JSE": 8
-            }
-          },
-          "Real Estate Management and Development": {
-            "n": 23,
-            "places": {
-              "JSE": 10,
-              "LUSE": 2,
-              "hors cote": 2,
-              "MAL": 2,
-              "BSM": 6,
-              "NMSE": 1
-            }
-          },
-          "Capital Markets": {
-            "n": 44,
-            "places": {
-              "JSE": 32,
-              "PSGM": 2,
-              "hors cote": 5,
-              "OFEX": 1,
-              "NMSE": 1,
-              "LSE": 1,
-              "NASDAQGM": 1,
-              "ZMSE": 1
-            }
-          },
-          "Professional Services": {
-            "n": 7,
-            "places": {
-              "JSE": 6,
-              "hors cote": 1
-            }
-          },
-          "Hotels, Restaurants and Leisure": {
-            "n": 19,
-            "places": {
-              "JSE": 14,
-              "MAL": 2,
-              "BSM": 2,
-              "hors cote": 1
-            }
-          },
-          "Diversified Consumer Services": {
-            "n": 2,
-            "places": {
-              "JSE": 2
-            }
-          },
-          "Chemicals": {
-            "n": 8,
-            "places": {
-              "JSE": 5,
-              "LUSE": 1,
-              "hors cote": 2
-            }
-          },
-          "Food Products": {
-            "n": 27,
-            "places": {
-              "JSE": 16,
-              "hors cote": 6,
-              "MAL": 1,
-              "AIM": 1,
-              "BSM": 1,
-              "LUSE": 2
-            }
-          },
-          "Specialty Retail": {
-            "n": 20,
-            "places": {
-              "JSE": 16,
-              "NMSE": 2,
-              "hors cote": 2
-            }
-          },
-          "Consumer Finance": {
-            "n": 4,
-            "places": {
-              "JSE": 2,
-              "BSM": 1,
-              "NMSE": 1
-            }
-          },
-          "Beverages": {
-            "n": 9,
-            "places": {
-              "hors cote": 2,
-              "ZMSE": 1,
-              "NMSE": 1,
-              "LUSE": 2,
-              "JSE": 2,
-              "BSM": 1
-            }
-          },
-          "Media": {
-            "n": 4,
-            "places": {
-              "JSE": 3,
-              "hors cote": 1
-            }
-          },
-          "Construction Materials": {
-            "n": 6,
-            "places": {
-              "JSE": 4,
-              "LUSE": 1,
-              "hors cote": 1
-            }
-          },
-          "Financial Services": {
-            "n": 16,
-            "places": {
-              "JSE": 9,
-              "MAL": 1,
-              "LUSE": 1,
-              "NASDAQGS": 1,
-              "hors cote": 2,
-              "ZMSE": 1,
-              "NMSE": 1
-            }
-          },
-          "Wireless Telecommunication Services": {
-            "n": 7,
-            "places": {
-              "MAL": 2,
-              "LUSE": 1,
-              "JSE": 3,
-              "NMSE": 1
-            }
-          },
-          "Independent Power and Renewable Electricity Producers": {
-            "n": 2,
-            "places": {
-              "NMSE": 1,
-              "JSE": 1
-            }
-          },
-          "Electrical Equipment": {
-            "n": 5,
-            "places": {
-              "hors cote": 1,
-              "JSE": 3,
-              "LUSE": 1
-            }
-          },
-          "Distributors": {
-            "n": 3,
-            "places": {
-              "JSE": 2,
-              "BSM": 1
-            }
-          },
-          "Hotel and Resort REITs": {
-            "n": 1,
-            "places": {
-              "JSE": 1
-            }
-          },
-          "Building Products": {
-            "n": 6,
-            "places": {
-              "JSE": 3,
-              "BSM": 1,
-              "ZMSE": 1,
-              "hors cote": 1
-            }
-          },
-          "Diversified REITs": {
-            "n": 13,
-            "places": {
-              "JSE": 13
-            }
-          },
-          "Pharmaceuticals": {
-            "n": 2,
-            "places": {
-              "JSE": 2
-            }
-          },
-          "Construction and Engineering": {
-            "n": 6,
-            "places": {
-              "JSE": 5,
-              "hors cote": 1
-            }
-          },
-          "Household Durables": {
-            "n": 3,
-            "places": {
-              "JSE": 3
-            }
-          },
-          "Machinery": {
-            "n": 3,
-            "places": {
-              "JSE": 1,
-              "hors cote": 2
-            }
-          },
-          "Consumer Staples Distribution and Retail": {
-            "n": 12,
-            "places": {
-              "JSE": 8,
-              "BSM": 2,
-              "hors cote": 2
-            }
-          },
-          "Diversified Telecommunication Services": {
-            "n": 6,
-            "places": {
-              "JSE": 4,
-              "BSM": 1,
-              "NMSE": 1
-            }
-          },
-          "Insurance": {
-            "n": 18,
-            "places": {
-              "BSM": 1,
-              "JSE": 10,
-              "hors cote": 3,
-              "LUSE": 3,
-              "MAL": 1
-            }
-          },
-          "Tobacco": {
-            "n": 2,
-            "places": {
-              "LUSE": 1,
-              "hors cote": 1
-            }
-          },
-          "Commercial Services and Supplies": {
-            "n": 6,
-            "places": {
-              "JSE": 5,
-              "BSM": 1
-            }
-          },
-          "Industrial Conglomerates": {
-            "n": 8,
-            "places": {
-              "hors cote": 2,
-              "JSE": 5,
-              "MAL": 1
-            }
-          },
-          "Technology Hardware, Storage and Peripherals": {
-            "n": 2,
-            "places": {
-              "JSE": 2
-            }
-          },
-          "Electric Utilities": {
-            "n": 1,
-            "places": {
-              "LUSE": 1
-            }
-          },
-          "Electronic Equipment, Instruments and Components": {
-            "n": 3,
-            "places": {
-              "JSE": 3
-            }
-          },
-          "Office REITs": {
-            "n": 2,
-            "places": {
-              "JSE": 2
-            }
-          },
-          "Oil, Gas and Consumable Fuels": {
-            "n": 11,
-            "places": {
-              "JSE": 4,
-              "BSM": 3,
-              "HMSE": 1,
-              "OTCBB": 1,
-              "LUSE": 1,
-              "PSGM": 1
-            }
-          },
-          "Trading Companies and Distributors": {
-            "n": 6,
-            "places": {
-              "JSE": 5,
-              "hors cote": 1
-            }
-          },
-          "Industrial REITs": {
-            "n": 1,
-            "places": {
-              "JSE": 1
-            }
-          },
-          "Ground Transportation": {
-            "n": 4,
-            "places": {
-              "JSE": 2,
-              "hors cote": 2
-            }
-          },
-          "Transportation Infrastructure": {
-            "n": 1,
-            "places": {
-              "JSE": 1
-            }
-          },
-          "Containers and Packaging": {
-            "n": 6,
-            "places": {
-              "hors cote": 1,
-              "JSE": 4,
-              "ZMSE": 1
-            }
-          },
-          "Software": {
-            "n": 4,
-            "places": {
-              "JSE": 4
-            }
-          },
-          "Semiconductors and Semiconductor Equipment": {
-            "n": 1,
-            "places": {
-              "JSE": 1
-            }
-          },
-          "Leisure Products": {
-            "n": 1,
-            "places": {
-              "OTCQB": 1
-            }
-          },
-          "Health Care Providers and Services": {
-            "n": 3,
-            "places": {
-              "JSE": 3
-            }
-          },
-          "Health Care Equipment and Supplies": {
-            "n": 2,
-            "places": {
-              "JSE": 1,
-              "OTCQX": 1
-            }
-          },
-          "Automobile Components": {
-            "n": 1,
-            "places": {
-              "JSE": 1
-            }
-          },
-          "Broadline Retail": {
-            "n": 3,
-            "places": {
-              "JSE": 2,
-              "OTCPK": 1
-            }
-          },
-          "Paper and Forest Products": {
-            "n": 4,
-            "places": {
-              "JSE": 3,
-              "LUSE": 1
-            }
-          },
-          "Marine Transportation": {
-            "n": 1,
-            "places": {
-              "JSE": 1
-            }
-          },
-          "Air Freight and Logistics": {
-            "n": 1,
-            "places": {
-              "JSE": 1
-            }
-          },
-          "Specialized REITs": {
-            "n": 1,
-            "places": {
-              "JSE": 1
-            }
-          },
-          "Automobiles": {
-            "n": 1,
-            "places": {
-              "JSE": 1
-            }
-          },
-          "Textiles, Apparel and Luxury Goods": {
-            "n": 1,
-            "places": {
-              "LUSE": 1
-            }
-          }
-        }
-      },
-      "Afrique de l'Ouest": {
-        "total": 231,
-        "places": {
-          "NGSE": 145,
-          "hors cote": 2,
-          "GHSE": 32,
-          "BRVM": 45,
-          "NYSE": 1,
-          "OTCEM": 2,
-          "ENXTPA": 1,
-          "LSE": 2,
-          "TSXV": 1
-        },
-        "industries": {
-          "Financial Services": {
-            "n": 6,
-            "places": {
-              "NGSE": 5,
-              "BRVM": 1
-            }
-          },
-          "Ground Transportation": {
-            "n": 1,
-            "places": {
-              "NGSE": 1
-            }
-          },
-          "Commercial Services and Supplies": {
-            "n": 4,
-            "places": {
-              "NGSE": 3,
-              "GHSE": 1
-            }
-          },
-          "Banks": {
-            "n": 40,
-            "places": {
-              "hors cote": 1,
-              "GHSE": 10,
-              "NGSE": 15,
-              "BRVM": 14
-            }
-          },
-          "Air Freight and Logistics": {
-            "n": 3,
-            "places": {
-              "BRVM": 1,
-              "NGSE": 2
-            }
-          },
-          "Capital Markets": {
-            "n": 8,
-            "places": {
-              "NGSE": 6,
-              "hors cote": 1,
-              "GHSE": 1
-            }
-          },
-          "Insurance": {
-            "n": 25,
-            "places": {
-              "NGSE": 22,
-              "GHSE": 2,
-              "ENXTPA": 1
-            }
-          },
-          "Media": {
-            "n": 6,
-            "places": {
-              "NGSE": 4,
-              "GHSE": 1,
-              "BRVM": 1
-            }
-          },
-          "Oil, Gas and Consumable Fuels": {
-            "n": 14,
-            "places": {
-              "NGSE": 6,
-              "OTCEM": 1,
-              "GHSE": 3,
-              "LSE": 1,
-              "BRVM": 3
-            }
-          },
-          "Chemicals": {
-            "n": 8,
-            "places": {
-              "BRVM": 1,
-              "NGSE": 7
-            }
-          },
-          "Metals and Mining": {
-            "n": 5,
-            "places": {
-              "NGSE": 2,
-              "NYSE": 1,
-              "LSE": 1,
-              "TSXV": 1
-            }
-          },
-          "Machinery": {
-            "n": 1,
-            "places": {
-              "NGSE": 1
-            }
-          },
-          "Pharmaceuticals": {
-            "n": 9,
-            "places": {
-              "GHSE": 4,
-              "OTCEM": 1,
-              "NGSE": 4
-            }
-          },
-          "Food Products": {
-            "n": 25,
-            "places": {
-              "GHSE": 4,
-              "NGSE": 16,
-              "BRVM": 5
-            }
-          },
-          "Trading Companies and Distributors": {
-            "n": 2,
-            "places": {
-              "BRVM": 1,
-              "NGSE": 1
-            }
-          },
-          "Containers and Packaging": {
-            "n": 3,
-            "places": {
-              "NGSE": 1,
-              "BRVM": 2
-            }
-          },
-          "Diversified Telecommunication Services": {
-            "n": 4,
-            "places": {
-              "NGSE": 2,
-              "BRVM": 2
-            }
-          },
-          "Construction Materials": {
-            "n": 4,
-            "places": {
-              "NGSE": 4
-            }
-          },
-          "Energy Equipment and Services": {
-            "n": 2,
-            "places": {
-              "NGSE": 2
-            }
-          },
-          "Distributors": {
-            "n": 2,
-            "places": {
-              "BRVM": 2
-            }
-          },
-          "Beverages": {
-            "n": 9,
-            "places": {
-              "NGSE": 6,
-              "GHSE": 2,
-              "BRVM": 1
-            }
-          },
-          "Software": {
-            "n": 1,
-            "places": {
-              "NGSE": 1
-            }
-          },
-          "Industrial Conglomerates": {
-            "n": 3,
-            "places": {
-              "NGSE": 3
-            }
-          },
-          "IT Services": {
-            "n": 3,
-            "places": {
-              "GHSE": 1,
-              "NGSE": 2
-            }
-          },
-          "Electric Utilities": {
-            "n": 3,
-            "places": {
-              "BRVM": 1,
-              "NGSE": 2
-            }
-          },
-          "Electrical Equipment": {
-            "n": 3,
-            "places": {
-              "NGSE": 2,
-              "BRVM": 1
-            }
-          },
-          "Health Care Providers and Services": {
-            "n": 1,
-            "places": {
-              "NGSE": 1
-            }
-          },
-          "Household Durables": {
-            "n": 3,
-            "places": {
-              "NGSE": 3
-            }
-          },
-          "Hotels, Restaurants and Leisure": {
-            "n": 5,
-            "places": {
-              "NGSE": 4,
-              "BRVM": 1
-            }
-          },
-          "Consumer Staples Distribution and Retail": {
-            "n": 1,
-            "places": {
-              "NGSE": 1
-            }
-          },
-          "Construction and Engineering": {
-            "n": 3,
-            "places": {
-              "NGSE": 2,
-              "BRVM": 1
-            }
-          },
-          "Diversified Consumer Services": {
-            "n": 1,
-            "places": {
-              "GHSE": 1
-            }
-          },
-          "Household Products": {
-            "n": 4,
-            "places": {
-              "NGSE": 3,
-              "GHSE": 1
-            }
-          },
-          "Wireless Telecommunication Services": {
-            "n": 3,
-            "places": {
-              "NGSE": 1,
-              "BRVM": 1,
-              "GHSE": 1
-            }
-          },
-          "Transportation Infrastructure": {
-            "n": 2,
-            "places": {
-              "NGSE": 2
-            }
-          },
-          "Technology Hardware, Storage and Peripherals": {
-            "n": 1,
-            "places": {
-              "NGSE": 1
-            }
-          },
-          "Specialty Retail": {
-            "n": 2,
-            "places": {
-              "NGSE": 1,
-              "BRVM": 1
-            }
-          },
-          "Real Estate Management and Development": {
-            "n": 2,
-            "places": {
-              "NGSE": 2
-            }
-          },
-          "Automobile Components": {
-            "n": 1,
-            "places": {
-              "BRVM": 1
-            }
-          },
-          "Water Utilities": {
-            "n": 1,
-            "places": {
-              "BRVM": 1
-            }
-          },
-          "Tobacco": {
-            "n": 1,
-            "places": {
-              "BRVM": 1
-            }
-          },
-          "Paper and Forest Products": {
-            "n": 1,
-            "places": {
-              "NGSE": 1
-            }
-          },
-          "Independent Power and Renewable Electricity Producers": {
-            "n": 1,
-            "places": {
-              "NGSE": 1
-            }
-          },
-          "Diversified REITs": {
-            "n": 2,
-            "places": {
-              "NGSE": 2
-            }
-          },
-          "Personal Care Products": {
-            "n": 1,
-            "places": {
-              "BRVM": 1
-            }
-          },
-          "Textiles, Apparel and Luxury Goods": {
-            "n": 1,
-            "places": {
-              "BRVM": 1
-            }
-          }
-        }
-      },
-      "Afrique de l'Est": {
-        "total": 193,
-        "places": {
-          "MUSE": 84,
-          "NASE": 65,
-          "DAR": 21,
-          "UGSE": 11,
-          "TSXV": 1,
-          "OTCPK": 1,
-          "JSE": 3,
-          "LUSE": 1,
-          "LSE": 1,
-          "OFEX": 1,
-          "NYSE": 1,
-          "NMSE": 1,
-          "BVMT": 1,
-          "OTCEM": 1
-        },
-        "industries": {
-          "Specialty Retail": {
-            "n": 4,
-            "places": {
-              "MUSE": 2,
-              "NASE": 1,
-              "JSE": 1
-            }
-          },
-          "Banks": {
-            "n": 27,
-            "places": {
-              "MUSE": 3,
-              "NASE": 13,
-              "UGSE": 3,
-              "DAR": 8
-            }
-          },
-          "Independent Power and Renewable Electricity Producers": {
-            "n": 3,
-            "places": {
-              "MUSE": 2,
-              "NASE": 1
-            }
-          },
-          "Capital Markets": {
-            "n": 18,
-            "places": {
-              "MUSE": 7,
-              "DAR": 3,
-              "JSE": 2,
-              "NASE": 4,
-              "NYSE": 1,
-              "NMSE": 1
-            }
-          },
-          "Food Products": {
-            "n": 19,
-            "places": {
-              "NASE": 8,
-              "MUSE": 9,
-              "DAR": 2
-            }
-          },
-          "Pharmaceuticals": {
-            "n": 2,
-            "places": {
-              "MUSE": 1,
-              "UGSE": 1
-            }
-          },
-          "Wireless Telecommunication Services": {
-            "n": 4,
-            "places": {
-              "UGSE": 1,
-              "MUSE": 1,
-              "NASE": 1,
-              "DAR": 1
-            }
-          },
-          "Real Estate Management and Development": {
-            "n": 14,
-            "places": {
-              "MUSE": 11,
-              "LSE": 1,
-              "NASE": 2
-            }
-          },
-          "Industrial REITs": {
-            "n": 1,
-            "places": {
-              "NASE": 1
-            }
-          },
-          "Metals and Mining": {
-            "n": 2,
-            "places": {
-              "TSXV": 1,
-              "OFEX": 1
-            }
-          },
-          "Industrial Conglomerates": {
-            "n": 6,
-            "places": {
-              "MUSE": 5,
-              "NASE": 1
-            }
-          },
-          "Trading Companies and Distributors": {
-            "n": 3,
-            "places": {
-              "MUSE": 2,
-              "NASE": 1
-            }
-          },
-          "Distributors": {
-            "n": 2,
-            "places": {
-              "MUSE": 1,
-              "NASE": 1
-            }
-          },
-          "Hotels, Restaurants and Leisure": {
-            "n": 16,
-            "places": {
-              "MUSE": 15,
-              "NASE": 1
-            }
-          },
-          "Construction and Engineering": {
-            "n": 2,
-            "places": {
-              "OTCPK": 1,
-              "BVMT": 1
-            }
-          },
-          "Construction Materials": {
-            "n": 6,
-            "places": {
-              "NASE": 2,
-              "DAR": 2,
-              "MUSE": 1,
-              "UGSE": 1
-            }
-          },
-          "Consumer Finance": {
-            "n": 1,
-            "places": {
-              "MUSE": 1
-            }
-          },
-          "Chemicals": {
-            "n": 6,
-            "places": {
-              "NASE": 3,
-              "MUSE": 2,
-              "DAR": 1
-            }
-          },
-          "Insurance": {
-            "n": 10,
-            "places": {
-              "NASE": 6,
-              "MUSE": 3,
-              "UGSE": 1
-            }
-          },
-          "Tobacco": {
-            "n": 3,
-            "places": {
-              "NASE": 1,
-              "UGSE": 1,
-              "DAR": 1
-            }
-          },
-          "Electric Utilities": {
-            "n": 3,
-            "places": {
-              "LUSE": 1,
-              "NASE": 1,
-              "UGSE": 1
-            }
-          },
-          "Textiles, Apparel and Luxury Goods": {
-            "n": 1,
-            "places": {
-              "MUSE": 1
-            }
-          },
-          "Financial Services": {
-            "n": 6,
-            "places": {
-              "MUSE": 6
-            }
-          },
-          "Beverages": {
-            "n": 4,
-            "places": {
-              "NASE": 1,
-              "MUSE": 2,
-              "DAR": 1
-            }
-          },
-          "Electrical Equipment": {
-            "n": 2,
-            "places": {
-              "NASE": 2
-            }
-          },
-          "Commercial Services and Supplies": {
-            "n": 1,
-            "places": {
-              "NASE": 1
-            }
-          },
-          "Media": {
-            "n": 6,
-            "places": {
-              "NASE": 5,
-              "UGSE": 1
-            }
-          },
-          "Passenger Airlines": {
-            "n": 2,
-            "places": {
-              "NASE": 1,
-              "DAR": 1
-            }
-          },
-          "Oil, Gas and Consumable Fuels": {
-            "n": 3,
-            "places": {
-              "NASE": 2,
-              "MUSE": 1
-            }
-          },
-          "Diversified REITs": {
-            "n": 1,
-            "places": {
-              "NASE": 1
-            }
-          },
-          "Personal Care Products": {
-            "n": 1,
-            "places": {
-              "MUSE": 1
-            }
-          },
-          "Air Freight and Logistics": {
-            "n": 2,
-            "places": {
-              "MUSE": 2
-            }
-          },
-          "Diversified Telecommunication Services": {
-            "n": 1,
-            "places": {
-              "UGSE": 1
-            }
-          },
-          "Health Care Providers and Services": {
-            "n": 1,
-            "places": {
-              "MUSE": 1
-            }
-          },
-          "Building Products": {
-            "n": 1,
-            "places": {
-              "NASE": 1
-            }
-          },
-          "Paper and Forest Products": {
-            "n": 1,
-            "places": {
-              "MUSE": 1
-            }
-          },
-          "Containers and Packaging": {
-            "n": 2,
-            "places": {
-              "MUSE": 1,
-              "NASE": 1
-            }
-          },
-          "Ground Transportation": {
-            "n": 3,
-            "places": {
-              "MUSE": 2,
-              "OTCEM": 1
-            }
-          },
-          "Transportation Infrastructure": {
-            "n": 1,
-            "places": {
-              "DAR": 1
-            }
-          },
-          "Office REITs": {
-            "n": 1,
-            "places": {
-              "NASE": 1
-            }
-          },
-          "Consumer Staples Distribution and Retail": {
-            "n": 1,
-            "places": {
-              "NASE": 1
-            }
-          }
-        }
-      },
-      "Afrique du Nord": {
-        "total": 165,
-        "places": {
-          "OTCPK": 1,
-          "BVMT": 73,
-          "CBSE": 77,
-          "DFM": 1,
-          "hors cote": 12,
-          "ADX": 1
-        },
-        "industries": {
-          "Commercial Services and Supplies": {
-            "n": 3,
-            "places": {
-              "OTCPK": 1,
-              "BVMT": 2
-            }
-          },
-          "IT Services": {
-            "n": 4,
-            "places": {
-              "BVMT": 2,
-              "CBSE": 2
-            }
-          },
-          "Insurance": {
-            "n": 13,
-            "places": {
-              "CBSE": 5,
-              "BVMT": 7,
-              "hors cote": 1
-            }
-          },
-          "Building Products": {
-            "n": 6,
-            "places": {
-              "CBSE": 2,
-              "BVMT": 4
-            }
-          },
-          "Oil, Gas and Consumable Fuels": {
-            "n": 2,
-            "places": {
-              "CBSE": 1,
-              "BVMT": 1
-            }
-          },
-          "Chemicals": {
-            "n": 6,
-            "places": {
-              "BVMT": 3,
-              "CBSE": 3
-            }
-          },
-          "Health Care Providers and Services": {
-            "n": 3,
-            "places": {
-              "CBSE": 3
-            }
-          },
-          "Banks": {
-            "n": 20,
-            "places": {
-              "DFM": 1,
-              "BVMT": 10,
-              "hors cote": 2,
-              "CBSE": 7
-            }
-          },
-          "Diversified Telecommunication Services": {
-            "n": 4,
-            "places": {
-              "hors cote": 1,
-              "CBSE": 1,
-              "BVMT": 1,
-              "ADX": 1
-            }
-          },
-          "Real Estate Management and Development": {
-            "n": 11,
-            "places": {
-              "CBSE": 6,
-              "BVMT": 4,
-              "hors cote": 1
-            }
-          },
-          "Financial Services": {
-            "n": 9,
-            "places": {
-              "BVMT": 7,
-              "CBSE": 2
-            }
-          },
-          "Distributors": {
-            "n": 1,
-            "places": {
-              "CBSE": 1
-            }
-          },
-          "Specialty Retail": {
-            "n": 7,
-            "places": {
-              "CBSE": 2,
-              "BVMT": 5
-            }
-          },
-          "Construction Materials": {
-            "n": 4,
-            "places": {
-              "BVMT": 2,
-              "CBSE": 2
-            }
-          },
-          "Food Products": {
-            "n": 10,
-            "places": {
-              "CBSE": 6,
-              "BVMT": 4
-            }
-          },
-          "Electronic Equipment, Instruments and Components": {
-            "n": 4,
-            "places": {
-              "BVMT": 2,
-              "CBSE": 2
-            }
-          },
-          "Ground Transportation": {
-            "n": 1,
-            "places": {
-              "CBSE": 1
-            }
-          },
-          "Trading Companies and Distributors": {
-            "n": 4,
-            "places": {
-              "CBSE": 4
-            }
-          },
-          "Metals and Mining": {
-            "n": 5,
-            "places": {
-              "CBSE": 5
-            }
-          },
-          "Construction and Engineering": {
-            "n": 6,
-            "places": {
-              "CBSE": 6
-            }
-          },
-          "Pharmaceuticals": {
-            "n": 6,
-            "places": {
-              "hors cote": 2,
-              "CBSE": 2,
-              "BVMT": 2
-            }
-          },
-          "Hotels, Restaurants and Leisure": {
-            "n": 2,
-            "places": {
-              "hors cote": 1,
-              "CBSE": 1
-            }
-          },
-          "Leisure Products": {
-            "n": 1,
-            "places": {
-              "BVMT": 1
-            }
-          },
-          "Diversified REITs": {
-            "n": 1,
-            "places": {
-              "CBSE": 1
-            }
-          },
-          "Software": {
-            "n": 3,
-            "places": {
-              "CBSE": 3
-            }
-          },
-          "Consumer Staples Distribution and Retail": {
-            "n": 2,
-            "places": {
-              "CBSE": 1,
-              "BVMT": 1
-            }
-          },
-          "Electrical Equipment": {
-            "n": 3,
-            "places": {
-              "BVMT": 3
-            }
-          },
-          "Beverages": {
-            "n": 3,
-            "places": {
-              "CBSE": 2,
-              "BVMT": 1
-            }
-          },
-          "Capital Markets": {
-            "n": 2,
-            "places": {
-              "hors cote": 1,
-              "BVMT": 1
-            }
-          },
-          "Tobacco": {
-            "n": 1,
-            "places": {
-              "hors cote": 1
-            }
-          },
-          "Paper and Forest Products": {
-            "n": 2,
-            "places": {
-              "BVMT": 1,
-              "CBSE": 1
-            }
-          },
-          "Consumer Finance": {
-            "n": 3,
-            "places": {
-              "CBSE": 3
-            }
-          },
-          "Textiles, Apparel and Luxury Goods": {
-            "n": 2,
-            "places": {
-              "BVMT": 2
-            }
-          },
-          "Personal Care Products": {
-            "n": 1,
-            "places": {
-              "BVMT": 1
-            }
-          },
-          "Transportation Infrastructure": {
-            "n": 1,
-            "places": {
-              "CBSE": 1
-            }
-          },
-          "Broadline Retail": {
-            "n": 2,
-            "places": {
-              "BVMT": 2
-            }
-          },
-          "Passenger Airlines": {
-            "n": 1,
-            "places": {
-              "BVMT": 1
-            }
-          },
-          "Containers and Packaging": {
-            "n": 2,
-            "places": {
-              "BVMT": 2
-            }
-          },
-          "Automobile Components": {
-            "n": 1,
-            "places": {
-              "BVMT": 1
-            }
-          },
-          "Electric Utilities": {
-            "n": 1,
-            "places": {
-              "hors cote": 1
-            }
-          },
-          "Independent Power and Renewable Electricity Producers": {
-            "n": 2,
-            "places": {
-              "hors cote": 1,
-              "CBSE": 1
-            }
-          }
-        }
-      },
-      "Afrique centrale": {
-        "total": 2,
-        "places": {
-          "hors cote": 1,
-          "ENXTPA": 1
-        },
-        "industries": {
-          "Banks": {
-            "n": 1,
-            "places": {
-              "hors cote": 1
-            }
-          },
-          "Oil, Gas and Consumable Fuels": {
-            "n": 1,
-            "places": {
-              "ENXTPA": 1
-            }
-          }
-        }
-      }
-    }
-  }
+  "societes_hors_zone": []
 }
