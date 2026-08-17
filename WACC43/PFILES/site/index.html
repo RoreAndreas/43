@@ -448,6 +448,13 @@
     color: inherit;
   }
   .comp.is-final .comp-value { font-size: 32px; letter-spacing: -0.02em; }
+  /* Cartes de sociétés : une liste de valeurs cotées se parcourt, elle ne se
+     lit pas comme le résultat d'un calcul. Titres et montants y sont donc plus
+     sobres que dans la cascade du CMPC. */
+  #stackSoc .comp-head { padding: 13px 16px; }
+  #stackSoc .comp-title { font-size: 12.5px; }
+  #stackSoc .comp-value { font-size: 16px; }
+
   .comp.tone-green { border-color: var(--green-soft); color: var(--green); }
   .comp.tone-blue { border-color: var(--blue-soft); color: var(--blue); }
   .comp.is-open { background: var(--accent); border-color: var(--accent); color: #fff; }
@@ -657,6 +664,42 @@
     color: var(--ink-3);
     white-space: nowrap;
   }
+  /* Champ numérique libre, aligné sur la valeur qu'il remplace. */
+  .mini-input {
+    width: 74px;
+    padding: 3px 7px;
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    background: var(--surface);
+    font: 500 12px/1.3 var(--mono);
+    color: var(--ink);
+    text-align: right;
+  }
+  .mini-input:focus {
+    outline: none;
+    border-color: var(--accent);
+  }
+  .mini-input::placeholder { font-family: var(--sans); color: var(--muted-2); }
+
+  /* Bulle : un bloc de contenu autonome dans le panneau de détail. */
+  .bulle {
+    display: block;
+    margin-top: 14px;
+    padding: 13px 15px;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    background: var(--tile);
+  }
+  .bulle-titre {
+    display: block;
+    margin-bottom: 8px;
+    font: 500 10.5px/1 var(--sans);
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+  .bulle .fin-table { margin-top: 0; }
+
   .fin-table {
     width: 100%;
     border-collapse: collapse;
@@ -785,7 +828,10 @@
   // `continent` et `zone` ne viennent pas du jeu de données : ce sont des
   // filtres d'affichage, sans effet sur le calcul. On part sur « Tous », donc
   // sans rien masquer tant que l'utilisateur n'a rien demandé.
-  let params = Object.assign({ continent: "Tous", zone: null }, DATA.defaults);
+  // `gearing_brvm` est vide au départ : le référentiel Comparables ne publie pas
+  // de gearing sectoriel, et en inventer un donnerait un CMPC d'apparence
+  // normale bâti sur rien.
+  let params = Object.assign({ continent: "Tous", zone: null, gearing_brvm: null }, DATA.defaults);
   if (!params.referentiel) params.referentiel = "damodaran";
   if (!params.industrie_brvm && BRVM && BRVM.industries.length) {
     params.industrie_brvm = BRVM.industries[0].nom;
@@ -1132,8 +1178,8 @@
   // continent se distinguent sans changer de famille de couleur. Rien ici ne
   // code un montant.
   const TEINTES = {
-    "Afrique": "#c2683a", "Amériques": "#1d4ed8", "Asie": "#0f6f5c",
-    "Europe": "#6d4bb0", "Océanie": "#8a6d1f", "Autres": "#71717a",
+    "Afrique": "#b8452f", "Amériques": "#2563a8", "Asie": "#1a7f6b",
+    "Europe": "#7d5aa8", "Océanie": "#a8781f", "Autres": "#8b8b93",
   };
   function teinte(continent) { return TEINTES[continent] || TEINTES["Autres"]; }
 
@@ -1213,6 +1259,80 @@
     if (!DATA.carte || !DATA.carte.fond) return "";
     const svg = params.continent === TOUS ? globeHtml() : continentHtml(params.continent);
     return svg ? '<div class="carte-bloc">' + svg + "</div>" : "";
+  }
+
+  /* ---------- CMPC du référentiel Comparables ---------- */
+  // Le référentiel Comparables ne publie ni gearing sectoriel ni coût de la
+  // dette. Le gearing est donc saisi à la main, et la dette est supposée levée
+  // au taux souverain : c'est l'hypothèse la plus neutre disponible, et
+  // certainement optimiste pour un émetteur privé. Elle est écrite sous le
+  // résultat plutôt que dissimulée dans le calcul.
+  function cmpcComparables() {
+    if (!estBrvm() || !BRVM) return null;
+    const ind = industrieBrvm();
+    const tickers = ind ? ind.tickers : [];
+    const betas = tickers.map((t) => BRVM.societes[t].beta).filter((b) => b != null);
+    const rf = tauxSansRisque();
+    const g = Number(params.gearing_brvm);
+    const pays = DATA.pays[params.country] || {};
+    if (!rf || !betas.length || !(g >= 0) || params.gearing_brvm === "" ||
+        params.gearing_brvm == null || pays.tax == null) {
+      return null;
+    }
+    const beta = betas.reduce((a, b) => a + b, 0) / betas.length;
+    const ke = rf.taux + beta * DATA.mature + Number(params.d) + Number(params.e);
+    const kd = rf.taux * (1 - pays.tax);
+    const we = 1 / (1 + g);
+    return {
+      beta: beta, rf: rf, tax: pays.tax, gearing: g,
+      ke: ke, kd: kd, we: we, wd: 1 - we,
+      wacc: ke * we + kd * (1 - we),
+    };
+  }
+
+  // Cascade affichée dans l'onglet CMPC sous le référentiel Comparables.
+  function composantesComparables(cc) {
+    return [
+      {
+        id: "ke", title: "Coût des fonds propres", symbol: "Ke", value: frPct(cc.ke), tone: "blue",
+        methodology: "Taux sans risque + bêta coté x prime de marché + prime de taille + prime spécifique.",
+        source: "Bêtas cotés à un an des sociétés du secteur, taux souverain UMOA-Titres, prime de marché mature Damodaran.",
+        hypothesis: "Le bêta coté est employé tel quel : il est déjà endetté, aucun réendettement ne lui est appliqué. Le taux souverain porte déjà le risque pays, aucune prime pays ne s'y ajoute.",
+        retained: "Bêta moyen " + frNum(cc.beta, 2) + ", taux sans risque " + frPct(cc.rf.taux) + ", prime de marché " + frPct(DATA.mature) + ".",
+        formula: ["Ke = " + frPct(cc.rf.taux) + " + " + frNum(cc.beta, 2) + " x " + frPct(DATA.mature) +
+                  " + " + frPct(Number(params.d)) + " + " + frPct(Number(params.e)) + " = " + frPct(cc.ke)],
+      },
+      {
+        id: "kd", title: "Coût de la dette après IS", symbol: "Kd", value: frPct(cc.kd), tone: "green",
+        methodology: "Taux souverain diminué de l'économie d'impôt.",
+        source: "Courbe souveraine UMOA-Titres, taux d'IS de droit commun Damodaran.",
+        hypothesis: "Aucun spread de financement n'est publié pour ce référentiel : la dette est supposée levée au taux souverain. L'hypothèse est neutre, et probablement optimiste pour un émetteur privé.",
+        retained: "Taux souverain " + frPct(cc.rf.taux) + ", IS " + frPct(cc.tax, 1) + ".",
+        formula: ["Kd = " + frPct(cc.rf.taux) + " x (1 - " + frPct(cc.tax, 1) + ") = " + frPct(cc.kd)],
+      },
+      {
+        id: "poids", title: "Structure financière", symbol: "FP / D",
+        value: frPct(cc.we, 0) + " / " + frPct(cc.wd, 0),
+        composition: {
+          equity: frPct(cc.we, 0), debt: frPct(cc.wd, 0),
+          equityPct: (cc.we * 100).toFixed(1), debtPct: (cc.wd * 100).toFixed(1),
+        },
+        methodology: "Déduite du gearing : fonds propres / valeur = 1 / (1 + D/E).",
+        source: "Saisie manuelle.",
+        hypothesis: "Le gearing n'est pas publié pour ce référentiel : il est saisi à la main dans l'onglet Paramètres.",
+        retained: "Gearing D/E = " + frNum(cc.gearing, 2) + ".",
+        formula: ["FP / V = 1 / (1 + " + frNum(cc.gearing, 2) + ") = " + frPct(cc.we)],
+      },
+      {
+        id: "wacc", title: "CMPC", symbol: "CMPC", value: frPct(cc.wacc), final: true,
+        methodology: "Moyenne du coût des fonds propres et du coût de la dette, pondérée par la structure financière.",
+        source: "Composantes ci-dessus.",
+        hypothesis: "Exprimé en monnaie locale : le taux souverain qui l'alimente l'est déjà, aucune conversion d'inflation n'est appliquée.",
+        retained: "CMPC = " + frPct(cc.wacc) + ".",
+        formula: ["CMPC = " + frPct(cc.ke) + " x " + frPct(cc.we, 0) + " + " + frPct(cc.kd) +
+                  " x " + frPct(cc.wd, 0) + " = " + frPct(cc.wacc)],
+      },
+    ];
   }
 
   /* ---------- Bulles de résumé ---------- */
@@ -1380,12 +1500,13 @@
       const caps = tickers.map((t) => BRVM.societes[t].capitalisation).filter((c) => c != null);
       const rf = tauxSansRisque();
       const dateCourbe = BRVM.courbes ? (BRVM.courbes.date || "") : "";
+      const cc = cmpcComparables();
       $("paramsResult").innerHTML = `
         <h2>Secteur comparable</h2>
         <span class="result-hero">
           <span class="field-label">CMPC calculé</span>
           <span class="result-hero-row">
-            <span class="result-hero-value" style="color:var(--muted-2)">—</span>
+            <span class="result-hero-value"${cc ? "" : ' style="color:var(--muted-2)"'}>${cc ? frPct(cc.wacc) : "—"}</span>
           </span>
         </span>
         <span class="result-rows">
@@ -1393,14 +1514,26 @@
           <span class="result-row"><span>Bêta coté moyen</span><span>${betas.length ? frNum(betas.reduce((a, b) => a + b, 0) / betas.length, 2) : "—"}</span></span>
           <span class="result-row"><span>Capitalisation cumulée</span><span>${esc(frMontant(caps.reduce((a, b) => a + b, 0)))}</span></span>
           <span class="result-row"><span>Taux sans risque ${rf ? esc(rf.libelle) : ""}</span><span>${rf ? frPct(rf.taux) : "indisponible"}</span></span>
-          <span class="result-row"><span>Gearing sectoriel</span><span>à définir</span></span>
+          <span class="result-row">
+            <span>Gearing sectoriel (D/E)</span>
+            <input class="mini-input" type="number" step="0.05" min="0" inputmode="decimal"
+                   data-num="gearing_brvm" placeholder="à définir"
+                   value="${params.gearing_brvm == null ? "" : esc(params.gearing_brvm)}">
+          </span>
+          ${cc ? `
+            <span class="result-row"><span>Coût des fonds propres</span><span>${frPct(cc.ke)}</span></span>
+            <span class="result-row"><span>Coût de la dette après IS</span><span>${frPct(cc.kd)}</span></span>
+            <span class="result-row"><span>Fonds propres / dette</span><span>${frPct(cc.we, 0)} / ${frPct(cc.wd, 0)}</span></span>` : ""}
         </span>
         <button type="button" class="cta" id="goSoc">Voir les sociétés</button>
         <span class="note">${rf
-          ? `Taux souverain ${esc(rf.pays)} au ${esc(dateCourbe)}, publié par UMOA-Titres. Il porte déjà le risque pays : aucune prime ne s'y ajoute, et le coût du capital qui en découlera sera directement en monnaie locale.`
-          : "Courbe souveraine indisponible pour ce pays."} Le CMPC reste en attente du gearing sectoriel. Les bêtas affichés sont les bêtas cotés à un an, non désendettés.</span>`;
+          ? `Taux souverain ${esc(rf.pays)} au ${esc(dateCourbe)}, publié par UMOA-Titres. Il porte déjà le risque pays : aucune prime ne s'y ajoute, et le coût du capital qui en découle est directement en monnaie locale.`
+          : "Courbe souveraine indisponible pour ce pays."} Les bêtas sont les bêtas cotés à un an, employés tels quels : ils sont déjà endettés, aucun réendettement ne leur est appliqué.${cc
+          ? ` La dette est supposée levée au taux souverain, faute de spread publié pour ce référentiel — hypothèse neutre, et probablement optimiste pour un émetteur privé.`
+          : " Renseignez le gearing sectoriel ci-dessus pour obtenir le CMPC."}</span>`;
       $("goSoc").addEventListener("click", () => { tab = "societes"; renderTabs(); });
       brancherChamps();
+      brancherNombres($("paramsResult"));
       return;
     }
 
@@ -1438,6 +1571,14 @@
     });
     $("paramsMain").querySelectorAll("[data-zone]").forEach((el) => {
       el.addEventListener("click", () => setParam("zone", el.dataset.zone));
+    });
+  }
+
+  // Champs numériques libres. On écoute « change » et non « input » : réagir à
+  // chaque frappe redessinerait le panneau et ferait perdre le focus au champ.
+  function brancherNombres(racine) {
+    racine.querySelectorAll("input[data-num]").forEach((champ) => {
+      champ.addEventListener("change", () => setParam(champ.dataset.num, champ.value));
     });
     $("paramsMain").querySelectorAll("button[data-step]").forEach((btn) => {
       btn.addEventListener("click", () => bumpParam(btn.dataset.step, Number(btn.dataset.dir)));
@@ -1577,6 +1718,9 @@
         ${annees.map((a) => `<td>${esc(frMontant((serie || {})[String(a)]))}</td>`).join("")}
       </tr>`).join("");
 
+    // Deux bulles distinctes : l'activité se lit en prose, les comptes en
+    // tableau. Les mêler dans une seule grille obligeait l'oeil à passer de
+    // l'une à l'autre sans transition.
     return `
       <span class="detail-head">
         <span class="detail-title">${s.drapeau} ${esc(s.nom)}</span>
@@ -1586,28 +1730,36 @@
         <span class="detail-label">Pays</span><span class="detail-text">${esc(s.pays)}</span>
         <span class="detail-label">Capitalisation</span><span class="detail-text">${esc(frMontant(s.capitalisation))} FCFA</span>
         <span class="detail-label">Bêta 1 an</span><span class="detail-text">${s.beta == null ? "non publié" : frNum(s.beta, 2)}</span>
-        ${s.presentation ? `<span class="detail-label">Activité</span><span class="detail-text">${esc(s.presentation)}</span>` : ""}
       </span>
-      <table class="fin-table">
-        <thead><tr><th>En millions FCFA</th>${annees.map((a) => `<th>${a}</th>`).join("")}</tr></thead>
-        <tbody>${lignes}</tbody>
-      </table>`;
+      ${s.presentation ? `
+        <span class="bulle">
+          <span class="bulle-titre">Activité</span>
+          <span class="detail-text">${esc(s.presentation)}</span>
+        </span>` : ""}
+      <span class="bulle">
+        <span class="bulle-titre">Données financières</span>
+        <table class="fin-table">
+          <thead><tr><th>En millions FCFA</th>${annees.map((a) => `<th>${a}</th>`).join("")}</tr></thead>
+          <tbody>${lignes}</tbody>
+        </table>
+      </span>`;
   }
 
   /* ---- Alimentation des deux colonnes ---- */
   function chargerCmpc() {
     const pan = PANNEAUX.cmpc;
     pan.detail = detailComposante;
-    pan.items = estBrvm() ? [] : model.components;
-    if (estBrvm()) {
+    const cc = estBrvm() ? cmpcComparables() : null;
+    pan.items = estBrvm() ? (cc ? composantesComparables(cc) : []) : model.components;
+    if (estBrvm() && !cc) {
       $(pan.stack).innerHTML = `
         <div class="notice">
-          <h3>Calcul en attente</h3>
-          <p>Le référentiel Comparables ne dispose pas encore de son taux sans risque ni de son
-          gearing sectoriel : le CMPC n'est donc pas calculé ici. Les bêtas cotés, les
-          capitalisations et les états financiers des sociétés du secteur sont consultables
-          dans l'onglet Sociétés.</p>
-          <p>Bascule sur le référentiel Damodaran pour un calcul complet.</p>
+          <h3>Gearing sectoriel à renseigner</h3>
+          <p>Le référentiel Comparables ne publie pas de gearing sectoriel : sans lui, la
+          répartition entre fonds propres et dette est inconnue et le CMPC ne peut pas être
+          calculé. Saisissez-le dans l'onglet Paramètres, ligne « Gearing sectoriel (D/E) ».</p>
+          <p>Les bêtas cotés, les capitalisations et les états financiers des sociétés du
+          secteur restent consultables dans l'onglet Sociétés.</p>
         </div>`;
       $(pan.frame).innerHTML = "";
       $(pan.col).classList.remove("is-on");
