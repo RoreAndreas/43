@@ -107,12 +107,17 @@ def main():
     # Univers de comparables : l'export S&P déposé dans le dossier du projet.
     # Il donne la nomenclature d'industries, le gearing sectoriel observé, et
     # une couverture continentale que la seule place d'Abidjan ne permettait pas.
-    univers = _comparables.construire(RACINE, progress=progress)
+    # L'export est déposé à la racine de WACC43, un niveau au-dessus de PFILES.
+    univers = _comparables.construire(RACINE.parent, progress=progress)
     if univers is None:
-        print("  /!\\ aucun export SPGlobal_Export_*.xlsx : univers de comparables absent")
-        hors_zone = _zones.indexer_societes(dataset)
-        if hors_zone:
-            print(f"  /!\\ sociétés hors zone : {', '.join(hors_zone)}")
+        # Échec franc plutôt qu'avertissement : la nomenclature d'industries, le
+        # gearing sectoriel et les effectifs de la carte en dépendent tous. Sans
+        # cet univers, la page se construit sans erreur mais publie une version
+        # dégradée — ce qui est arrivé, et n'a été vu qu'en inspectant le site.
+        raise SystemExit(
+            "Aucun export SPGlobal_Export_*.xlsx trouvé autour de "
+            f"{RACINE.parent} — page non écrite."
+        )
     else:
         index, orphelins = _comparables.indexer_par_zone(univers, _zones.classer)
         dataset["comparables"] = {

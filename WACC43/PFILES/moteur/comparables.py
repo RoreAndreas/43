@@ -90,13 +90,27 @@ def _place_et_ticker(nom: str, entity_id):
 
 
 def trouver_export(racine: Path) -> Path | None:
-    """Le fichier d'export le plus récent déposé dans le dossier du projet."""
-    candidats = sorted(
-        racine.glob("SPGlobal_Export_*.xlsx"),
-        key=lambda p: p.stat().st_mtime,
-        reverse=True,
-    )
-    return candidats[0] if candidats else None
+    """Le fichier d'export le plus récent, cherché autour du dossier fourni.
+
+    L'export est déposé à la racine de WACC43, alors que le build travaille
+    depuis PFILES. On regarde donc le dossier donné, son parent et son
+    grand-parent : un chemin trop étroit fait passer la construction pour
+    réussie tout en publiant une page sans univers de comparables, ce qui s'est
+    déjà produit et n'a été vu qu'en inspectant la page en ligne.
+    """
+    vus = set()
+    for base in (racine, racine.parent, racine.parent.parent):
+        if base in vus or not base.is_dir():
+            continue
+        vus.add(base)
+        candidats = sorted(
+            base.glob("SPGlobal_Export_*.xlsx"),
+            key=lambda p: p.stat().st_mtime,
+            reverse=True,
+        )
+        if candidats:
+            return candidats[0]
+    return None
 
 
 def charger(chemin: Path, progress=None) -> dict:
