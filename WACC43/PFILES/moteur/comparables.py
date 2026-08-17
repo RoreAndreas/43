@@ -25,9 +25,11 @@ L'industrie retenue est la colonne E de Sheet2 (`IQ_INDUSTRY`), soit une
 soixantaine de secteurs. La colonne F (`IQ_PRIMARY_INDUSTRY`) est plus fine mais
 trop éclatée pour servir de maille de comparables.
 
-Ce que le fichier ne contient pas : **aucun bêta**. Le coût des fonds propres ne
-peut donc pas en sortir. Il fournit en revanche dette et capitalisation, donc un
-gearing sectoriel observé — celui qu'il fallait jusqu'ici saisir à la main.
+Le fichier porte les deux bêtas cotés, à un an et à trois ans. C'est le trois ans
+qui alimente le coût des fonds propres : sur des marchés peu liquides, celui à un
+an bouge trop pour servir de base à un coût du capital. Dette et capitalisation
+donnent par ailleurs un gearing sectoriel observé — celui qu'il fallait jusqu'ici
+saisir à la main.
 
 Piège d'unités : S&P exporte les comptes et la dette en **milliers** (en-tête
 `BCEAO000`) mais la capitalisation en **millions** (`BCEAOM`). Rapporter l'une à
@@ -249,6 +251,11 @@ def _industries(societes: dict) -> list:
             "beta_1an": mediane(b1),
             "beta_3ans": mediane(b3),
             "gearing": mediane(ratios),
+            # Somme et non médiane : la capitalisation ne sert pas au calcul, elle
+            # dit le poids de l'échantillon. Elle doit porter sur exactement les
+            # sociétés qui produisent les médianes ci-dessus, sans quoi le panneau
+            # décrirait une population et en chiffrerait une autre.
+            "capitalisation": round(sum(s["capitalisation"] for _i, s in membres), 1),
         })
     return sortie
 

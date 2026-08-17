@@ -35,6 +35,9 @@
     --blue-soft: #d5def8;
     --blue-tint: #f2f5fd;
     --blue-ink: #152c66;
+    --warn: #a63a2e;
+    --warn-soft: #efd3ce;
+    --warn-tint: #fdf5f4;
     --mono: 'IBM Plex Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
     --sans: 'Libre Franklin', system-ui, -apple-system, 'Segoe UI', sans-serif;
   }
@@ -250,6 +253,35 @@
     text-wrap: pretty;
   }
 
+  /* ---------- Places de cotation du périmètre ---------- */
+  /* Une seule ligne qui défile, jamais deux qui s'empilent : le cadre garderait
+     une hauteur différente selon l'industrie choisie, et la carte sauterait à
+     chaque changement de secteur. */
+  .places {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    margin-top: -6px;
+    padding-bottom: 7px;
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    scrollbar-width: thin;
+    scrollbar-color: var(--accent) var(--line);
+    scroll-snap-type: x proximity;
+  }
+  .places:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+  .places::-webkit-scrollbar { height: 3px; }
+  .places::-webkit-scrollbar-track { background: var(--line); border-radius: 2px; }
+  .places::-webkit-scrollbar-thumb { background: var(--accent); border-radius: 2px; }
+  .place {
+    flex: none;
+    scroll-snap-align: start;
+    font: 400 10.5px/1.6 var(--mono);
+    letter-spacing: 0.05em;
+    color: var(--accent);
+  }
+  .place-sep { flex: none; font: 400 10.5px/1.6 var(--mono); color: var(--accent-chip); }
+
   /* ---------- Carte ---------- */
   .carte-bloc {
     display: grid;
@@ -296,6 +328,18 @@
   }
   .zone:hover { fill-opacity: 0.92; }
   .zone.is-on { fill-opacity: 1; }
+
+  /* Zone sans société pour l'industrie retenue : tracée en neutre, jamais mise
+     en avant. Elle reste cliquable — restreindre le cadrage à une zone vide est
+     un choix légitime, et le résumé écrit alors « aucune société » — mais rien
+     n'y est mis en surbrillance puisqu'il n'y a rien à y montrer. */
+  /* L'attribut `fill` porté par le tracé est une simple présentation : toute
+     règle de feuille de style l'emporte, aucun `!important` n'est nécessaire. */
+  .zone.is-vide {
+    fill: #dcdce0;
+    fill-opacity: 0.6;
+  }
+  .zone.is-vide:hover { fill-opacity: 0.78; }
 
   /* Deux colonnes : la carte reste à gauche, les choix passent à droite. Sans
      légende sous le tracé, la carte prend la place qu'elle mérite. */
@@ -680,6 +724,54 @@
     border-color: var(--accent);
   }
   .mini-input::placeholder { font-family: var(--sans); color: var(--muted-2); }
+  .mini-input.is-invalide { border-color: var(--warn); background: var(--warn-tint); }
+
+  /* ---------- Verrou du gearing cible ---------- */
+  /* Le gearing sectoriel est une donnée observée : on ne la remplace pas par
+     inadvertance. Le verrou rend le geste délibéré, et son état dit d'un coup
+     d'oeil si le CMPC affiché repose sur la médiane du secteur ou sur une cible
+     posée à la main. */
+  .result-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+  }
+  .verrou {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 9px;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    background: var(--tile);
+    color: var(--muted);
+    font: 400 10px/1 var(--mono);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: color 160ms ease, border-color 160ms ease, background-color 160ms ease;
+  }
+  .verrou:hover { color: var(--ink-3); border-color: var(--muted-2); }
+  .verrou.is-open {
+    color: var(--accent);
+    border-color: var(--accent-chip);
+    background: var(--accent-tint);
+  }
+  .verrou svg { display: block; }
+  .cible-champ { display: inline-flex; align-items: center; gap: 6px; }
+  .cible-unite { font: 400 11.5px/1 var(--mono); color: var(--muted); }
+  .result-row.is-erreur {
+    background: var(--warn-tint);
+    color: var(--warn);
+    font-size: 11.5px;
+  }
+  .result-row.is-erreur span:last-child { color: var(--warn); }
+  .result-row.is-appoint {
+    font-size: 11.5px;
+    color: var(--muted);
+  }
+  .result-row.is-appoint span:last-child { color: var(--ink-4); }
 
   /* Bulle : un bloc de contenu autonome dans le panneau de détail. */
   .bulle {
@@ -745,6 +837,49 @@
     margin: 0;
     font: 400 13px/1.65 var(--sans);
     color: var(--ink-3);
+    text-wrap: pretty;
+  }
+
+  /* ---------- Aucune société dans le périmètre ---------- */
+  /* Même cadre pointillé que la notice du CMPC : un état vide n'est pas une
+     erreur de la page, et ne doit pas se présenter comme un incident. */
+  .vide404 {
+    border: 1px dashed var(--line);
+    border-radius: 10px;
+    background: var(--tile);
+    padding: 34px 26px 30px;
+    display: grid;
+    justify-items: center;
+    gap: 9px;
+    text-align: center;
+  }
+  .vide404-img { width: 132px; height: 104px; margin-bottom: 4px; }
+  .v4-corps { fill: var(--surface); stroke: var(--muted-2); stroke-width: 2; }
+  .v4-plein { fill: var(--ink-4); }
+  .v4-trait {
+    fill: none;
+    stroke: var(--ink-4);
+    stroke-width: 2.2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+  .v4-etiquette { fill: var(--accent-tint); stroke: var(--accent-chip); stroke-width: 1.6; }
+  .v4-etiquette-texte {
+    font: 500 13px var(--mono);
+    fill: var(--accent);
+    letter-spacing: 0.04em;
+  }
+  .vide404-code {
+    font: 400 10px/1 var(--mono);
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+    color: var(--accent);
+  }
+  .vide404-titre { font: 500 14px/1.35 var(--sans); color: var(--ink-2); }
+  .vide404-texte {
+    max-width: 36ch;
+    font: 400 12.5px/1.6 var(--sans);
+    color: var(--muted);
     text-wrap: pretty;
   }
 
@@ -823,6 +958,10 @@
     { key: "inflation_local", label: "Inflation, monnaie locale", hint: "Projection annuelle du pays cible" }
   ];
   const CHEVRON = '<svg width="9" height="6" viewBox="0 0 9 6" fill="none" aria-hidden="true"><path d="M1 1l3.5 3.5L8 1" stroke="#71717a" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+  const CADENAS = {
+    ferme: '<svg width="11" height="13" viewBox="0 0 11 13" fill="none" aria-hidden="true"><rect x="0.75" y="5.4" width="9.5" height="6.85" rx="1.6" stroke="currentColor" stroke-width="1.2"/><path d="M3 5.4V3.6a2.5 2.5 0 0 1 5 0v1.8" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>',
+    ouvert: '<svg width="11" height="13" viewBox="0 0 11 13" fill="none" aria-hidden="true"><rect x="0.75" y="5.4" width="9.5" height="6.85" rx="1.6" stroke="currentColor" stroke-width="1.2"/><path d="M3 5.4V3.6a2.5 2.5 0 0 1 4.85-.66" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>',
+  };
 
   const $ = (id) => document.getElementById(id);
   const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
@@ -838,10 +977,16 @@
   // `continent` et `zone` ne viennent pas du jeu de données : ce sont des
   // filtres d'affichage, sans effet sur le calcul. On part sur « Tous », donc
   // sans rien masquer tant que l'utilisateur n'a rien demandé.
-  // `gearing_brvm` est vide au départ : le référentiel Comparables ne publie pas
-  // de gearing sectoriel, et en inventer un donnerait un CMPC d'apparence
-  // normale bâti sur rien.
-  let params = Object.assign({ continent: "Tous", zone: null, gearing_brvm: null }, DATA.defaults);
+  // Le gearing part verrouillé sur la médiane observée du secteur. Un gearing
+  // est une donnée, pas un réglage : on ne le remplace qu'après avoir ouvert le
+  // verrou, et l'état de ce verrou dit lequel des deux le CMPC affiché utilise.
+  let params = Object.assign({
+    continent: "Tous", zone: null,
+    gearing_verrou: true,   // fermé : médiane du secteur
+    gearing_cible: null,    // poids de dette cible D/V, en %, une fois validé
+    gearing_saisie: "",     // texte tel que tapé, conservé pour réafficher l'erreur
+    gearing_erreur: null,
+  }, DATA.defaults);
   if (!params.referentiel) params.referentiel = "damodaran";
   if (!params.industrie_brvm && BRVM && BRVM.industries.length) {
     params.industrie_brvm = BRVM.industries[0].nom;
@@ -870,9 +1015,12 @@
       || courbe.points[courbe.points.length - 1];
     return { pays: courbe.pays, libelle: point[0], taux: point[2] };
   }
+  // Strictement l'industrie demandée, ou rien. Le repli sur la première
+  // industrie de la liste faisait afficher, sous un secteur sans société cotée,
+  // les sociétés d'un autre secteur — l'onglet paraissait ne pas se rafraîchir
+  // alors qu'il répondait à une question qu'on ne lui avait pas posée.
   const industrieBrvm = () =>
-    (BRVM && BRVM.industries.find((i) => i.nom === params.industrie_brvm)) ||
-    (BRVM && BRVM.industries[0]) || null;
+    (BRVM && BRVM.industries.find((i) => i.nom === params.industrie_brvm)) || null;
 
   // Separateur de milliers en espace insecable U+00A0 : U+202F manque a IBM Plex Mono.
   const frMontant = (v) =>
@@ -1164,6 +1312,32 @@
       : selectField("country", label, paysVisibles());
   }
 
+  // Le pays d'une société cotée, rapproché du libellé Damodaran : les deux
+  // sources n'écrivent ni « Bénin » ni « Senegal » de la même façon, et c'est le
+  // libellé Damodaran qui porte le découpage en continents et en zones.
+  const _paysRapproche = {};
+  function paysDamodaran(nom) {
+    if (!(nom in _paysRapproche)) {
+      _paysRapproche[nom] = resolveOption(nom, Object.keys(DATA.pays));
+    }
+    return _paysRapproche[nom];
+  }
+
+  // Les sociétés cotées du périmètre courant : industrie demandée, et pays
+  // retenu par le filtre géographique. Les plus grosses capitalisations d'abord,
+  // ce sont elles qui portent le secteur.
+  function societesDuPerimetre() {
+    const ind = industrieBrvm();
+    if (!ind) return [];
+    const visibles = paysVisibles();
+    return ind.tickers
+      .filter((t) => {
+        const pays = paysDamodaran(BRVM.societes[t].pays);
+        return pays != null && visibles.indexOf(pays) !== -1;
+      })
+      .sort((a, b) => (BRVM.societes[b].capitalisation || 0) - (BRVM.societes[a].capitalisation || 0));
+  }
+
   /* ---------- Effectifs de sociétés ---------- */
   // Les effectifs viennent des seules sociétés réellement référencées. À ce jour
   // la place d'Abidjan, soit sept pays et une seule zone sur dix-huit : partout
@@ -1179,11 +1353,47 @@
     const bloc = source[zone];
     if (!bloc) return { total: 0, n: null, places: [] };
     const ind = industrieCourante();
-    const detail = ind && bloc.industries ? bloc.industries[ind] : null;
+    if (!ind) {
+      return { total: bloc.total || 0, n: null, places: Object.keys(bloc.places || {}) };
+    }
+    // Sans société de cette industrie dans la zone, il n'y a pas non plus de
+    // place d'où elles viendraient. Retomber ici sur les places de la zone
+    // entière faisait remonter les marchés d'Afrique australe et de l'Est sur
+    // une sélection qui n'y comptait aucune société : le résumé décrivait le
+    // continent, pas le choix de l'utilisateur.
+    const detail = bloc.industries ? bloc.industries[ind] : null;
     return {
       total: bloc.total || 0,
-      n: detail ? detail.n : null,
-      places: Object.keys((detail ? detail.places : bloc.places) || {}),
+      n: detail ? detail.n : 0,
+      places: detail ? Object.keys(detail.places || {}) : [],
+    };
+  }
+
+  // Ce que le périmètre courant contient réellement : zone retenue si elle
+  // l'est, sinon toutes les zones du continent, filtrées sur l'industrie. Une
+  // seule lecture partagée par le résumé, la carte et l'onglet Sociétés — trois
+  // affichages qui divergeaient tant qu'ils comptaient chacun de leur côté.
+  function perimetreCourant() {
+    const ind = industrieCourante();
+    const zones = params.continent === TOUS
+      ? []
+      : (params.zone ? [params.zone] : zonesDuContinent(params.continent).map(([z]) => z));
+
+    let n = 0;
+    const places = [];
+    const peuplees = [];
+    zones.forEach((zone) => {
+      const e = effectif(zone);
+      const compte = (ind ? e.n : e.total) || 0;
+      if (!compte) return;
+      n += compte;
+      peuplees.push(zone);
+      e.places.forEach((p) => { if (places.indexOf(p) === -1) places.push(p); });
+    });
+    places.sort();
+    return {
+      nom: params.zone || params.continent,
+      zones: zones, peuplees: peuplees, n: n, places: places,
     };
   }
 
@@ -1263,11 +1473,23 @@
   function continentHtml(continent) {
     const bloc = (DATA.carte.continents || {})[continent];
     if (!bloc) return "";
+    const ind = industrieCourante();
     const noms = Object.keys(bloc.zones || {});
-    const aires = noms.map((zone, i) =>
-      '<path class="zone' + (params.zone === zone ? " is-on" : "") + '" d="' + bloc.zones[zone] +
-      '" fill="' + teinteZone(continent, i, noms.length) + '" data-zone="' + esc(zone) +
-      '"><title>' + esc(zone) + "</title></path>").join("");
+    const aires = noms.map((zone, i) => {
+      const e = effectif(zone);
+      const compte = (ind ? e.n : e.total) || 0;
+      // Une zone sans société n'a rien à mettre en avant : elle est tracée en
+      // neutre, et la sélection ne l'allume pas. Garder la surbrillance sur une
+      // zone vide donnait à croire qu'un résultat s'y trouvait.
+      const vide = !compte;
+      const classes = "zone" + (vide ? " is-vide" : (params.zone === zone ? " is-on" : ""));
+      const libelle = zone + " — " + (compte
+        ? compte + " société" + (compte > 1 ? "s" : "")
+        : "aucune société");
+      return '<path class="' + classes + '" d="' + bloc.zones[zone] +
+        '" fill="' + teinteZone(continent, i, noms.length) + '" data-zone="' + esc(zone) +
+        '"><title>' + esc(libelle) + "</title></path>";
+    }).join("");
 
     return '<svg class="carte" viewBox="' + bloc.vue.join(" ") + '" role="img" aria-label="Carte de ' +
       esc(continent) + '" preserveAspectRatio="xMidYMid meet">' +
@@ -1282,14 +1504,13 @@
   }
 
   /* ---------- CMPC du référentiel Comparables ---------- */
-  // Le référentiel Comparables ne publie ni gearing sectoriel ni coût de la
-  // dette. Le gearing est donc saisi à la main, et la dette est supposée levée
-  // au taux souverain : c'est l'hypothèse la plus neutre disponible, et
-  // certainement optimiste pour un émetteur privé. Elle est écrite sous le
-  // résultat plutôt que dissimulée dans le calcul.
-  // Gearing observé du secteur : dette totale cumulée rapportée à la
-  // capitalisation cumulée sur l'univers de comparables. Il sert de valeur de
-  // départ au champ de saisie, qui reste modifiable.
+  // Le gearing sectoriel est observé : c'est la médiane des rapports dette /
+  // capitalisation des sociétés complètes du secteur. Il sert tel quel, et ne
+  // cède la place à une cible que si l'utilisateur ouvre le cadenas.
+  // Le coût de la dette, lui, n'est pas publié : elle est supposée levée au taux
+  // souverain, hypothèse la plus neutre disponible et certainement optimiste
+  // pour un émetteur privé. Elle est écrite sous le résultat plutôt que
+  // dissimulée dans le calcul.
   function secteurComparable(nom) {
     const liste = (DATA.comparables || {}).industries || [];
     return liste.find((i) => i.nom === nom) || null;
@@ -1300,11 +1521,52 @@
     return s && s.gearing != null ? s.gearing : null;
   }
 
-  function gearingRetenu() {
-    if (params.gearing_brvm != null && params.gearing_brvm !== "") {
-      return Number(params.gearing_brvm);
+  // Le champ cible se saisit en poids de dette D/V, borné à 0-100 %. Le calcul,
+  // lui, raisonne en D/E : la conversion est faite ici une fois pour toutes.
+  // 100 % de dette laisserait des fonds propres nuls, donc un D/E infini : la
+  // borne haute est exclue, et le champ le dit plutôt que de rendre l'infini.
+  const GEARING_MAX = 100;
+
+  function valideGearingCible(texte) {
+    const brut = String(texte == null ? "" : texte).trim().replace(",", ".");
+    if (brut === "") return { valeur: null, erreur: null };
+    const x = Number(brut);
+    if (!Number.isFinite(x)) return { valeur: null, erreur: "Valeur non numérique." };
+    if (x < 0) return { valeur: null, erreur: "Le gearing cible ne peut pas être négatif." };
+    if (x >= GEARING_MAX) {
+      return {
+        valeur: null,
+        erreur: x > GEARING_MAX
+          ? "Le gearing cible ne peut pas dépasser 100 %."
+          : "À 100 % de dette les fonds propres sont nuls : le CMPC n'est plus défini.",
+      };
     }
-    return gearingSectoriel(params.industrie_brvm);
+    return { valeur: x, erreur: null };
+  }
+
+  // Cible convertie en D/E, ou null si le verrou est fermé ou la saisie absente.
+  function gearingCibleDE() {
+    if (params.gearing_verrou || params.gearing_cible == null) return null;
+    const dv = params.gearing_cible / 100;
+    return dv / (1 - dv);
+  }
+
+  function gearingRetenu() {
+    const cible = gearingCibleDE();
+    return cible != null ? cible : gearingSectoriel(params.industrie_brvm);
+  }
+
+  // Refermer le cadenas est la remise à zéro : la cible et son éventuelle erreur
+  // disparaissent avec lui. Laisser une saisie en mémoire derrière un verrou
+  // fermé ferait réapparaître une valeur oubliée à la réouverture suivante.
+  function basculerVerrou() {
+    params.gearing_verrou = !params.gearing_verrou;
+    if (params.gearing_verrou) {
+      params.gearing_cible = null;
+      params.gearing_saisie = "";
+      params.gearing_erreur = null;
+    }
+    apply();
   }
 
   // Le bêta et le gearing sont les **médianes** du secteur sur l'univers de
@@ -1321,35 +1583,97 @@
         pays.tax == null) {
       return null;
     }
-    const saisi = params.gearing_brvm != null && params.gearing_brvm !== "";
-    const beta = secteur.beta_3ans;
+    const tax = pays.tax;
+    const gSect = gearingSectoriel(params.industrie_brvm);
+    const cible = gearingCibleDE();
+    const betaL = secteur.beta_3ans;
+
+    // Hamada. Le bêta médian du secteur est endetté au levier de l'échantillon :
+    // le transposer tel quel sur une structure cible différente reviendrait à
+    // changer les pondérations sans changer le risque, ce qui n'a pas de sens.
+    // On le désendette au gearing observé puis on le ré-endette à la cible.
+    // Quand la cible est absente, g vaut gSect et la transformation est neutre —
+    // même formule, aucun cas particulier à maintenir.
+    const relevable = gSect != null && gSect >= 0;
+    const betaU = relevable ? betaL / (1 + (1 - tax) * gSect) : null;
+    const beta = relevable ? betaU * (1 + (1 - tax) * g) : betaL;
+
     const ke = rf.taux + beta * DATA.mature + Number(params.d) + Number(params.e);
-    const kd = rf.taux * (1 - pays.tax);
+    const kd = rf.taux * (1 - tax);
     const we = 1 / (1 + g);
     return {
-      beta: beta, beta1: secteur.beta_1an, rf: rf, tax: pays.tax,
-      gearing: g, gearingSaisi: saisi, societes: secteur.societes,
+      beta: beta, betaL: betaL, betaU: betaU, beta1: secteur.beta_1an,
+      relevable: relevable, rf: rf, tax: tax,
+      gearing: g, gearingSecteur: gSect,
+      gearingCible: cible != null ? params.gearing_cible : null,
+      gearingSaisi: cible != null, societes: secteur.societes,
+      prime: DATA.mature, d: Number(params.d), e: Number(params.e),
       ke: ke, kd: kd, we: we, wd: 1 - we,
       wacc: ke * we + kd * (1 - we),
     };
   }
 
   // Cascade affichée dans l'onglet CMPC sous le référentiel Comparables.
+  // Chaque carte porte le même niveau de détail que sous Damodaran : les valeurs
+  // intermédiaires en clair, et non le seul résultat. Un CMPC dont on ne voit
+  // pas les paliers ne se vérifie pas, il se croit.
   function composantesComparables(cc) {
+    const contribFp = cc.ke * cc.we;
+    const contribDette = cc.kd * cc.wd;
+
+    // Le ré-endettement n'apparaît que s'il déplace quelque chose. Quand la
+    // cible vaut le gearing observé, il est neutre : trois lignes de plus qui
+    // répètent le même nombre feraient du bruit, pas de la transparence.
+    const lignesBeta = cc.relevable && cc.gearingSaisi
+      ? [
+          { label: "Bêta (3 ans) médian du secteur", value: frNum(cc.betaL, 3) },
+          { label: "Gearing de l'échantillon (D/E)", value: frNum(cc.gearingSecteur, 2) },
+          { label: "Bêta désendetté", value: frNum(cc.betaU, 3) },
+          { label: "Gearing retenu (D/E)", value: frNum(cc.gearing, 2) },
+          { label: "Bêta ré-endetté, retenu", value: frNum(cc.beta, 3), strong: true },
+        ]
+      : [{ label: "Bêta (3 ans) médian du secteur", value: frNum(cc.beta, 3), strong: true }];
+
     return [
       {
         id: "ke", title: "Coût des fonds propres", symbol: "Ke", value: frPct(cc.ke), tone: "blue",
-        methodology: "Taux sans risque + bêta médian du secteur x prime de marché + prime de taille + prime spécifique.",
+        rows: [
+          { label: "Taux sans risque souverain " + cc.rf.libelle, value: frPct(cc.rf.taux), strong: true },
+          { label: "Prime de risque pays", value: "incluse dans le taux souverain" },
+        ].concat(lignesBeta).concat([
+          { label: "Prime de risque marché", value: frPct(cc.prime) },
+          { label: "Prime de taille (d)", value: frPct(cc.d) },
+          { label: "Prime spécifique (e)", value: frPct(cc.e) },
+          { label: "Coût des fonds propres", value: frPct(cc.ke), strong: true },
+        ]),
+        methodology: "MEDAF sur taux souverain local : taux sans risque + bêta (3 ans) du secteur x prime de marché + prime de taille + prime spécifique.",
         source: "Bêtas à trois ans médians sur " + cc.societes + " société(s) complète(s) du secteur, taux souverain UMOA-Titres, prime de marché mature Damodaran.",
-        hypothesis: "Le bêta est employé tel quel : il est déjà endetté, aucun réendettement ne lui est appliqué. Le taux souverain porte déjà le risque pays, aucune prime pays ne s'y ajoute. Attention : les bêtas africains publiés sont très faibles — médiane 0,05 à trois ans, souvent proches de zéro faute de liquidité — ce qui écrase mécaniquement le coût des fonds propres vers le taux sans risque.",
-        retained: "Bêta médian 3 ans " + frNum(cc.beta, 3) + (cc.beta1 == null ? "" : " (1 an : " + frNum(cc.beta1, 3) + ")") + ", taux sans risque " + frPct(cc.rf.taux) + ", prime de marché " + frPct(DATA.mature) + ".",
-        formula: ["Ke = " + frPct(cc.rf.taux) + " + " + frNum(cc.beta, 2) + " x " + frPct(DATA.mature) +
-                  " + " + frPct(Number(params.d)) + " + " + frPct(Number(params.e)) + " = " + frPct(cc.ke)],
+        hypothesis: (cc.relevable && cc.gearingSaisi
+            ? "Le bêta médian est endetté au levier de l'échantillon : il est désendetté à ce levier puis ré-endetté au gearing cible (Hamada), sinon la structure changerait sans que le risque suive. "
+            : "Le bêta est employé tel quel : la structure retenue est celle de l'échantillon dont il provient, le ré-endettement serait sans effet. ") +
+          "Le taux souverain porte déjà le risque pays, aucune prime pays ne s'y ajoute. Attention : les bêtas africains publiés sont très faibles — médiane 0,05 à trois ans, souvent proches de zéro faute de liquidité — ce qui écrase mécaniquement le coût des fonds propres vers le taux sans risque.",
+        retained: "Bêta (3 ans) " + frNum(cc.beta, 3) + (cc.beta1 == null ? "" : ", horizon 1 an publié à " + frNum(cc.beta1, 3) + " mais non utilisé") + ", taux sans risque " + frPct(cc.rf.taux) + ", prime de marché " + frPct(cc.prime) + ".",
+        formula: (cc.relevable && cc.gearingSaisi
+          ? ["Bêta désendetté = " + frNum(cc.betaL, 3) + " / (1 + (1 - " + frPct(cc.tax, 1) + ") x " + frNum(cc.gearingSecteur, 2) + ") = " + frNum(cc.betaU, 3),
+             "Bêta ré-endetté = " + frNum(cc.betaU, 3) + " x (1 + (1 - " + frPct(cc.tax, 1) + ") x " + frNum(cc.gearing, 2) + ") = " + frNum(cc.beta, 3)]
+          : []).concat([
+            "Ke = a + b x c + d + e",
+            "= " + frPct(cc.rf.taux) + " + " + frNum(cc.beta, 3) + " x " + frPct(cc.prime) +
+            " + " + frPct(cc.d) + " + " + frPct(cc.e) + " = " + frPct(cc.ke),
+          ]),
       },
       {
         id: "kd", title: "Coût de la dette après IS", symbol: "Kd", value: frPct(cc.kd), tone: "green",
+        rows: [
+          { label: "Taux souverain " + cc.rf.libelle, value: frPct(cc.rf.taux) },
+          { label: "Spread de financement", value: "non publié, nul par hypothèse" },
+          { label: "Coût de la dette avant IS", value: frPct(cc.rf.taux), strong: true },
+          { label: "Taux d'IS", value: frPct(cc.tax, 1) },
+          { label: "Économie d'impôt", value: frPts(cc.rf.taux * cc.tax) },
+          { label: "Coût de la dette après IS", value: frPct(cc.kd), strong: true },
+        ],
         methodology: "Taux souverain diminué de l'économie d'impôt.",
-        source: "Courbe souveraine UMOA-Titres, taux d'IS de droit commun Damodaran.",
+        source: "Courbe souveraine UMOA-Titres, taux d'IS de droit commun Damodaran (" + params.country + ").",
         hypothesis: "Aucun spread de financement n'est publié pour ce référentiel : la dette est supposée levée au taux souverain. L'hypothèse est neutre, et probablement optimiste pour un émetteur privé.",
         retained: "Taux souverain " + frPct(cc.rf.taux) + ", IS " + frPct(cc.tax, 1) + ".",
         formula: ["Kd = " + frPct(cc.rf.taux) + " x (1 - " + frPct(cc.tax, 1) + ") = " + frPct(cc.kd)],
@@ -1357,28 +1681,44 @@
       {
         id: "poids", title: "Structure financière", symbol: "FP / D",
         value: frPct(cc.we, 0) + " / " + frPct(cc.wd, 0),
+        rows: [
+          { label: "Gearing observé du secteur (D/E)", value: cc.gearingSecteur == null ? "non publié" : frNum(cc.gearingSecteur, 2) },
+        ].concat(cc.gearingSaisi
+          ? [{ label: "Gearing cible saisi (D/V)", value: frPct(cc.gearingCible / 100, 0) }]
+          : []).concat([
+            { label: "Gearing retenu (D/E)", value: frNum(cc.gearing, 2), strong: true },
+            { label: "Poids des fonds propres, E/V", value: frPct(cc.we) },
+            { label: "Poids de la dette, D/V", value: frPct(cc.wd) },
+          ]),
         composition: {
           equity: frPct(cc.we, 0), debt: frPct(cc.wd, 0),
           equityPct: (cc.we * 100).toFixed(1), debtPct: (cc.wd * 100).toFixed(1),
         },
         methodology: "Déduite du gearing : fonds propres / valeur = 1 / (1 + D/E).",
         source: cc.gearingSaisi
-          ? "Saisie manuelle."
+          ? "Gearing cible saisi à la main, cadenas de l'encadré « Secteur comparable » ouvert."
           : "Médiane des rapports dette / capitalisation du secteur, sur les sociétés complètes de l'univers de comparables.",
         hypothesis: cc.gearingSaisi
-          ? "Gearing saisi à la main dans l'onglet Paramètres, il remplace la médiane du secteur."
+          ? "Le gearing cible remplace la médiane du secteur, et sert aussi à ré-endetter le bêta."
           : "Médiane et non moyenne : sur des marchés où quelques capitalisations écrasent la distribution, une moyenne dit surtout ce que fait la plus grosse valeur du secteur.",
         retained: "Gearing D/E = " + frNum(cc.gearing, 2) + ".",
-        formula: ["FP / V = 1 / (1 + " + frNum(cc.gearing, 2) + ") = " + frPct(cc.we)],
+        formula: ["E/V = 1 / (1 + D/E) = 1 / " + frNum(1 + cc.gearing, 2) + " = " + frPct(cc.we),
+                  "D/V = 1 - E/V = " + frPct(cc.wd)],
       },
       {
         id: "wacc", title: "CMPC", symbol: "CMPC", value: frPct(cc.wacc), final: true,
+        rows: [
+          { label: "Fonds propres " + frPct(cc.ke) + " x " + frPct(cc.we, 0), value: frPts(contribFp) },
+          { label: "Dette " + frPct(cc.kd) + " x " + frPct(cc.wd, 0), value: frPts(contribDette) },
+          { label: "CMPC", value: frPct(cc.wacc), strong: true },
+        ],
         methodology: "Moyenne du coût des fonds propres et du coût de la dette, pondérée par la structure financière.",
         source: "Composantes ci-dessus.",
         hypothesis: "Exprimé en monnaie locale : le taux souverain qui l'alimente l'est déjà, aucune conversion d'inflation n'est appliquée.",
         retained: "CMPC = " + frPct(cc.wacc) + ".",
-        formula: ["CMPC = " + frPct(cc.ke) + " x " + frPct(cc.we, 0) + " + " + frPct(cc.kd) +
-                  " x " + frPct(cc.wd, 0) + " = " + frPct(cc.wacc)],
+        formula: ["CMPC = E/V x Ke + D/V x Kd",
+                  "= " + frPct(cc.we, 0) + " x " + frPct(cc.ke) + " + " + frPct(cc.wd, 0) +
+                  " x " + frPct(cc.kd) + " = " + frPct(cc.wacc)],
       },
     ];
   }
@@ -1389,28 +1729,23 @@
   // retenue, le résumé porte sur le continent entier.
   function resumeCadrage() {
     if (params.continent === TOUS) return "";
-    const ind = industrieCourante();
-    const perimetre = params.zone || params.continent;
-    const zonesRetenues = params.zone
-      ? [params.zone]
-      : zonesDuContinent(params.continent).map(([z]) => z);
+    const p = perimetreCourant();
+    const libelle = p.n ? p.n + " société" + (p.n > 1 ? "s" : "") : "aucune société";
+    return '<span class="chip">' + esc(p.nom) + " · " + libelle + "</span>";
+  }
 
-    let n = 0;
-    const places = [];
-    zonesRetenues.forEach((zone) => {
-      const e = effectif(zone);
-      n += (ind ? e.n : e.total) || 0;
-      e.places.forEach((p) => { if (places.indexOf(p) === -1) places.push(p); });
-    });
-
-    const libelle = n
-      ? n + " société" + (n > 1 ? "s" : "")
-      : "aucune société";
-    const bulles = ['<span class="chip">' + esc(perimetre) + " · " + libelle + "</span>"];
-    if (n && places.length) {
-      bulles.push('<span class="chip is-accent">' + places.map(esc).join(" · ") + "</span>");
-    }
-    return bulles.join("");
+  // Les places d'où proviennent les sociétés du périmètre, sur leur propre
+  // ligne. Elles sont huit dès qu'on regarde les banques africaines, et bien
+  // davantage à mesure que l'univers s'étend : repliées dans une bulle sur la
+  // ligne de titre, elles la faisaient déborder. La ligne défile plutôt que de
+  // s'allonger, et la barre n'apparaît que lorsqu'il y a de quoi défiler.
+  function placesCadrage() {
+    const p = perimetreCourant();
+    if (!p.n || !p.places.length) return "";
+    return '<div class="places" tabindex="0" role="group" aria-label="Places de cotation du périmètre">' +
+      p.places.map((m) => '<span class="place">' + esc(m) + "</span>")
+        .join('<span class="place-sep" aria-hidden="true">·</span>') +
+      "</div>";
   }
 
   function stepperField(item) {
@@ -1446,46 +1781,6 @@
             </span>`).join("")}
         </div>
         ${model.notes.length ? `<span class="note">${model.notes.map(esc).join(" · ")}</span>` : ""}
-      </section>`;
-  }
-
-  const APERCU_MAX = 4;   // aperçu volontairement court : le détail est dans l'onglet Sociétés
-
-  function blocBrvm() {
-    const ind = industrieBrvm();
-    const tickers = ind ? ind.tickers : [];
-    // Les plus grosses capitalisations d'abord : ce sont elles qui portent le secteur.
-    const apercu = tickers.slice()
-      .sort((a, b) => (BRVM.societes[b].capitalisation || 0) - (BRVM.societes[a].capitalisation || 0))
-      .slice(0, APERCU_MAX);
-    const reste = tickers.length - apercu.length;
-
-    const lignes = apercu.map((t) => {
-      const s = BRVM.societes[t];
-      return `
-        <span class="soc-line">
-          <span class="soc-ident">
-            <span class="soc-flag">${s.drapeau}</span>
-            <span class="soc-nom">${esc(s.nom)}</span>
-            <span class="soc-pays">${esc(t)}</span>
-          </span>
-          <span class="soc-cap">${esc(frMontant(s.capitalisation))}</span>
-        </span>`;
-    }).join("") + (reste > 0
-      ? `<span class="soc-line is-more">+ ${reste} autre${reste > 1 ? "s" : ""} société${reste > 1 ? "s" : ""} dans l'onglet Sociétés</span>`
-      : "");
-
-    return `
-      <section class="card-block">
-        <span class="block-head">
-          <h2>Comparables</h2>
-          <span class="chips">
-            <span class="chip">${tickers.length} société${tickers.length > 1 ? "s" : ""}</span>
-            <span class="chip is-accent">Comparables</span>
-          </span>
-        </span>
-        <div class="soc-list">${lignes}</div>
-        <span class="note">Sociétés cotées au ${esc((BRVM.maj || "").slice(0, 10))}, capitalisation en millions FCFA. Le détail de chacune est dans l'onglet Sociétés.</span>
       </section>`;
   }
 
@@ -1530,6 +1825,7 @@
           <h2>Cadrage</h2>
           <span class="chips">${resumeCadrage()}</span>
         </span>
+        ${placesCadrage()}
         <div class="geo">
           <div class="geo-carte">${carteHtml()}</div>
           <div class="geo-choix">
@@ -1547,15 +1843,25 @@
       </section>`;
 
     if (estBrvm()) {
-      const ind = industrieBrvm();
-      const tickers = ind ? ind.tickers : [];
-      const betas = tickers.map((t) => BRVM.societes[t].beta).filter((b) => b != null);
-      const caps = tickers.map((t) => BRVM.societes[t].capitalisation).filter((c) => c != null);
+      // Le panneau décrit l'échantillon qui alimente le calcul : celui de
+      // l'univers de comparables, pas celui de la seule place d'Abidjan. Afficher
+      // un bêta issu d'une population et un effectif issu d'une autre donnait un
+      // encadré cohérent en apparence et faux ligne à ligne.
+      const secteur = secteurComparable(params.industrie_brvm);
       const rf = tauxSansRisque();
       const dateCourbe = BRVM.courbes ? (BRVM.courbes.date || "") : "";
       const cc = cmpcComparables();
+      const gSect = gearingSectoriel(params.industrie_brvm);
+      const ouvert = !params.gearing_verrou;
       $("paramsResult").innerHTML = `
-        <h2>Secteur comparable</h2>
+        <span class="result-head">
+          <h2>Secteur comparable</h2>
+          <button type="button" class="verrou${ouvert ? " is-open" : ""}" id="verrouGearing"
+                  aria-pressed="${ouvert ? "true" : "false"}"
+                  title="${ouvert ? "Revenir au gearing observé du secteur" : "Saisir un gearing cible"}">
+            ${ouvert ? CADENAS.ouvert : CADENAS.ferme}<span>${ouvert ? "Cible" : "Observé"}</span>
+          </button>
+        </span>
         <span class="result-hero">
           <span class="field-label">CMPC calculé</span>
           <span class="result-hero-row">
@@ -1563,17 +1869,30 @@
           </span>
         </span>
         <span class="result-rows">
-          <span class="result-row"><span>Sociétés du secteur</span><span>${tickers.length}</span></span>
-          <span class="result-row"><span>Bêta coté moyen</span><span>${betas.length ? frNum(betas.reduce((a, b) => a + b, 0) / betas.length, 2) : "—"}</span></span>
-          <span class="result-row"><span>Capitalisation cumulée</span><span>${esc(frMontant(caps.reduce((a, b) => a + b, 0)))}</span></span>
+          <span class="result-row"><span>Sociétés du secteur</span><span>${secteur ? secteur.societes : 0}</span></span>
+          <span class="result-row"><span>Bêta médian (3 ans)</span><span>${secteur && secteur.beta_3ans != null ? frNum(secteur.beta_3ans, 3) : "—"}</span></span>
+          <span class="result-row"><span>Capitalisation cumulée</span><span>${esc(frMontant(secteur ? secteur.capitalisation : null))}</span></span>
           <span class="result-row"><span>Taux sans risque ${rf ? esc(rf.libelle) : ""}</span><span>${rf ? frPct(rf.taux) : "indisponible"}</span></span>
-          <span class="result-row">
-            <span>Gearing sectoriel (D/E)</span>
-            <input class="mini-input" type="number" step="0.05" min="0" inputmode="decimal"
-                   data-num="gearing_brvm"
-                   placeholder="${gearingSectoriel(params.industrie_brvm) == null ? "à définir" : frNum(gearingSectoriel(params.industrie_brvm), 2)}"
-                   value="${params.gearing_brvm == null ? "" : esc(params.gearing_brvm)}">
-          </span>
+          <span class="result-row"><span>Gearing sectoriel (D/E)</span><span>${gSect == null ? "non publié" : frNum(gSect, 2)}</span></span>
+          ${ouvert ? `
+            <span class="result-row">
+              <span>Gearing cible (D/V)</span>
+              <span class="cible-champ">
+                <input class="mini-input${params.gearing_erreur ? " is-invalide" : ""}" type="number"
+                       step="1" min="0" max="100" inputmode="decimal"
+                       data-num="gearing_cible" id="champGearingCible"
+                       aria-label="Gearing cible, poids de la dette en pourcentage"
+                       aria-invalid="${params.gearing_erreur ? "true" : "false"}"
+                       placeholder="${gSect == null ? "—" : frNum(gSect / (1 + gSect) * 100, 0)}"
+                       value="${esc(params.gearing_saisie)}">
+                <span class="cible-unite">%</span>
+              </span>
+            </span>
+            ${params.gearing_erreur
+              ? `<span class="result-row is-erreur" id="erreurGearing"><span>${esc(params.gearing_erreur)}</span></span>`
+              : (params.gearing_cible != null
+                  ? `<span class="result-row is-appoint"><span>Équivalent D/E</span><span>${frNum(gearingCibleDE(), 2)}</span></span>`
+                  : `<span class="result-row is-appoint"><span>Champ vide</span><span>médiane du secteur retenue</span></span>`)}` : ""}
           ${cc ? `
             <span class="result-row"><span>Coût des fonds propres</span><span>${frPct(cc.ke)}</span></span>
             <span class="result-row"><span>Coût de la dette après IS</span><span>${frPct(cc.kd)}</span></span>
@@ -1582,12 +1901,23 @@
         <button type="button" class="cta" id="goSoc">Voir les sociétés</button>
         <span class="note">${rf
           ? `Taux souverain ${esc(rf.pays)} au ${esc(dateCourbe)}, publié par UMOA-Titres. Il porte déjà le risque pays : aucune prime ne s'y ajoute, et le coût du capital qui en découle est directement en monnaie locale.`
-          : "Courbe souveraine indisponible pour ce pays."} Les bêtas sont les bêtas cotés à un an, employés tels quels : ils sont déjà endettés, aucun réendettement ne leur est appliqué.${cc
+          : "Courbe souveraine indisponible pour ce pays."} Le bêta retenu est la médiane des bêtas cotés à trois ans du secteur.${cc && cc.gearingSaisi
+          ? ` Il est désendetté au gearing observé du secteur puis ré-endetté au gearing cible, sans quoi la structure changerait sans que le risque suive.`
+          : ` Il est employé tel quel : la structure retenue est celle de l'échantillon dont il provient, le ré-endettement serait sans effet.`}${cc
           ? ` La dette est supposée levée au taux souverain, faute de spread publié pour ce référentiel — hypothèse neutre, et probablement optimiste pour un émetteur privé.`
-          : " Renseignez le gearing sectoriel ci-dessus pour obtenir le CMPC."}</span>`;
+          : " Le gearing du secteur n'est pas publié : ouvrez le cadenas pour poser une cible et obtenir le CMPC."}</span>`;
       $("goSoc").addEventListener("click", () => { tab = "societes"; renderTabs(); });
+      $("verrouGearing").addEventListener("click", basculerVerrou);
       brancherChamps();
       brancherNombres($("paramsResult"));
+      // Le panneau est redessiné à chaque validation : sans cela le curseur
+      // quitterait le champ juste après une saisie refusée, et il faudrait y
+      // revenir à la souris pour corriger.
+      if (ouvert && params.gearing_erreur) {
+        const champ = $("champGearingCible");
+        champ.focus();
+        champ.select();
+      }
       return;
     }
 
@@ -1783,7 +2113,7 @@
       <span class="detail-grid">
         <span class="detail-label">Pays</span><span class="detail-text">${esc(s.pays)}</span>
         <span class="detail-label">Capitalisation</span><span class="detail-text">${esc(frMontant(s.capitalisation))} FCFA</span>
-        <span class="detail-label">Bêta 1 an</span><span class="detail-text">${s.beta == null ? "non publié" : frNum(s.beta, 2)}</span>
+        <span class="detail-label">Bêta coté (1 an)</span><span class="detail-text">${s.beta == null ? "non publié" : frNum(s.beta, 2) + " — bêta propre à la société, le CMPC retient la médiane 3 ans du secteur"}</span>
       </span>
       ${s.presentation ? `
         <span class="bulle">
@@ -1809,9 +2139,10 @@
       $(pan.stack).innerHTML = `
         <div class="notice">
           <h3>Gearing sectoriel à renseigner</h3>
-          <p>Le référentiel Comparables ne publie pas de gearing sectoriel : sans lui, la
-          répartition entre fonds propres et dette est inconnue et le CMPC ne peut pas être
-          calculé. Saisissez-le dans l'onglet Paramètres, ligne « Gearing sectoriel (D/E) ».</p>
+          <p>Aucun gearing n'est disponible pour ce secteur : sans lui, la répartition entre
+          fonds propres et dette est inconnue et le CMPC ne peut pas être calculé. Ouvrez le
+          cadenas de l'encadré « Secteur comparable », dans l'onglet Paramètres, pour poser
+          un gearing cible.</p>
           <p>Les bêtas cotés, les capitalisations et les états financiers des sociétés du
           secteur restent consultables dans l'onglet Sociétés.</p>
         </div>`;
@@ -1837,13 +2168,41 @@
     return { label: "Marge d'EBITDA", value: "non publiée" };
   }
 
+  // Petite vignette de l'état vide : un ordinateur qui ne comprend pas la
+  // question. Tracé à la main plutôt qu'importé — la page n'appelle aucun
+  // serveur, une illustration distante la rendrait dépendante du réseau.
+  const ORDI_PERPLEXE = `
+    <svg class="vide404-img" viewBox="0 0 132 104" fill="none" aria-hidden="true">
+      <rect x="15" y="15" width="86" height="60" rx="8" class="v4-corps"/>
+      <circle cx="45" cy="41" r="3.4" class="v4-plein"/>
+      <circle cx="72" cy="41" r="3.4" class="v4-plein"/>
+      <path d="M38 30.5c3.2-2.8 7.8-2.8 10.8-.3" class="v4-trait"/>
+      <path d="M47 59c3.2-3.6 6.4-3.6 9.6 0s6.4 3.6 9.6 0" class="v4-trait"/>
+      <path d="M58 75v13M45 90h26" class="v4-trait"/>
+      <g transform="rotate(-9 104 26)">
+        <rect x="87" y="13" width="36" height="24" rx="7" class="v4-etiquette"/>
+        <text x="105" y="29.5" text-anchor="middle" class="v4-etiquette-texte">404</text>
+      </g>
+    </svg>`;
+
+  function etatVideSocietes() {
+    const ou = params.zone
+      || (params.continent === TOUS ? "l'ensemble du monde" : params.continent);
+    const secteur = params.industrie_brvm || "ce secteur";
+    return `
+      <div class="vide404" data-vide-soc="1">
+        ${ORDI_PERPLEXE}
+        <span class="vide404-code">Oups, erreur 404</span>
+        <span class="vide404-titre">Aucune société trouvée dans cette zone</span>
+        <span class="vide404-texte">Rien en « ${esc(secteur)} » du côté de ${esc(ou)}.
+        Changez d'industrie, ou élargissez la zone géographique.</span>
+      </div>`;
+  }
+
   function chargerSocietes() {
     const pan = PANNEAUX.soc;
     pan.detail = detailSociete;
-    const ind = industrieBrvm();
-    // Même ordre que l'aperçu des paramètres : les plus grosses capitalisations d'abord.
-    const tickers = !ind ? [] : ind.tickers.slice()
-      .sort((a, b) => (BRVM.societes[b].capitalisation || 0) - (BRVM.societes[a].capitalisation || 0));
+    const tickers = societesDuPerimetre();
     pan.items = tickers.map((t) => {
       const s = BRVM.societes[t];
       const derniere = (s.annees || []).slice(-1)[0];
@@ -1856,7 +2215,7 @@
         societe: s,
         rows: [
           { label: "Pays", value: s.pays },
-          { label: "Bêta 1 an", value: s.beta == null ? "non publié" : frNum(s.beta, 2) },
+          { label: "Bêta coté (1 an)", value: s.beta == null ? "non publié" : frNum(s.beta, 2) },
           { label: `Chiffre d'affaires ${derniere || ""}`.trim(), value: val(s.ca), strong: true },
           margeEbitda(s),
           { label: `Résultat net ${derniere || ""}`.trim(), value: val(s.rn) },
@@ -1864,6 +2223,17 @@
         ]
       };
     });
+
+    // L'onglet se réécrit dans tous les cas, résultats ou non. Le laisser sur
+    // son contenu précédent était le défaut : rien ne distinguait « pas de
+    // société ici » de « la page n'a pas suivi ».
+    if (!pan.items.length) {
+      pan.ouvert = null;
+      $(pan.stack).innerHTML = etatVideSocietes();
+      $(pan.frame).innerHTML = "";
+      $(pan.col).classList.remove("is-on", "tone-green", "tone-blue");
+      return;
+    }
     renderStack("soc");
     renderFrame("soc");
   }
@@ -1910,8 +2280,15 @@
       const secteurs = ((DATA.comparables || {}).industries || []).map((i) => i.nom);
       const connus = secteurs.length ? secteurs : (BRVM ? BRVM.industries.map((i) => i.nom) : []);
       value = resolveOption(value, connus) || params.industrie_brvm;
-      // Un gearing saisi valait pour le secteur précédent : il devient caduc.
-      params.gearing_brvm = null;
+    } else if (key === "gearing_cible") {
+      // La saisie brute est conservée telle quelle : c'est elle qu'il faut
+      // réafficher pour que l'utilisateur voie ce qui a été refusé.
+      const verdict = valideGearingCible(value);
+      params.gearing_saisie = String(value == null ? "" : value);
+      params.gearing_cible = verdict.valeur;
+      params.gearing_erreur = verdict.erreur;
+      apply();
+      return;
     }
     params[key] = value;
     apply();
@@ -1925,10 +2302,15 @@
   function apply() {
     model = computeModel(params);
     renderAll();
-    // L'URL porte la configuration : un lien copié rouvre le même calcul.
+    // L'URL porte la configuration : un lien copié rouvre le même calcul. Le
+    // texte en cours de saisie et son message d'erreur n'en font pas partie :
+    // ce sont des états d'écran, pas des hypothèses de calcul.
     try {
       if (window.history.replaceState) {
-        window.history.replaceState(null, "", "?" + new URLSearchParams(params));
+        const partage = Object.assign({}, params);
+        delete partage.gearing_saisie;
+        delete partage.gearing_erreur;
+        window.history.replaceState(null, "", "?" + new URLSearchParams(partage));
       }
     } catch (err) { /* page ouverte en fichier local : sans effet */ }
   }

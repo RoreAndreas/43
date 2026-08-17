@@ -37,22 +37,22 @@
     "2026-30": 4.942929936305732,
     "2026-10": 4.377515923566879,
     "2025-30": 4.777309236947791,
-    "2025-10": 4.293212851405621,
-    "2024-30": 4.407280000000002,
-    "2024-10": 4.207959999999997,
-    "2023-30": 4.094799999999998,
-    "2023-10": 3.959000000000001,
-    "2022-30": 3.11313253012048,
-    "2022-10": 2.9505622489959844,
-    "2021-30": 2.0555776892430284,
+    "2025-10": 4.293212851405622,
+    "2024-30": 4.40728,
+    "2024-10": 4.20796,
+    "2023-30": 4.0948,
+    "2023-10": 3.959,
+    "2022-30": 3.113132530120482,
+    "2022-10": 2.9505622489959835,
+    "2021-30": 2.055577689243028,
     "2021-10": 1.4468525896414344,
     "2020-30": 1.5561354581673306,
-    "2020-10": 0.8892031872509958,
-    "2019-30": 2.580399999999999,
-    "2019-10": 2.141399999999998,
-    "2018-30": 3.111566265060242,
-    "2018-10": 2.9112449799196782,
-    "2017-30": 2.894039999999999,
+    "2020-10": 0.889203187250996,
+    "2019-30": 2.5804,
+    "2019-10": 2.1414,
+    "2018-30": 3.1115662650602407,
+    "2018-10": 2.9112449799196787,
+    "2017-30": 2.89404,
     "2017-10": 2.32948
   },
   "pays": {
@@ -2256,7 +2256,7 @@
   },
   "sans_position": [],
   "brvm": {
-    "maj": "2026-08-17 20:10:26",
+    "maj": "2026-08-17 22:41:56",
     "revision_classification": "2026-08-16",
     "industries": [
       {
@@ -5064,7 +5064,8 @@
         "societes": 3,
         "beta_1an": 0.1037,
         "beta_3ans": 0.006,
-        "gearing": 0.4785
+        "gearing": 0.4785,
+        "capitalisation": 120246.8
       },
       {
         "nom": "Automobile Components",
@@ -5074,7 +5075,8 @@
         "societes": 1,
         "beta_1an": 0.3455,
         "beta_3ans": 0.3031,
-        "gearing": 0.2584
+        "gearing": 0.2584,
+        "capitalisation": 201908.2
       },
       {
         "nom": "Banks",
@@ -5126,7 +5128,8 @@
         "societes": 43,
         "beta_1an": 0.0848,
         "beta_3ans": 0.0491,
-        "gearing": 0.1408
+        "gearing": 0.1408,
+        "capitalisation": 19971459.7
       },
       {
         "nom": "Beverages",
@@ -5143,7 +5146,8 @@
         "societes": 8,
         "beta_1an": 0.0451,
         "beta_3ans": 0.0054,
-        "gearing": 0.1637
+        "gearing": 0.1637,
+        "capitalisation": 1590023.3
       },
       {
         "nom": "Building Products",
@@ -5153,7 +5157,8 @@
         "societes": 1,
         "beta_1an": 0.2607,
         "beta_3ans": 0.1866,
-        "gearing": 0.5143
+        "gearing": 0.5143,
+        "capitalisation": 770.1
       },
       {
         "nom": "Capital Markets",
@@ -5172,7 +5177,8 @@
         "societes": 10,
         "beta_1an": 0.085,
         "beta_3ans": 0.0535,
-        "gearing": 0.0237
+        "gearing": 0.0237,
+        "capitalisation": 224895.3
       },
       {
         "nom": "Chemicals",
@@ -5186,7 +5192,8 @@
         "societes": 5,
         "beta_1an": 0.0402,
         "beta_3ans": 0.0446,
-        "gearing": 0.1905
+        "gearing": 0.1905,
+        "capitalisation": 97601.8
       },
       {
         "nom": "Commercial Services and Supplies",
@@ -5196,7 +5203,8 @@
         "societes": 1,
         "beta_1an": 0.1731,
         "beta_3ans": -0.0001,
-        "gearing": 0.0762
+        "gearing": 0.0762,
+        "capitalisation": 3111.5
       },
       {
         "nom": "Construction Materials",
@@ -5208,7 +5216,8 @@
         "societes": 3,
         "beta_1an": -0.0134,
         "beta_3ans": 0.0002,
-        "gearing": 0.0002
+        "gearing": 0.0002,
+        "capitalisation": 673385.9
       },
       {
         "nom": "Construction and Engineering",
@@ -5218,7 +5227,8 @@
         "societes": 1,
         "beta_1an": 0.2623,
         "beta_3ans": -0.0211,
-        "gearing": 0.0
+        "gearing": 0.0,
+        "capitalisation": 17808.0
       },
       {
         "nom": "Consumer Finance",
@@ -5229,7 +5239,8 @@
         "societes": 2,
         "beta_1an": 0.044,
         "beta_3ans": 0.0501,
-        "gearing": 6.4494
+        "gearing": 6.4494,
+        "capitalisation": 152600.4
       },
       {
         "nom": "Consumer Staples Distribution and Retail",
@@ -5240,7 +5251,8 @@
         "societes": 2,
         "beta_1an": 0.0779,
         "beta_3ans": 0.0747,
-        "gearing": 0.2741
+        "gearing": 0.2741,
+        "capitalisation": 311114.7
       },
       {
         "nom": "Containers and Packaging",
@@ -5250,7 +5262,8 @@
         "societes": 1,
         "beta_1an": 0.0398,
         "beta_3ans": 0.0648,
-        "gearing": 1.1184
+        "gearing": 1.1184,
+        "capitalisation": 1172.5
       },
       {
         "nom": "Distributors",
@@ -5262,7 +5275,8 @@
         "societes": 3,
         "beta_1an": 0.0767,
         "beta_3ans": 0.0779,
-        "gearing": 0.1802
+        "gearing": 0.1802,
+        "capitalisation": 333600.0
       },
       {
         "nom": "Diversified Consumer Services",
@@ -5272,7 +5286,8 @@
         "societes": 1,
         "beta_1an": 0.0544,
         "beta_3ans": 0.0258,
-        "gearing": 0.4003
+        "gearing": 0.4003,
+        "capitalisation": 513.3
       },
       {
         "nom": "Diversified Telecommunication Services",
@@ -5285,7 +5300,8 @@
         "societes": 4,
         "beta_1an": 0.1561,
         "beta_3ans": 0.1808,
-        "gearing": 0.3275
+        "gearing": 0.3275,
+        "capitalisation": 2882499.3
       },
       {
         "nom": "Electrical Equipment",
@@ -5296,7 +5312,8 @@
         "societes": 2,
         "beta_1an": 0.4129,
         "beta_3ans": 0.1847,
-        "gearing": 0.1774
+        "gearing": 0.1774,
+        "capitalisation": 54784.6
       },
       {
         "nom": "Financial Services",
@@ -5311,7 +5328,8 @@
         "societes": 6,
         "beta_1an": 0.0979,
         "beta_3ans": 0.069,
-        "gearing": 0.448
+        "gearing": 0.448,
+        "capitalisation": 648163.6
       },
       {
         "nom": "Food Products",
@@ -5340,7 +5358,8 @@
         "societes": 20,
         "beta_1an": 0.0747,
         "beta_3ans": 0.0131,
-        "gearing": 0.3094
+        "gearing": 0.3094,
+        "capitalisation": 1802712.1
       },
       {
         "nom": "Ground Transportation",
@@ -5351,7 +5370,8 @@
         "societes": 2,
         "beta_1an": 0.0725,
         "beta_3ans": 0.0467,
-        "gearing": 2.4059
+        "gearing": 2.4059,
+        "capitalisation": 4276.5
       },
       {
         "nom": "Health Care Equipment and Supplies",
@@ -5361,7 +5381,8 @@
         "societes": 1,
         "beta_1an": 0.0,
         "beta_3ans": 0.0,
-        "gearing": 0.0003
+        "gearing": 0.0003,
+        "capitalisation": 32777.6
       },
       {
         "nom": "Health Care Providers and Services",
@@ -5371,7 +5392,8 @@
         "societes": 1,
         "beta_1an": 0.066,
         "beta_3ans": 0.0213,
-        "gearing": 0.3323
+        "gearing": 0.3323,
+        "capitalisation": 6941.7
       },
       {
         "nom": "Hotels, Restaurants and Leisure",
@@ -5395,7 +5417,8 @@
         "societes": 15,
         "beta_1an": 0.1488,
         "beta_3ans": 0.0211,
-        "gearing": 0.882
+        "gearing": 0.882,
+        "capitalisation": 550538.8
       },
       {
         "nom": "Household Products",
@@ -5405,7 +5428,8 @@
         "societes": 1,
         "beta_1an": -0.0752,
         "beta_3ans": -0.0702,
-        "gearing": 0.0098
+        "gearing": 0.0098,
+        "capitalisation": 66071.6
       },
       {
         "nom": "IT Services",
@@ -5415,7 +5439,8 @@
         "societes": 1,
         "beta_1an": -0.0281,
         "beta_3ans": -0.0679,
-        "gearing": 0.1364
+        "gearing": 0.1364,
+        "capitalisation": 835.5
       },
       {
         "nom": "Independent Power and Renewable Electricity Producers",
@@ -5426,7 +5451,8 @@
         "societes": 2,
         "beta_1an": 0.0676,
         "beta_3ans": 0.1056,
-        "gearing": 2.5813
+        "gearing": 2.5813,
+        "capitalisation": 31117.3
       },
       {
         "nom": "Industrial Conglomerates",
@@ -5440,7 +5466,8 @@
         "societes": 5,
         "beta_1an": 0.0263,
         "beta_3ans": 0.0238,
-        "gearing": 0.371
+        "gearing": 0.371,
+        "capitalisation": 461143.1
       },
       {
         "nom": "Insurance",
@@ -5457,7 +5484,8 @@
         "societes": 8,
         "beta_1an": 0.0702,
         "beta_3ans": 0.0177,
-        "gearing": 0.0104
+        "gearing": 0.0104,
+        "capitalisation": 1042637.2
       },
       {
         "nom": "Leisure Products",
@@ -5467,7 +5495,8 @@
         "societes": 1,
         "beta_1an": -0.1698,
         "beta_3ans": 0.0575,
-        "gearing": 0.0198
+        "gearing": 0.0198,
+        "capitalisation": 32209.7
       },
       {
         "nom": "Media",
@@ -5477,7 +5506,8 @@
         "societes": 1,
         "beta_1an": 0.0056,
         "beta_3ans": -0.0024,
-        "gearing": 0.0393
+        "gearing": 0.0393,
+        "capitalisation": 571.6
       },
       {
         "nom": "Metals and Mining",
@@ -5487,7 +5517,8 @@
         "societes": 1,
         "beta_1an": 0.5784,
         "beta_3ans": 0.5698,
-        "gearing": 0.0397
+        "gearing": 0.0397,
+        "capitalisation": 620226.7
       },
       {
         "nom": "Oil, Gas and Consumable Fuels",
@@ -5504,7 +5535,8 @@
         "societes": 8,
         "beta_1an": 0.1721,
         "beta_3ans": 0.0865,
-        "gearing": 0.0252
+        "gearing": 0.0252,
+        "capitalisation": 919503.2
       },
       {
         "nom": "Paper and Forest Products",
@@ -5515,7 +5547,8 @@
         "societes": 2,
         "beta_1an": 0.0195,
         "beta_3ans": 0.0295,
-        "gearing": 1.2134
+        "gearing": 1.2134,
+        "capitalisation": 37307.1
       },
       {
         "nom": "Personal Care Products",
@@ -5525,7 +5558,8 @@
         "societes": 1,
         "beta_1an": -0.0085,
         "beta_3ans": -0.0226,
-        "gearing": 0.3808
+        "gearing": 0.3808,
+        "capitalisation": 9609.7
       },
       {
         "nom": "Pharmaceuticals",
@@ -5535,7 +5569,8 @@
         "societes": 1,
         "beta_1an": -0.4715,
         "beta_3ans": -0.2018,
-        "gearing": 0.712
+        "gearing": 0.712,
+        "capitalisation": 732.9
       },
       {
         "nom": "Real Estate Management and Development",
@@ -5564,7 +5599,8 @@
         "societes": 20,
         "beta_1an": 0.0964,
         "beta_3ans": 0.0967,
-        "gearing": 0.7576
+        "gearing": 0.7576,
+        "capitalisation": 699205.8
       },
       {
         "nom": "Specialty Retail",
@@ -5577,7 +5613,8 @@
         "societes": 4,
         "beta_1an": 0.1466,
         "beta_3ans": 0.1738,
-        "gearing": 0.3564
+        "gearing": 0.3564,
+        "capitalisation": 109651.1
       },
       {
         "nom": "Textiles, Apparel and Luxury Goods",
@@ -5589,7 +5626,8 @@
         "societes": 3,
         "beta_1an": 0.1947,
         "beta_3ans": 0.1319,
-        "gearing": 0.0127
+        "gearing": 0.0127,
+        "capitalisation": 220420.4
       },
       {
         "nom": "Tobacco",
@@ -5601,7 +5639,8 @@
         "societes": 3,
         "beta_1an": 0.0421,
         "beta_3ans": 0.0462,
-        "gearing": 0.0
+        "gearing": 0.0,
+        "capitalisation": 664481.3
       },
       {
         "nom": "Trading Companies and Distributors",
@@ -5613,7 +5652,8 @@
         "societes": 3,
         "beta_1an": 0.1034,
         "beta_3ans": 0.1155,
-        "gearing": 2.0069
+        "gearing": 2.0069,
+        "capitalisation": 234741.9
       },
       {
         "nom": "Transportation Infrastructure",
@@ -5623,7 +5663,8 @@
         "societes": 1,
         "beta_1an": 0.0788,
         "beta_3ans": 0.0765,
-        "gearing": 0.0323
+        "gearing": 0.0323,
+        "capitalisation": 18774.7
       },
       {
         "nom": "Wireless Telecommunication Services",
@@ -5639,7 +5680,8 @@
         "societes": 7,
         "beta_1an": 0.0291,
         "beta_3ans": 0.0654,
-        "gearing": 0.0654
+        "gearing": 0.0654,
+        "capitalisation": 6588902.8
       }
     ],
     "zones": {
