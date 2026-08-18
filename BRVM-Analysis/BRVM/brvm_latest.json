@@ -1,5 +1,5 @@
 {
-    "last_update": "2026-08-18 14:39:50",
+    "last_update": "2026-08-18 15:14:06",
     "count": 47,
     "data": [
         {
@@ -34,8 +34,8 @@
         },
         {
             "symbole": "BOAC",
-            "prix": "13 755",
-            "variation": "2,65%"
+            "prix": "13 450",
+            "variation": "0,37%"
         },
         {
             "symbole": "BOAM",
@@ -74,8 +74,8 @@
         },
         {
             "symbole": "ECOC",
-            "prix": "16 005",
-            "variation": "0,00%"
+            "prix": "16 885",
+            "variation": "5,50%"
         },
         {
             "symbole": "ETIT",
@@ -89,8 +89,8 @@
         },
         {
             "symbole": "LNBB",
-            "prix": "4 000",
-            "variation": "-1,36%"
+            "prix": "4 135",
+            "variation": "1,97%"
         },
         {
             "symbole": "NEIC",
@@ -114,8 +114,8 @@
         },
         {
             "symbole": "ORAC",
-            "prix": "19 190",
-            "variation": "3,10%"
+            "prix": "19 000",
+            "variation": "2,43%"
         },
         {
             "symbole": "ORGT",
