@@ -25,7 +25,7 @@ PALIERS = [
 @pytest.fixture
 def cmpc_comparable(page):
     mode_comparables(page)
-    choisir(page, "industrie_brvm", "Banks")
+    choisir(page, "secteur", "Banks")
     page.click('.tabs button[data-tab="wacc"]')
     return page
 

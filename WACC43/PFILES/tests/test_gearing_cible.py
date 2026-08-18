@@ -41,7 +41,7 @@ def test_le_clic_ouvre_le_cadenas_et_revele_le_champ(page):
 def test_refermer_le_cadenas_efface_la_cible(page, donnees):
     """Re-cliquer est la remise à zéro : retour à la médiane du secteur."""
     mode_comparables(page)
-    choisir(page, "industrie_brvm", "Banks")
+    choisir(page, "secteur", "Banks")
     avant = cmpc(page)
 
     page.click(VERROU)
@@ -83,7 +83,7 @@ def test_saisie_refusee_avec_message_inline(page, saisie, fragment):
 def test_une_saisie_refusee_ne_touche_pas_au_calcul(page):
     """Un CMPC recalculé sur une valeur refusée serait pire que pas de CMPC."""
     mode_comparables(page)
-    choisir(page, "industrie_brvm", "Banks")
+    choisir(page, "secteur", "Banks")
     avant = cmpc(page)
 
     page.click(VERROU)
@@ -103,7 +103,7 @@ def test_saisie_acceptee_dans_les_bornes(page, saisie):
 
 def test_champ_vide_revient_a_la_mediane(page, donnees):
     mode_comparables(page)
-    choisir(page, "industrie_brvm", "Banks")
+    choisir(page, "secteur", "Banks")
     attendu = secteur(donnees, "Banks")["gearing"]
 
     page.click(VERROU)
@@ -129,7 +129,7 @@ def test_la_cible_est_lue_en_poids_de_dette(page):
 
 def test_le_cmpc_utilise_la_cible_et_non_la_mediane(page, donnees):
     mode_comparables(page)
-    choisir(page, "industrie_brvm", "Banks")
+    choisir(page, "secteur", "Banks")
     mediane = secteur(donnees, "Banks")["gearing"]
     auto = cmpc(page)
 
@@ -147,7 +147,7 @@ def test_le_cmpc_utilise_la_cible_et_non_la_mediane(page, donnees):
 def test_le_beta_est_reendette_a_la_cible(page, donnees):
     """Changer la structure sans toucher au risque n'aurait pas de sens."""
     mode_comparables(page)
-    choisir(page, "industrie_brvm", "Banks")
+    choisir(page, "secteur", "Banks")
     page.click(VERROU)
     saisir(page, "70")
 
@@ -164,7 +164,7 @@ def test_le_beta_est_reendette_a_la_cible(page, donnees):
 def test_cible_egale_a_la_mediane_ne_change_rien(page, donnees):
     """Le ré-endettement doit être neutre quand la cible vaut l'observé."""
     mode_comparables(page)
-    choisir(page, "industrie_brvm", "Banks")
+    choisir(page, "secteur", "Banks")
     auto = cmpc(page)
 
     de = secteur(donnees, "Banks")["gearing"]

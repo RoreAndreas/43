@@ -21,7 +21,6 @@ import webbrowser
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from urllib.parse import parse_qs, urlparse
 
-import brvm_core
 import wacc_core
 from wacc_html import render_page
 
@@ -131,7 +130,9 @@ def main():
 
     print("Chargement des données Damodaran...")
     DATASET = wacc_core.build_dataset(years=years, progress=lambda m: print(f"  {m}"))
-    DATASET["brvm"] = brvm_core.build_brvm(progress=lambda m: print(f"  {m}"))
+    import build_static
+    DATASET["taux_souverains"] = build_static._courbes_souveraines(
+        lambda m: print(f"  {m}"))
 
     server = ThreadingHTTPServer((args.host, args.port), Handler)
     url = f"http://127.0.0.1:{args.port}"

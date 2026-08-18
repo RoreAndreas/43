@@ -92,7 +92,7 @@ def main():
         print("Format d'année invalide. Veuillez entrer une année comme '2023'.")
         return
 
-    print(f"\n[🔍] Recherche des données pour l'année {year}...")
+    print(f"\nRecherche des données pour l'année {year}...")
     
     average_rate = calculate_average_rate(year)
     
@@ -103,7 +103,7 @@ def main():
         print(f"  - Taux moyen US Bond 30 ans : {average_rate:.2f}%")
         print("-"*50)
     else:
-        print(f"\n[✗] Aucune donnée de taux à 30 ans n'a été trouvée pour {year}.")
+        print(f"\nAucune donnée de taux à 30 ans n'a été trouvée pour {year}.")
 
 if __name__ == "__main__":
     main()

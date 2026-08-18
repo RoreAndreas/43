@@ -256,31 +256,76 @@
   /* ---------- Places de cotation du périmètre ---------- */
   /* Une seule ligne qui défile, jamais deux qui s'empilent : le cadre garderait
      une hauteur différente selon l'industrie choisie, et la carte sauterait à
-     chaque changement de secteur. */
+     chaque changement de secteur.
+     La barre de défilement native est masquée ; c'est le rail au-dessous qui
+     sert de commande, visible et manipulable même sans molette. */
+  .places-bloc { display: grid; gap: 9px; margin-top: -4px; }
   .places {
     display: flex;
     align-items: center;
     gap: 7px;
-    margin-top: -6px;
-    padding-bottom: 7px;
+    padding: 7px 11px;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    background: var(--surface);
     overflow-x: auto;
     overscroll-behavior-x: contain;
-    scrollbar-width: thin;
-    scrollbar-color: var(--accent) var(--line);
-    scroll-snap-type: x proximity;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
   }
-  .places:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
-  .places::-webkit-scrollbar { height: 3px; }
-  .places::-webkit-scrollbar-track { background: var(--line); border-radius: 2px; }
-  .places::-webkit-scrollbar-thumb { background: var(--accent); border-radius: 2px; }
+  .places::-webkit-scrollbar { display: none; }
+  .places:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
   .place {
     flex: none;
-    scroll-snap-align: start;
-    font: 400 10.5px/1.6 var(--mono);
-    letter-spacing: 0.05em;
-    color: var(--accent);
+    padding: 4px 10px;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    background: var(--tile);
+    font: 400 10.5px/1.5 var(--mono);
+    letter-spacing: 0.11em;
+    color: var(--muted);
+    transition: color 160ms ease, border-color 160ms ease;
   }
-  .place-sep { flex: none; font: 400 10.5px/1.6 var(--mono); color: var(--accent-chip); }
+  .places:hover .place { color: var(--ink-4); border-color: var(--muted-2); }
+
+  /* Le rail est un vrai input range : utilisable au clavier et annoncé par les
+     lecteurs d'écran, ce qu'une barre dessinée à la main n'aurait pas été.
+     `--_p` est la position, posée par le script à chaque mouvement. */
+  .places-slider {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 100%;
+    height: 18px;
+    background: transparent;
+    cursor: pointer;
+  }
+  .places-slider:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; }
+  .places-slider::-webkit-slider-runnable-track {
+    height: 8px;
+    border-radius: 999px;
+    background: linear-gradient(to right,
+      var(--accent) 0%, var(--accent) var(--_p, 0%),
+      var(--line) var(--_p, 0%), var(--line) 100%);
+  }
+  .places-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 18px;
+    height: 18px;
+    margin-top: -5px;
+    border: 3px solid var(--surface);
+    border-radius: 999px;
+    background: var(--accent);
+  }
+  .places-slider::-moz-range-track { height: 8px; border-radius: 999px; background: var(--line); }
+  .places-slider::-moz-range-progress { height: 8px; border-radius: 999px; background: var(--accent); }
+  .places-slider::-moz-range-thumb {
+    width: 12px;
+    height: 12px;
+    border: 3px solid var(--surface);
+    border-radius: 999px;
+    background: var(--accent);
+  }
 
   /* ---------- Carte ---------- */
   .carte-bloc {
@@ -669,45 +714,7 @@
     color: var(--ink-3);
   }
 
-  /* ---------- Référentiel BRVM ---------- */
-  .soc-list {
-    display: grid;
-    gap: 1px;
-    background: var(--line);
-    border: 1px solid var(--line);
-    border-radius: 8px;
-    overflow: hidden;
-  }
-  .soc-line {
-    background: var(--tile);
-    padding: 11px 14px;
-    display: flex;
-    align-items: flex-start;
-    justify-content: space-between;
-    gap: 12px;
-  }
-  .soc-ident { display: flex; align-items: baseline; gap: 9px; min-width: 0; }
-  .soc-flag { font-size: 15px; line-height: 1; flex: none; }
-  .soc-nom {
-    font: 400 12.5px/1.4 var(--sans);
-    color: var(--ink);
-    /* Les raisons sociales sont longues : on les laisse passer à la ligne
-       plutôt que de les tronquer. */
-    white-space: normal;
-    overflow-wrap: anywhere;
-  }
-  .soc-line.is-more {
-    justify-content: flex-start;
-    font: 400 11.5px/1.4 var(--sans);
-    color: var(--muted);
-  }
-  .soc-pays { font: 400 10.5px/1.4 var(--mono); color: var(--muted-2); }
-  .soc-cap {
-    font: 500 12.5px/1 var(--mono);
-    font-variant-numeric: tabular-nums;
-    color: var(--ink-3);
-    white-space: nowrap;
-  }
+  /* ---------- Référentiel Comparables ---------- */
   /* Champ numérique libre, aligné sur la valeur qu'il remplace. */
   .mini-input {
     width: 74px;
@@ -769,9 +776,17 @@
   .result-row.is-erreur span:last-child { color: var(--warn); }
   .result-row.is-appoint {
     font-size: 11.5px;
+    line-height: 1.55;
     color: var(--muted);
+    text-wrap: pretty;
   }
   .result-row.is-appoint span:last-child { color: var(--ink-4); }
+  /* Une phrase, et non un couple libelle/valeur : elle ne doit pas heriter de
+     la police a chasse fixe reservee aux nombres. */
+  .result-row.is-appoint span:only-child {
+    font-family: var(--sans);
+    color: var(--muted);
+  }
 
   /* Bulle : un bloc de contenu autonome dans le panneau de détail. */
   .bulle {
@@ -853,13 +868,23 @@
     gap: 9px;
     text-align: center;
   }
-  .vide404-img { width: 132px; height: 104px; margin-bottom: 4px; }
+  .vide404-img { width: 190px; height: auto; margin-bottom: 6px; }
   .v4-corps { fill: var(--surface); stroke: var(--muted-2); stroke-width: 2; }
   .v4-plein { fill: var(--ink-4); }
   .v4-trait {
     fill: none;
     stroke: var(--ink-4);
     stroke-width: 2.2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+  /* Les boulons tombés au sol, dans un gris plus clair que la machine : ils
+     racontent la panne sans venir concurrencer le visage, qui doit rester ce
+     que l'oeil attrape en premier. */
+  .v4-boulon path, .v4-boulon circle {
+    fill: none;
+    stroke: var(--muted-2);
+    stroke-width: 1.7;
     stroke-linecap: round;
     stroke-linejoin: round;
   }
@@ -909,7 +934,7 @@
     <nav class="tabs">
       <button type="button" data-tab="params" class="is-active">Paramètres</button>
       <button type="button" data-tab="wacc">CMPC</button>
-      <!-- N'apparaît qu'avec le référentiel BRVM -->
+      <!-- N'apparaît qu'avec le référentiel Comparables -->
       <button type="button" data-tab="societes" id="tabSocietes" hidden>Sociétés</button>
     </nav>
   </div>
@@ -969,7 +994,7 @@
   const frNum = (v, dec) => v.toFixed(dec === undefined ? 2 : dec).replace(".", ",");
   const frPts = (v) => (v * 100).toFixed(2).replace(".", ",") + (Math.abs(v * 100) < 2 ? " pt" : " pts");
 
-  const BRVM = DATA.brvm || null;
+  const COURBES = DATA.taux_souverains || null;
 
   // `continent` ne vient pas du jeu de données : c'est un filtre d'affichage,
   // sans effet sur le calcul. Il part sur « Tous » pour qu'aucun pays ne soit
@@ -988,23 +1013,28 @@
     gearing_erreur: null,
   }, DATA.defaults);
   if (!params.referentiel) params.referentiel = "damodaran";
-  if (!params.industrie_brvm && BRVM && BRVM.industries.length) {
-    params.industrie_brvm = BRVM.industries[0].nom;
+  if (!params.secteur) {
+    const connus = (DATA.comparables || {}).industries || [];
+    if (connus.length) params.secteur = connus[0].nom;
   }
   let model = null;
   let tab = "params";   // on règle les hypothèses avant de lire le résultat
 
   if (!params.maturite_uemoa) params.maturite_uemoa = "10 ans";
 
-  const estBrvm = () => Boolean(BRVM) && params.referentiel === "brvm";
+  // Le référentiel Comparables ne dépend plus d'un volet BRVM : il tient sur
+  // l'export Cap IQ pour les sociétés et les médianes, et sur les courbes
+  // UMOA-Titres pour le taux sans risque. Il suffit que l'univers soit là.
+  const estComparables = () =>
+    Boolean((DATA.comparables || {}).societes) && params.referentiel === "comparables";
 
   // La courbe souveraine de l'État sélectionné. Les libellés de pays diffèrent
   // entre Damodaran et UMOA-Titres (Senegal / Sénégal) : on les rapproche par
   // la même normalisation que pour les paramètres d'URL.
   function courbePays() {
-    if (!BRVM || !BRVM.courbes) return null;
-    const trouve = resolveOption(params.country, Object.keys(BRVM.courbes.pays));
-    return trouve ? { pays: trouve, points: BRVM.courbes.pays[trouve] } : null;
+    if (!COURBES || !COURBES.pays) return null;
+    const trouve = resolveOption(params.country, Object.keys(COURBES.pays));
+    return trouve ? { pays: trouve, points: COURBES.pays[trouve] } : null;
   }
 
   // Taux sans risque local : il porte déjà le risque pays, aucune prime à ajouter.
@@ -1015,13 +1045,6 @@
       || courbe.points[courbe.points.length - 1];
     return { pays: courbe.pays, libelle: point[0], taux: point[2] };
   }
-  // Strictement l'industrie demandée, ou rien. Le repli sur la première
-  // industrie de la liste faisait afficher, sous un secteur sans société cotée,
-  // les sociétés d'un autre secteur — l'onglet paraissait ne pas se rafraîchir
-  // alors qu'il répondait à une question qu'on ne lui avait pas posée.
-  const industrieBrvm = () =>
-    (BRVM && BRVM.industries.find((i) => i.nom === params.industrie_brvm)) || null;
-
   // Separateur de milliers en espace insecable U+00A0 : U+202F manque a IBM Plex Mono.
   const frMontant = (v) =>
     v == null ? "—" : Math.round(v).toString().replace(/\B(?=(\d{3})+(?!\d))/g, " ") + " M";
@@ -1229,9 +1252,9 @@
 
   /* ================= Onglets ================= */
   function renderTabs() {
-    // L'onglet Sociétés n'existe que sous référentiel BRVM.
-    if (!estBrvm() && tab === "societes") tab = "params";
-    $("tabSocietes").hidden = !estBrvm();
+    // L'onglet Sociétés n'existe que sous référentiel Comparables.
+    if (!estComparables() && tab === "societes") tab = "params";
+    $("tabSocietes").hidden = !estComparables();
 
     document.querySelectorAll(".tabs button").forEach((b) => {
       b.classList.toggle("is-active", b.dataset.tab === tab);
@@ -1291,17 +1314,14 @@
   function continents() { return groupesPays().map(([c]) => c); }
   function zonesDuContinent(c) { return (DATA.options.zones_par_continent || {})[c] || []; }
   function continentDe(pays) { const e = DATA.pays[pays]; return e && e.continent ? e.continent : null; }
-  function zoneDe(pays) { const e = DATA.pays[pays]; return e && e.zone ? e.zone : null; }
 
-  // La zone affine le continent : sans zone on retombe sur le continent, sans
-  // continent sur la liste entière.
+  // Le continent filtre la liste des pays. La zone, elle, n'y touche pas : elle
+  // cadre l'échantillon de comparables, ce qui est une autre question que celle
+  // de l'émetteur à valoriser. Les coupler privait de courbe souveraine dès
+  // qu'on regardait une zone hors UMOA, soit quatre zones africaines sur cinq.
   function paysVisibles() {
     const groupes = groupesPays();
     if (params.continent === TOUS) return groupes.flatMap(([, m]) => m);
-    if (params.zone) {
-      const z = zonesDuContinent(params.continent).find(([nom]) => nom === params.zone);
-      if (z) return z[1];
-    }
     const t = groupes.find(([c]) => c === params.continent);
     return t ? t[1] : groupes.flatMap(([, m]) => m);
   }
@@ -1312,30 +1332,27 @@
       : selectField("country", label, paysVisibles());
   }
 
-  // Le pays d'une société cotée, rapproché du libellé Damodaran : les deux
-  // sources n'écrivent ni « Bénin » ni « Senegal » de la même façon, et c'est le
-  // libellé Damodaran qui porte le découpage en continents et en zones.
-  const _paysRapproche = {};
-  function paysDamodaran(nom) {
-    if (!(nom in _paysRapproche)) {
-      _paysRapproche[nom] = resolveOption(nom, Object.keys(DATA.pays));
-    }
-    return _paysRapproche[nom];
-  }
+  // L'univers de comparables, société par société : la seule source de la page,
+  // et exactement la population que compte le cadrage.
+  const COMPARABLES = (DATA.comparables || {}).societes || {};
 
-  // Les sociétés cotées du périmètre courant : industrie demandée, et pays
-  // retenu par le filtre géographique. Les plus grosses capitalisations d'abord,
-  // ce sont elles qui portent le secteur.
+  // Les sociétés du périmètre courant : industrie demandée, et zone retenue par
+  // le filtre géographique. La zone est celle calculée au build, la même qui
+  // produit les effectifs du cadrage — la redéduire ici à partir du pays
+  // supposerait que tout pays coté soit connu de Damodaran, ce que le Malawi et
+  // la Gambie ne sont pas. Les deux affichages ne peuvent donc pas diverger.
   function societesDuPerimetre() {
-    const ind = industrieBrvm();
-    if (!ind) return [];
-    const visibles = paysVisibles();
-    return ind.tickers
-      .filter((t) => {
-        const pays = paysDamodaran(BRVM.societes[t].pays);
-        return pays != null && visibles.indexOf(pays) !== -1;
+    const ind = industrieCourante();
+    const zones = params.continent === TOUS ? null : perimetreCourant().zones;
+    return Object.keys(COMPARABLES)
+      .filter((id) => {
+        const s = COMPARABLES[id];
+        if (ind && s.industrie !== ind) return false;
+        if (zones && zones.indexOf(s.zone) === -1) return false;
+        return true;
       })
-      .sort((a, b) => (BRVM.societes[b].capitalisation || 0) - (BRVM.societes[a].capitalisation || 0));
+      // Les plus grosses capitalisations d'abord : elles portent le secteur.
+      .sort((a, b) => (COMPARABLES[b].capitalisation || 0) - (COMPARABLES[a].capitalisation || 0));
   }
 
   /* ---------- Effectifs de sociétés ---------- */
@@ -1346,7 +1363,7 @@
   // L'industrie qui filtre les effectifs. Sous Comparables, la nomenclature est
   // celle de l'univers ; sous Damodaran, aucune correspondance n'existe entre
   // ses 94 secteurs et ceux de l'export, donc on ne filtre pas.
-  function industrieCourante() { return estBrvm() ? params.industrie_brvm : null; }
+  function industrieCourante() { return estComparables() ? params.secteur : null; }
 
   function effectif(zone) {
     const source = (DATA.comparables || {}).zones || DATA.zones_societes || {};
@@ -1511,13 +1528,54 @@
   // souverain, hypothèse la plus neutre disponible et certainement optimiste
   // pour un émetteur privé. Elle est écrite sous le résultat plutôt que
   // dissimulée dans le calcul.
-  function secteurComparable(nom) {
-    const liste = (DATA.comparables || {}).industries || [];
-    return liste.find((i) => i.nom === nom) || null;
+  // En deçà de ce nombre de sociétés, une médiane de zone ne décrit plus un
+  // secteur. Sur les 126 couples zone x secteur, 40 % n'en comptent aucune et
+  // un tiers une seule : la médiane serait alors cette société.
+  const SEUIL = (DATA.comparables || {}).seuil || 3;
+
+  // Le secteur, à l'échelle la plus étroite qui tienne debout. On essaie la
+  // zone retenue, puis le continent, puis l'univers, et on garde la première
+  // qui atteigne le seuil — à défaut la plus large qui compte au moins une
+  // société. Le périmètre effectivement retenu est rendu avec les chiffres :
+  // un repli muet ferait passer une médiane continentale pour une médiane de
+  // zone, ce que rien à l'écran ne permettrait de voir.
+  function statsSecteur(nom) {
+    const bloc = ((DATA.comparables || {}).secteurs || {})[nom];
+    if (!bloc) return null;
+
+    const echelles = [];
+    if (params.continent !== TOUS && params.zone) {
+      echelles.push({ echelle: "zone", perimetre: params.zone,
+                      stats: (bloc.zones || {})[params.zone] });
+    }
+    if (params.continent !== TOUS) {
+      echelles.push({ echelle: "continent", perimetre: params.continent,
+                      stats: (bloc.continents || {})[params.continent] });
+    }
+    echelles.push({ echelle: "univers", perimetre: "l'univers", stats: bloc.univers });
+
+    // La plus etroite qui atteigne le seuil ; sinon le premier repli disponible,
+    // dans l'ordre zone -> continent -> univers. Prendre l'univers d'emblee
+    // afficherait « l'univers » la ou le continent porte exactement les memes
+    // societes, et donnerait a lire un elargissement qui n'a pas eu lieu.
+    const retenu = echelles.find((e) => e.stats && e.stats.societes >= SEUIL)
+      || echelles.find((e, i) => i > 0 && e.stats && e.stats.societes > 0)
+      || echelles.find((e) => e.stats && e.stats.societes > 0);
+    if (!retenu) return null;
+
+    const demande = echelles[0];
+    return Object.assign({}, retenu.stats, {
+      nom: nom,
+      perimetre: retenu.perimetre,
+      echelle: retenu.echelle,
+      repli: retenu.echelle !== demande.echelle,
+      demande: demande.perimetre,
+      demandeN: demande.stats ? demande.stats.societes : 0,
+    });
   }
 
-  function gearingSectoriel(nomIndustrie) {
-    const s = secteurComparable(nomIndustrie);
+  function gearingSectoriel(nomSecteur) {
+    const s = statsSecteur(nomSecteur);
     return s && s.gearing != null ? s.gearing : null;
   }
 
@@ -1553,7 +1611,7 @@
 
   function gearingRetenu() {
     const cible = gearingCibleDE();
-    return cible != null ? cible : gearingSectoriel(params.industrie_brvm);
+    return cible != null ? cible : gearingSectoriel(params.secteur);
   }
 
   // Refermer le cadenas est la remise à zéro : la cible et son éventuelle erreur
@@ -1574,8 +1632,8 @@
   // ans est retenu : sur des marchés peu liquides, celui à un an bouge trop pour
   // servir de base à un coût du capital.
   function cmpcComparables() {
-    if (!estBrvm()) return null;
-    const secteur = secteurComparable(params.industrie_brvm);
+    if (!estComparables()) return null;
+    const secteur = statsSecteur(params.secteur);
     const rf = tauxSansRisque();
     const g = gearingRetenu();
     const pays = DATA.pays[params.country] || {};
@@ -1584,7 +1642,7 @@
       return null;
     }
     const tax = pays.tax;
-    const gSect = gearingSectoriel(params.industrie_brvm);
+    const gSect = secteur.gearing;
     const cible = gearingCibleDE();
     const betaL = secteur.beta_3ans;
 
@@ -1604,6 +1662,8 @@
     return {
       beta: beta, betaL: betaL, betaU: betaU, beta1: secteur.beta_1an,
       relevable: relevable, rf: rf, tax: tax,
+      perimetre: secteur.perimetre, echelle: secteur.echelle, repli: secteur.repli,
+      demande: secteur.demande, demandeN: secteur.demandeN,
       gearing: g, gearingSecteur: gSect,
       gearingCible: cible != null ? params.gearing_cible : null,
       gearingSaisi: cible != null, societes: secteur.societes,
@@ -1742,10 +1802,48 @@
   function placesCadrage() {
     const p = perimetreCourant();
     if (!p.n || !p.places.length) return "";
-    return '<div class="places" tabindex="0" role="group" aria-label="Places de cotation du périmètre">' +
-      p.places.map((m) => '<span class="place">' + esc(m) + "</span>")
-        .join('<span class="place-sep" aria-hidden="true">·</span>') +
+    return '<div class="places-bloc">' +
+      '<div class="places" id="placesPiste" tabindex="0" role="group" aria-label="Places de cotation du périmètre">' +
+      p.places.map((m) => '<span class="place">' + esc(m) + "</span>").join("") +
+      '</div>' +
+      '<input type="range" class="places-slider" id="placesRail" min="0" max="100" step="0.1" value="0"' +
+      ' aria-label="Faire défiler les places de cotation" hidden>' +
       "</div>";
+  }
+
+  // Le rail et la bande sont liés dans les deux sens : tirer la poignée fait
+  // défiler, faire défiler ramène la poignée. Un rail qui ne suivrait pas le
+  // défilement à la molette indiquerait une position fausse dès le premier geste.
+  let ajusterPlaces = null;
+
+  function brancherPlaces() {
+    const piste = $("placesPiste");
+    const rail = $("placesRail");
+    ajusterPlaces = null;
+    if (!piste || !rail) return;
+
+    const amplitude = () => piste.scrollWidth - piste.clientWidth;
+    const poser = (pct) => rail.style.setProperty("--_p", pct.toFixed(2) + "%");
+
+    function ajuster() {
+      const max = amplitude();
+      // Sans débordement, le rail n'a rien à commander : on le retire plutôt
+      // que d'offrir une poignée qui ne bouge pas.
+      rail.hidden = max <= 1;
+      if (rail.hidden) return;
+      const pct = (piste.scrollLeft / max) * 100;
+      rail.value = String(pct);
+      poser(pct);
+    }
+
+    rail.addEventListener("input", () => {
+      const pct = Number(rail.value);
+      piste.scrollLeft = (pct / 100) * amplitude();
+      poser(pct);
+    });
+    piste.addEventListener("scroll", ajuster, { passive: true });
+    ajusterPlaces = ajuster;
+    ajuster();
   }
 
   function stepperField(item) {
@@ -1785,28 +1883,26 @@
   }
 
   function renderParams() {
-    const referentiels = BRVM
-      // La valeur reste « brvm » : elle circule dans les liens partagés et dans
-      // estBrvm(). Seul le libellé affiché change.
-      ? selectField("referentiel", "Référentiel", [["damodaran", "Damodaran"], ["brvm", "Comparables"]])
+    const referentiels = (DATA.comparables || {}).societes
+      ? selectField("referentiel", "Référentiel",
+                    [["damodaran", "Damodaran"], ["comparables", "Comparables"]])
       : "";
 
-    // Sous référentiel BRVM, la maturité se choisit sur la courbe souveraine de
-    // l'État retenu, dont la profondeur varie de 7 à 15 ans selon l'émetteur.
-    const courbe = estBrvm() ? courbePays() : null;
+    // Sous référentiel Comparables, la maturité se choisit sur la courbe
+    // souveraine de l'État retenu, dont la profondeur varie de 7 à 15 ans.
+    const courbe = estComparables() ? courbePays() : null;
     const champMaturite = courbe
       ? selectField("maturite_uemoa", "Maturité sur la courbe souveraine", courbe.points.map((p) => p[0]))
       : selectField("maturity", "Maturité du taux sans risque", DATA.options.maturities);
 
-    // L'industrie change de taxonomie selon le référentiel : les 12 secteurs des
-    // comparables, ou les 94 d'un référentiel de marché.
-    // Sous Comparables, les secteurs sont ceux de l'univers : ce sont eux qui
-    // portent les bêtas et le gearing médians. Ne sont listés que ceux comptant
-    // au moins une société complète, les seuls où le calcul aboutit.
+    // L'industrie change de taxonomie selon le référentiel : les secteurs de
+    // l'univers de comparables, ou les 94 d'un référentiel de marché.
+    // Tous les secteurs de l'univers sont proposés, y compris ceux absents de
+    // la zone retenue : les masquer priverait de la vue continentale, qui reste
+    // calculable et que le panneau signale comme telle.
     const secteurs = ((DATA.comparables || {}).industries || []).map((i) => i.nom);
-    const champIndustrie = estBrvm()
-      ? selectField("industrie_brvm", "Industrie",
-                    secteurs.length ? secteurs : (BRVM ? BRVM.industries.map((i) => i.nom) : []))
+    const champIndustrie = estComparables()
+      ? selectField("secteur", "Industrie", secteurs)
       : selectField("industry", "Industrie", DATA.options.industries);
 
     $("paramsMain").innerHTML = `
@@ -1830,28 +1926,33 @@
           <div class="geo-carte">${carteHtml()}</div>
           <div class="geo-choix">
             ${champIndustrie}
-            ${champPays("Pays")}
+            ${champPays("Pays de valorisation")}
           </div>
         </div>
       </section>
 
-      ${estBrvm() ? "" : blocDamodaran()}
+      ${estComparables() ? "" : blocDamodaran()}
 
       <section class="card-block">
         <h2>Paramètres manuels</h2>
         <div class="grid-2">${MANUAL.map(stepperField).join("")}</div>
       </section>`;
 
-    if (estBrvm()) {
-      // Le panneau décrit l'échantillon qui alimente le calcul : celui de
-      // l'univers de comparables, pas celui de la seule place d'Abidjan. Afficher
-      // un bêta issu d'une population et un effectif issu d'une autre donnait un
-      // encadré cohérent en apparence et faux ligne à ligne.
-      const secteur = secteurComparable(params.industrie_brvm);
+    // Le cadre Cadrage est rendu sous les deux référentiels : le rail se
+    // rebranche ici, avant l'embranchement, sur les éléments qui viennent
+    // d'être recréés.
+    brancherPlaces();
+
+    if (estComparables()) {
+      // Le panneau décrit l'échantillon qui alimente le calcul, et à quelle
+      // échelle il a été pris. Afficher un bêta issu d'une population et un
+      // effectif issu d'une autre donnait un encadré cohérent en apparence et
+      // faux ligne à ligne.
+      const secteur = statsSecteur(params.secteur);
       const rf = tauxSansRisque();
-      const dateCourbe = BRVM.courbes ? (BRVM.courbes.date || "") : "";
+      const dateCourbe = COURBES ? (COURBES.date || "") : "";
       const cc = cmpcComparables();
-      const gSect = gearingSectoriel(params.industrie_brvm);
+      const gSect = gearingSectoriel(params.secteur);
       const ouvert = !params.gearing_verrou;
       $("paramsResult").innerHTML = `
         <span class="result-head">
@@ -1869,7 +1970,14 @@
           </span>
         </span>
         <span class="result-rows">
-          <span class="result-row"><span>Sociétés du secteur</span><span>${secteur ? secteur.societes : 0}</span></span>
+          <span class="result-row"><span>Sociétés du secteur${secteur ? ", " + esc(secteur.perimetre) : ""}</span><span>${secteur ? secteur.societes : 0}</span></span>
+          ${secteur && secteur.repli ? `
+            <span class="result-row is-appoint">
+              <span>${esc(secteur.demande)} ne compte ${secteur.demandeN
+                ? secteur.demandeN + " société" + (secteur.demandeN > 1 ? "s" : "")
+                : "aucune société"} dans ce secteur, sous le seuil de ${SEUIL} :
+                médiane reprise sur ${esc(secteur.perimetre)}.</span>
+            </span>` : ""}
           <span class="result-row"><span>Bêta médian (3 ans)</span><span>${secteur && secteur.beta_3ans != null ? frNum(secteur.beta_3ans, 3) : "—"}</span></span>
           <span class="result-row"><span>Capitalisation cumulée</span><span>${esc(frMontant(secteur ? secteur.capitalisation : null))}</span></span>
           <span class="result-row"><span>Taux sans risque ${rf ? esc(rf.libelle) : ""}</span><span>${rf ? frPct(rf.taux) : "indisponible"}</span></span>
@@ -1901,7 +2009,7 @@
         <button type="button" class="cta" id="goSoc">Voir les sociétés</button>
         <span class="note">${rf
           ? `Taux souverain ${esc(rf.pays)} au ${esc(dateCourbe)}, publié par UMOA-Titres. Il porte déjà le risque pays : aucune prime ne s'y ajoute, et le coût du capital qui en découle est directement en monnaie locale.`
-          : "Courbe souveraine indisponible pour ce pays."} Le bêta retenu est la médiane des bêtas cotés à trois ans du secteur.${cc && cc.gearingSaisi
+          : "Courbe souveraine indisponible pour ce pays."} Le bêta retenu est la médiane des bêtas cotés à trois ans du secteur${secteur ? ", sur " + esc(secteur.perimetre) : ""}.${cc && cc.gearingSaisi
           ? ` Il est désendetté au gearing observé du secteur puis ré-endetté au gearing cible, sans quoi la structure changerait sans que le risque suive.`
           : ` Il est employé tel quel : la structure retenue est celle de l'échantillon dont il provient, le ré-endettement serait sans effet.`}${cc
           ? ` La dette est supposée levée au taux souverain, faute de spread publié pour ce référentiel — hypothèse neutre, et probablement optimiste pour un émetteur privé.`
@@ -2050,8 +2158,16 @@
     Object.keys(PANNEAUX).forEach(placeArrow);
   }
 
-  window.addEventListener("resize", placeArrows);
-  if (document.fonts && document.fonts.ready) document.fonts.ready.then(placeArrows);
+  // Une seule paire d'écouteurs, posée ici : les rebrancher à chaque rendu du
+  // panneau les accumulerait, un par changement de paramètre.
+  // Les largeurs des pastilles changent quand la police de caractères arrive :
+  // mesurer avant son chargement donnerait un débordement qui n'existe plus après.
+  function reajuster() {
+    placeArrows();
+    if (ajusterPlaces) ajusterPlaces();
+  }
+  window.addEventListener("resize", reajuster);
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(reajuster);
 
   /* ---- Détail d'une composante du CMPC ---- */
   function detailComposante(c) {
@@ -2091,10 +2207,7 @@
     const postes = [
       ["Chiffre d'affaires", s.ca],
       ["EBITDA", s.ebitda],
-      ["Charges d'exploitation", s.charges],
-      ["Résultat net", s.rn],
-      ["Capitaux propres", s.capitaux_propres],
-      ["Dette nette", s.dette_nette]
+      ["Résultat net", s.rn]
     ];
     const lignes = postes.map(([libelle, serie]) => `
       <tr>
@@ -2107,13 +2220,16 @@
     // l'une à l'autre sans transition.
     return `
       <span class="detail-head">
-        <span class="detail-title">${s.drapeau} ${esc(s.nom)}</span>
-        <span class="detail-symbol">${esc(c.id)}</span>
+        <span class="detail-title">${esc(s.nom)}</span>
+        <span class="detail-symbol">${esc(s.ticker || c.id)}</span>
       </span>
       <span class="detail-grid">
-        <span class="detail-label">Pays</span><span class="detail-text">${esc(s.pays)}</span>
+        <span class="detail-label">Pays</span><span class="detail-text">${esc(s.pays)}${s.zone ? " — " + esc(s.zone) : ""}</span>
+        <span class="detail-label">Place</span><span class="detail-text">${esc(s.place || "hors cote")}</span>
+        <span class="detail-label">Activité</span><span class="detail-text">${esc(s.activite || s.industrie)}</span>
         <span class="detail-label">Capitalisation</span><span class="detail-text">${esc(frMontant(s.capitalisation))} FCFA</span>
-        <span class="detail-label">Bêta coté (1 an)</span><span class="detail-text">${s.beta == null ? "non publié" : frNum(s.beta, 2) + " — bêta propre à la société, le CMPC retient la médiane 3 ans du secteur"}</span>
+        <span class="detail-label">Dette totale</span><span class="detail-text">${esc(frMontant(s.dette))} FCFA</span>
+        <span class="detail-label">Bêta (3 ans)</span><span class="detail-text">${s.beta_3ans == null ? "non publié" : frNum(s.beta_3ans, 3)}${s.beta_1an == null ? "" : ", horizon 1 an : " + frNum(s.beta_1an, 3)}. Le CMPC retient la médiane du secteur, pas ce bêta.</span>
       </span>
       ${s.presentation ? `
         <span class="bulle">
@@ -2133,9 +2249,9 @@
   function chargerCmpc() {
     const pan = PANNEAUX.cmpc;
     pan.detail = detailComposante;
-    const cc = estBrvm() ? cmpcComparables() : null;
-    pan.items = estBrvm() ? (cc ? composantesComparables(cc) : []) : model.components;
-    if (estBrvm() && !cc) {
+    const cc = estComparables() ? cmpcComparables() : null;
+    pan.items = estComparables() ? (cc ? composantesComparables(cc) : []) : model.components;
+    if (estComparables() && !cc) {
       $(pan.stack).innerHTML = `
         <div class="notice">
           <h3>Gearing sectoriel à renseigner</h3>
@@ -2172,23 +2288,36 @@
   // question. Tracé à la main plutôt qu'importé — la page n'appelle aucun
   // serveur, une illustration distante la rendrait dépendante du réseau.
   const ORDI_PERPLEXE = `
-    <svg class="vide404-img" viewBox="0 0 132 104" fill="none" aria-hidden="true">
-      <rect x="15" y="15" width="86" height="60" rx="8" class="v4-corps"/>
-      <circle cx="45" cy="41" r="3.4" class="v4-plein"/>
-      <circle cx="72" cy="41" r="3.4" class="v4-plein"/>
-      <path d="M38 30.5c3.2-2.8 7.8-2.8 10.8-.3" class="v4-trait"/>
-      <path d="M47 59c3.2-3.6 6.4-3.6 9.6 0s6.4 3.6 9.6 0" class="v4-trait"/>
-      <path d="M58 75v13M45 90h26" class="v4-trait"/>
-      <g transform="rotate(-9 104 26)">
-        <rect x="87" y="13" width="36" height="24" rx="7" class="v4-etiquette"/>
-        <text x="105" y="29.5" text-anchor="middle" class="v4-etiquette-texte">404</text>
+    <svg class="vide404-img" viewBox="0 0 168 136" fill="none" aria-hidden="true">
+      <rect x="21" y="11" width="104" height="72" rx="9" class="v4-corps"/>
+      <circle cx="55" cy="43" r="4.2" class="v4-plein"/>
+      <circle cx="91" cy="43" r="4.2" class="v4-plein"/>
+      <path d="M46 30c4-3.4 9.6-3.4 13.2-.4" class="v4-trait"/>
+      <path d="M57 63c3.9-4.4 7.8-4.4 11.7 0s7.8 4.4 11.7 0" class="v4-trait"/>
+      <path d="M73 83v14M58 99h30" class="v4-trait"/>
+      <g transform="rotate(-9 132 30)">
+        <rect x="112" y="16" width="41" height="27" rx="8" class="v4-etiquette"/>
+        <text x="132.5" y="34" text-anchor="middle" class="v4-etiquette-texte">404</text>
+      </g>
+      <g class="v4-boulon">
+        <path d="M36 110l5.2 3v6l-5.2 3-5.2-3v-6z"/>
+        <circle cx="36" cy="116" r="2.2"/>
+        <circle cx="59" cy="124" r="3.6"/>
+        <circle cx="59" cy="124" r="1.4"/>
+        <g transform="rotate(-14 90 112)">
+          <circle cx="90" cy="112" r="4"/>
+          <path d="M87.9 112h4.2M94 112h13"/>
+        </g>
+        <path d="M124 116l4.3 2.5v5l-4.3 2.5-4.3-2.5v-5z"/>
+        <circle cx="124" cy="121" r="1.8"/>
+        <circle cx="143" cy="111" r="2.4"/>
       </g>
     </svg>`;
 
   function etatVideSocietes() {
     const ou = params.zone
       || (params.continent === TOUS ? "l'ensemble du monde" : params.continent);
-    const secteur = params.industrie_brvm || "ce secteur";
+    const secteur = params.secteur || "ce secteur";
     return `
       <div class="vide404" data-vide-soc="1">
         ${ORDI_PERPLEXE}
@@ -2202,24 +2331,25 @@
   function chargerSocietes() {
     const pan = PANNEAUX.soc;
     pan.detail = detailSociete;
-    const tickers = societesDuPerimetre();
-    pan.items = tickers.map((t) => {
-      const s = BRVM.societes[t];
+    const ids = societesDuPerimetre();
+    pan.items = ids.map((id) => {
+      const s = COMPARABLES[id];
       const derniere = (s.annees || []).slice(-1)[0];
       const val = (serie) => frMontant((serie || {})[String(derniere)]);
+      const gearing = s.capitalisation ? s.dette / s.capitalisation : null;
       return {
-        id: t,
+        id: id,
         title: s.nom,
-        titleHtml: `<span class="soc-flag">${s.drapeau}</span> ${esc(s.nom)}`,
         value: frMontant(s.capitalisation),
         societe: s,
         rows: [
           { label: "Pays", value: s.pays },
-          { label: "Bêta coté (1 an)", value: s.beta == null ? "non publié" : frNum(s.beta, 2) },
+          { label: "Place", value: s.place || "hors cote" },
+          { label: "Bêta (3 ans)", value: s.beta_3ans == null ? "non publié" : frNum(s.beta_3ans, 3) },
           { label: `Chiffre d'affaires ${derniere || ""}`.trim(), value: val(s.ca), strong: true },
           margeEbitda(s),
           { label: `Résultat net ${derniere || ""}`.trim(), value: val(s.rn) },
-          { label: `Capitaux propres ${derniere || ""}`.trim(), value: val(s.capitaux_propres) }
+          { label: "Dette / capitalisation", value: gearing == null ? "—" : frNum(gearing, 2) }
         ]
       };
     });
@@ -2260,9 +2390,9 @@
       return;
     } else if (key === "zone") {
       // Recliquer la zone déjà retenue la désélectionne : c'est le seul moyen de
-      // revenir au continent entier sans passer par le menu.
+      // revenir au continent entier sans passer par le menu. Le pays n'est pas
+      // recalé : il désigne l'émetteur valorisé, pas le périmètre de l'échantillon.
       params.zone = params.zone === value ? null : value;
-      recalerPays();
       apply();
       return;
     } else if (key === "country") {
@@ -2273,13 +2403,11 @@
         params.continent = cont;
         params.zone = null;
       }
-      if (params.zone && zoneDe(value) !== params.zone) params.zone = null;
-    } else if (key === "industrie_brvm") {
+    } else if (key === "secteur") {
       // Même tolérance que pour l'URL : accents et casse approximatifs acceptés,
       // et on conserve la valeur précédente plutôt qu'un libellé inconnu.
-      const secteurs = ((DATA.comparables || {}).industries || []).map((i) => i.nom);
-      const connus = secteurs.length ? secteurs : (BRVM ? BRVM.industries.map((i) => i.nom) : []);
-      value = resolveOption(value, connus) || params.industrie_brvm;
+      const connus = ((DATA.comparables || {}).industries || []).map((i) => i.nom);
+      value = resolveOption(value, connus) || params.secteur;
     } else if (key === "gearing_cible") {
       // La saisie brute est conservée telle quelle : c'est elle qu'il faut
       // réafficher pour que l'utilisateur voie ce qui a été refusé.
@@ -2334,12 +2462,18 @@
     if (query.has("maturity") && DATA.options.maturities.includes(query.get("maturity"))) {
       params.maturity = query.get("maturity");
     }
-    if (BRVM && query.has("referentiel") && ["damodaran", "brvm"].includes(query.get("referentiel"))) {
-      params.referentiel = query.get("referentiel");
+    // « brvm » et « industrie_brvm » sont les anciens noms, restés dans les
+    // liens déjà partagés : on les accepte encore, sans les produire.
+    const demande = query.get("referentiel");
+    if (["damodaran", "comparables", "brvm"].includes(demande)) {
+      params.referentiel = demande === "brvm" ? "comparables" : demande;
     }
-    if (BRVM && query.has("industrie_brvm")) {
-      const trouvee = resolveOption(query.get("industrie_brvm"), BRVM.industries.map((i) => i.nom));
-      if (trouvee) params.industrie_brvm = trouvee;
+    const secteurs = ((DATA.comparables || {}).industries || []).map((i) => i.nom);
+    for (const cle of ["secteur", "industrie_brvm"]) {
+      if (query.has(cle)) {
+        const trouvee = resolveOption(query.get(cle), secteurs);
+        if (trouvee) params.secteur = trouvee;
+      }
     }
     for (const [key, list] of [["country", DATA.options.countries], ["industry", DATA.options.industries]]) {
       if (query.has(key)) {
@@ -2369,7 +2503,7 @@
     PANNEAUX.soc.ouvert = null;
 
     chargerCmpc();
-    if (BRVM) chargerSocietes();
+    chargerSocietes();
 
     for (const cle of ["cmpc", "soc"]) {
       const garde = ouverts[cle];

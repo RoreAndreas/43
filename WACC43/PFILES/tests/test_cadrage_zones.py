@@ -45,7 +45,7 @@ def zones_du_continent(donnees, continent):
 def test_seules_les_places_porteuses_sont_listees(page, donnees, industrie):
     mode_comparables(page)
     choisir(page, "continent", "Afrique")
-    choisir(page, "industrie_brvm", industrie)
+    choisir(page, "secteur", industrie)
 
     attendu = places_attendues(donnees, industrie, zones_du_continent(donnees, "Afrique"))
     assert places(page) == attendu
@@ -55,7 +55,7 @@ def test_une_zone_vide_n_apporte_aucune_place(page, donnees):
     """Le cas exact du rapport : trois sociétés, deux marchés, pas dix."""
     mode_comparables(page)
     choisir(page, "continent", "Afrique")
-    choisir(page, "industrie_brvm", "Air Freight and Logistics")
+    choisir(page, "secteur", "Air Freight and Logistics")
 
     source = donnees["comparables"]["zones"]
     vides = [
@@ -80,7 +80,7 @@ def test_une_zone_vide_n_apporte_aucune_place(page, donnees):
 def test_l_effectif_annonce_est_la_somme_des_zones(page, donnees, industrie):
     mode_comparables(page)
     choisir(page, "continent", "Afrique")
-    choisir(page, "industrie_brvm", industrie)
+    choisir(page, "secteur", industrie)
 
     source = donnees["comparables"]["zones"]
     attendu = sum(
@@ -93,7 +93,7 @@ def test_l_effectif_annonce_est_la_somme_des_zones(page, donnees, industrie):
 def test_une_zone_selectionnee_restreint_le_resume(page, donnees):
     mode_comparables(page)
     choisir(page, "continent", "Afrique")
-    choisir(page, "industrie_brvm", "Banks")
+    choisir(page, "secteur", "Banks")
     continent = chips(page)[0]
 
     page.click('#paramsMain .zone[data-zone="Afrique de l\'Ouest"]')
@@ -111,7 +111,7 @@ def test_une_zone_sans_societe_le_dit(page, donnees):
     """« aucune société » plutôt qu'un tiret qu'on lirait comme une lacune."""
     mode_comparables(page)
     choisir(page, "continent", "Afrique")
-    choisir(page, "industrie_brvm", "Banks")
+    choisir(page, "secteur", "Banks")
 
     page.click('#paramsMain .zone[data-zone="Afrique du Nord"]')
     resume = chips(page)[0]

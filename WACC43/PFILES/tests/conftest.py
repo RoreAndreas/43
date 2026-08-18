@@ -79,7 +79,7 @@ def mode_comparables(page, pays: str = "Benin") -> None:
     recalage le CMPC ne serait calculable dans aucun test, et l'absence de
     résultat viendrait du pays, pas de ce qu'on cherche à vérifier.
     """
-    choisir(page, "referentiel", "brvm")
+    choisir(page, "referentiel", "comparables")
     choisir(page, "country", pays)
 
 
@@ -99,8 +99,19 @@ def nombre_fr(texte: str) -> float:
     return float(net.replace(",", "."))
 
 
-def secteur(donnees: dict, nom: str) -> dict:
-    for i in (donnees.get("comparables") or {}).get("industries", []):
-        if i["nom"] == nom:
-            return i
-    raise AssertionError(f"secteur « {nom} » absent de l'univers de comparables")
+def secteur(donnees: dict, nom: str, perimetre: str = "univers") -> dict:
+    """Statistiques d'un secteur à l'échelle demandée.
+
+    Les médianes sont publiées à trois échelles emboîtées — univers, continent,
+    zone — et la page retient la plus étroite qui atteigne le seuil. Les tests
+    doivent donc dire laquelle ils attendent plutôt que de supposer.
+    """
+    bloc = ((donnees.get("comparables") or {}).get("secteurs") or {}).get(nom)
+    if bloc is None:
+        raise AssertionError(f"secteur « {nom} » absent de l'univers de comparables")
+    if perimetre == "univers":
+        return bloc["univers"]
+    for echelle in ("zones", "continents"):
+        if perimetre in bloc.get(echelle, {}):
+            return bloc[echelle][perimetre]
+    raise AssertionError(f"secteur « {nom} » absent du périmètre « {perimetre} »")

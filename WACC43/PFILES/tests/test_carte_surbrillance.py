@@ -33,7 +33,7 @@ def peuplement(donnees, industrie):
 def test_les_zones_vides_sont_tracees_en_neutre(page, donnees, industrie):
     mode_comparables(page)
     choisir(page, "continent", "Afrique")
-    choisir(page, "industrie_brvm", industrie)
+    choisir(page, "secteur", industrie)
 
     attendu = peuplement(donnees, industrie)
     for zone, classes in etats(page).items():
@@ -44,7 +44,7 @@ def test_les_zones_vides_sont_tracees_en_neutre(page, donnees, industrie):
 def test_cliquer_une_zone_vide_ne_l_allume_pas(page, donnees):
     mode_comparables(page)
     choisir(page, "continent", "Afrique")
-    choisir(page, "industrie_brvm", "Banks")
+    choisir(page, "secteur", "Banks")
 
     vides = [z for z, n in peuplement(donnees, "Banks").items() if n == 0]
     assert vides, "aucune zone vide : le test perdrait son objet"
@@ -58,7 +58,7 @@ def test_cliquer_une_zone_vide_ne_l_allume_pas(page, donnees):
 def test_cliquer_une_zone_peuplee_l_allume(page, donnees):
     mode_comparables(page)
     choisir(page, "continent", "Afrique")
-    choisir(page, "industrie_brvm", "Banks")
+    choisir(page, "secteur", "Banks")
 
     pleines = [z for z, n in peuplement(donnees, "Banks").items() if n]
     page.click(f'{ZONES}[data-zone="{pleines[0]}"]')
@@ -73,7 +73,7 @@ def test_la_surbrillance_tombe_quand_l_industrie_vide_la_zone(page, donnees):
     """Le nettoyage se fait au même rafraîchissement que l'onglet Sociétés."""
     mode_comparables(page)
     choisir(page, "continent", "Afrique")
-    choisir(page, "industrie_brvm", "Banks")
+    choisir(page, "secteur", "Banks")
 
     zone = "Afrique australe"
     assert peuplement(donnees, "Banks")[zone] > 0
@@ -82,7 +82,7 @@ def test_la_surbrillance_tombe_quand_l_industrie_vide_la_zone(page, donnees):
 
     # Ce secteur n'a aucune société en Afrique australe : la zone reste le
     # cadrage retenu, mais plus rien n'y est mis en avant.
-    choisir(page, "industrie_brvm", "Air Freight and Logistics")
+    choisir(page, "secteur", "Air Freight and Logistics")
     assert peuplement(donnees, "Air Freight and Logistics")[zone] == 0
 
     classes = etats(page)[zone]
@@ -99,7 +99,7 @@ def test_la_surbrillance_tombe_quand_l_industrie_vide_la_zone(page, donnees):
 def test_l_infobulle_dit_l_effectif(page, donnees):
     mode_comparables(page)
     choisir(page, "continent", "Afrique")
-    choisir(page, "industrie_brvm", "Banks")
+    choisir(page, "secteur", "Banks")
 
     titres = dict(page.eval_on_selector_all(
         ZONES, "els => els.map(e => [e.dataset.zone, e.querySelector('title').textContent])"))

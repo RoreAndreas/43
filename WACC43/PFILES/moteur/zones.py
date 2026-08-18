@@ -278,55 +278,6 @@ def enrichir_dataset(dataset: dict) -> list:
     return inclassables
 
 
-def indexer_societes(dataset: dict) -> dict:
-    """
-    Compte les sociétés référencées par zone, et par industrie au sein d'une zone.
-
-    Écrit `dataset["zones_societes"]`. Les effectifs sortent des seules sociétés
-    réellement présentes dans le jeu de données : aujourd'hui les 47 valeurs de
-    la place d'Abidjan, qui couvrent sept pays et donc **une seule zone sur les
-    dix-huit**. Les autres zones sortent à zéro, et la page doit le dire au lieu
-    d'afficher un tiret qu'on lirait comme une donnée manquante.
-
-    Rend les pays de sociétés qu'aucune zone ne réclame, pour que le build le
-    signale plutôt que de les perdre.
-    """
-    brvm = dataset.get("brvm") or {}
-    societes = brvm.get("societes") or {}
-    industries = brvm.get("industries") or []
-
-    industrie_du_ticker = {}
-    for entree in industries:
-        for ticker in entree.get("tickers", []):
-            industrie_du_ticker[ticker] = entree.get("nom")
-
-    index, orphelins = {}, []
-    for ticker, societe in societes.items():
-        pays = societe.get("pays")
-        if not pays:
-            continue
-        _continent, zone = classer(pays)
-        if zone is None:
-            orphelins.append(pays)
-            continue
-        # La place de cotation, pas le pays du siège : les 47 valeurs du jeu de
-        # données sont toutes cotées à Abidjan. Le jour où une autre place entre
-        # dans le périmètre, ce libellé devra venir de la donnée et non d'ici.
-        place = societe.get("place") or "BRVM"
-        seau = index.setdefault(zone, {"total": 0, "places": {}, "industries": {}})
-        seau["total"] += 1
-        seau["places"][place] = seau["places"].get(place, 0) + 1
-        nom_industrie = industrie_du_ticker.get(ticker)
-        if nom_industrie:
-            detail = seau["industries"].setdefault(nom_industrie, {"n": 0, "places": {}})
-            detail["n"] += 1
-            detail["places"][place] = detail["places"].get(place, 0) + 1
-
-    dataset["zones_societes"] = index
-    dataset["societes_hors_zone"] = sorted(set(orphelins))
-    return dataset["societes_hors_zone"]
-
-
 def index_par_pays(pays_regions) -> dict:
     """
     {pays: {"continent": ..., "zone": ...}} pour la liste fournie.

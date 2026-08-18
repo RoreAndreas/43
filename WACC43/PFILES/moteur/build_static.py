@@ -16,7 +16,6 @@ import shutil
 import time
 from pathlib import Path
 
-import brvm_core
 import wacc_core
 from wacc_html import render_page
 
@@ -30,26 +29,28 @@ MIN_COUNTRIES = 100
 MIN_INDUSTRIES = 60
 
 
-def _reclasser_brvm(brvm: dict, univers: dict):
-    """Range les sociétés BRVM dans la nomenclature de l'export.
+# En deçà de ce nombre de sociétés, une médiane de zone ne décrit plus un
+# secteur : sur les 126 couples zone x secteur, 40 % n'en comptent aucune et un
+# tiers une seule. La page reprend alors la médiane du continent, et l'écrit.
+SEUIL_ECHANTILLON = 3
 
-    Rend (industries, sociétés restées hors export). Les industries sont celles
-    de l'export qui comptent au moins une société cotée à Abidjan : ce sont les
-    seules pour lesquelles un bêta coté est disponible, et donc les seules où le
-    coût des fonds propres peut être calculé.
+
+def _courbes_souveraines(progress):
+    """Courbes UMOA-Titres, taux sans risque du référentiel Comparables.
+
+    Une indisponibilité du site ne doit pas faire échouer la construction : la
+    page reste consultable, seul le taux sans risque manque et elle le dit.
     """
-    par_ticker = univers.get("industrie_par_ticker") or {}
-    paniers, restants = {}, []
-    for ticker in brvm.get("societes", {}):
-        nom = par_ticker.get(ticker)
-        if nom is None:
-            restants.append(ticker)
-            continue
-        paniers.setdefault(nom, []).append(ticker)
-    return (
-        [{"nom": nom, "tickers": sorted(t)} for nom, t in sorted(paniers.items())],
-        sorted(restants),
-    )
+    try:
+        import taux_uemoa
+
+        progress("Courbes de taux UEMOA...")
+        courbes = taux_uemoa.charger_courbes()
+        progress(f"Courbes au {courbes['date']} — {len(courbes['pays'])} États.")
+        return courbes
+    except Exception as exc:
+        progress(f"Courbes UEMOA indisponibles ({type(exc).__name__}) — taux sans risque absent.")
+        return None
 
 
 def main():
@@ -97,9 +98,9 @@ def main():
         for nom in inclassables:
             print(f"       - {nom}")
 
-    # Volet BRVM : instantané pris au build. La page ne suit jamais la cadence du
-    # scraper SIKAPRO, qui tourne toutes les 10 minutes dans son propre projet.
-    dataset["brvm"] = brvm_core.build_brvm(progress=progress)
+    # Taux sans risque du référentiel Comparables : la courbe souveraine de
+    # l'État retenu. Elle porte déjà le risque pays, aucune prime ne s'y ajoute.
+    dataset["taux_souverains"] = _courbes_souveraines(progress)
 
     import comparables as _comparables
     import zones as _zones
@@ -120,22 +121,40 @@ def main():
         )
     else:
         index, orphelins = _comparables.indexer_par_zone(univers, _zones.classer)
+        societes = _comparables.payload_page(univers, _zones.classer)
+        secteurs = _comparables.secteurs_par_perimetre(univers["societes"], _zones.classer)
         dataset["comparables"] = {
             "source": univers["source"],
-            "industries": univers["industries"],
+            "seuil": SEUIL_ECHANTILLON,
+            # Le menu se peuple de tous les secteurs de l'univers, peuplés ou non
+            # dans la zone retenue : masquer ceux qui manquent ici priverait
+            # l'utilisateur de la vue continentale, qui reste calculable.
+            "industries": [{"nom": nom, "societes": stats["univers"]["societes"]}
+                           for nom, stats in sorted(secteurs.items())],
+            # Médianes aux trois échelles : la page prend la plus étroite qui
+            # atteigne le seuil et écrit laquelle a servi.
+            "secteurs": secteurs,
             "zones": index,
+            # Les sociétés elles-mêmes, et pas seulement leur décompte : c'est
+            # cette population que l'onglet Sociétés doit lister, la même que
+            # celle que chiffre le cadrage.
+            "societes": societes,
         }
+
+        # Garde-fou : les effectifs de la carte et la liste des sociétés sortent
+        # de deux parcours différents du même univers. S'ils divergent, la page
+        # annoncera des sociétés qu'elle ne sait pas montrer — le défaut qu'on
+        # vient de corriger. Autant que la construction s'arrête ici.
+        attendu = sum(bloc["total"] for bloc in index.values())
+        sans_zone = sum(1 for s in societes.values() if s["zone"] is None)
+        if len(societes) != attendu + sans_zone:
+            raise SystemExit(
+                f"Incohérence : {len(societes)} sociétés embarquées, mais "
+                f"{attendu} comptées en zone et {sans_zone} sans zone — page non écrite."
+            )
         dataset["zones_societes"] = index
         if orphelins:
             print(f"  /!\\ pays de comparables sans zone : {', '.join(orphelins)}")
-
-        # Les bêtas cotés viennent de la BRVM, classés selon ses douze secteurs.
-        # On les reclasse dans la nomenclature de l'export pour n'avoir qu'une
-        # seule taxonomie ; les sociétés absentes de l'export gardent la leur.
-        reclasse, restants = _reclasser_brvm(dataset["brvm"], univers)
-        dataset["brvm"]["industries"] = reclasse
-        if restants:
-            print(f"  /!\\ sociétés BRVM hors export : {', '.join(restants)}")
 
     page = render_page(dataset)
     target = out / "index.html"

@@ -42,13 +42,18 @@ def etat_vide(page):
 
 # ------------------------------------------------ le repli sur une autre industrie
 
-def test_une_industrie_sans_societe_cotee_n_emprunte_pas_celles_d_une_autre(page):
+def test_une_industrie_sans_societe_dans_la_zone_n_emprunte_pas_celles_d_une_autre(page):
+    """Le repli sur la première industrie de la liste montrait un autre secteur."""
     mode_comparables(page)
-    choisir(page, "industrie_brvm", "Air Freight and Logistics")
-    air = cartes(page)
-    assert air, "cette industrie a bien une société cotée, le test perdrait son sens"
+    choisir(page, "continent", "Afrique")
+    choisir(page, "secteur", "Banks")
+    page.click('#paramsMain .zone[data-zone="Afrique australe"]')
+    banques = cartes(page)
+    assert banques, "l'Afrique australe compte des banques, le test perdrait son sens"
 
-    choisir(page, "industrie_brvm", "Capital Markets")
+    # Ce secteur n'a aucune société en Afrique australe : la liste doit se vider,
+    # et surtout ne pas se remplir de celles d'un autre secteur.
+    choisir(page, "secteur", "Air Freight and Logistics")
     assert cartes(page) == []
     assert etat_vide(page)
 
@@ -57,7 +62,7 @@ def test_l_onglet_suit_chaque_changement_d_industrie(page):
     mode_comparables(page)
     vus = []
     for industrie in ["Banks", "Capital Markets", "Tobacco", "Banks"]:
-        choisir(page, "industrie_brvm", industrie)
+        choisir(page, "secteur", industrie)
         vus.append(tuple(cartes(page)))
 
     assert vus[0] != vus[1], "passage à un secteur vide sans effet à l'écran"
@@ -70,7 +75,7 @@ def test_l_onglet_suit_chaque_changement_d_industrie(page):
 @pytest.mark.parametrize("continent", ["Europe", "Asie", "Amériques"])
 def test_un_continent_sans_societe_cotee_vide_la_liste(page, continent):
     mode_comparables(page)
-    choisir(page, "industrie_brvm", "Banks")
+    choisir(page, "secteur", "Banks")
     assert cartes(page), "les banques doivent être listées avant de filtrer"
 
     choisir(page, "continent", continent)
@@ -80,7 +85,7 @@ def test_un_continent_sans_societe_cotee_vide_la_liste(page, continent):
 
 def test_le_retour_sur_l_afrique_rend_la_liste(page):
     mode_comparables(page)
-    choisir(page, "industrie_brvm", "Banks")
+    choisir(page, "secteur", "Banks")
     attendu = cartes(page)
 
     choisir(page, "continent", "Europe")
@@ -93,50 +98,27 @@ def test_le_retour_sur_l_afrique_rend_la_liste(page):
 def test_les_societes_listees_sont_dans_le_perimetre(page, donnees):
     """Chaque société affichée doit appartenir à une zone du filtre courant."""
     mode_comparables(page)
-    choisir(page, "industrie_brvm", "Banks")
+    choisir(page, "secteur", "Banks")
     choisir(page, "continent", "Afrique")
 
     ouvrir_societes(page)
-    tickers = [e.get_attribute("data-comp") for e in page.query_selector_all("#stackSoc .comp")]
+    ids = [e.get_attribute("data-comp") for e in page.query_selector_all("#stackSoc .comp")]
     revenir_aux_parametres(page)
 
-    assert tickers, "aucune société lue"
-    for ticker in tickers:
-        pays = donnees["brvm"]["societes"][ticker]["pays"]
-        zone = zone_du_pays(donnees, pays)
-        assert zone is not None, f"{ticker} ({pays}) n'est rattachée à aucune zone"
-        assert continent_du_pays(donnees, pays) == "Afrique"
-
-
-def _sans_accent(texte: str) -> str:
-    import unicodedata
-    decompose = unicodedata.normalize("NFD", str(texte))
-    return "".join(c for c in decompose if unicodedata.category(c) != "Mn").lower().strip()
-
-
-def _entree_pays(donnees: dict, nom: str):
-    cible = _sans_accent(nom)
-    for cle, entree in donnees["pays"].items():
-        if _sans_accent(cle) == cible:
-            return entree
-    return None
-
-
-def zone_du_pays(donnees, nom):
-    entree = _entree_pays(donnees, nom)
-    return entree.get("zone") if entree else None
-
-
-def continent_du_pays(donnees, nom):
-    entree = _entree_pays(donnees, nom)
-    return entree.get("continent") if entree else None
+    assert ids, "aucune société lue"
+    zones = {z[0] for z in donnees["options"]["zones_par_continent"]["Afrique"]}
+    for identifiant in ids:
+        societe = donnees["comparables"]["societes"][identifiant]
+        assert societe["continent"] == "Afrique", societe["nom"]
+        assert societe["zone"] in zones, societe["nom"]
+        assert societe["industrie"] == "Banks", societe["nom"]
 
 
 # --------------------------------------------------------------- l'état vide
 
 def test_l_etat_vide_est_explicite_et_situe(page):
     mode_comparables(page)
-    choisir(page, "industrie_brvm", "Banks")
+    choisir(page, "secteur", "Banks")
     choisir(page, "continent", "Europe")
 
     ouvrir_societes(page)
@@ -151,7 +133,7 @@ def test_l_etat_vide_est_explicite_et_situe(page):
 
 def test_l_etat_vide_ne_laisse_aucune_carte_derriere_lui(page):
     mode_comparables(page)
-    choisir(page, "industrie_brvm", "Banks")
+    choisir(page, "secteur", "Banks")
     choisir(page, "continent", "Europe")
 
     ouvrir_societes(page)

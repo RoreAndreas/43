@@ -189,13 +189,6 @@ def charger(chemin: Path, progress=None) -> dict:
     return {
         "source": chemin.name,
         "societes": societes,
-        "industries": _industries(societes),
-        # Passerelle vers le volet BRVM, dont les sociétés portent les mêmes
-        # codes : elle permet de reclasser les bêtas cotés dans la taxonomie de
-        # l'export, et de n'avoir qu'une seule nomenclature d'industries.
-        "industrie_par_ticker": {
-            s["ticker"]: s["industrie"] for s in societes.values() if s.get("ticker")
-        },
     }
 
 
@@ -221,42 +214,114 @@ def _est_complete(s: dict) -> bool:
     return True
 
 
-def _industries(societes: dict) -> list:
-    """Secteurs de l'univers, avec leurs bêtas et leur gearing médians.
+def statistiques(membres: list) -> dict:
+    """Bêtas et gearing médians d'un groupe de sociétés.
 
     La médiane, et non la moyenne ni un rapport d'agrégats : sur des marchés
     africains où quelques capitalisations écrasent la distribution, une moyenne
     dit surtout ce que fait la plus grosse valeur du secteur. La médiane décrit
     la société typique, qui est ce qu'on cherche pour un comparable.
-
-    Seules les sociétés complètes entrent dans le calcul.
     """
-    paniers = {}
-    for ident, s in societes.items():
-        if s.get("visible"):
-            paniers.setdefault(s["industrie"], []).append((ident, s))
-
     def mediane(valeurs):
         return round(statistics.median(valeurs), 4) if valeurs else None
 
-    sortie = []
-    for nom, membres in sorted(paniers.items()):
-        b1 = [s["beta_1an"] for _i, s in membres]
-        b3 = [s["beta_3ans"] for _i, s in membres]
-        ratios = [s["dette"] / s["capitalisation"] for _i, s in membres]
-        sortie.append({
-            "nom": nom,
-            "tickers": [i for i, _s in membres],
-            "societes": len(membres),
-            "beta_1an": mediane(b1),
-            "beta_3ans": mediane(b3),
-            "gearing": mediane(ratios),
-            # Somme et non médiane : la capitalisation ne sert pas au calcul, elle
-            # dit le poids de l'échantillon. Elle doit porter sur exactement les
-            # sociétés qui produisent les médianes ci-dessus, sans quoi le panneau
-            # décrirait une population et en chiffrerait une autre.
-            "capitalisation": round(sum(s["capitalisation"] for _i, s in membres), 1),
-        })
+    return {
+        "societes": len(membres),
+        "beta_1an": mediane([s["beta_1an"] for s in membres]),
+        "beta_3ans": mediane([s["beta_3ans"] for s in membres]),
+        "gearing": mediane([s["dette"] / s["capitalisation"] for s in membres]),
+        # Somme et non médiane : la capitalisation ne sert pas au calcul, elle
+        # dit le poids de l'échantillon. Elle porte donc sur exactement les
+        # sociétés qui produisent les médianes ci-dessus, sans quoi le panneau
+        # décrirait une population et en chiffrerait une autre.
+        "capitalisation": round(sum(s["capitalisation"] for s in membres), 1),
+    }
+
+
+def secteurs_par_perimetre(societes: dict, classer) -> dict:
+    """Statistiques de chaque secteur, à trois échelles emboîtées.
+
+    Le CMPC se calcule sur la zone retenue. Mais l'univers est mince : sur les
+    cent vingt-six couples zone x secteur, quarante pour cent ne comptent aucune
+    société et un tiers n'en compte qu'une. Une médiane sur une seule société
+    n'est pas une médiane, c'est cette société.
+
+    On publie donc les trois échelles — zone, continent, univers — et la page
+    prend la plus étroite qui atteigne le seuil, en écrivant laquelle a servi.
+    Choisir à la construction figerait ce repli sans que l'utilisateur le voie.
+    """
+    paniers = {"univers": {}, "continents": {}, "zones": {}}
+    for s in societes.values():
+        if not s.get("visible"):
+            continue
+        nom = s["industrie"]
+        continent, zone = classer(s["pays"])
+        paniers["univers"].setdefault(nom, []).append(s)
+        if continent:
+            paniers["continents"].setdefault(nom, {}).setdefault(continent, []).append(s)
+        if zone:
+            paniers["zones"].setdefault(nom, {}).setdefault(zone, []).append(s)
+
+    sortie = {}
+    for nom, membres in sorted(paniers["univers"].items()):
+        sortie[nom] = {
+            "univers": statistiques(membres),
+            "continents": {c: statistiques(m)
+                           for c, m in sorted(paniers["continents"].get(nom, {}).items())},
+            "zones": {z: statistiques(m)
+                      for z, m in sorted(paniers["zones"].get(nom, {}).items())},
+        }
+    return sortie
+
+
+def payload_page(univers: dict, classer) -> dict:
+    """Les sociétés visibles, allégées pour être embarquées dans la page.
+
+    C'est la seule source de comparables de la page : décomptes du cadrage,
+    médianes du CMPC et cartes de l'onglet Sociétés en sortent toutes.
+
+    Deux précautions qui ne se voient pas dans le résultat :
+
+    - **Unités.** Produits, EBITDA et résultat net sont exportés en milliers
+      (`BCEAO000`), la capitalisation en millions (`BCEAOM`). Tout est ramené
+      ici en millions, faute de quoi la même page afficherait deux échelles
+      sans le dire.
+
+    - **Zone.** Elle est calculée ici, par le `classer` qui produit aussi les
+      effectifs du cadrage. La déduire côté navigateur à partir du pays
+      supposerait que tout pays coté soit connu de Damodaran : le Malawi et la
+      Gambie ne le sont pas, et leurs quatorze sociétés auraient été comptées
+      sans jamais pouvoir être listées.
+    """
+    def millions(valeur):
+        return None if valeur is None else round(valeur / 1000.0, 1)
+
+    sortie = {}
+    for ident, s in univers["societes"].items():
+        if not s.get("visible"):
+            continue
+        continent, zone = classer(s["pays"])
+        ca, ebitda, rn = s.get("ca") or {}, s.get("ebitda") or {}, s.get("rn") or {}
+        sortie[ident] = {
+            "nom": s["nom"],
+            "ticker": s["ticker"],
+            "place": s["place"],
+            "pays": s["pays"],
+            "continent": continent,
+            "zone": zone,
+            "industrie": s["industrie"],
+            "activite": s.get("industrie_fine"),
+            "presentation": s.get("description"),
+            "beta_1an": s.get("beta_1an"),
+            "beta_3ans": s.get("beta_3ans"),
+            "capitalisation": round(s["capitalisation"], 1),
+            "dette": round(s["dette"], 1),
+            # Exercices en clair : le gabarit indexe les séries par année.
+            "annees": [int(a[2:]) for a in reversed(EXERCICES)],
+            "ca": {a[2:]: millions(ca.get(a)) for a in EXERCICES},
+            "ebitda": {a[2:]: millions(ebitda.get(a)) for a in EXERCICES},
+            "rn": {a[2:]: millions(rn.get(a)) for a in EXERCICES[:3]},
+        }
     return sortie
 
 
