@@ -1,5 +1,5 @@
 {
-    "last_update": "2026-08-18 15:14:14",
+    "last_update": "2026-08-18 15:51:31",
     "count": 47,
     "data": [
         {
@@ -324,8 +324,8 @@
             "mm_20": 11528.0,
             "mm_50": 10202.2,
             "mm_200": 8508.9,
-            "perf_ytd_pct": 91.57,
-            "perf_1an_pct": 121.85,
+            "perf_ytd_pct": 87.33,
+            "perf_1an_pct": 116.94,
             "consensus_note": 1.1,
             "consensus_reco": "Strong Sell",
             "objectif_cours": 7785.0,
@@ -2300,8 +2300,8 @@
             "mm_20": 16141.75,
             "mm_50": 16396.8,
             "mm_200": 16278.65,
-            "perf_ytd_pct": 0.03,
-            "perf_1an_pct": 36.79,
+            "perf_ytd_pct": 5.53,
+            "perf_1an_pct": 44.32,
             "consensus_note": 3.4,
             "consensus_reco": "Sell",
             "objectif_cours": 15073.0,
