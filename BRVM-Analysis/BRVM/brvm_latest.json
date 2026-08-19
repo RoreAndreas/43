@@ -1,21 +1,21 @@
 {
-    "last_update": "2026-08-19 11:37:13",
+    "last_update": "2026-08-19 12:00:52",
     "count": 47,
     "data": [
         {
             "symbole": "ABJC",
             "prix": "3 385",
-            "variation": "0,00%"
+            "variation": "0,15%"
         },
         {
             "symbole": "BICB",
-            "prix": "8 475",
-            "variation": "2,17%"
+            "prix": "8 200",
+            "variation": "-1,15%"
         },
         {
             "symbole": "BICC",
             "prix": "29 000",
-            "variation": "0,52%"
+            "variation": "0,69%"
         },
         {
             "symbole": "BNBC",
@@ -24,8 +24,8 @@
         },
         {
             "symbole": "BOAB",
-            "prix": "9 400",
-            "variation": "-1,60%"
+            "prix": "9 200",
+            "variation": "-3,19%"
         },
         {
             "symbole": "BOABF",
@@ -35,12 +35,12 @@
         {
             "symbole": "BOAC",
             "prix": "13 450",
-            "variation": "0,00%"
+            "variation": "-0,07%"
         },
         {
             "symbole": "BOAM",
             "prix": "6 240",
-            "variation": "1,21%"
+            "variation": "2,02%"
         },
         {
             "symbole": "BOAN",
@@ -50,12 +50,12 @@
         {
             "symbole": "BOAS",
             "prix": "7 800",
-            "variation": "1,28%"
+            "variation": "0,64%"
         },
         {
             "symbole": "CABC",
             "prix": "3 700",
-            "variation": "0,14%"
+            "variation": "2,22%"
         },
         {
             "symbole": "CBIBF",
@@ -74,8 +74,8 @@
         },
         {
             "symbole": "ECOC",
-            "prix": "16 885",
-            "variation": "-0,09%"
+            "prix": "16 500",
+            "variation": "-4,06%"
         },
         {
             "symbole": "ETIT",
@@ -110,12 +110,12 @@
         {
             "symbole": "ONTBF",
             "prix": "2 900",
-            "variation": "0,00%"
+            "variation": "-1,72%"
         },
         {
             "symbole": "ORAC",
             "prix": "19 510",
-            "variation": "2,74%"
+            "variation": "3,16%"
         },
         {
             "symbole": "ORGT",
@@ -125,17 +125,17 @@
         {
             "symbole": "PALC",
             "prix": "9 400",
-            "variation": "1,22%"
+            "variation": "1,06%"
         },
         {
             "symbole": "PRSC",
             "prix": "4 495",
-            "variation": "2,04%"
+            "variation": "1,70%"
         },
         {
             "symbole": "SAFC",
             "prix": "5 730",
-            "variation": "1,60%"
+            "variation": "1,78%"
         },
         {
             "symbole": "SCRC",
@@ -149,8 +149,8 @@
         },
         {
             "symbole": "SDSC",
-            "prix": "2 600",
-            "variation": "1,92%"
+            "prix": "2 700",
+            "variation": "0,38%"
         },
         {
             "symbole": "SEMC",
@@ -164,13 +164,13 @@
         },
         {
             "symbole": "SHEC",
-            "prix": "2 495",
-            "variation": "3,96%"
+            "prix": "2 400",
+            "variation": "0,00%"
         },
         {
             "symbole": "SIBC",
             "prix": "9 285",
-            "variation": "-0,16%"
+            "variation": "-0,92%"
         },
         {
             "symbole": "SICC",
@@ -179,28 +179,28 @@
         },
         {
             "symbole": "SIVC",
-            "prix": "2 260",
-            "variation": "-5,02%"
+            "prix": "2 275",
+            "variation": "-4,81%"
         },
         {
             "symbole": "SLBC",
             "prix": "37 500",
-            "variation": "0,00%"
+            "variation": "-0,01%"
         },
         {
             "symbole": "SMBC",
             "prix": "16 445",
-            "variation": "0,03%"
+            "variation": "0,00%"
         },
         {
             "symbole": "SNTS",
-            "prix": "34 500",
+            "prix": "34 400",
             "variation": "5,85%"
         },
         {
             "symbole": "SOGC",
-            "prix": "8 100",
-            "variation": "3,80%"
+            "prix": "8 195",
+            "variation": "5,06%"
         },
         {
             "symbole": "SPHC",
@@ -210,7 +210,7 @@
         {
             "symbole": "STAC",
             "prix": "2 530",
-            "variation": "0,00%"
+            "variation": "1,98%"
         },
         {
             "symbole": "STBC",
@@ -219,7 +219,7 @@
         },
         {
             "symbole": "TTLC",
-            "prix": "3 230",
+            "prix": "3 160",
             "variation": "-2,12%"
         },
         {
@@ -234,7 +234,7 @@
         },
         {
             "symbole": "UNXC",
-            "prix": "2 415",
+            "prix": "2 360",
             "variation": "5,53%"
         }
     ]
