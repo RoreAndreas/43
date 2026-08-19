@@ -41,12 +41,35 @@ Les en-têtes occupent les lignes 3 à 6 ; les données commencent ligne 7.
 
 from __future__ import annotations
 
+import re
 import statistics
 from pathlib import Path
 
 import openpyxl
 
+# Formes juridiques et abréviations dont le point ne termine pas une phrase.
+# Sans cette liste, trente pour cent des résumés s'arrêtaient sur la raison
+# sociale — « Lesaka Technologies, Inc. », « Harel Mallac & Co. » — et ne
+# disaient plus rien de l'activité.
+_ABREVIATIONS = {
+    "co", "inc", "ltd", "corp", "plc", "cie", "sa", "nv", "ag", "bhd", "pty",
+    "pte", "llc", "lp", "llp", "ab", "oy", "asa", "spa", "srl", "kgaa", "gmbh",
+    "jsc", "pjsc", "psc", "sas", "sarl", "bv", "kk", "tbk", "sae", "cv",
+    "no", "st", "dr", "jr", "sr", "approx", "est",
+}
+_POINT = re.compile(r"\.(?=\s|$)")
+
+# Une « phrase » plus courte que cela est presque sûrement un artefact
+# d'abréviation qu'aucune liste ne couvrira jamais entièrement — « EL. D.
+# Mouzakis S.A. » en est un. On continue alors de chercher la vraie coupure.
+_PHRASE_MIN = 25
+
 PREMIERE_LIGNE = 7
+
+# Longueur au-delà de laquelle la présentation est coupée. Voir `resume()` : la
+# première phrase fait 123 caractères en médiane, et 4 % seulement atteignent ce
+# plafond — il ne sert qu'à écarter les énumérations de pays à rallonge.
+RESUME_MAX = 220
 
 # Nombre de sociétés retenues pour une médiane sectorielle. Voir
 # `statistiques()` : au-delà, ce sont les micro-capitalisations qui décident.
@@ -309,10 +332,9 @@ def payload_page(univers: dict, classer) -> dict:
       ici en millions, faute de quoi la même page afficherait deux échelles
       sans le dire.
 
-    Les descriptions d'activité ne sont pas embarquées : intégrales elles pesaient
-    sept mégaoctets sur dix, et la page doit rester un fichier unique que le
-    navigateur analyse d'un bloc. L'industrie fine de S&P, elle, est conservée :
-    elle tient en quelques mots et suffit à situer l'activité.
+    Les descriptions ne sont embarquées que sous forme de première phrase : voir
+    `resume()`. Intégrales, elles pesaient sept mégaoctets sur dix, et la page
+    doit rester un fichier unique que le navigateur analyse d'un bloc.
 
     - **Zone.** Elle est calculée ici, par le `classer` qui produit aussi les
       effectifs du cadrage. La déduire côté navigateur à partir du pays
@@ -322,6 +344,40 @@ def payload_page(univers: dict, classer) -> dict:
     """
     def millions(valeur):
         return None if valeur is None else round(valeur / 1000.0, 1)
+
+    def resume(texte):
+        """La première phrase de la description S&P, coupée si besoin.
+
+        Les descriptions font mille caractères en moyenne et montent à cinq
+        mille : embarquées telles quelles pour près de sept mille sociétés, elles
+        pesaient à elles seules les deux tiers du jeu de données. Leur première
+        phrase dit pourtant l'essentiel — ce que fait la société et où — pour un
+        sixième du poids.
+
+        Encore faut-il trouver la fin de cette phrase. Prise naïvement au premier
+        point suivi d'un espace, elle tombait sur la forme juridique pour trente
+        pour cent des sociétés : « Lesaka Technologies, Inc. » et rien d'autre.
+
+        On ne retire pas le nom de la société bien qu'il figure déjà sur la
+        carte : l'ôter laisse une phrase sans sujet, qui se lit plus mal qu'une
+        redite de trois mots.
+        """
+        if not texte:
+            return None
+        propre = " ".join(texte.split())
+        for point in _POINT.finditer(propre):
+            debut = propre.rfind(" ", 0, point.start()) + 1
+            mot = propre[debut:point.start()].lower().strip("(),;:\"'")
+            # Une initiale, un sigle pointé, une forme juridique : on passe.
+            if len(mot) <= 1 or "." in mot or mot in _ABREVIATIONS:
+                continue
+            if point.end() < _PHRASE_MIN:
+                continue
+            propre = propre[: point.end()]
+            break
+        if len(propre) <= RESUME_MAX:
+            return propre
+        return propre[:RESUME_MAX].rsplit(" ", 1)[0].rstrip(" ,;:.") + "…"
 
 
     sortie = {}
@@ -339,6 +395,7 @@ def payload_page(univers: dict, classer) -> dict:
             "zone": zone,
             "industrie": s["industrie"],
             "activite": s.get("industrie_fine"),
+            "presentation": resume(s.get("description")),
             "beta_1an": s.get("beta_1an"),
             "beta_3ans": s.get("beta_3ans"),
             "capitalisation": round(s["capitalisation"], 1),

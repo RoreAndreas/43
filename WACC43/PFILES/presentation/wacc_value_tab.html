@@ -805,15 +805,27 @@
     text-transform: uppercase;
     color: var(--muted);
   }
+  /* Le tableau déborde du panneau dès que les montants sont longs : il défile
+     dans sa bulle plutôt que d'élargir le panneau ou de se faire compresser. */
   .bulle .fin-table { margin-top: 0; }
+  .bulle-defilante {
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    scrollbar-width: thin;
+    scrollbar-color: var(--muted-2) var(--line);
+  }
 
   .fin-table {
     width: 100%;
     border-collapse: collapse;
     font: 400 12.5px/1.5 var(--sans);
   }
+  /* Une gouttière entre colonnes, et non un simple alignement à droite : les
+     montants américains libellés en FCFA font douze chiffres, et deux cellules
+     voisines se touchaient au point qu'un tiret de valeur manquante se lisait
+     comme le signe d'un résultat négatif. */
   .fin-table th, .fin-table td {
-    padding: 7px 0;
+    padding: 7px 0 7px 16px;
     border-bottom: 1px solid #f1f2f6;
     text-align: right;
     font-family: var(--mono);
@@ -822,6 +834,7 @@
     white-space: nowrap;
   }
   .fin-table th:first-child, .fin-table td:first-child {
+    padding-left: 0;
     text-align: left;
     font-family: var(--sans);
     color: var(--ink-4);
@@ -2256,9 +2269,10 @@
         ${annees.map((a) => `<td>${esc(frMontant((serie || {})[String(a)]))}</td>`).join("")}
       </tr>`).join("");
 
-    // L'activité tient dans la grille d'en-tête — l'industrie fine de S&P — et
-    // les comptes dans leur propre bulle. La description en prose n'est plus
-    // embarquée : elle pesait à elle seule les deux tiers du jeu de données.
+    // L'en-tête dit ce que fait la société — son industrie fine, puis la
+    // première phrase de sa description S&P — et les comptes vont dans leur
+    // propre bulle. La description intégrale n'est pas embarquée : elle pesait
+    // à elle seule les deux tiers du jeu de données.
     return `
       <span class="detail-head">
         <span class="detail-title">${esc(s.nom)}</span>
@@ -2268,11 +2282,12 @@
         <span class="detail-label">Pays</span><span class="detail-text">${esc(s.pays)}${s.zone ? " — " + esc(s.zone) : ""}</span>
         <span class="detail-label">Place</span><span class="detail-text">${esc(s.place || "hors cote")}</span>
         <span class="detail-label">Activité</span><span class="detail-text">${esc(s.activite || s.industrie)}</span>
+        ${s.presentation ? `<span class="detail-label">Présentation</span><span class="detail-text">${esc(s.presentation)}</span>` : ""}
         <span class="detail-label">Capitalisation</span><span class="detail-text">${esc(frMontant(s.capitalisation))} FCFA</span>
         <span class="detail-label">Dette totale</span><span class="detail-text">${esc(frMontant(s.dette))} FCFA</span>
         <span class="detail-label">Bêta (3 ans)</span><span class="detail-text">${s.beta_3ans == null ? "non publié" : frNum(s.beta_3ans, 3)}${s.beta_1an == null ? "" : ", horizon 1 an : " + frNum(s.beta_1an, 3)}. Le CMPC retient la médiane du secteur, pas ce bêta.</span>
       </span>
-      <span class="bulle">
+      <span class="bulle bulle-defilante">
         <span class="bulle-titre">Données financières</span>
         <table class="fin-table">
           <thead><tr><th>En millions FCFA</th>${annees.map((a) => `<th>${a}</th>`).join("")}</tr></thead>
