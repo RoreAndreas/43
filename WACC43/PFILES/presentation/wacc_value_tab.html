@@ -2256,9 +2256,9 @@
         ${annees.map((a) => `<td>${esc(frMontant((serie || {})[String(a)]))}</td>`).join("")}
       </tr>`).join("");
 
-    // Deux bulles distinctes : l'activité se lit en prose, les comptes en
-    // tableau. Les mêler dans une seule grille obligeait l'oeil à passer de
-    // l'une à l'autre sans transition.
+    // L'activité tient dans la grille d'en-tête — l'industrie fine de S&P — et
+    // les comptes dans leur propre bulle. La description en prose n'est plus
+    // embarquée : elle pesait à elle seule les deux tiers du jeu de données.
     return `
       <span class="detail-head">
         <span class="detail-title">${esc(s.nom)}</span>
@@ -2272,11 +2272,6 @@
         <span class="detail-label">Dette totale</span><span class="detail-text">${esc(frMontant(s.dette))} FCFA</span>
         <span class="detail-label">Bêta (3 ans)</span><span class="detail-text">${s.beta_3ans == null ? "non publié" : frNum(s.beta_3ans, 3)}${s.beta_1an == null ? "" : ", horizon 1 an : " + frNum(s.beta_1an, 3)}. Le CMPC retient la médiane du secteur, pas ce bêta.</span>
       </span>
-      ${s.presentation ? `
-        <span class="bulle">
-          <span class="bulle-titre">Activité</span>
-          <span class="detail-text">${esc(s.presentation)}</span>
-        </span>` : ""}
       <span class="bulle">
         <span class="bulle-titre">Données financières</span>
         <table class="fin-table">

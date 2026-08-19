@@ -48,10 +48,6 @@ import openpyxl
 
 PREMIERE_LIGNE = 7
 
-# Longueur retenue des descriptions d'activité. Voir `resume()` : au-delà, elles
-# pèsent plus que tout le reste du jeu de données réuni.
-DESCRIPTION_MAX = 400
-
 # Nombre de sociétés retenues pour une médiane sectorielle. Voir
 # `statistiques()` : au-delà, ce sont les micro-capitalisations qui décident.
 ECHANTILLON_MAX = 20
@@ -313,6 +309,11 @@ def payload_page(univers: dict, classer) -> dict:
       ici en millions, faute de quoi la même page afficherait deux échelles
       sans le dire.
 
+    Les descriptions d'activité ne sont pas embarquées : intégrales elles pesaient
+    sept mégaoctets sur dix, et la page doit rester un fichier unique que le
+    navigateur analyse d'un bloc. L'industrie fine de S&P, elle, est conservée :
+    elle tient en quelques mots et suffit à situer l'activité.
+
     - **Zone.** Elle est calculée ici, par le `classer` qui produit aussi les
       effectifs du cadrage. La déduire côté navigateur à partir du pays
       supposerait que tout pays coté soit connu de Damodaran : le Malawi et la
@@ -322,20 +323,6 @@ def payload_page(univers: dict, classer) -> dict:
     def millions(valeur):
         return None if valeur is None else round(valeur / 1000.0, 1)
 
-    def resume(texte):
-        """Description ramenée à sa première phrase utile.
-
-        Les descriptions S&P vont jusqu'à deux mille caractères et pèsent, à
-        elles seules, les deux tiers du jeu de données embarqué — sept mégaoctets
-        sur dix pour un fichier que le navigateur doit analyser d'un bloc. On en
-        garde de quoi identifier l'activité, coupé sur un mot entier.
-        """
-        if not texte:
-            return None
-        texte = texte.strip()
-        if len(texte) <= DESCRIPTION_MAX:
-            return texte
-        return texte[:DESCRIPTION_MAX].rsplit(" ", 1)[0].rstrip(" ,;:.") + "…"
 
     sortie = {}
     for ident, s in univers["societes"].items():
@@ -352,7 +339,6 @@ def payload_page(univers: dict, classer) -> dict:
             "zone": zone,
             "industrie": s["industrie"],
             "activite": s.get("industrie_fine"),
-            "presentation": resume(s.get("description")),
             "beta_1an": s.get("beta_1an"),
             "beta_3ans": s.get("beta_3ans"),
             "capitalisation": round(s["capitalisation"], 1),

@@ -1,0 +1,8 @@
+# Les exports Cap IQ sont volumineux et binaires : git ne sait pas les comparer,
+# et chaque actualisation ajouterait dix-sept mégaoctets définitifs à
+# l'historique. LFS les garde versionnés en ne laissant qu'un pointeur ici.
+#
+# Attention : `actions/checkout` ne les récupère pas par défaut. Le workflow qui
+# construit la page doit demander `lfs: true`, sinon build_static.py reçoit des
+# pointeurs de cent trente octets et échoue en tentant de les ouvrir.
+WACC43/comps*.xlsx filter=lfs diff=lfs merge=lfs -text
