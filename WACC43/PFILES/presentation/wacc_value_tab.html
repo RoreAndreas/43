@@ -540,6 +540,30 @@
   /* Cartes de sociétés : une liste de valeurs cotées se parcourt, elle ne se
      lit pas comme le résultat d'un calcul. Titres et montants y sont donc plus
      sobres que dans la cascade du CMPC. */
+  /* Filet accentué sur les sociétés qui alimentent la médiane. En ombre interne
+     plutôt qu'en bordure : une bordure décalerait le contenu de trois pixels et
+     désalignerait les cartes marquées de toutes les autres. */
+  .comp.is-retenue { box-shadow: inset 3px 0 0 var(--accent); }
+  .comp.is-retenue.is-open { box-shadow: inset 3px 0 0 rgba(255, 255, 255, .55); }
+  .soc-legende {
+    margin: 0 0 4px;
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    font: 400 11.5px/1.6 var(--sans);
+    color: var(--muted);
+    text-wrap: pretty;
+  }
+  .soc-legende.is-ailleurs { color: var(--ink-4); }
+  .soc-filet {
+    flex: none;
+    width: 3px;
+    height: 12px;
+    border-radius: 2px;
+    background: var(--accent);
+    transform: translateY(1px);
+  }
+
   #stackSoc .comp-head { padding: 13px 16px; }
   #stackSoc .comp-title { font-size: 12.5px; }
   #stackSoc .comp-value { font-size: 16px; }
@@ -1545,6 +1569,7 @@
   // secteur. Sur les 126 couples zone x secteur, 40 % n'en comptent aucune et
   // un tiers une seule : la médiane serait alors cette société.
   const SEUIL = (DATA.comparables || {}).seuil || 3;
+  const ECHANTILLON = (DATA.comparables || {}).echantillon || 20;
 
   // Le secteur, à l'échelle la plus étroite qui tienne debout. On essaie la
   // zone retenue, puis le continent, puis l'univers, et on garde la première
@@ -1610,6 +1635,27 @@
     }
     if (params.continent === emetteur) return null;
     return { comparables: params.continent, emetteur: emetteur };
+  }
+
+  // Les sociétés qui alimentent réellement la médiane : les plus grosses
+  // capitalisations du périmètre retenu par statsSecteur — qui n'est pas
+  // toujours celui qu'affiche la liste. Sur une zone trop mince, la médiane est
+  // reprise sur le continent, et les vingt retenues sont alors ailleurs.
+  //
+  // La sélection est refaite ici plutôt que reçue du build : c'est la même règle
+  // appliquée aux mêmes données, et un test vérifie que la médiane des sociétés
+  // retenues côté navigateur égale celle publiée par le build.
+  function societesRetenues() {
+    const stats = statsSecteur(params.secteur);
+    if (!stats) return { ids: [], stats: null };
+    const dans = (c) => stats.echelle === "zone" ? c.zone === stats.perimetre
+                      : stats.echelle === "continent" ? c.continent === stats.perimetre
+                      : true;
+    const ids = Object.keys(COMPARABLES)
+      .filter((id) => COMPARABLES[id].industrie === params.secteur && dans(COMPARABLES[id]))
+      .sort((a, b) => (COMPARABLES[b].capitalisation || 0) - (COMPARABLES[a].capitalisation || 0))
+      .slice(0, ECHANTILLON);
+    return { ids: ids, stats: stats };
   }
 
   function gearingSectoriel(nomSecteur) {
@@ -2135,7 +2181,7 @@
   function renderStack(cle) {
     const pan = PANNEAUX[cle];
     $(pan.stack).innerHTML = pan.items.map((c) => `
-      <div class="comp${c.tone && c.tone !== "accent" ? " tone-" + c.tone : ""}${c.final ? " is-final" : ""}" data-comp="${esc(c.id)}">
+      <div class="comp${c.tone && c.tone !== "accent" ? " tone-" + c.tone : ""}${c.final ? " is-final" : ""}${c.retenue ? " is-retenue" : ""}" data-comp="${esc(c.id)}">
         <button type="button" class="comp-head" aria-expanded="false">
           <span class="comp-title">${c.titleHtml || esc(c.title)}</span>
           <span class="comp-value">${esc(c.value)}</span>
@@ -2365,7 +2411,10 @@
       </g>
     </svg>`;
 
-  function etatVideSocietes() {
+  // Une zone vide affiche « aucune société » pendant que le CMPC, lui, est bien
+  // calculé — sur un périmètre plus large. Sans le dire ici, les deux écrans se
+  // contrediraient à voix basse.
+  function etatVideSocietes(ailleurs) {
     const ou = params.zone
       || (params.continent === TOUS ? "l'ensemble du monde" : params.continent);
     const secteur = params.secteur || "ce secteur";
@@ -2376,6 +2425,9 @@
         <span class="vide404-titre">Aucune société trouvée dans cette zone</span>
         <span class="vide404-texte">Rien en « ${esc(secteur)} » du côté de ${esc(ou)}.
         Changez d'industrie, ou élargissez la zone géographique.</span>
+        ${ailleurs ? `<span class="vide404-texte">Le CMPC reste calculé : sa médiane
+        porte sur ${ailleurs.ids.length} sociétés du périmètre retenu,
+        ${esc(ailleurs.stats.perimetre)}.</span>` : ""}
       </div>`;
   }
 
@@ -2383,6 +2435,8 @@
     const pan = PANNEAUX.soc;
     pan.detail = detailSociete;
     const ids = societesDuPerimetre();
+    const retenues = societesRetenues();
+    const marquees = new Set(retenues.ids);
     pan.items = ids.map((id) => {
       const s = COMPARABLES[id];
       const derniere = (s.annees || []).slice(-1)[0];
@@ -2393,6 +2447,7 @@
         title: s.nom,
         value: frMontant(s.capitalisation),
         societe: s,
+        retenue: marquees.has(id),
         rows: [
           { label: "Pays", value: s.pays },
           { label: "Place", value: s.place || "hors cote" },
@@ -2410,14 +2465,54 @@
     // société ici » de « la page n'a pas suivi ».
     if (!pan.items.length) {
       pan.ouvert = null;
-      $(pan.stack).innerHTML = etatVideSocietes();
+      $(pan.stack).innerHTML = etatVideSocietes(
+        retenues.ids.length ? retenues : null);
       $(pan.frame).innerHTML = "";
       $(pan.col).classList.remove("is-on", "tone-green", "tone-blue");
       return;
     }
     renderStack("soc");
+    $(pan.stack).insertAdjacentHTML("afterbegin", legendeRetenues(retenues, marquees, ids));
     renderFrame("soc");
   }
+
+  // Un filet coloré sans légende est une énigme. Et quand la médiane a été
+  // reprise sur un périmètre plus large, aucune carte de la liste n'est marquée :
+  // il faut alors dire où sont passées les sociétés retenues plutôt que de
+  // laisser un filet absent passer pour un oubli.
+  //
+  // Les libellés de périmètre sont annoncés après une virgule et jamais après
+  // « de » : « de Amérique du Nord » se lit mal, et l'élision correcte diffère
+  // selon la zone — d'Afrique, des Amériques, d'Europe de l'Ouest.
+  function legendeRetenues(retenues, marquees, affichees) {
+    if (!retenues.stats || !retenues.ids.length) return "";
+    const total = retenues.ids.length;
+    const visibles = affichees.filter((id) => marquees.has(id)).length;
+    const perimetre = esc(retenues.stats.perimetre);
+    const filet = '<span class="soc-filet"></span>';
+
+    if (visibles === total && total === affichees.length) {
+      return '<p class="soc-legende">' + filet + "Les " + total + " sociétés de ce " +
+        "périmètre alimentent toutes la médiane sectorielle.</p>";
+    }
+    if (visibles === total) {
+      return '<p class="soc-legende">' + filet + "Les " + total + " sociétés marquées " +
+        "alimentent la médiane : les plus grosses capitalisations du périmètre retenu, " +
+        perimetre + ".</p>";
+    }
+    if (visibles) {
+      return '<p class="soc-legende">' + filet + "La médiane porte sur " + total +
+        " sociétés du périmètre retenu, " + perimetre + " — dont " + visibles +
+        (visibles > 1 ? " figurent" : " figure") + " ici, marquée" +
+        (visibles > 1 ? "s" : "") + ". Désélectionnez la zone sur la carte pour " +
+        "voir les autres.</p>";
+    }
+    return '<p class="soc-legende is-ailleurs">La médiane est calculée sur ' + total +
+      " sociétés du périmètre retenu, " + perimetre + ", faute d'un échantillon " +
+      "suffisant ici : aucune d'elles ne figure dans cette zone. Désélectionnez la " +
+      "zone sur la carte pour les voir.</p>";
+  }
+
 
   /* ================= Paramètres et URL ================= */
   // Après un changement de continent ou de zone, le pays retenu peut être sorti

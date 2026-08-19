@@ -69,10 +69,10 @@ def test_la_presentation_s_affiche_dans_le_detail(page, donnees):
     choisir(page, "continent", "Afrique")
     choisir(page, "secteur", "Banks")
     page.click('.tabs button[data-tab="societes"]')
-    page.click("#stackSoc .comp:first-child .comp-head")
+    page.click("#stackSoc .comp:first-of-type .comp-head")
     page.wait_for_timeout(400)
 
-    carte = page.query_selector("#stackSoc .comp:first-child")
+    carte = page.query_selector("#stackSoc .comp:first-of-type")
     societe = donnees["comparables"]["societes"][carte.get_attribute("data-comp")]
     detail = page.inner_text("#frameSoc .detail.is-shown")
 
@@ -88,7 +88,7 @@ def test_le_tableau_financier_defile_au_lieu_de_se_tasser(page):
                              params.zone = 'Amérique du Nord';
                              params.secteur = 'Banks'; apply(); }""")
     page.click('.tabs button[data-tab="societes"]')
-    page.click("#stackSoc .comp:first-child .comp-head")
+    page.click("#stackSoc .comp:first-of-type .comp-head")
     page.wait_for_timeout(400)
 
     bulle = page.query_selector("#frameSoc .detail.is-shown .bulle-defilante")

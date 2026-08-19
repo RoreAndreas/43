@@ -126,6 +126,10 @@ def main():
         dataset["comparables"] = {
             "source": univers["source"],
             "seuil": SEUIL_ECHANTILLON,
+            # La page refait cette sélection sur les mêmes données pour marquer
+            # les sociétés retenues : embarquer les identifiants coûterait trois
+            # cent cinquante kilooctets pour une règle qui tient en une ligne.
+            "echantillon": _comparables.ECHANTILLON_MAX,
             # Le menu se peuple de tous les secteurs de l'univers, peuplés ou non
             # dans la zone retenue : masquer ceux qui manquent ici priverait
             # l'utilisateur de la vue continentale, qui reste calculable.
