@@ -13,7 +13,7 @@ voyait qu'il répondait à une autre question.
 
 import pytest
 
-from conftest import choisir, mode_comparables
+from conftest import choisir, continent_vide, mode_comparables, zone_vide
 
 VIDE = "#stackSoc .vide404"
 
@@ -72,23 +72,36 @@ def test_l_onglet_suit_chaque_changement_d_industrie(page):
 
 # ------------------------------------------------------- le filtre géographique
 
-@pytest.mark.parametrize("continent", ["Europe", "Asie", "Amériques"])
-def test_un_continent_sans_societe_cotee_vide_la_liste(page, continent):
+def test_un_continent_sans_societe_vide_la_liste(page, donnees):
     mode_comparables(page)
     choisir(page, "secteur", "Banks")
     assert cartes(page), "les banques doivent être listées avant de filtrer"
 
-    choisir(page, "continent", continent)
+    choisir(page, "continent", continent_vide(donnees))
     assert cartes(page) == []
     assert etat_vide(page)
 
 
-def test_le_retour_sur_l_afrique_rend_la_liste(page):
+def test_une_zone_sans_societe_vide_la_liste(page, donnees):
+    """Le cas devenu courant : le continent est peuplé, la zone non."""
     mode_comparables(page)
+    choisir(page, "continent", "Afrique")
+    choisir(page, "secteur", "Banks")
+    assert cartes(page)
+
+    page.click(f'#paramsMain .zone[data-zone="{zone_vide(donnees, "Afrique")}"]')
+    assert cartes(page) == []
+    assert etat_vide(page)
+
+
+def test_le_retour_sur_l_afrique_rend_la_liste(page, donnees):
+    mode_comparables(page)
+    choisir(page, "continent", "Afrique")
     choisir(page, "secteur", "Banks")
     attendu = cartes(page)
+    assert attendu
 
-    choisir(page, "continent", "Europe")
+    choisir(page, "continent", continent_vide(donnees))
     assert cartes(page) == []
 
     choisir(page, "continent", "Afrique")
@@ -116,10 +129,11 @@ def test_les_societes_listees_sont_dans_le_perimetre(page, donnees):
 
 # --------------------------------------------------------------- l'état vide
 
-def test_l_etat_vide_est_explicite_et_situe(page):
+def test_l_etat_vide_est_explicite_et_situe(page, donnees):
+    vide = continent_vide(donnees)
     mode_comparables(page)
     choisir(page, "secteur", "Banks")
-    choisir(page, "continent", "Europe")
+    choisir(page, "continent", vide)
 
     ouvrir_societes(page)
     texte = page.inner_text(VIDE)
@@ -127,14 +141,14 @@ def test_l_etat_vide_est_explicite_et_situe(page):
     assert "Aucune société trouvée" in texte
     # Il doit dire *où* et *quoi*, sans quoi l'utilisateur ne sait pas quoi changer.
     assert "Banks" in texte
-    assert "Europe" in texte
+    assert vide in texte
     assert page.query_selector(f"{VIDE} .vide404-img") is not None
 
 
-def test_l_etat_vide_ne_laisse_aucune_carte_derriere_lui(page):
+def test_l_etat_vide_ne_laisse_aucune_carte_derriere_lui(page, donnees):
     mode_comparables(page)
     choisir(page, "secteur", "Banks")
-    choisir(page, "continent", "Europe")
+    choisir(page, "continent", continent_vide(donnees))
 
     ouvrir_societes(page)
     assert page.query_selector_all("#stackSoc .comp") == []

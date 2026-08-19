@@ -47,6 +47,14 @@ from pathlib import Path
 import openpyxl
 
 PREMIERE_LIGNE = 7
+
+# Longueur retenue des descriptions d'activité. Voir `resume()` : au-delà, elles
+# pèsent plus que tout le reste du jeu de données réuni.
+DESCRIPTION_MAX = 400
+
+# Nombre de sociétés retenues pour une médiane sectorielle. Voir
+# `statistiques()` : au-delà, ce sont les micro-capitalisations qui décident.
+ECHANTILLON_MAX = 20
 EXERCICES = ["FY2025", "FY2024", "FY2023", "FY2022"]
 
 # S&P écrit « NA » quand la donnée manque, et parfois « NM » (non significatif).
@@ -91,28 +99,26 @@ def _place_et_ticker(nom: str, entity_id):
     return None, str(entity_id)
 
 
-def trouver_export(racine: Path) -> Path | None:
-    """Le fichier d'export le plus récent, cherché autour du dossier fourni.
+def trouver_exports(racine: Path) -> list:
+    """Tous les exports `comps*.xlsx` trouvés autour du dossier fourni.
 
-    L'export est déposé à la racine de WACC43, alors que le build travaille
+    Un fichier par grande zone — compsAF, compsEU, compsUS, et ceux à venir —
+    plutôt qu'un export unique : les actualiser séparément évite de retélécharger
+    vingt-cinq mille lignes américaines pour corriger une ligne africaine.
+
+    Les exports sont déposés à la racine de WACC43, alors que le build travaille
     depuis PFILES. On regarde donc le dossier donné, son parent et son
     grand-parent : un chemin trop étroit fait passer la construction pour
     réussie tout en publiant une page sans univers de comparables, ce qui s'est
     déjà produit et n'a été vu qu'en inspectant la page en ligne.
     """
-    vus = set()
     for base in (racine, racine.parent, racine.parent.parent):
-        if base in vus or not base.is_dir():
+        if not base.is_dir():
             continue
-        vus.add(base)
-        candidats = sorted(
-            base.glob("SPGlobal_Export_*.xlsx"),
-            key=lambda p: p.stat().st_mtime,
-            reverse=True,
-        )
-        if candidats:
-            return candidats[0]
-    return None
+        trouves = sorted(base.glob("comps*.xlsx"))
+        if trouves:
+            return trouves
+    return []
 
 
 def charger(chemin: Path, progress=None) -> dict:
@@ -215,26 +221,46 @@ def _est_complete(s: dict) -> bool:
 
 
 def statistiques(membres: list) -> dict:
-    """Bêtas et gearing médians d'un groupe de sociétés.
+    """Bêtas et gearing médians d'un secteur, sur ses plus grosses valeurs.
 
-    La médiane, et non la moyenne ni un rapport d'agrégats : sur des marchés
-    africains où quelques capitalisations écrasent la distribution, une moyenne
-    dit surtout ce que fait la plus grosse valeur du secteur. La médiane décrit
-    la société typique, qui est ce qu'on cherche pour un comparable.
+    La médiane, et non la moyenne ni un rapport d'agrégats : une moyenne dit
+    surtout ce que fait la plus grosse valeur du secteur, là où la médiane décrit
+    la société typique — ce qu'on cherche pour un comparable.
+
+    Mais la médiane de *toute* la population ne vaut pas mieux quand cette
+    population est faite de micro-capitalisations qui ne s'échangent pas. Les 508
+    banques nord-américaines complètes donnent un bêta médian à trois ans de
+    0,32, alors que JPMorgan est à 0,90 et Bank of America à 0,98 : la médiane
+    est portée par 374 établissements de moins de 760 millions d'euros, dont le
+    bêta mesuré est proche de zéro faute d'être négocié. C'est exactement le
+    défaut d'illiquidité qui écrase les bêtas africains, importé sur un marché où
+    il est évitable.
+
+    On retient donc les `ECHANTILLON_MAX` premières capitalisations du périmètre,
+    ce qui rend 1,04 pour les banques nord-américaines et 0,92 pour les
+    européennes. Un plancher de capitalisation absolu aurait le même effet sur
+    ces deux marchés mais ne laisserait aucune société africaine : le classement
+    par taille, lui, s'adapte à l'échelle de chaque marché et laisse l'Afrique
+    inchangée, ses échantillons n'atteignant pas ce nombre.
     """
     def mediane(valeurs):
         return round(statistics.median(valeurs), 4) if valeurs else None
 
+    retenus = sorted(membres, key=lambda s: -(s["capitalisation"] or 0))[:ECHANTILLON_MAX]
     return {
+        # L'effectif du périmètre et l'échantillon qui produit les médianes sont
+        # deux nombres différents dès que le secteur compte plus de vingt
+        # sociétés. Les confondre ferait décrire une population et en chiffrer
+        # une autre.
         "societes": len(membres),
-        "beta_1an": mediane([s["beta_1an"] for s in membres]),
-        "beta_3ans": mediane([s["beta_3ans"] for s in membres]),
-        "gearing": mediane([s["dette"] / s["capitalisation"] for s in membres]),
+        "retenues": len(retenus),
+        "beta_1an": mediane([s["beta_1an"] for s in retenus]),
+        "beta_3ans": mediane([s["beta_3ans"] for s in retenus]),
+        "gearing": mediane([s["dette"] / s["capitalisation"] for s in retenus]),
         # Somme et non médiane : la capitalisation ne sert pas au calcul, elle
         # dit le poids de l'échantillon. Elle porte donc sur exactement les
-        # sociétés qui produisent les médianes ci-dessus, sans quoi le panneau
-        # décrirait une population et en chiffrerait une autre.
-        "capitalisation": round(sum(s["capitalisation"] for s in membres), 1),
+        # sociétés qui produisent les médianes ci-dessus.
+        "capitalisation": round(sum(s["capitalisation"] for s in retenus), 1),
     }
 
 
@@ -296,6 +322,21 @@ def payload_page(univers: dict, classer) -> dict:
     def millions(valeur):
         return None if valeur is None else round(valeur / 1000.0, 1)
 
+    def resume(texte):
+        """Description ramenée à sa première phrase utile.
+
+        Les descriptions S&P vont jusqu'à deux mille caractères et pèsent, à
+        elles seules, les deux tiers du jeu de données embarqué — sept mégaoctets
+        sur dix pour un fichier que le navigateur doit analyser d'un bloc. On en
+        garde de quoi identifier l'activité, coupé sur un mot entier.
+        """
+        if not texte:
+            return None
+        texte = texte.strip()
+        if len(texte) <= DESCRIPTION_MAX:
+            return texte
+        return texte[:DESCRIPTION_MAX].rsplit(" ", 1)[0].rstrip(" ,;:.") + "…"
+
     sortie = {}
     for ident, s in univers["societes"].items():
         if not s.get("visible"):
@@ -311,7 +352,7 @@ def payload_page(univers: dict, classer) -> dict:
             "zone": zone,
             "industrie": s["industrie"],
             "activite": s.get("industrie_fine"),
-            "presentation": s.get("description"),
+            "presentation": resume(s.get("description")),
             "beta_1an": s.get("beta_1an"),
             "beta_3ans": s.get("beta_3ans"),
             "capitalisation": round(s["capitalisation"], 1),
@@ -351,8 +392,28 @@ def indexer_par_zone(univers: dict, classer) -> tuple[dict, list]:
 
 
 def construire(racine: Path, progress=None) -> dict | None:
-    """Point d'entrée du build. Rend None si aucun export n'est déposé."""
-    chemin = trouver_export(racine)
-    if chemin is None:
+    """Point d'entrée du build : fusionne tous les exports déposés.
+
+    Rend None si aucun n'est trouvé. Les sociétés sont appariées par `Entity ID`,
+    identifiant S&P global : un même titre présent dans deux exports n'est donc
+    compté qu'une fois, et la fusion reste sûre quand les périmètres se
+    recouvrent — ce que fera tôt ou tard un export « Moyen-Orient » face à un
+    export « Afrique » sur l'Égypte.
+    """
+    chemins = trouver_exports(racine)
+    if not chemins:
         return None
-    return charger(chemin, progress=progress)
+
+    societes, sources, doublons = {}, [], 0
+    for chemin in chemins:
+        bloc = charger(chemin, progress=progress)
+        doublons += len(set(bloc["societes"]) & set(societes))
+        societes.update(bloc["societes"])
+        sources.append(chemin.name)
+
+    if progress:
+        visibles = sum(1 for s in societes.values() if s["visible"])
+        recouvrement = f", {doublons} en double" if doublons else ""
+        progress(f"Comparables : {len(sources)} export(s) fusionné(s) — "
+                 f"{visibles} sociétés complètes sur {len(societes)}{recouvrement}.")
+    return {"source": ", ".join(sources), "societes": societes}

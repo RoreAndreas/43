@@ -9,7 +9,7 @@ geste.
 
 import pytest
 
-from conftest import choisir, mode_comparables
+from conftest import choisir, continent_vide, mode_comparables
 
 PISTE = "#placesPiste"
 RAIL = "#placesRail"
@@ -161,9 +161,9 @@ def test_le_rail_est_utilisable_au_clavier(page):
     assert defilement(page) > depart
 
 
-def test_aucune_bande_de_places_sur_un_perimetre_vide(page):
+def test_aucune_bande_de_places_sur_un_perimetre_vide(page, donnees):
     mode_comparables(page)
-    choisir(page, "continent", "Europe")
+    choisir(page, "continent", continent_vide(donnees))
     choisir(page, "secteur", "Banks")
     assert page.query_selector(PISTE) is None
     assert page.query_selector(RAIL) is None

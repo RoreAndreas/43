@@ -1544,20 +1544,24 @@
     if (!bloc) return null;
 
     const echelles = [];
-    if (params.continent !== TOUS && params.zone) {
-      echelles.push({ echelle: "zone", perimetre: params.zone,
-                      stats: (bloc.zones || {})[params.zone] });
-    }
     if (params.continent !== TOUS) {
+      if (params.zone) {
+        echelles.push({ echelle: "zone", perimetre: params.zone,
+                        stats: (bloc.zones || {})[params.zone] });
+      }
       echelles.push({ echelle: "continent", perimetre: params.continent,
                       stats: (bloc.continents || {})[params.continent] });
+    } else {
+      // L'univers ne sert jamais de repli : depuis que l'univers couvre trois
+      // continents, y retomber mêlerait une banque de Lagos à une valeur du
+      // Nasdaq sans que ce soit demandé. Il n'est retenu que sur « Tous », où
+      // c'est l'utilisateur qui l'a explicitement choisi.
+      echelles.push({ echelle: "univers", perimetre: "tous continents",
+                      stats: bloc.univers });
     }
-    echelles.push({ echelle: "univers", perimetre: "l'univers", stats: bloc.univers });
 
-    // La plus etroite qui atteigne le seuil ; sinon le premier repli disponible,
-    // dans l'ordre zone -> continent -> univers. Prendre l'univers d'emblee
-    // afficherait « l'univers » la ou le continent porte exactement les memes
-    // societes, et donnerait a lire un elargissement qui n'a pas eu lieu.
+    // La plus étroite qui atteigne le seuil ; sinon le premier repli disponible,
+    // dans l'ordre zone -> continent.
     const retenu = echelles.find((e) => e.stats && e.stats.societes >= SEUIL)
       || echelles.find((e, i) => i > 0 && e.stats && e.stats.societes > 0)
       || echelles.find((e) => e.stats && e.stats.societes > 0);
@@ -1572,6 +1576,27 @@
       demande: demande.perimetre,
       demandeN: demande.stats ? demande.stats.societes : 0,
     });
+  }
+
+  // Le continent de l'émetteur valorisé, celui dont on prend la courbe
+  // souveraine et le taux d'IS.
+  function continentEmetteur() {
+    const e = DATA.pays[params.country];
+    return e && e.continent ? e.continent : null;
+  }
+
+  // Prendre des bêtas de marchés développés pour valoriser un émetteur africain
+  // est une pratique courante — les bêtas africains sont écrasés par
+  // l'illiquidité. Ce n'est donc pas une erreur, mais cela doit se lire : un
+  // rapport relu six mois plus tard ne dirait plus d'où venait le bêta.
+  function ecartDeMarche() {
+    const emetteur = continentEmetteur();
+    if (!emetteur) return null;
+    if (params.continent === TOUS) {
+      return { comparables: "tous continents confondus", emetteur: emetteur };
+    }
+    if (params.continent === emetteur) return null;
+    return { comparables: params.continent, emetteur: emetteur };
   }
 
   function gearingSectoriel(nomSecteur) {
@@ -1663,6 +1688,7 @@
       beta: beta, betaL: betaL, betaU: betaU, beta1: secteur.beta_1an,
       relevable: relevable, rf: rf, tax: tax,
       perimetre: secteur.perimetre, echelle: secteur.echelle, repli: secteur.repli,
+      retenues: secteur.retenues,
       demande: secteur.demande, demandeN: secteur.demandeN,
       gearing: g, gearingSecteur: gSect,
       gearingCible: cible != null ? params.gearing_cible : null,
@@ -1707,7 +1733,10 @@
           { label: "Coût des fonds propres", value: frPct(cc.ke), strong: true },
         ]),
         methodology: "MEDAF sur taux souverain local : taux sans risque + bêta (3 ans) du secteur x prime de marché + prime de taille + prime spécifique.",
-        source: "Bêtas à trois ans médians sur " + cc.societes + " société(s) complète(s) du secteur, taux souverain UMOA-Titres, prime de marché mature Damodaran.",
+        source: "Bêtas à trois ans médians sur " + cc.retenues + " société(s) du secteur" +
+          (cc.retenues < cc.societes ? ", les plus grosses capitalisations de " + cc.perimetre +
+           " qui en compte " + cc.societes : " sur " + cc.perimetre) +
+          ", taux souverain UMOA-Titres, prime de marché mature Damodaran.",
         hypothesis: (cc.relevable && cc.gearingSaisi
             ? "Le bêta médian est endetté au levier de l'échantillon : il est désendetté à ce levier puis ré-endetté au gearing cible (Hamada), sinon la structure changerait sans que le risque suive. "
             : "Le bêta est employé tel quel : la structure retenue est celle de l'échantillon dont il provient, le ré-endettement serait sans effet. ") +
@@ -1971,12 +2000,24 @@
         </span>
         <span class="result-rows">
           <span class="result-row"><span>Sociétés du secteur${secteur ? ", " + esc(secteur.perimetre) : ""}</span><span>${secteur ? secteur.societes : 0}</span></span>
+          ${(() => { const e = ecartDeMarche(); return e ? `
+            <span class="result-row is-appoint">
+              <span>Comparables pris ${esc(e.comparables)}, pour un émetteur
+                ${esc(e.emetteur)} : le bêta ne vient pas du marché de la société
+                valorisée.</span>
+            </span>` : ""; })()}
           ${secteur && secteur.repli ? `
             <span class="result-row is-appoint">
               <span>${esc(secteur.demande)} ne compte ${secteur.demandeN
                 ? secteur.demandeN + " société" + (secteur.demandeN > 1 ? "s" : "")
                 : "aucune société"} dans ce secteur, sous le seuil de ${SEUIL} :
                 médiane reprise sur ${esc(secteur.perimetre)}.</span>
+            </span>` : ""}
+          ${secteur && secteur.retenues < secteur.societes ? `
+            <span class="result-row is-appoint">
+              <span>Médianes calculées sur les ${secteur.retenues} plus grosses
+                capitalisations : au-delà, ce sont les micro-capitalisations
+                illiquides qui décident.</span>
             </span>` : ""}
           <span class="result-row"><span>Bêta médian (3 ans)</span><span>${secteur && secteur.beta_3ans != null ? frNum(secteur.beta_3ans, 3) : "—"}</span></span>
           <span class="result-row"><span>Capitalisation cumulée</span><span>${esc(frMontant(secteur ? secteur.capitalisation : null))}</span></span>

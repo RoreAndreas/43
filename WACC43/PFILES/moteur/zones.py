@@ -68,20 +68,21 @@ ZONES = {
     "Europe de l'Ouest": [
         "Andorra (Principality of)", "Austria", "Belgium", "France", "Germany",
         "Guernsey (States of)", "Ireland", "Isle of Man", "Jersey (States of)",
-        "Liechtenstein", "Luxembourg", "Netherlands", "Switzerland", "United Kingdom",
+        "Liechtenstein", "Luxembourg", "Monaco", "Netherlands", "Switzerland",
+        "United Kingdom",
     ],
     "Europe du Nord": [
         "Denmark", "Estonia", "Finland", "Iceland", "Latvia", "Lithuania",
         "Norway", "Sweden",
     ],
     "Europe du Sud": [
-        "Albania", "Bosnia and Herzegovina", "Croatia", "Cyprus", "Greece",
-        "Italy", "Macedonia", "Malta", "Montenegro", "Portugal", "Serbia",
-        "Slovenia", "Spain", "Turkey",
+        "Albania", "Bosnia and Herzegovina", "Croatia", "Cyprus", "Gibraltar",
+        "Greece", "Italy", "Macedonia", "Malta", "Montenegro", "Portugal",
+        "Serbia", "Slovenia", "Spain", "Turkey",
     ],
     "Europe de l'Est": [
         "Belarus", "Bulgaria", "Czech Republic", "Hungary", "Moldova",
-        "Poland", "Romania", "Slovakia", "Ukraine",
+        "Poland", "Romania", "Russia", "Slovakia", "Ukraine",
     ],
 
     # ---- Amériques ----
@@ -164,6 +165,12 @@ _PAR_PAYS_NORMALISE = {_sans_accent(pays): zone for pays, zone in _PAR_PAYS.item
 # Libellés que d'autres sources écrivent autrement. S&P abrège la République
 # démocratique du Congo, Natural Earth a suivi les renommages officiels.
 _ALIAS = {
+    # Les exports Cap IQ n'écrivent pas les pays comme Damodaran. « USA » à lui
+    # seul portait 3 708 sociétés, soit plus de la moitié de l'univers, qu'aucune
+    # zone ne réclamait : elles étaient comptées nulle part et introuvables
+    # partout.
+    "usa": "United States",
+    "turkiye": "Turkey",
     "demrepcongo": "Congo (Democratic Republic of)",
     "democraticrepublicofthecongo": "Congo (Democratic Republic of)",
     "republicofthecongo": "Congo (Republic of)",

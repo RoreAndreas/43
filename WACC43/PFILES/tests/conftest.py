@@ -99,6 +99,31 @@ def nombre_fr(texte: str) -> float:
     return float(net.replace(",", "."))
 
 
+def continent_vide(donnees: dict) -> str:
+    """Un continent que l'univers de comparables ne couvre pas.
+
+    Codé en dur, ce nom vieillit mal : l'Europe et les Amériques étaient vides
+    tant que l'univers se limitait à l'Afrique, et sept tests l'ont supposé
+    jusqu'à ce que trois exports arrivent. On le cherche donc dans les données.
+    """
+    peuples = {s["continent"]
+               for s in (donnees.get("comparables") or {}).get("societes", {}).values()}
+    for continent, _pays in donnees["options"]["countries_grouped"]:
+        if continent not in peuples:
+            return continent
+    pytest.skip("aucun continent vide : l'univers les couvre tous")
+
+
+def zone_vide(donnees: dict, continent: str) -> str:
+    """Une zone de ce continent qu'aucune société ne peuple."""
+    peuplees = {s["zone"]
+                for s in (donnees.get("comparables") or {}).get("societes", {}).values()}
+    for zone, _pays in donnees["options"]["zones_par_continent"].get(continent, []):
+        if zone not in peuplees:
+            return zone
+    pytest.skip(f"aucune zone vide sur {continent}")
+
+
 def secteur(donnees: dict, nom: str, perimetre: str = "univers") -> dict:
     """Statistiques d'un secteur à l'échelle demandée.
 
