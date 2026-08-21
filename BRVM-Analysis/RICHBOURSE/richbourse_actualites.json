@@ -1,10 +1,25 @@
 {
-    "last_update": "2026-08-21 17:36:58",
+    "last_update": "2026-08-21 18:03:14",
     "count": 20,
     "weeks": [
         {
             "semaine": "Semaine du 17 Août au 23 Août 2026",
             "publications": [
+                {
+                    "date": "21/08/2026",
+                    "titre": "VIVO ENERGY CI : Paiement de dividendes - Exercice 2025",
+                    "url": "https://www.richbourse.com/common/actualite/details/21-08-2026-vivo-energy-ci-paiement-de-dividendes-exercice-2025-2"
+                },
+                {
+                    "date": "21/08/2026",
+                    "titre": "BRVM : Rappel, mardi 25 août 2026, jour férié",
+                    "url": "https://www.richbourse.com/common/actualite/details/21-08-2026-brvm-rappel-mardi-25-aout-2026-jour-ferie"
+                },
+                {
+                    "date": "21/08/2026",
+                    "titre": "VIVO ENERGY CI : Paiement de dividendes - Exercice 2025",
+                    "url": "https://www.richbourse.com/common/actualite/details/21-08-2026-vivo-energy-ci-paiement-de-dividendes-exercice-2025"
+                },
                 {
                     "date": "18/08/2026",
                     "titre": "BOA BN : Notation Financière",
@@ -17,13 +32,13 @@
                 },
                 {
                     "date": "17/08/2026",
-                    "titre": "SITAB CI : Rapport d'activités - 2eme trimestre 2026",
-                    "url": "https://www.richbourse.com/common/actualite/details/17-08-2026-sitab-ci-rapport-d-activites-2eme-trimestre-2026"
+                    "titre": "ETI TG : Communiqué de Presse",
+                    "url": "https://www.richbourse.com/common/actualite/details/17-08-2026-eti-tg-communique-de-presse"
                 },
                 {
                     "date": "17/08/2026",
-                    "titre": "ETI TG : Communiqué de Presse",
-                    "url": "https://www.richbourse.com/common/actualite/details/17-08-2026-eti-tg-communique-de-presse"
+                    "titre": "SITAB CI : Rapport d'activités - 2eme trimestre 2026",
+                    "url": "https://www.richbourse.com/common/actualite/details/17-08-2026-sitab-ci-rapport-d-activites-2eme-trimestre-2026"
                 }
             ]
         },
@@ -39,11 +54,6 @@
                     "date": "14/08/2026",
                     "titre": "TOTALENERGIES MARKETING CI : Paiement de dividendes - Exercice 2025",
                     "url": "https://www.richbourse.com/common/actualite/details/14-08-2026-totalenergies-marketing-ci-paiement-de-dividendes-exercice-2025"
-                },
-                {
-                    "date": "13/08/2026",
-                    "titre": "LNB BN : Bilan semestriel du contrat de liquidité -1er semestre 2026",
-                    "url": "https://www.richbourse.com/common/actualite/details/13-08-2026-lnb-bn-bilan-semestriel-du-contrat-de-liquidite-1er-semestre-2026"
                 },
                 {
                     "date": "13/08/2026",
@@ -64,6 +74,11 @@
                     "date": "13/08/2026",
                     "titre": "Notation Financière - Nourmony Holding SA 7,25% 2024-2029",
                     "url": "https://www.richbourse.com/common/actualite/details/13-08-2026-notation-financiere-nourmony-holding-sa-7-25-2024-2029"
+                },
+                {
+                    "date": "13/08/2026",
+                    "titre": "LNB BN : Bilan semestriel du contrat de liquidité -1er semestre 2026",
+                    "url": "https://www.richbourse.com/common/actualite/details/13-08-2026-lnb-bn-bilan-semestriel-du-contrat-de-liquidite-1er-semestre-2026"
                 },
                 {
                     "date": "12/08/2026",
@@ -99,21 +114,6 @@
                     "date": "05/08/2026",
                     "titre": "BOA BF : Rapport d'activités - 1er semestre 2026",
                     "url": "https://www.richbourse.com/common/actualite/details/05-08-2026-boa-bf-rapport-d-activites-1er-semestre-2026"
-                },
-                {
-                    "date": "04/08/2026",
-                    "titre": "Horaires de cotation du 06 août 2026",
-                    "url": "https://www.richbourse.com/common/actualite/details/04-08-2026-horaires-de-cotation-du-06-aout-2026"
-                },
-                {
-                    "date": "04/08/2026",
-                    "titre": "Rappel, Vendredi 7 août 2026, jour férié",
-                    "url": "https://www.richbourse.com/common/actualite/details/04-08-2026-rappel-vendredi-7-aout-2026-jour-ferie"
-                },
-                {
-                    "date": "03/08/2026",
-                    "titre": "AFRICA GLOBAL LOGISTICS CI : Etats financiers - Exercice 2025",
-                    "url": "https://www.richbourse.com/common/actualite/details/03-08-2026-africa-global-logistics-ci-etats-financiers-exercice-2025"
                 }
             ]
         }
