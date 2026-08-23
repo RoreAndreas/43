@@ -1057,7 +1057,7 @@
   let model = null;
   let tab = "params";   // on règle les hypothèses avant de lire le résultat
 
-  if (!params.maturite_uemoa) params.maturite_uemoa = "10 ans";
+  if (!params.maturite_souveraine) params.maturite_souveraine = "10 ans";
 
   // Le référentiel Comparables ne dépend plus d'un volet BRVM : il tient sur
   // l'export Cap IQ pour les sociétés et les médianes, et sur les courbes
@@ -1065,22 +1065,80 @@
   const estComparables = () =>
     Boolean((DATA.comparables || {}).societes) && params.referentiel === "comparables";
 
-  // La courbe souveraine de l'État sélectionné. Les libellés de pays diffèrent
-  // entre Damodaran et UMOA-Titres (Senegal / Sénégal) : on les rapproche par
-  // la même normalisation que pour les paramètres d'URL.
-  function courbePays() {
-    if (!COURBES || !COURBES.pays) return null;
-    const trouve = resolveOption(params.country, Object.keys(COURBES.pays));
-    return trouve ? { pays: trouve, points: COURBES.pays[trouve] } : null;
+  // ---- Taux sans risque du référentiel Comparables ----
+  //
+  // Trois socles de courbe souveraine, une seule formule :
+  //     taux retenu = socle(maturité) + prime de risque pays
+  //
+  // La prime tombe quand le socle est déjà la courbe de l'État lui-même — un
+  // État de l'UMOA sur sa propre courbe, les États-Unis sur leur Treasury :
+  // elle y figure déjà, et l'ajouter la compterait deux fois.
+  //
+  // Le socle porte sa devise, et le CMPC qui en découle est libellé dedans.
+  const DEVISES = { XOF: "FCFA", EUR: "euro", USD: "dollar" };
+
+  // « 10 ans » -> 10, « 3 mois » -> 0,25. Sert à retrouver la maturité la plus
+  // proche au changement de pays : les trois socles n'ont pas les mêmes points,
+  // et le choix de l'utilisateur doit survivre au changement de courbe.
+  function anneesMaturite(libelle) {
+    const ans = /(\d+)\s*ans?/.exec(libelle || "");
+    if (ans) return Number(ans[1]);
+    const mois = /(\d+)\s*mois/.exec(libelle || "");
+    return mois ? Number(mois[1]) / 12 : 10;
   }
 
-  // Taux sans risque local : il porte déjà le risque pays, aucune prime à ajouter.
+  // Le socle dollar n'est pas embarqué : c'est la courbe Treasury déjà publiée
+  // pour le référentiel Damodaran, prise à l'année de valorisation retenue.
+  // La rebrancher ici évite de publier deux fois les mêmes taux, et fait suivre
+  // le sélecteur d'année sous les deux référentiels.
+  function courbeTreasury() {
+    const points = [];
+    for (const m of [["10", "10 ans", 10], ["30", "30 ans", 30]]) {
+      const taux = DATA.rf[params.year + "-" + m[0]];
+      if (taux !== undefined) points.push([m[1], m[2], taux / 100]);
+    }
+    return points.length
+      ? { points: points, source: "US Treasury", date: String(params.year), devise: "USD" }
+      : null;
+  }
+
+  // Le socle affecté au pays au moment du build. Une source indisponible ce
+  // jour-là n'a été affectée à personne : le repli sur le Treasury ne joue qu'en
+  // cas d'incohérence, où un taux en dollars vaut mieux qu'un CMPC vide.
+  function socleSouverain() {
+    const affecte = ((COURBES || {}).pays || {})[params.country];
+    if (!affecte) return null;
+    let socle = null;
+    if (affecte.socle === "XOF" && COURBES.umoa && COURBES.umoa.pays[params.country]) {
+      socle = { points: COURBES.umoa.pays[params.country], source: "UMOA-Titres",
+                date: COURBES.umoa.date, devise: "XOF" };
+    } else if (affecte.socle === "EUR" && COURBES.bce) {
+      socle = { points: COURBES.bce.points, source: "BCE, courbe AAA de la zone euro",
+                date: COURBES.bce.date, devise: "EUR" };
+    }
+    socle = socle || courbeTreasury();
+    return socle ? Object.assign({ affecte: affecte }, socle) : null;
+  }
+
   function tauxSansRisque() {
-    const courbe = courbePays();
-    if (!courbe) return null;
-    const point = courbe.points.find((p) => p[0] === params.maturite_uemoa)
-      || courbe.points[courbe.points.length - 1];
-    return { pays: courbe.pays, libelle: point[0], taux: point[2] };
+    const socle = socleSouverain();
+    if (!socle) return null;
+    const cible = anneesMaturite(params.maturite_souveraine);
+    const point = socle.points.find((p) => p[0] === params.maturite_souveraine)
+      || socle.points.reduce((a, b) =>
+           Math.abs(b[1] - cible) < Math.abs(a[1] - cible) ? b : a);
+    const pays = DATA.pays[params.country] || {};
+    const prime = socle.affecte.prime ? (pays.crp || 0) : 0;
+    return {
+      pays: params.country, libelle: point[0], points: socle.points,
+      socle: point[2], prime: prime, taux: point[2] + prime,
+      primeIncluse: !socle.affecte.prime,
+      devise: socle.devise, monnaie: DEVISES[socle.devise] || socle.devise,
+      // Le drapeau vient du build ; le repli ci-dessus pourrait le démentir, et
+      // annoncer une monnaie locale que le taux n'a pas.
+      locale: Boolean(socle.affecte.locale) && socle.devise === socle.affecte.socle,
+      source: socle.source, date: socle.date,
+    };
   }
   // Separateur de milliers en espace insecable U+00A0 : U+202F manque a IBM Plex Mono.
   const frMontant = (v) =>
@@ -1721,11 +1779,15 @@
     const rf = tauxSansRisque();
     const g = gearingRetenu();
     const pays = DATA.pays[params.country] || {};
-    if (!rf || !secteur || secteur.beta_3ans == null || g == null || !(g >= 0) ||
-        pays.tax == null) {
+    if (!rf || !secteur || secteur.beta_3ans == null || g == null || !(g >= 0)) {
       return null;
     }
-    const tax = pays.tax;
+    // Damodaran ne publie pas de taux d'IS pour 23 pays sur 157, dont les
+    // États-Unis — d'où viennent plus de la moitié des comparables. Refuser de
+    // calculer y serait absurde : on retient 25 %, comme le fait déjà le
+    // référentiel Damodaran dans le même cas, et l'encadré le signale.
+    const taxDefaut = pays.tax == null;
+    const tax = taxDefaut ? 0.25 : pays.tax;
     const gSect = secteur.gearing;
     const cible = gearingCibleDE();
     const betaL = secteur.beta_3ans;
@@ -1743,6 +1805,21 @@
     const ke = rf.taux + beta * DATA.mature + Number(params.d) + Number(params.e);
     const kd = rf.taux * (1 - tax);
     const we = 1 / (1 + g);
+    const wacc = ke * we + kd * (1 - we);
+
+    // Le CMPC sort dans la devise du socle. Tant que ce socle était la seule
+    // courbe UMOA, cette devise était le FCFA du pays valorisé et la question
+    // ne se posait pas. Avec trois socles, un CMPC nigérian sort en dollars :
+    // il faut le ramener en monnaie locale par le différentiel d'inflation,
+    // comme le fait le référentiel Damodaran. Quand la devise du socle est
+    // déjà celle du pays, aucune conversion n'est appliquée — l'appliquer
+    // quand même ajouterait l'écart des deux curseurs à un taux déjà local.
+    const inflationRef = Number(params.inflation_ref);
+    const inflationLocale = Number(params.inflation_local);
+    const conversion = !rf.locale;
+    const waccLocal = conversion
+      ? (1 + wacc) * (1 + inflationLocale) / (1 + inflationRef) - 1
+      : wacc;
     return {
       beta: beta, betaL: betaL, betaU: betaU, beta1: secteur.beta_1an,
       relevable: relevable, rf: rf, tax: tax,
@@ -1753,8 +1830,9 @@
       gearingCible: cible != null ? params.gearing_cible : null,
       gearingSaisi: cible != null, societes: secteur.societes,
       prime: DATA.mature, d: Number(params.d), e: Number(params.e),
-      ke: ke, kd: kd, we: we, wd: 1 - we,
-      wacc: ke * we + kd * (1 - we),
+      ke: ke, kd: kd, we: we, wd: 1 - we, taxDefaut: taxDefaut,
+      wacc: wacc, waccLocal: waccLocal, conversion: conversion,
+      inflationRef: inflationRef, inflationLocale: inflationLocale,
     };
   }
 
@@ -1762,6 +1840,24 @@
   // Chaque carte porte le même niveau de détail que sous Damodaran : les valeurs
   // intermédiaires en clair, et non le seul résultat. Un CMPC dont on ne voit
   // pas les paliers ne se vérifie pas, il se croit.
+  // Le taux sans risque n'est plus une ligne mais une construction : socle
+  // souverain, prime de risque pays quand elle n'y figure pas déjà, total. Une
+  // seule ligne « taux souverain » cacherait laquelle des deux moitiés bouge
+  // quand on change de pays sans changer de socle.
+  function lignesTaux(cc) {
+    const socle = { label: "Socle souverain " + cc.rf.libelle + " (" + cc.rf.source + ")",
+                    value: frPct(cc.rf.socle) };
+    if (cc.rf.primeIncluse) {
+      return [Object.assign({ strong: true }, socle),
+              { label: "Prime de risque pays", value: "incluse dans le taux souverain" }];
+    }
+    return [
+      socle,
+      { label: "Prime de risque pays (" + cc.rf.pays + ")", value: frPct(cc.rf.prime) },
+      { label: "Taux sans risque retenu, en " + cc.rf.monnaie, value: frPct(cc.rf.taux), strong: true },
+    ];
+  }
+
   function composantesComparables(cc) {
     const contribFp = cc.ke * cc.we;
     const contribDette = cc.kd * cc.wd;
@@ -1782,10 +1878,7 @@
     return [
       {
         id: "ke", title: "Coût des fonds propres", symbol: "Ke", value: frPct(cc.ke), tone: "blue",
-        rows: [
-          { label: "Taux sans risque souverain " + cc.rf.libelle, value: frPct(cc.rf.taux), strong: true },
-          { label: "Prime de risque pays", value: "incluse dans le taux souverain" },
-        ].concat(lignesBeta).concat([
+        rows: lignesTaux(cc).concat(lignesBeta).concat([
           { label: "Prime de risque marché", value: frPct(cc.prime) },
           { label: "Prime de taille (d)", value: frPct(cc.d) },
           { label: "Prime spécifique (e)", value: frPct(cc.e) },
@@ -1795,16 +1888,23 @@
         source: "Bêtas à trois ans médians sur " + cc.retenues + " société(s) du secteur" +
           (cc.retenues < cc.societes ? ", les plus grosses capitalisations de " + cc.perimetre +
            " qui en compte " + cc.societes : " sur " + cc.perimetre) +
-          ", taux souverain UMOA-Titres, prime de marché mature Damodaran.",
+          ", taux souverain " + cc.rf.source + ", prime de marché mature Damodaran.",
         hypothesis: (cc.relevable && cc.gearingSaisi
             ? "Le bêta médian est endetté au levier de l'échantillon : il est désendetté à ce levier puis ré-endetté au gearing cible (Hamada), sinon la structure changerait sans que le risque suive. "
             : "Le bêta est employé tel quel : la structure retenue est celle de l'échantillon dont il provient, le ré-endettement serait sans effet. ") +
-          "Le taux souverain porte déjà le risque pays, aucune prime pays ne s'y ajoute. Attention : les bêtas africains publiés sont très faibles — médiane 0,05 à trois ans, souvent proches de zéro faute de liquidité — ce qui écrase mécaniquement le coût des fonds propres vers le taux sans risque.",
+          (cc.rf.primeIncluse
+            ? "Le socle est la courbe souveraine de l'État lui-même : il porte déjà son risque pays, aucune prime ne s'y ajoute. "
+            : "Le socle est une courbe souveraine de référence en " + cc.rf.monnaie +
+              ", prise hors risque pays ; la prime Damodaran du pays valorisé s'y ajoute explicitement. ") +
+          "Attention : les bêtas africains publiés sont très faibles — médiane 0,05 à trois ans, souvent proches de zéro faute de liquidité — ce qui écrase mécaniquement le coût des fonds propres vers le taux sans risque.",
         retained: "Bêta (3 ans) " + frNum(cc.beta, 3) + (cc.beta1 == null ? "" : ", horizon 1 an publié à " + frNum(cc.beta1, 3) + " mais non utilisé") + ", taux sans risque " + frPct(cc.rf.taux) + ", prime de marché " + frPct(cc.prime) + ".",
         formula: (cc.relevable && cc.gearingSaisi
           ? ["Bêta désendetté = " + frNum(cc.betaL, 3) + " / (1 + (1 - " + frPct(cc.tax, 1) + ") x " + frNum(cc.gearingSecteur, 2) + ") = " + frNum(cc.betaU, 3),
              "Bêta ré-endetté = " + frNum(cc.betaU, 3) + " x (1 + (1 - " + frPct(cc.tax, 1) + ") x " + frNum(cc.gearing, 2) + ") = " + frNum(cc.beta, 3)]
-          : []).concat([
+          : []).concat(cc.rf.primeIncluse ? [] : [
+            "a = socle souverain + prime pays = " + frPct(cc.rf.socle) + " + " +
+            frPct(cc.rf.prime) + " = " + frPct(cc.rf.taux),
+          ]).concat([
             "Ke = a + b x c + d + e",
             "= " + frPct(cc.rf.taux) + " + " + frNum(cc.beta, 3) + " x " + frPct(cc.prime) +
             " + " + frPct(cc.d) + " + " + frPct(cc.e) + " = " + frPct(cc.ke),
@@ -1816,12 +1916,14 @@
           { label: "Taux souverain " + cc.rf.libelle, value: frPct(cc.rf.taux) },
           { label: "Spread de financement", value: "non publié, nul par hypothèse" },
           { label: "Coût de la dette avant IS", value: frPct(cc.rf.taux), strong: true },
-          { label: "Taux d'IS", value: frPct(cc.tax, 1) },
+          { label: "Taux d'IS" + (cc.taxDefaut ? ", non publié : 25 % retenu" : ""), value: frPct(cc.tax, 1) },
           { label: "Économie d'impôt", value: frPts(cc.rf.taux * cc.tax) },
           { label: "Coût de la dette après IS", value: frPct(cc.kd), strong: true },
         ],
         methodology: "Taux souverain diminué de l'économie d'impôt.",
-        source: "Courbe souveraine UMOA-Titres, taux d'IS de droit commun Damodaran (" + params.country + ").",
+        source: "Courbe souveraine " + cc.rf.source + " au " + cc.rf.date + ", " + (cc.taxDefaut
+          ? "taux d'IS non publié par Damodaran pour " + params.country + " : 25 % retenu"
+          : "taux d'IS de droit commun Damodaran (" + params.country + ")") + ".",
         hypothesis: "Aucun spread de financement n'est publié pour ce référentiel : la dette est supposée levée au taux souverain. L'hypothèse est neutre, et probablement optimiste pour un émetteur privé.",
         retained: "Taux souverain " + frPct(cc.rf.taux) + ", IS " + frPct(cc.tax, 1) + ".",
         formula: ["Kd = " + frPct(cc.rf.taux) + " x (1 - " + frPct(cc.tax, 1) + ") = " + frPct(cc.kd)],
@@ -1854,7 +1956,8 @@
                   "D/V = 1 - E/V = " + frPct(cc.wd)],
       },
       {
-        id: "wacc", title: "CMPC", symbol: "CMPC", value: frPct(cc.wacc), final: true,
+        id: "wacc", title: cc.conversion ? "CMPC en " + cc.rf.monnaie : "CMPC",
+        symbol: "CMPC", value: frPct(cc.wacc), final: !cc.conversion,
         rows: [
           { label: "Fonds propres " + frPct(cc.ke) + " x " + frPct(cc.we, 0), value: frPts(contribFp) },
           { label: "Dette " + frPct(cc.kd) + " x " + frPct(cc.wd, 0), value: frPts(contribDette) },
@@ -1862,13 +1965,38 @@
         ],
         methodology: "Moyenne du coût des fonds propres et du coût de la dette, pondérée par la structure financière.",
         source: "Composantes ci-dessus.",
-        hypothesis: "Exprimé en monnaie locale : le taux souverain qui l'alimente l'est déjà, aucune conversion d'inflation n'est appliquée.",
-        retained: "CMPC = " + frPct(cc.wacc) + ".",
+        hypothesis: cc.conversion
+          ? "Exprimé en " + cc.rf.monnaie + ", la devise du socle souverain qui l'alimente. La conversion en monnaie locale fait l'objet de la carte suivante : actualiser des flux en monnaie locale avec ce taux-ci reviendrait à mélanger deux monnaies."
+          : "Déjà exprimé en monnaie locale : le socle souverain qui l'alimente est libellé dans la monnaie du pays valorisé, aucune conversion d'inflation n'est appliquée.",
+        retained: "CMPC = " + frPct(cc.wacc) + (cc.conversion ? " en " + cc.rf.monnaie + "." : "."),
         formula: ["CMPC = E/V x Ke + D/V x Kd",
                   "= " + frPct(cc.we, 0) + " x " + frPct(cc.ke) + " + " + frPct(cc.wd, 0) +
                   " x " + frPct(cc.kd) + " = " + frPct(cc.wacc)],
       },
-    ];
+    ].concat(cc.conversion ? [{
+      // Cette carte n'apparaît que lorsque le socle n'est pas dans la monnaie
+      // du pays valorisé. Sur un émetteur de l'UMOA ou de la zone euro, elle
+      // serait une conversion d'une monnaie vers elle-même : deux curseurs
+      // d'inflation réglés différemment y ajouteraient un écart sans objet.
+      id: "loc", title: "CMPC en monnaie locale", symbol: "CMPC loc.",
+      value: frPct(cc.waccLocal), tone: "blue", final: true,
+      rows: [
+        { label: "CMPC en " + cc.rf.monnaie, value: frPct(cc.wacc) },
+        { label: "Inflation attendue, monnaie locale", value: frPct(cc.inflationLocale) },
+        { label: "Inflation attendue, " + cc.rf.monnaie, value: frPct(cc.inflationRef) },
+        { label: "Différentiel", value: frPts(cc.waccLocal - cc.wacc) },
+        { label: "CMPC en monnaie locale", value: frPct(cc.waccLocal), strong: true },
+      ],
+      methodology: "Conversion du CMPC exprimé dans la devise du socle souverain vers la monnaie du pays valorisé, par le différentiel d'inflation attendu, selon la parité des pouvoirs d'achat.",
+      source: "Prévisions d'inflation des deux zones monétaires, saisies dans l'onglet Paramètres — aucune source ne les fournit pour les 157 pays du référentiel.",
+      hypothesis: "Différentiel d'inflation constant sur l'horizon, et parité des pouvoirs d'achat vérifiée à terme. Les deux curseurs sont des hypothèses de l'utilisateur, pas des données : laissés à leurs valeurs par défaut, ils imposent un écart de 0,5 point qui n'a rien à voir avec le pays retenu.",
+      retained: frPct(cc.wacc) + " en " + cc.rf.monnaie + ", " + frPct(cc.waccLocal) + " en monnaie locale.",
+      formula: [
+        "CMPC loc. = (1 + CMPC) x (1 + infl. loc.) / (1 + infl. " + cc.rf.monnaie + ") - 1",
+        "= " + frNum(1 + cc.wacc, 4) + " x " + frNum(1 + cc.inflationLocale, 4) + " / " +
+        frNum(1 + cc.inflationRef, 4) + " - 1 = " + frPct(cc.waccLocal),
+      ],
+    }] : []);
   }
 
   /* ---------- Bulles de résumé ---------- */
@@ -1970,17 +2098,53 @@
       </section>`;
   }
 
+  // Sous référentiel Comparables, la devise de référence n'est plus une
+  // constante : elle dépend du socle affecté au pays. Les deux curseurs
+  // d'inflation le disent, sans quoi on saisirait une inflation américaine
+  // pour un taux libellé en euros — ou un différentiel là où le taux est déjà
+  // dans la monnaie du pays et où rien n'est converti.
+  function champsManuels() {
+    const rf = estComparables() ? tauxSansRisque() : null;
+    if (!rf) return MANUAL;
+    return MANUAL.map((champ) => {
+      if (champ.key === "inflation_ref") {
+        return Object.assign({}, champ, {
+          hint: rf.locale
+            ? "Sans effet ici : le taux est déjà en " + rf.monnaie
+            : "Devise du socle souverain retenu : " + rf.monnaie,
+        });
+      }
+      if (champ.key === "inflation_local") {
+        return Object.assign({}, champ, {
+          hint: rf.locale
+            ? "Sans effet ici : aucune conversion n'est appliquée"
+            : "Projection annuelle pour " + params.country,
+        });
+      }
+      return champ;
+    });
+  }
+
   function renderParams() {
     const referentiels = (DATA.comparables || {}).societes
       ? selectField("referentiel", "Référentiel",
                     [["damodaran", "Damodaran"], ["comparables", "Comparables"]])
       : "";
 
-    // Sous référentiel Comparables, la maturité se choisit sur la courbe
-    // souveraine de l'État retenu, dont la profondeur varie de 7 à 15 ans.
-    const courbe = estComparables() ? courbePays() : null;
-    const champMaturite = courbe
-      ? selectField("maturite_uemoa", "Maturité sur la courbe souveraine", courbe.points.map((p) => p[0]))
+    // Sous référentiel Comparables, la maturité se choisit sur le socle
+    // souverain du pays retenu. Les trois socles n'offrent pas les mêmes
+    // points — onze pour la BCE, deux pour le Treasury, sept à quinze ans
+    // selon l'État de l'UMOA. Changer de pays peut donc rendre la maturité
+    // choisie indisponible ; le calcul retombe sur la plus proche, et on
+    // recale le paramètre dessus pour que le menu affiche celle qui sert.
+    const socleCourbe = estComparables() ? socleSouverain() : null;
+    if (socleCourbe) {
+      const retenue = tauxSansRisque();
+      if (retenue) params.maturite_souveraine = retenue.libelle;
+    }
+    const champMaturite = socleCourbe
+      ? selectField("maturite_souveraine", "Maturité sur la courbe souveraine",
+                    socleCourbe.points.map((p) => p[0]))
       : selectField("maturity", "Maturité du taux sans risque", DATA.options.maturities);
 
     // L'industrie change de taxonomie selon le référentiel : les secteurs de
@@ -2023,7 +2187,7 @@
 
       <section class="card-block">
         <h2>Paramètres manuels</h2>
-        <div class="grid-2">${MANUAL.map(stepperField).join("")}</div>
+        <div class="grid-2">${champsManuels().map(stepperField).join("")}</div>
       </section>`;
 
     // Le cadre Cadrage est rendu sous les deux référentiels : le rail se
@@ -2038,7 +2202,6 @@
       // faux ligne à ligne.
       const secteur = statsSecteur(params.secteur);
       const rf = tauxSansRisque();
-      const dateCourbe = COURBES ? (COURBES.date || "") : "";
       const cc = cmpcComparables();
       const gSect = gearingSectoriel(params.secteur);
       const ouvert = !params.gearing_verrou;
@@ -2052,9 +2215,9 @@
           </button>
         </span>
         <span class="result-hero">
-          <span class="field-label">CMPC calculé</span>
+          <span class="field-label">CMPC calculé${cc && cc.conversion ? ", en monnaie locale" : ""}</span>
           <span class="result-hero-row">
-            <span class="result-hero-value"${cc ? "" : ' style="color:var(--muted-2)"'}>${cc ? frPct(cc.wacc) : "—"}</span>
+            <span class="result-hero-value"${cc ? "" : ' style="color:var(--muted-2)"'}>${cc ? frPct(cc.waccLocal) : "—"}</span>
           </span>
         </span>
         <span class="result-rows">
@@ -2080,7 +2243,10 @@
             </span>` : ""}
           <span class="result-row"><span>Bêta médian (3 ans)</span><span>${secteur && secteur.beta_3ans != null ? frNum(secteur.beta_3ans, 3) : "—"}</span></span>
           <span class="result-row"><span>Capitalisation cumulée</span><span>${esc(frMontant(secteur ? secteur.capitalisation : null))}</span></span>
-          <span class="result-row"><span>Taux sans risque ${rf ? esc(rf.libelle) : ""}</span><span>${rf ? frPct(rf.taux) : "indisponible"}</span></span>
+          <span class="result-row"><span>Socle souverain ${rf ? esc(rf.libelle) + " · " + esc(rf.source) : ""}</span><span>${rf ? frPct(rf.socle) : "indisponible"}</span></span>
+          ${rf && !rf.primeIncluse ? `
+            <span class="result-row"><span>Prime de risque pays</span><span>${frPct(rf.prime)}</span></span>
+            <span class="result-row"><span>Taux sans risque, en ${esc(rf.monnaie)}</span><span>${frPct(rf.taux)}</span></span>` : ""}
           <span class="result-row"><span>Gearing sectoriel (D/E)</span><span>${gSect == null ? "non publié" : frNum(gSect, 2)}</span></span>
           ${ouvert ? `
             <span class="result-row">
@@ -2104,12 +2270,27 @@
           ${cc ? `
             <span class="result-row"><span>Coût des fonds propres</span><span>${frPct(cc.ke)}</span></span>
             <span class="result-row"><span>Coût de la dette après IS</span><span>${frPct(cc.kd)}</span></span>
-            <span class="result-row"><span>Fonds propres / dette</span><span>${frPct(cc.we, 0)} / ${frPct(cc.wd, 0)}</span></span>` : ""}
+            <span class="result-row"><span>Fonds propres / dette</span><span>${frPct(cc.we, 0)} / ${frPct(cc.wd, 0)}</span></span>
+            ${cc.taxDefaut ? `
+              <span class="result-row is-appoint">
+                <span>Taux d'IS non publié pour ${esc(params.country)} : 25 % retenu,
+                  comme sous le référentiel Damodaran.</span>
+              </span>` : ""}
+            ${cc.conversion ? `
+              <span class="result-row"><span>CMPC en ${esc(cc.rf.monnaie)}</span><span>${frPct(cc.wacc)}</span></span>
+              <span class="result-row is-appoint">
+                <span>Converti en monnaie locale par le différentiel d'inflation
+                  (${frPct(cc.inflationLocale)} contre ${frPct(cc.inflationRef)} en
+                  ${esc(cc.rf.monnaie)}) : deux hypothèses à régler dans les
+                  paramètres manuels, ce ne sont pas des données.</span>
+              </span>` : ""}` : ""}
         </span>
         <button type="button" class="cta" id="goSoc">Voir les sociétés</button>
-        <span class="note">${rf
-          ? `Taux souverain ${esc(rf.pays)} au ${esc(dateCourbe)}, publié par UMOA-Titres. Il porte déjà le risque pays : aucune prime ne s'y ajoute, et le coût du capital qui en découle est directement en monnaie locale.`
-          : "Courbe souveraine indisponible pour ce pays."} Le bêta retenu est la médiane des bêtas cotés à trois ans du secteur${secteur ? ", sur " + esc(secteur.perimetre) : ""}.${cc && cc.gearingSaisi
+        <span class="note">${!rf
+          ? "Aucun socle souverain pour ce pays."
+          : rf.primeIncluse
+            ? `Taux souverain ${esc(rf.pays)} au ${esc(rf.date)}, publié par ${esc(rf.source)}. Il porte déjà le risque pays : aucune prime ne s'y ajoute, et le coût du capital qui en découle est directement en ${esc(rf.monnaie)}, la monnaie du pays.`
+            : `Socle souverain ${esc(rf.source)} au ${esc(rf.date)}, pris hors risque pays ; la prime de risque pays Damodaran de ${esc(rf.pays)} (${frPct(rf.prime)}) s'y ajoute. Le taux obtenu est libellé en ${esc(rf.monnaie)}${rf.locale ? ", qui est la monnaie du pays" : ", et le CMPC qui en découle est ramené en monnaie locale par le différentiel d'inflation"}.`} Le bêta retenu est la médiane des bêtas cotés à trois ans du secteur${secteur ? ", sur " + esc(secteur.perimetre) : ""}.${cc && cc.gearingSaisi
           ? ` Il est désendetté au gearing observé du secteur puis ré-endetté au gearing cible, sans quoi la structure changerait sans que le risque suive.`
           : ` Il est employé tel quel : la structure retenue est celle de l'échantillon dont il provient, le ré-endettement serait sans effet.`}${cc
           ? ` La dette est supposée levée au taux souverain, faute de spread publié pour ce référentiel — hypothèse neutre, et probablement optimiste pour un émetteur privé.`

@@ -6,9 +6,11 @@ avec une feuille par État et deux colonnes : taux zéro-coupon et taux après
 lissage. On retient le taux lissé — c'est la courbe ajustée par l'agence, plus
 stable d'une semaine à l'autre que les points bruts.
 
-Ce taux remplace, sous référentiel BRVM, le couple « Treasury US + prime de
-risque pays » : un souverain UEMOA emprunte en FCFA et porte déjà son risque
-pays. Le coût du capital qui en découle est donc directement en monnaie locale.
+C'est l'un des trois socles du taux sans risque du référentiel Comparables, et
+le seul qui soit la courbe propre des États qu'il dessert : un souverain UEMOA
+emprunte en FCFA et porte déjà son risque pays. Aucune prime ne s'y ajoute, et
+le coût du capital qui en découle est directement en monnaie locale — voir
+`taux_sans_risque.py` pour les deux autres socles et leur affectation.
 """
 
 import datetime

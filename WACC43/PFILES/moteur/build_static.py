@@ -35,22 +35,16 @@ MIN_INDUSTRIES = 60
 SEUIL_ECHANTILLON = 3
 
 
-def _courbes_souveraines(progress):
-    """Courbes UMOA-Titres, taux sans risque du référentiel Comparables.
+def _taux_sans_risque(pays, progress):
+    """Socles de courbe souveraine pour les 157 pays du référentiel.
 
-    Une indisponibilité du site ne doit pas faire échouer la construction : la
-    page reste consultable, seul le taux sans risque manque et elle le dit.
+    Chaque source manquante dégrade la couverture sans faire échouer la
+    construction : les pays qu'elle desservait retombent sur le socle dollar,
+    déjà téléchargé, et la page dit d'où vient le taux qu'elle affiche.
     """
-    try:
-        import taux_uemoa
+    import taux_sans_risque
 
-        progress("Courbes de taux UEMOA...")
-        courbes = taux_uemoa.charger_courbes()
-        progress(f"Courbes au {courbes['date']} — {len(courbes['pays'])} États.")
-        return courbes
-    except Exception as exc:
-        progress(f"Courbes UEMOA indisponibles ({type(exc).__name__}) — taux sans risque absent.")
-        return None
+    return taux_sans_risque.construire(pays, progress=progress)
 
 
 def main():
@@ -98,9 +92,10 @@ def main():
         for nom in inclassables:
             print(f"       - {nom}")
 
-    # Taux sans risque du référentiel Comparables : la courbe souveraine de
-    # l'État retenu. Elle porte déjà le risque pays, aucune prime ne s'y ajoute.
-    dataset["taux_souverains"] = _courbes_souveraines(progress)
+    # Taux sans risque du référentiel Comparables. Trois socles de courbe —
+    # UMOA-Titres, BCE zone euro, US Treasury — et la prime de risque pays
+    # Damodaran par-dessus, sauf quand le socle est déjà la courbe de l'État.
+    dataset["taux_souverains"] = _taux_sans_risque(dataset["pays"], progress)
 
     import comparables as _comparables
     import zones as _zones
