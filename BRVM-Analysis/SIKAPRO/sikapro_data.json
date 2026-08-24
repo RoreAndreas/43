@@ -1,5 +1,5 @@
 {
-    "last_update": "2026-08-24 17:19:10",
+    "last_update": "2026-08-24 17:54:35",
     "count": 47,
     "data": [
         {
@@ -168,12 +168,12 @@
             "nombre_titres": 54435300.0,
             "capitalisation_mxof": 146975.0,
             "beta_1an": 0.38,
-            "rsi_14": 58.57,
+            "rsi_14": 53.7,
             "mm_20": 2658.25,
             "mm_50": 2554.2,
             "mm_200": 1941.45,
             "perf_ytd_pct": 78.22,
-            "perf_1an_pct": 77.05,
+            "perf_1an_pct": 75.9,
             "consensus_note": 1.6,
             "consensus_reco": "Strong Sell",
             "objectif_cours": 1931.0,
@@ -1308,7 +1308,7 @@
             "nombre_titres": 36000000.0,
             "capitalisation_mxof": 306000.0,
             "beta_1an": 0.62,
-            "rsi_14": 68.15,
+            "rsi_14": 80.53,
             "mm_20": 7811.75,
             "mm_50": 7571.6,
             "mm_200": 6663.25,
