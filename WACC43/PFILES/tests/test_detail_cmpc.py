@@ -11,7 +11,7 @@ from conftest import choisir, mode_comparables
 
 # Ce que l'utilisateur doit pouvoir lire sans rouvrir le classeur.
 PALIERS = [
-    ("ke", "Socle souverain"),
+    ("ke", "Taux US Bond"),
     ("ke", "Prime de risque pays"),
     ("ke", "Bêta (3 ans)"),
     ("ke", "Prime de risque marché"),

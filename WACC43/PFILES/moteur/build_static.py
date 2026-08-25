@@ -35,18 +35,6 @@ MIN_INDUSTRIES = 60
 SEUIL_ECHANTILLON = 3
 
 
-def _taux_sans_risque(pays, progress):
-    """Socles de courbe souveraine pour les 157 pays du référentiel.
-
-    Chaque source manquante dégrade la couverture sans faire échouer la
-    construction : les pays qu'elle desservait retombent sur le socle dollar,
-    déjà téléchargé, et la page dit d'où vient le taux qu'elle affiche.
-    """
-    import taux_sans_risque
-
-    return taux_sans_risque.construire(pays, progress=progress)
-
-
 def main():
     parser = argparse.ArgumentParser(description="Génère la page statique du CMPC")
     parser.add_argument("--out", default=str(SITE), help="dossier de sortie (défaut : site/)")
@@ -91,11 +79,6 @@ def main():
         print(f"  /!\\ {len(inclassables)} pays sans zone, à rattacher dans zones.py :")
         for nom in inclassables:
             print(f"       - {nom}")
-
-    # Taux sans risque du référentiel Comparables. Trois socles de courbe —
-    # UMOA-Titres, BCE zone euro, US Treasury — et la prime de risque pays
-    # Damodaran par-dessus, sauf quand le socle est déjà la courbe de l'État.
-    dataset["taux_souverains"] = _taux_sans_risque(dataset["pays"], progress)
 
     import comparables as _comparables
     import zones as _zones

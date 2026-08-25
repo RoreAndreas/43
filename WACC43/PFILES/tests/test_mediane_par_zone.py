@@ -7,9 +7,9 @@ médiane du continent — et l'écrit, faute de quoi une médiane continentale
 passerait pour une médiane de zone.
 
 Le pays, lui, ne suit plus la zone. Il désigne l'émetteur valorisé, donc la
-courbe souveraine et le taux d'IS ; la zone désigne l'échantillon de
+prime de risque pays et le taux d'IS ; la zone désigne l'échantillon de
 comparables. Les coupler privait de taux sans risque dès qu'on regardait une
-zone hors UMOA, soit quatre zones africaines sur cinq.
+zone hors UMOA, du temps où ce taux venait d'une courbe souveraine locale.
 """
 
 import pytest

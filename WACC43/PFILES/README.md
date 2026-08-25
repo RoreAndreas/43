@@ -26,8 +26,8 @@ PFILES/
 | `moteur/wacc_core.py` | Téléchargement des sources, condensation, formules Python |
 | `moteur/wacc_html.py` | Injecte le jeu de données dans le gabarit |
 | `moteur/get_us_bond_rate.py` | Moyenne annuelle des taux US Treasury |
-| `moteur/brvm_core.py` | Instantané des 47 sociétés cotées BRVM |
-| `moteur/taux_uemoa.py` | Courbes souveraines UEMOA (UMOA-Titres) |
+| `moteur/comparables.py` | Lecture et fusion des exports S&P Capital IQ |
+| `moteur/zones.py` | Découpage géographique continent / zone |
 | `moteur/export_wacc.py` | Génération du classeur Excel |
 | `moteur/serve.py` | Aperçu local et export Excel |
 | `presentation/wacc_value_tab.html` | Présentation **et** formules en JavaScript |

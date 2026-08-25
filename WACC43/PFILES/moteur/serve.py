@@ -130,9 +130,6 @@ def main():
 
     print("Chargement des données Damodaran...")
     DATASET = wacc_core.build_dataset(years=years, progress=lambda m: print(f"  {m}"))
-    import build_static
-    DATASET["taux_souverains"] = build_static._courbes_souveraines(
-        lambda m: print(f"  {m}"))
 
     server = ThreadingHTTPServer((args.host, args.port), Handler)
     url = f"http://127.0.0.1:{args.port}"

@@ -73,11 +73,13 @@ def choisir(page, champ: str, valeur: str) -> None:
 
 
 def mode_comparables(page, pays: str = "Benin") -> None:
-    """Passe en référentiel Comparables sur un pays qui a une courbe souveraine.
+    """Passe en référentiel Comparables sur un pays donné.
 
-    Le pays par défaut du jeu Damodaran (Abu Dhabi) n'en a pas : sans ce
-    recalage le CMPC ne serait calculable dans aucun test, et l'absence de
-    résultat viendrait du pays, pas de ce qu'on cherche à vérifier.
+    Tous les pays du référentiel donnent désormais un CMPC — le taux sans
+    risque est celui des US Bonds augmenté de la prime de risque pays, publiée
+    pour les cent cinquante-sept. Le recalage ne sert donc plus qu'à rendre les
+    tests déterministes : un défaut d'affichage ne doit pas dépendre du pays
+    que Damodaran classe en tête de sa liste.
     """
     choisir(page, "referentiel", "comparables")
     choisir(page, "country", pays)
