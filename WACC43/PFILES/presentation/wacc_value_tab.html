@@ -2260,10 +2260,8 @@
         <button type="button" class="cta" id="goSoc">Voir les sociétés</button>
         <span class="note">${!rf
           ? `Aucun taux US Bond publié pour ${esc(String(params.year))}.`
-          : `Taux ${esc(rf.libelle)} publié par le ${esc(rf.source)}, augmenté de la prime de risque pays Damodaran de ${esc(rf.pays)} (${frPct(rf.prime)}) : c'est la même base que sous le référentiel Damodaran, la prime de marché qui multiplie le bêta étant elle-même mesurée sur le marché américain. Le taux obtenu est libellé en ${esc(rf.monnaie)}${rf.locale ? ", qui a cours légal dans ce pays" : ", et le CMPC qui en découle est ramené en monnaie locale par le différentiel d'inflation"}.`} Le bêta retenu est la médiane des bêtas cotés à trois ans du secteur${secteur ? ", sur " + esc(secteur.perimetre) : ""}.${cc && cc.gearingSaisi
-          ? ` Il est désendetté au gearing observé du secteur puis ré-endetté au gearing cible, sans quoi la structure changerait sans que le risque suive.`
-          : ` Il est employé tel quel : la structure retenue est celle de l'échantillon dont il provient, le ré-endettement serait sans effet.`}${cc
-          ? ` La dette est supposée levée au taux souverain, faute de spread publié pour ce référentiel — hypothèse neutre, et probablement optimiste pour un émetteur privé.`
+          : `Taux ${esc(rf.libelle)} publié par le ${esc(rf.source)}. Le taux obtenu est libellé en ${esc(rf.monnaie)}${rf.locale ? ", qui a cours légal dans ce pays" : ", et le CMPC qui en découle est ramené en monnaie locale par le différentiel d'inflation"}.`}${cc
+          ? ""
           : " Le gearing du secteur n'est pas publié : ouvrez le cadenas pour poser une cible et obtenir le CMPC."}</span>`;
       $("goSoc").addEventListener("click", () => { tab = "societes"; renderTabs(); });
       $("verrouGearing").addEventListener("click", basculerVerrou);
