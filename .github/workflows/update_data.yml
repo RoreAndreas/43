@@ -1,8 +1,21 @@
 name: Update market data
 
+# Deux cadences, deux publics. Les étapes ci-dessous se déclenchent selon celui
+# des deux crons qui a lancé l'exécution, lu dans `github.event.schedule`.
+# Les heures sont en UTC, qui est aussi l'heure d'Abidjan (pas de décalage,
+# pas d'heure d'été) : 10h ici est bien 10h à la BRVM.
 on:
   schedule:
-    - cron: '*/10 * * * *'  # Toutes les 10 minutes (UTC)
+    # Cotations — BRVM et SikaPro. Toutes les 10 minutes, 08h-20h UTC, en
+    # semaine. Mesuré sur quatorze jours d'historique : elles n'ont jamais
+    # changé en dehors de 09h-19h UTC ni le week-end, la BRVM cotant de 09h30
+    # à 15h00. Les 84 exécutions nocturnes quotidiennes ne trouvaient rien.
+    - cron: '*/10 8-19 * * 1-5'
+    # Actualités — Richbourse seul, quatre fois par jour, week-end compris.
+    # Huit changements réels en quatorze jours ne justifiaient pas 144
+    # relevés quotidiens ; quatre suffisent, et le fil ne s'arrête pas le
+    # samedi comme le fait la cote.
+    - cron: '0 2,10,15,23 * * *'
   workflow_dispatch:      # Permet de lancer manuellement depuis GitHub
 
 # Autorise le robot (GITHUB_TOKEN) à écrire dans le dépôt (nécessaire pour git push)
@@ -32,15 +45,20 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
+      # Un déclenchement manuel lance tout : `github.event.schedule` est vide,
+      # et les deux conditions sont alors vraies.
       - name: Run BRVM scraper
+        if: ${{ github.event_name != 'schedule' || github.event.schedule == '*/10 8-19 * * 1-5' }}
         run: python BRVM/brvm_scraper.py
         continue-on-error: true
 
       - name: Run Richbourse scraper
+        if: ${{ github.event_name != 'schedule' || github.event.schedule == '0 2,10,15,23 * * *' }}
         run: python RICHBOURSE/richbourse_scraper.py
         continue-on-error: true
 
       - name: Run SikaP scraper
+        if: ${{ github.event_name != 'schedule' || github.event.schedule == '*/10 8-19 * * 1-5' }}
         run: python SIKAPRO/sikapro_scraper.py
         continue-on-error: true
         env:
@@ -55,6 +73,17 @@ jobs:
           # Ne rien faire s'il n'y a aucun changement de données
           if git diff --staged --quiet; then
             echo "Aucune donnée modifiée, rien à committer."
+            exit 0
+          fi
+          # Chaque scraper réécrit son champ `last_update` à chaque passage,
+          # même quand aucune cotation n'a bougé. Le test ci-dessus voyait donc
+          # toujours une différence : sur quatorze jours, 76 % des commits
+          # automatiques ne portaient que cet horodatage — 388 sur 458 pour la
+          # BRVM, 291 sur 299 pour Richbourse. Chacun redéployait au passage la
+          # page CMPC, qui n'y est pour rien.
+          reel=$(git diff --staged -U0 | grep '^[+-][^+-]' | grep -v last_update || true)
+          if [ -z "$reel" ]; then
+            echo "Seuls les horodatages ont changé, rien à committer."
             exit 0
           fi
           git commit -m "🔄 Update market data (automated)"
