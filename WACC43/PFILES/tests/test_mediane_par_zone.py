@@ -129,3 +129,47 @@ def test_le_champ_pays_dit_son_role(page):
     mode_comparables(page)
     libelles = [e.inner_text() for e in page.query_selector_all("#paramsMain .geo-choix .field-label")]
     assert "Pays de valorisation" in libelles
+
+
+# ----------------------------- le continent ne déplace pas le pays non plus
+
+def test_le_continent_ne_deplace_pas_le_pays(page):
+    """Changer de continent réassignait le pays de valorisation.
+
+    Le continent cadre l'échantillon de comparables, le pays désigne l'émetteur
+    valorisé : deux questions distinctes, et l'écart entre les deux s'ajuste par
+    la prime spécifique. Un menu qui recale le pays tout seul décide à la place
+    de l'utilisateur — et le faisait sans le dire.
+    """
+    mode_comparables(page, "France")
+    for continent in ["Afrique", "Amériques", "Asie", "Europe"]:
+        choisir(page, "continent", continent)
+        assert page.evaluate("params.country") == "France", (
+            f"le pays a été déplacé en passant sur {continent}")
+
+
+def test_le_pays_hors_continent_reste_propose(page):
+    """Sinon le menu porterait une valeur absente de ses options."""
+    mode_comparables(page, "France")
+    choisir(page, "continent", "Afrique")
+    proposes = page.eval_on_selector_all(
+        '#paramsMain select[data-param="country"] option', "e => e.map(o => o.value)")
+    assert "France" in proposes
+    assert page.eval_on_selector(
+        '#paramsMain select[data-param="country"]', "e => e.value") == "France"
+    assert "Benin" in proposes, "la liste doit rester filtrée sur le continent"
+
+
+def test_choisir_un_pays_ne_deplace_pas_le_continent(page):
+    """La réciproque, atteignable par l'URL plutôt que par le menu.
+
+    Le menu filtré ne propose pas de pays hors continent ; on passe donc par
+    `setParam`, le point d'entrée qu'empruntent aussi bien les menus que les
+    paramètres d'URL. Le cadrage des comparables appartient à l'utilisateur : le
+    choix d'un émetteur ne doit pas le déplacer dans son dos.
+    """
+    mode_comparables(page, "Benin")
+    choisir(page, "continent", "Afrique")
+    page.evaluate("() => setParam('country', 'France')")
+    assert page.evaluate("params.country") == "France"
+    assert page.evaluate("params.continent") == "Afrique"

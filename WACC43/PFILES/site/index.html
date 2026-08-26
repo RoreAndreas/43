@@ -1360,12 +1360,13 @@
   function groupesPays() { return DATA.options.countries_grouped || []; }
   function continents() { return groupesPays().map(([c]) => c); }
   function zonesDuContinent(c) { return (DATA.options.zones_par_continent || {})[c] || []; }
-  function continentDe(pays) { const e = DATA.pays[pays]; return e && e.continent ? e.continent : null; }
-
-  // Le continent filtre la liste des pays. La zone, elle, n'y touche pas : elle
-  // cadre l'échantillon de comparables, ce qui est une autre question que celle
-  // de l'émetteur à valoriser. Les coupler privait de courbe souveraine dès
-  // qu'on regardait une zone hors UMOA, soit quatre zones africaines sur cinq.
+  // Le continent raccourcit la liste des pays proposés — c'est un confort de
+  // saisie — mais il ne change jamais celui qui est retenu, et la zone n'y
+  // touche pas davantage. Le pays désigne l'émetteur valorisé, donc sa prime de
+  // risque et son taux d'IS ; le continent cadre l'échantillon de comparables,
+  // c'est-à-dire l'endroit où le secteur est assez représenté pour qu'une
+  // médiane veuille dire quelque chose. Deux questions distinctes : l'écart
+  // entre les deux s'ajuste par la prime spécifique, pas en déplaçant le pays.
   function paysVisibles() {
     const groupes = groupesPays();
     if (params.continent === TOUS) return groupes.flatMap(([, m]) => m);
@@ -1373,10 +1374,20 @@
     return t ? t[1] : groupes.flatMap(([, m]) => m);
   }
 
+  // Quand le pays retenu sort du continent filtré, il reste proposé dans son
+  // propre groupe. Sans cela le menu porterait une valeur absente de ses
+  // options, et le navigateur retomberait silencieusement sur la première —
+  // c'est précisément ainsi que changer de continent déplaçait le pays.
   function champPays(label) {
-    return params.continent === TOUS
-      ? selectFieldGroupe("country", label, groupesPays(), DATA.options.countries)
-      : selectField("country", label, paysVisibles());
+    if (params.continent === TOUS) {
+      return selectFieldGroupe("country", label, groupesPays(), DATA.options.countries);
+    }
+    const membres = paysVisibles();
+    const groupes = membres.includes(params.country)
+      ? [[params.continent, membres]]
+      : [["Pays retenu, hors " + params.continent, [params.country]],
+         [params.continent, membres]];
+    return selectFieldGroupe("country", label, groupes, DATA.options.countries);
   }
 
   // L'univers de comparables, société par société : la seule source de la page,
@@ -1637,6 +1648,13 @@
   // est une pratique courante — les bêtas africains sont écrasés par
   // l'illiquidité. Ce n'est donc pas une erreur, mais cela doit se lire : un
   // rapport relu six mois plus tard ne dirait plus d'où venait le bêta.
+  // Le pays de valorisation et le périmètre des comparables sont deux choses
+  // distinctes : le premier porte la prime de risque pays et le taux d'IS, le
+  // second dit où l'on va chercher un secteur suffisamment représenté. Aller
+  // chercher les banques là où elles cotent n'est pas un pis-aller, c'est le
+  // principe — et l'écart de marché qui en résulte s'ajuste par la prime
+  // spécifique, que l'utilisateur règle. La page le dit dans ces termes plutôt
+  // que d'agiter un avertissement sans remède.
   function ecartDeMarche() {
     const emetteur = continentEmetteur();
     if (!emetteur) return null;
@@ -2061,6 +2079,12 @@
             : "Devise du taux sans risque : le " + rf.monnaie,
         });
       }
+      if (champ.key === "e") {
+        return ecartDeMarche()
+          ? Object.assign({}, champ, {
+              hint: "Écart de marché des comparables, et risques idiosyncratiques" })
+          : champ;
+      }
       if (champ.key === "inflation_local") {
         return Object.assign({}, champ, {
           hint: rf.locale
@@ -2160,9 +2184,11 @@
           <span class="result-row"><span>Sociétés du secteur${secteur ? ", " + esc(secteur.perimetre) : ""}</span><span>${secteur ? secteur.societes : 0}</span></span>
           ${(() => { const e = ecartDeMarche(); return e ? `
             <span class="result-row is-appoint">
-              <span>Comparables pris ${esc(e.comparables)}, pour un émetteur
-                ${esc(e.emetteur)} : le bêta ne vient pas du marché de la société
-                valorisée.</span>
+              <span>Comparables pris ${esc(e.comparables)}, émetteur
+                ${esc(e.emetteur)} : le secteur se cherche là où il est
+                représenté, non là où l'émetteur est domicilié. Le pays n'entre
+                que par sa prime de risque et son taux d'IS ; l'écart de marché
+                s'ajuste par la prime spécifique (e).</span>
             </span>` : ""; })()}
           ${secteur && secteur.repli ? `
             <span class="result-row is-appoint">
@@ -2630,23 +2656,15 @@
 
 
   /* ================= Paramètres et URL ================= */
-  // Après un changement de continent ou de zone, le pays retenu peut être sorti
-  // de la liste visible. On le remplace par le premier de la nouvelle liste.
-  function recalerPays() {
-    const visibles = paysVisibles();
-    if (visibles.length && !visibles.includes(params.country)) params.country = visibles[0];
-  }
-
   function setParam(key, value) {
     if (key === "year") {
       value = Number(value);
     } else if (key === "continent") {
-      // Changer de continent ne doit jamais laisser un pays sélectionné hors de
-      // la liste visible : le menu afficherait alors une valeur absente de ses
-      // options, et le navigateur retomberait silencieusement sur la première.
+      // Le pays n'est pas touché : il désigne l'émetteur valorisé, que le
+      // continent des comparables ne concerne pas. S'il sort de la liste
+      // filtrée, champPays() l'y maintient dans son propre groupe.
       params.continent = value;
       params.zone = null;          // la zone appartenait au continent précédent
-      recalerPays();
       apply();
       return;
     } else if (key === "zone") {
@@ -2656,14 +2674,6 @@
       params.zone = params.zone === value ? null : value;
       apply();
       return;
-    } else if (key === "country") {
-      // Choisir un pays hors du filtre courant déplace le filtre plutôt que
-      // d'ignorer le clic.
-      const cont = continentDe(value);
-      if (params.continent !== TOUS && cont && cont !== params.continent) {
-        params.continent = cont;
-        params.zone = null;
-      }
     } else if (key === "secteur") {
       // Même tolérance que pour l'URL : accents et casse approximatifs acceptés,
       // et on conserve la valeur précédente plutôt qu'un libellé inconnu.
