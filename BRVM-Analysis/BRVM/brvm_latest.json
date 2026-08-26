@@ -1,5 +1,5 @@
 {
-    "last_update": "2026-08-26 14:40:12",
+    "last_update": "2026-08-26 16:05:36",
     "count": 47,
     "data": [
         {
@@ -144,13 +144,13 @@
         },
         {
             "symbole": "SDCC",
-            "prix": "12 200",
-            "variation": "3,25%"
+            "prix": "12 490",
+            "variation": "4,08%"
         },
         {
             "symbole": "SDSC",
-            "prix": "2 650",
-            "variation": "0,00%"
+            "prix": "2 560",
+            "variation": "-5,19%"
         },
         {
             "symbole": "SEMC",
@@ -159,8 +159,8 @@
         },
         {
             "symbole": "SGBC",
-            "prix": "38 985",
-            "variation": "0,00%"
+            "prix": "38 000",
+            "variation": "-2,53%"
         },
         {
             "symbole": "SHEC",
@@ -194,8 +194,8 @@
         },
         {
             "symbole": "SNTS",
-            "prix": "36 500",
-            "variation": "0,00%"
+            "prix": "34 600",
+            "variation": "-5,21%"
         },
         {
             "symbole": "SOGC",
@@ -214,13 +214,13 @@
         },
         {
             "symbole": "STBC",
-            "prix": "22 900",
-            "variation": "-0,41%"
+            "prix": "21 205",
+            "variation": "-7,40%"
         },
         {
             "symbole": "TTLC",
-            "prix": "3 450",
-            "variation": "2,94%"
+            "prix": "3 595",
+            "variation": "5,74%"
         },
         {
             "symbole": "TTLS",
@@ -229,13 +229,13 @@
         },
         {
             "symbole": "UNLC",
-            "prix": "54 000",
-            "variation": "3,45%"
+            "prix": "56 115",
+            "variation": "7,50%"
         },
         {
             "symbole": "UNXC",
-            "prix": "2 495",
-            "variation": "-0,20%"
+            "prix": "2 400",
+            "variation": "-3,81%"
         }
     ]
 }
