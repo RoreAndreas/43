@@ -1,14 +1,19 @@
 {
-    "last_update": "2026-08-27 04:27:53",
+    "last_update": "2026-08-27 20:16:02",
     "count": 20,
     "weeks": [
         {
             "semaine": "Semaine du 24 Août au 30 Août 2026",
             "publications": [
                 {
-                    "date": "26/08/2026",
-                    "titre": "PALM CI : Notation Financière",
-                    "url": "https://www.richbourse.com/common/actualite/afficher-fichier/26-08-2026-palm-ci-notation-financiere"
+                    "date": "27/08/2026",
+                    "titre": "NEI CEDA CI : Paiement de dividendes - Exercice 2025",
+                    "url": "https://www.richbourse.com/common/actualite/afficher-fichier/27-08-2026-nei-ceda-ci-paiement-de-dividendes-exercice-2025"
+                },
+                {
+                    "date": "27/08/2026",
+                    "titre": "AMF-UMOA : Approbation du fractionnement de la valeur liquidative de la SICAV ABDOU DIOUF et visa de son prospectus modifié",
+                    "url": "https://www.richbourse.com/common/actualite/afficher-fichier/27-08-2026-amf-umoa-approbation-du-fractionnement-de-la-valeur-liquidative-de-la-sicav-abdou-diouf-et-visa-de-son-prospectus-modifie"
                 },
                 {
                     "date": "26/08/2026",
@@ -19,6 +24,11 @@
                     "date": "26/08/2026",
                     "titre": "BOA BF : Notation Financière",
                     "url": "https://www.richbourse.com/common/actualite/afficher-fichier/26-08-2026-boa-bf-notation-financiere"
+                },
+                {
+                    "date": "26/08/2026",
+                    "titre": "PALM CI : Notation Financière",
+                    "url": "https://www.richbourse.com/common/actualite/afficher-fichier/26-08-2026-palm-ci-notation-financiere"
                 }
             ]
         },
@@ -27,18 +37,13 @@
             "publications": [
                 {
                     "date": "21/08/2026",
-                    "titre": "BRVM : Rappel, mardi 25 août 2026, jour férié",
-                    "url": "https://www.richbourse.com/common/actualite/afficher-fichier/21-08-2026-brvm-rappel-mardi-25-aout-2026-jour-ferie"
-                },
-                {
-                    "date": "21/08/2026",
                     "titre": "VIVO ENERGY CI : Paiement de dividendes - Exercice 2025",
                     "url": "https://www.richbourse.com/common/actualite/afficher-fichier/21-08-2026-vivo-energy-ci-paiement-de-dividendes-exercice-2025-2"
                 },
                 {
-                    "date": "18/08/2026",
-                    "titre": "BOA ML : Notation Financière",
-                    "url": "https://www.richbourse.com/common/actualite/afficher-fichier/18-08-2026-boa-ml-notation-financiere"
+                    "date": "21/08/2026",
+                    "titre": "BRVM : Rappel, mardi 25 août 2026, jour férié",
+                    "url": "https://www.richbourse.com/common/actualite/afficher-fichier/21-08-2026-brvm-rappel-mardi-25-aout-2026-jour-ferie"
                 },
                 {
                     "date": "18/08/2026",
@@ -46,14 +51,19 @@
                     "url": "https://www.richbourse.com/common/actualite/afficher-fichier/18-08-2026-boa-bn-notation-financiere"
                 },
                 {
-                    "date": "17/08/2026",
-                    "titre": "ETI TG : Communiqué de Presse",
-                    "url": "https://www.richbourse.com/common/actualite/afficher-fichier/17-08-2026-eti-tg-communique-de-presse"
+                    "date": "18/08/2026",
+                    "titre": "BOA ML : Notation Financière",
+                    "url": "https://www.richbourse.com/common/actualite/afficher-fichier/18-08-2026-boa-ml-notation-financiere"
                 },
                 {
                     "date": "17/08/2026",
                     "titre": "SITAB CI : Rapport d'activités - 2eme trimestre 2026",
                     "url": "https://www.richbourse.com/common/actualite/afficher-fichier/17-08-2026-sitab-ci-rapport-d-activites-2eme-trimestre-2026"
+                },
+                {
+                    "date": "17/08/2026",
+                    "titre": "ETI TG : Communiqué de Presse",
+                    "url": "https://www.richbourse.com/common/actualite/afficher-fichier/17-08-2026-eti-tg-communique-de-presse"
                 }
             ]
         },
@@ -72,13 +82,13 @@
                 },
                 {
                     "date": "13/08/2026",
-                    "titre": "LNB BN : Bilan semestriel du contrat de liquidité -1er semestre 2026",
-                    "url": "https://www.richbourse.com/common/actualite/afficher-fichier/13-08-2026-lnb-bn-bilan-semestriel-du-contrat-de-liquidite-1er-semestre-2026"
+                    "titre": "BIIC BN : Bilan semestriel du contrat de liquidité -1er semestre 2026",
+                    "url": "https://www.richbourse.com/common/actualite/afficher-fichier/13-08-2026-biic-bn-bilan-semestriel-du-contrat-de-liquidite-1er-semestre-2026"
                 },
                 {
                     "date": "13/08/2026",
-                    "titre": "Notation Financière - Nourmony Holding SA 7,25% 2024-2029",
-                    "url": "https://www.richbourse.com/common/actualite/afficher-fichier/13-08-2026-notation-financiere-nourmony-holding-sa-7-25-2024-2029"
+                    "titre": "BRVM : Transactions Sur Dossier",
+                    "url": "https://www.richbourse.com/common/actualite/afficher-fichier/13-08-2026-brvm-transactions-sur-dossier"
                 },
                 {
                     "date": "13/08/2026",
@@ -87,13 +97,13 @@
                 },
                 {
                     "date": "13/08/2026",
-                    "titre": "BIIC BN : Bilan semestriel du contrat de liquidité -1er semestre 2026",
-                    "url": "https://www.richbourse.com/common/actualite/afficher-fichier/13-08-2026-biic-bn-bilan-semestriel-du-contrat-de-liquidite-1er-semestre-2026"
+                    "titre": "Notation Financière - Nourmony Holding SA 7,25% 2024-2029",
+                    "url": "https://www.richbourse.com/common/actualite/afficher-fichier/13-08-2026-notation-financiere-nourmony-holding-sa-7-25-2024-2029"
                 },
                 {
                     "date": "13/08/2026",
-                    "titre": "BRVM : Transactions Sur Dossier",
-                    "url": "https://www.richbourse.com/common/actualite/afficher-fichier/13-08-2026-brvm-transactions-sur-dossier"
+                    "titre": "LNB BN : Bilan semestriel du contrat de liquidité -1er semestre 2026",
+                    "url": "https://www.richbourse.com/common/actualite/afficher-fichier/13-08-2026-lnb-bn-bilan-semestriel-du-contrat-de-liquidite-1er-semestre-2026"
                 },
                 {
                     "date": "12/08/2026",
@@ -104,21 +114,6 @@
                     "date": "11/08/2026",
                     "titre": "SAFCA CI : Admission à la cote des actions nouvelles",
                     "url": "https://www.richbourse.com/common/actualite/afficher-fichier/11-08-2026-safca-ci-admission-a-la-cote-des-actions-nouvelles"
-                }
-            ]
-        },
-        {
-            "semaine": "Semaine du 03 Août au 09 Août 2026",
-            "publications": [
-                {
-                    "date": "06/08/2026",
-                    "titre": "SOCIETE GENERALE CI : Paiement de dividendes - Exercice 2025",
-                    "url": "https://www.richbourse.com/common/actualite/afficher-fichier/06-08-2026-societe-generale-ci-paiement-de-dividendes-exercice-2025"
-                },
-                {
-                    "date": "05/08/2026",
-                    "titre": "Communiqué AMF-UMOA - Liste des cartes professionnelles délivrées en juin 2026",
-                    "url": "https://www.richbourse.com/common/actualite/afficher-fichier/05-08-2026-communique-amf-umoa-liste-des-cartes-professionnelles-delivrees-en-juin-2026"
                 }
             ]
         }
