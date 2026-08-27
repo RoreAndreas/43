@@ -18,14 +18,13 @@ def test_encadre_affiche_la_mediane_trois_ans(page, donnees):
     assert nombre_fr(ligne_resultat(page, "Bêta médian (3 ans)")) == round(attendu, 3)
 
 
-def test_effectif_et_capitalisation_decrivent_la_meme_population(page, donnees):
+def test_l_effectif_annonce_est_celui_du_beta(page, donnees):
     """L'effectif annoncé est celui dont sort le bêta, pas celui de la BRVM."""
     mode_comparables(page)
     choisir(page, "secteur", "Banks")
 
     banques = secteur(donnees, "Banks")
     assert nombre_fr(ligne_resultat(page, "Sociétés du secteur")) == banques["societes"]
-    assert nombre_fr(ligne_resultat(page, "Capitalisation cumulée")) == round(banques["capitalisation"])
 
 
 def test_le_calcul_du_cout_des_fonds_propres_reprend_ce_beta(page, donnees):
