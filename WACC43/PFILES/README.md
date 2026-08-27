@@ -66,15 +66,26 @@ par année et par maturité). Le script refuse d'écrire si l'extraction descend
 sous 100 pays ou 60 industries : une source en panne fait échouer la
 construction plutôt que publier une page vide.
 
-## Aperçu local et export Excel
+## Export Excel
+
+Le bouton flèche, en haut à droite de la page, télécharge le calcul dans le
+gabarit `TempWacc.xlsx` : mêmes sections — Ke, Kd, pondération, transposition de
+Fisher, synthèse — mêmes formules, et les valeurs de l'écran là où le modèle les
+attend. La colonne des commentaires porte la source de chaque nombre. Le
+classeur est écrit dans le navigateur : la page reste autonome, hors ligne
+comprise.
+
+## Aperçu local
 
 ```powershell
 python moteur/serve.py
 ```
 
 Sert la page avec les données du jour sur <http://localhost:8000>, sans passer
-par un build. Il expose aussi `/export.xlsx?country=…&industry=…`, le classeur
-Excel, qui réclame Python et n'existe donc pas dans la version statique.
+par un build. Il expose aussi `/export.xlsx?country=…&industry=…`, une version
+enrichie du classeur : elle embarque les feuilles Damodaran utilisées et les
+relie ligne à ligne. Celle-là réclame Python, elle n'existe donc pas dans la
+version statique.
 
 ## Partager la page
 

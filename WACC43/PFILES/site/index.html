@@ -90,6 +90,24 @@
     letter-spacing: -0.01em;
     color: var(--ink);
   }
+  .brand-aside { display: flex; align-items: center; gap: 12px; }
+  .dl {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 30px;
+    height: 30px;
+    padding: 0;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: var(--surface);
+    color: var(--ink-3);
+    cursor: pointer;
+    transition: border-color 240ms ease, color 240ms ease;
+  }
+  .dl:hover { border-color: var(--ink-3); color: var(--ink); }
+  .dl:disabled { color: var(--muted-2); cursor: default; }
+  .dl:disabled:hover { border-color: var(--line); color: var(--muted-2); }
   .fiscal {
     font: 400 11.5px/1.4 var(--mono);
     color: var(--muted);
@@ -966,7 +984,18 @@
         <span class="eyebrow">wacc43</span>
         <h1>Coût moyen pondéré du capital</h1>
       </div>
-      <span class="fiscal" id="fiscal">Exercice 2026</span>
+      <div class="brand-aside">
+        <span class="fiscal" id="fiscal">Exercice 2026</span>
+        <button type="button" class="dl" id="telecharger"
+                title="Télécharger le calcul au format Excel"
+                aria-label="Télécharger le calcul au format Excel">
+          <svg width="15" height="15" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+            <path d="M8 2.4v8.2" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>
+            <path d="M4.9 7.5L8 10.6l3.1-3.1" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M2.9 12.2v.5a1.4 1.4 0 001.4 1.4h7.4a1.4 1.4 0 001.4-1.4v-.5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>
+          </svg>
+        </button>
+      </div>
     </div>
     <nav class="tabs">
       <button type="button" data-tab="params" class="is-active">Paramètres</button>
@@ -1292,6 +1321,16 @@
         wacc: frPct(wacc), ke: frPct(re), kd: frPct(rdPost), local: frPct(local),
         structure: frPct(ev, 0) + " / " + frPct(dv, 0),
         equityPct: ev * 100, debtPct: dv * 100
+      },
+      // Les nombres avant mise en forme : le classeur Excel les reprend tels
+      // quels plutôt que de refaire les formules dans son coin.
+      brut: {
+        socle: rfPct / 100, prime: crp, a: a,
+        beta: beta, de: de, tax: tax, betaReendette: b,
+        primeMarche: c, d: p.d, e: p.e, ke: re,
+        spread: spread.value, spreadAjuste: spread.adjusted,
+        kd: rdPost, we: ev, wd: dv, wacc: wacc, waccLocal: local,
+        inflationRef: p.inflation_ref, inflationLocale: p.inflation_local,
       },
       components: components
     };
@@ -2204,7 +2243,6 @@
                 illiquides qui décident.</span>
             </span>` : ""}
           <span class="result-row"><span>Bêta médian (3 ans)</span><span>${secteur && secteur.beta_3ans != null ? frNum(secteur.beta_3ans, 3) : "—"}</span></span>
-          <span class="result-row"><span>Capitalisation cumulée</span><span>${esc(frMontant(secteur ? secteur.capitalisation : null))}</span></span>
           <span class="result-row"><span>Taux ${rf ? esc(rf.libelle) : "US Bond"}</span><span>${rf ? frPct(rf.socle) : "indisponible"}</span></span>
           ${rf ? `
             <span class="result-row"><span>Prime de risque pays</span><span>${frPct(rf.prime)}</span></span>
@@ -2653,6 +2691,475 @@
   }
 
 
+  /* ================= Classeur Excel =================
+     Le bouton flèche de l'en-tête rend le calcul dans le gabarit TempWacc :
+     mêmes sections, mêmes lignes, mêmes formules, et les valeurs de l'écran
+     dans la colonne du milieu — celles que le modèle laisse à renseigner. La
+     colonne des commentaires porte la source de chaque nombre, ce qui est
+     précisément ce qu'on relit six mois plus tard.
+
+     La page est servie en statique : le classeur s'écrit donc ici, dans le
+     navigateur. Un .xlsx est une archive ZIP de fichiers XML, et une entrée
+     ZIP peut être stockée sans compression : à part un CRC32, il n'y a rien à
+     embarquer.
+
+     Chaque cellule calculée porte sa formule ET sa valeur. Excel recalcule à
+     l'ouverture, les autres tableurs affichent la valeur en attendant : le
+     classeur reste un modèle qu'on peut tirer, pas une photographie.
+  */
+  const XL_COLS = [56.3, 3.3, 7.1, 2.0, 64.5];
+  const XL_HAUTEUR = 11;
+  const XL_FUSIONS = ["A1:E1", "A14:E14", "A20:E20", "A26:E26", "A33:E33"];
+
+  // Index dans <cellXfs>, tel que les écrit xlStyles().
+  const XL = {
+    vide: 0, bandeau: 1, bandeauFisher: 2, bandeauSynthese: 3,
+    entete: 4, enteteCentre: 5,
+    libelle: 6, libelleGras: 7,
+    saisiePct2: 8, saisiePct1: 9, saisieNum2: 10,
+    calculPct2: 11, calculNum2: 12, resultat: 13,
+    valeurPct2: 14, valeurPct1: 15,
+    commentaire: 16, commentaireGras: 17,
+    syntheseL: 18, syntheseV: 19, syntheseC: 20,
+    retenuL: 21, retenuV: 22, retenuC: 23,
+  };
+
+  const xmlEsc = (s) => String(s)
+    .replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&apos;" }[c]))
+    .replace(/[\x00-\x08\x0b\x0c\x0e-\x1f]/g, "");
+
+  // Douze chiffres significatifs : au-delà, on écrirait le bruit du binaire.
+  const xlNombre = (v) => Number(v.toPrecision(12));
+
+  let XL_CRC = null;
+  function crc32(octets) {
+    if (!XL_CRC) {
+      XL_CRC = new Uint32Array(256);
+      for (let n = 0; n < 256; n++) {
+        let c = n;
+        for (let k = 0; k < 8; k++) c = c & 1 ? 0xedb88320 ^ (c >>> 1) : c >>> 1;
+        XL_CRC[n] = c >>> 0;
+      }
+    }
+    let crc = 0xffffffff;
+    for (let i = 0; i < octets.length; i++) crc = XL_CRC[(crc ^ octets[i]) & 0xff] ^ (crc >>> 8);
+    return (crc ^ 0xffffffff) >>> 0;
+  }
+
+  // Archive ZIP « stored » : sans compression, il n'y a ni deflate à écrire ni
+  // bibliothèque à charger, et le fichier reste un .xlsx parfaitement valide.
+  function zipStored(entrees) {
+    const encodeur = new TextEncoder();
+    const d = new Date();
+    const heure = ((d.getHours() << 11) | (d.getMinutes() << 5) | (d.getSeconds() >> 1)) & 0xffff;
+    const jour = (((d.getFullYear() - 1980) << 9) | ((d.getMonth() + 1) << 5) | d.getDate()) & 0xffff;
+
+    const locaux = [];
+    const centraux = [];
+    let offset = 0;
+    for (const entree of entrees) {
+      const nom = encodeur.encode(entree.nom);
+      const corps = encodeur.encode(entree.contenu);
+      const crc = crc32(corps);
+
+      const entete = new Uint8Array(30);
+      const ve = new DataView(entete.buffer);
+      ve.setUint32(0, 0x04034b50, true);
+      ve.setUint16(4, 20, true);
+      ve.setUint16(6, 0x0800, true);   // noms de fichiers en UTF-8
+      ve.setUint16(8, 0, true);        // méthode 0 : stocké
+      ve.setUint16(10, heure, true);
+      ve.setUint16(12, jour, true);
+      ve.setUint32(14, crc, true);
+      ve.setUint32(18, corps.length, true);
+      ve.setUint32(22, corps.length, true);
+      ve.setUint16(26, nom.length, true);
+      locaux.push(entete, nom, corps);
+
+      const central = new Uint8Array(46);
+      const vc = new DataView(central.buffer);
+      vc.setUint32(0, 0x02014b50, true);
+      vc.setUint16(4, 20, true);
+      vc.setUint16(6, 20, true);
+      vc.setUint16(8, 0x0800, true);
+      vc.setUint16(10, 0, true);
+      vc.setUint16(12, heure, true);
+      vc.setUint16(14, jour, true);
+      vc.setUint32(16, crc, true);
+      vc.setUint32(20, corps.length, true);
+      vc.setUint32(24, corps.length, true);
+      vc.setUint16(28, nom.length, true);
+      vc.setUint32(42, offset, true);
+      centraux.push(central, nom);
+
+      offset += entete.length + nom.length + corps.length;
+    }
+
+    const tailleCentral = centraux.reduce((n, b) => n + b.length, 0);
+    const fin = new Uint8Array(22);
+    const vf = new DataView(fin.buffer);
+    vf.setUint32(0, 0x06054b50, true);
+    vf.setUint16(8, entrees.length, true);
+    vf.setUint16(10, entrees.length, true);
+    vf.setUint32(12, tailleCentral, true);
+    vf.setUint32(16, offset, true);
+
+    const blocs = locaux.concat(centraux, [fin]);
+    const total = blocs.reduce((n, b) => n + b.length, 0);
+    const archive = new Uint8Array(total);
+    let curseur = 0;
+    for (const bloc of blocs) { archive.set(bloc, curseur); curseur += bloc.length; }
+    return archive;
+  }
+
+  // Polices, fonds et bordures du gabarit TempWacc. Le vert des valeurs marque
+  // ce que le modèle attend qu'on renseigne : c'est exactement ce que la page
+  // remplit, et le laisser vert dit d'où vient chaque nombre.
+  function xlStyles() {
+    const police = (attrs, couleur) =>
+      "<font>" + attrs + '<sz val="9"/><color rgb="' + couleur + '"/><name val="Arial"/></font>';
+    const remplissage = (couleur) =>
+      '<fill><patternFill patternType="solid"><fgColor rgb="' + couleur +
+      '"/><bgColor indexed="64"/></patternFill></fill>';
+    const cote = (balise, style) =>
+      style ? "<" + balise + ' style="' + style + '"><color rgb="FF000000"/></' + balise + ">"
+            : "<" + balise + "/>";
+    const bordure = (g, d, h, b) =>
+      "<border>" + cote("left", g) + cote("right", d) + cote("top", h) + cote("bottom", b) +
+      "<diagonal/></border>";
+    const xf = (fmt, font, fill, bord, align, retour) =>
+      '<xf numFmtId="' + fmt + '" fontId="' + font + '" fillId="' + fill + '" borderId="' + bord + '" xfId="0"' +
+      ' applyNumberFormat="1" applyFont="1" applyFill="1" applyBorder="1" applyAlignment="1">' +
+      '<alignment horizontal="' + align + '" vertical="center"' + (retour ? ' wrapText="1"' : "") +
+      "/></xf>";
+
+    // Polices : 0 encre, 1 blanc gras, 2 encre gras, 3 vert (à renseigner),
+    // 4 noir gras, 5 italique, 6 italique gras, 7 noir simple.
+    const polices = [
+      police("", "FF0D1B2A"),
+      police("<b/>", "FFFFFFFF"),
+      police("<b/>", "FF0D1B2A"),
+      police("", "FF008000"),
+      police("<b/>", "FF000000"),
+      police("<i/>", "FF0D1B2A"),
+      police("<b/><i/>", "FF0D1B2A"),
+      police("", "FF000000"),
+    ];
+    // Fonds : 2 bandeau, 3 en-tête, 4 blanc, 5 calcul, 6 résultat,
+    // 7 synthèse retenue, 8 bandeau Fisher, 9 bandeau synthèse.
+    const fonds = [
+      '<fill><patternFill patternType="none"/></fill>',
+      '<fill><patternFill patternType="gray125"/></fill>',
+      remplissage("FF2C6FAC"), remplissage("FF1B3A5C"), remplissage("FFFFFFFF"),
+      remplissage("FFF8FAFC"), remplissage("FFD6E4F0"), remplissage("FFF4ECD6"),
+      remplissage("FF171C8F"), remplissage("FF27B093"),
+    ];
+    const bordures = [
+      bordure(null, null, null, null),
+      bordure("thin", "thin", "thin", "thin"),
+      bordure("medium", "medium", "medium", "medium"),
+      bordure("thin", null, "thin", "thin"),
+    ];
+
+    const styles = [
+      xf(0, 0, 0, 0, "left"),                    // vide
+      xf(0, 1, 2, 3, "left"),                    // bandeau de section
+      xf(0, 1, 8, 3, "left"),                    // bandeau Fisher
+      xf(0, 1, 9, 3, "left"),                    // bandeau synthèse
+      xf(0, 1, 3, 1, "left", true),              // en-tête
+      xf(0, 1, 3, 1, "center", true),            // en-tête centré
+      xf(0, 0, 4, 1, "left", true),              // libellé
+      xf(0, 2, 4, 1, "left", true),              // libellé gras
+      xf(10, 3, 4, 1, "right"),                  // à renseigner, %
+      xf(168, 3, 4, 1, "right"),                 // à renseigner, % à une décimale
+      xf(2, 3, 4, 1, "right"),                   // à renseigner, nombre
+      xf(10, 4, 5, 1, "right"),                  // calcul intermédiaire, %
+      xf(2, 4, 5, 1, "right"),                   // calcul intermédiaire, nombre
+      xf(10, 2, 6, 2, "right"),                  // résultat de section
+      xf(10, 7, 4, 1, "right"),                  // valeur reprise, %
+      xf(168, 7, 4, 1, "right"),                 // valeur reprise, % à une décimale
+      xf(0, 5, 4, 1, "left", true),              // commentaire
+      xf(0, 6, 4, 1, "left", true),              // commentaire gras
+      xf(0, 2, 6, 1, "left", true),              // synthèse, libellé
+      xf(10, 4, 6, 1, "right"),                  // synthèse, valeur
+      xf(0, 5, 6, 1, "left", true),              // synthèse, commentaire
+      xf(0, 2, 7, 1, "left", true),              // taux retenu, libellé
+      xf(10, 2, 7, 2, "right"),                  // taux retenu, valeur
+      xf(0, 6, 7, 1, "left", true),              // taux retenu, commentaire
+    ];
+
+    return '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>' +
+      '<styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">' +
+      '<numFmts count="1"><numFmt numFmtId="168" formatCode="0.0%"/></numFmts>' +
+      '<fonts count="' + polices.length + '">' + polices.join("") + "</fonts>" +
+      '<fills count="' + fonds.length + '">' + fonds.join("") + "</fills>" +
+      '<borders count="' + bordures.length + '">' + bordures.join("") + "</borders>" +
+      '<cellStyleXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0"/></cellStyleXfs>' +
+      '<cellXfs count="' + styles.length + '">' + styles.join("") + "</cellXfs>" +
+      '<cellStyles count="1"><cellStyle name="Normal" xfId="0" builtinId="0"/></cellStyles>' +
+      "</styleSheet>";
+  }
+
+  function xlFeuille(lignes) {
+    const colonnes = XL_COLS.map((w, i) =>
+      '<col min="' + (i + 1) + '" max="' + (i + 1) + '" width="' + w + '" customWidth="1"/>').join("");
+    const corps = lignes.map((ligne) => {
+      const cellules = ligne.cellules.map((c) => {
+        const ref = c.col + ligne.r;
+        if (c.texte != null) {
+          return '<c r="' + ref + '" s="' + c.s + '" t="inlineStr"><is><t xml:space="preserve">' +
+                 xmlEsc(c.texte) + "</t></is></c>";
+        }
+        const f = c.formule ? "<f>" + xmlEsc(c.formule) + "</f>" : "";
+        const v = Number.isFinite(c.valeur) ? "<v>" + xlNombre(c.valeur) + "</v>" : "";
+        return f || v
+          ? '<c r="' + ref + '" s="' + c.s + '">' + f + v + "</c>"
+          : '<c r="' + ref + '" s="' + c.s + '"/>';
+      }).join("");
+      return '<row r="' + ligne.r + '">' + cellules + "</row>";
+    }).join("");
+    const fusions = '<mergeCells count="' + XL_FUSIONS.length + '">' +
+      XL_FUSIONS.map((ref) => '<mergeCell ref="' + ref + '"/>').join("") + "</mergeCells>";
+    return '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>' +
+      '<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">' +
+      '<sheetViews><sheetView showGridLines="0" tabSelected="1" workbookViewId="0"/></sheetViews>' +
+      '<sheetFormatPr defaultRowHeight="' + XL_HAUTEUR + '"/><cols>' + colonnes + "</cols>" +
+      "<sheetData>" + corps + "</sheetData>" + fusions + "</worksheet>";
+  }
+
+  // Une ligne du gabarit : le libellé en A, la valeur en C, le commentaire en E.
+  function ligneXl(o) {
+    const cellules = [{ col: "A", s: o.sL || XL.libelle, texte: o.libelle }];
+    const valeur = { col: "C", s: o.sV };
+    if (o.formule) valeur.formule = o.formule;
+    if (Number.isFinite(o.valeur)) valeur.valeur = o.valeur;
+    cellules.push(valeur);
+    if (o.commentaire) cellules.push({ col: "E", s: o.sC || XL.commentaire, texte: o.commentaire });
+    return { r: o.r, cellules: cellules };
+  }
+
+  // Les bandeaux sont fusionnés de A à E : les cinq cellules portent le même
+  // style, sinon le trait du bas s'arrête au milieu du bandeau.
+  function bandeauXl(r, texte, style) {
+    return { r: r, cellules: ["A", "B", "C", "D", "E"].map((col, i) =>
+      i === 0 ? { col: col, s: style, texte: texte } : { col: col, s: style }) };
+  }
+
+  // Les nombres du classeur, quel que soit le référentiel : une seule forme en
+  // sortie, deux façons de la remplir. Rien n'est recalculé ici — tout vient du
+  // modèle affiché, sans quoi la page et le fichier finiraient par diverger.
+  function chiffresClasseur() {
+    const rf = tauxSansRisque();
+    if (!rf) return null;
+    const primeNote = rf.primeDefaut ? " — non publiée, 1,00 % retenu" : "";
+    const sourceTaux = "US Treasury " + params.maturity + ", moyenne " + params.year + " (home.treasury.gov)";
+    const sourcePrime = "Damodaran, ctryprem.xlsx — prime de risque pays " + params.country + primeNote;
+    const sourcePrimeMarche = "Damodaran, ctryprem.xlsx — prime de risque des marchés matures (cellule E3)";
+    const sourceTaille = "Prime de taille + prime spécifique, saisies dans l'onglet Paramètres";
+
+    if (estComparables()) {
+      const cc = cmpcComparables();
+      if (!cc) return null;
+      return {
+        referentiel: "Comparables",
+        objet: params.secteur,
+        origineBeta: "médian comparables",
+        origineGearing: "moyen comparables",
+        socle: rf.socle, prime: rf.prime, a: rf.taux,
+        betaDesendette: cc.relevable ? cc.betaU : cc.betaL,
+        gearing: cc.gearing, tax: cc.tax, betaReendette: cc.beta,
+        primeMarche: cc.prime, primeTaille: cc.d + cc.e, ke: cc.ke,
+        spread: 0, kdPre: cc.rf.taux, kd: cc.kd, we: cc.we, wd: cc.wd,
+        wacc: cc.wacc, conversion: cc.conversion,
+        inflationRef: cc.inflationRef, inflationLocale: cc.inflationLocale,
+        waccLocal: cc.waccLocal,
+        sources: {
+          taux: sourceTaux,
+          prime: sourcePrime,
+          beta: "Médiane des bêtas cotés à trois ans du secteur " + params.secteur + ", " +
+            cc.perimetre + " (" + cc.retenues + " sociétés)" +
+            (cc.relevable
+              ? ", désendettée au gearing de l'échantillon (" + frNum(cc.gearingSecteur, 2) + ")"
+              : " — gearing de l'échantillon non publié, bêta employé tel quel"),
+          impot: cc.taxDefaut
+            ? "Taux d'IS non publié pour " + params.country + " : 25 % retenu, comme sous le référentiel Damodaran"
+            : "Damodaran, countrytaxrates.xls — taux d'IS " + params.country,
+          gearing: cc.gearingSaisi
+            ? "Gearing cible posé dans la page : " + frPct(cc.wd, 0) + " de dette"
+            : "Gearing médian du secteur, " + cc.perimetre,
+          primeMarche: sourcePrimeMarche,
+          primeTaille: sourceTaille,
+          spread: "Dette supposée levée au taux souverain : aucun spread de crédit n'est publié sous ce référentiel",
+        },
+      };
+    }
+
+    const b = model && model.brut;
+    if (!b) return null;
+    return {
+      referentiel: "Damodaran",
+      objet: params.industry,
+      origineBeta: "sectoriel Damodaran",
+      origineGearing: "sectoriel Damodaran",
+      socle: b.socle, prime: b.prime, a: b.a,
+      betaDesendette: b.beta, gearing: b.de, tax: b.tax, betaReendette: b.betaReendette,
+      primeMarche: b.primeMarche, primeTaille: b.d + b.e, ke: b.ke,
+      spread: b.spread, kdPre: b.a + b.spread, kd: b.kd, we: b.we, wd: b.wd,
+      wacc: b.wacc, conversion: true,
+      inflationRef: b.inflationRef, inflationLocale: b.inflationLocale,
+      waccLocal: b.waccLocal,
+      sources: {
+        taux: sourceTaux,
+        prime: sourcePrime,
+        beta: "Damodaran, betaemerg.xls — bêta désendetté pays émergents, " + params.industry,
+        impot: "Damodaran, countrytaxrates.xls — taux d'IS " + params.country,
+        gearing: "Damodaran, betaemerg.xls — D/E Ratio du secteur " + params.industry,
+        primeMarche: sourcePrimeMarche,
+        primeTaille: sourceTaille,
+        spread: "Damodaran, wacc.xls — spread de dette sectoriel, US" +
+                (b.spreadAjuste ? ", ajusté par la table de correction (coût de la dette faible)" : ""),
+      },
+    };
+  }
+
+  // Le gabarit TempWacc, ligne à ligne. Les numéros de ligne sont ceux du
+  // fichier d'origine : les formules y renvoient, et un lecteur qui connaît le
+  // modèle retrouve ses repères sans les chercher.
+  function lignesClasseur(x) {
+    // Quand le dollar a cours légal dans le pays valorisé, le CMPC est déjà en
+    // monnaie locale : la transposition recopie la ligne plutôt que d'appliquer
+    // un différentiel d'inflation entre une zone et elle-même.
+    const fisher = x.conversion
+      ? { formule: "(1+C23)*(1+C28)/(1+C27)-1",
+          note: "Équation de Fisher — transposition rigoureuse USD → monnaie locale" }
+      : { formule: "C23",
+          note: "Le dollar a cours légal dans ce pays : le CMPC y est déjà en monnaie locale, aucune transposition n'est appliquée" };
+
+    return [
+      bandeauXl(1, "COÛT DES FONDS PROPRES (Ke) EN USD", XL.bandeau),
+      { r: 2, cellules: [
+          { col: "A", s: XL.entete, texte: "Composante" },
+          { col: "C", s: XL.enteteCentre, texte: "Valeur" },
+          { col: "E", s: XL.entete, texte: "Commentaire" }] },
+      ligneXl({ r: 3, libelle: "Taux sans risque US (Rf)", valeur: x.socle, sV: XL.saisiePct2, commentaire: x.sources.taux }),
+      ligneXl({ r: 4, libelle: "Prime de risque pays " + params.country + " (CRP)", valeur: x.prime, sV: XL.saisiePct2, commentaire: x.sources.prime }),
+      ligneXl({ r: 5, libelle: "Taux sans risque local (Rf + CRP)", sL: XL.libelleGras, formule: "C3+C4", valeur: x.a, sV: XL.calculPct2,
+                commentaire: "Intégration du risque pays au taux sans risque local", sC: XL.commentaireGras }),
+      ligneXl({ r: 6, libelle: "Beta non endetté " + x.origineBeta + " (βu)", valeur: x.betaDesendette, sV: XL.saisieNum2, commentaire: x.sources.beta }),
+      ligneXl({ r: 7, libelle: "Taux d'IS " + params.country + " (t)", valeur: x.tax, sV: XL.saisiePct2, commentaire: x.sources.impot }),
+      ligneXl({ r: 8, libelle: "Gearing : D/E " + x.origineGearing, valeur: x.gearing, sV: XL.saisiePct1, commentaire: x.sources.gearing }),
+      ligneXl({ r: 9, libelle: "Beta endetté (βL) = βu × [1 + (1−t) × D/E]", sL: XL.libelleGras, formule: "C6*(1+(1-C7)*C8)", valeur: x.betaReendette, sV: XL.calculNum2,
+                commentaire: "Re-leverage Hamada — endettement de l'échantillon" }),
+      ligneXl({ r: 10, libelle: "Prime de risque marché US (ERP mature)", valeur: x.primeMarche, sV: XL.saisiePct2, commentaire: x.sources.primeMarche }),
+      ligneXl({ r: 11, libelle: "Prime de taille (small cap premium)", valeur: x.primeTaille, sV: XL.saisiePct2, commentaire: x.sources.primeTaille }),
+      ligneXl({ r: 12, libelle: "Coût des fonds propres Ke = Rf_local + βL × ERP + Prime taille", sL: XL.libelleGras,
+                formule: "C5+C9*C10+C11", valeur: x.ke, sV: XL.resultat }),
+
+      bandeauXl(14, "COÛT DE LA DETTE (Kd) EN USD", XL.bandeau),
+      ligneXl({ r: 15, libelle: "Taux sans risque local (Rf + CRP)", formule: "C5", valeur: x.a, sV: XL.valeurPct2,
+                commentaire: "Idem partie Ke — taux sans risque local" }),
+      ligneXl({ r: 16, libelle: "Spread de la dette (Damodaran EM)", valeur: x.spread, sV: XL.saisiePct2, commentaire: x.sources.spread }),
+      ligneXl({ r: 17, libelle: "Coût de la dette avant IS Kd_pre = Rf_local + spread", sL: XL.libelleGras, formule: "C15+C16", valeur: x.kdPre, sV: XL.calculPct2,
+                commentaire: "Coût de la dette brute (CRP déjà inclus via Rf_local)", sC: XL.commentaireGras }),
+      ligneXl({ r: 18, libelle: "Coût de la dette après IS Kd = Kd_pre × (1 − t)", sL: XL.libelleGras, formule: "C17*(1-C7)", valeur: x.kd, sV: XL.resultat,
+                commentaire: "Économie fiscale (intérêts déductibles)", sC: XL.commentaireGras }),
+
+      bandeauXl(20, "PONDÉRATION WACC EN MONNAIE DU TAUX SANS RISQUE", XL.bandeau),
+      ligneXl({ r: 21, libelle: "Poids fonds propres E/V = 1 / (1 + D/E)", formule: "1/(1+C8)", valeur: x.we, sV: XL.valeurPct1,
+                commentaire: "Structure cible de l'échantillon" }),
+      ligneXl({ r: 22, libelle: "Poids dette D/V = (D/E) / (1 + D/E)", formule: "C8/(1+C8)", valeur: x.wd, sV: XL.valeurPct1,
+                commentaire: "Complément à 100%" }),
+      ligneXl({ r: 23, libelle: "WACC monnaie taux sans risque = (E/V) × Ke + (D/V) × Kd", sL: XL.libelleGras,
+                formule: "C21*C12+C22*C18", valeur: x.wacc, sV: XL.resultat,
+                commentaire: "Coût moyen pondéré du capital (en monnaie du taux sans risque)", sC: XL.commentaireGras }),
+
+      bandeauXl(26, "TRANSPOSITION USD → MONNAIE LOCALE (DIFFÉRENTIEL D'INFLATION — FISHER)", XL.bandeauFisher),
+      ligneXl({ r: 27, libelle: "Inflation long terme États-Unis (π_US)", valeur: x.inflationRef, sV: XL.saisiePct2,
+                commentaire: "Saisie dans l'onglet Paramètres (ex. Cleveland Fed — Ten years expected inflation)" }),
+      ligneXl({ r: 28, libelle: "Inflation long terme " + params.country + " (π_loc)", valeur: x.inflationLocale, sV: XL.saisiePct2,
+                commentaire: "Saisie dans l'onglet Paramètres (ex. critère de convergence UEMOA, 3 % plafond)" }),
+      ligneXl({ r: 29, libelle: "Différentiel d'inflation (π_loc − π_US)", sL: XL.libelleGras, formule: "C28-C27", valeur: x.inflationLocale - x.inflationRef, sV: XL.calculPct2,
+                commentaire: "Positif : inflation locale > inflation US ⇒ CMPC local > CMPC en monnaie du taux sans risque", sC: XL.commentaireGras }),
+      ligneXl({ r: 30, libelle: "WACC monnaie locale = (1 + WACC_USD) × (1 + π_loc) / (1 + π_US) − 1", sL: XL.libelleGras,
+                formule: fisher.formule, valeur: x.waccLocal, sV: XL.resultat, commentaire: fisher.note, sC: XL.commentaireGras }),
+
+      bandeauXl(33, "SYNTHÈSE — TAUX D'ACTUALISATION RETENU", XL.bandeauSynthese),
+      ligneXl({ r: 34, libelle: "WACC monnaie du taux sans risque", sL: XL.syntheseL, formule: "C23", valeur: x.wacc, sV: XL.syntheseV,
+                commentaire: "Référentiel " + x.referentiel + " — " + x.objet + ", " + params.country + ", exercice " + params.year, sC: XL.syntheseC }),
+      ligneXl({ r: 35, libelle: "WACC en monnaie locale (retenu pour DCF)", sL: XL.retenuL, formule: "C30", valeur: x.waccLocal, sV: XL.retenuV,
+                commentaire: "Devise locale — à appliquer aux flux du DCF exprimés dans cette monnaie", sC: XL.retenuC }),
+    ];
+  }
+
+  function classeurXlsx(x) {
+    const parties = [
+      { nom: "[Content_Types].xml", contenu:
+        '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>' +
+        '<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">' +
+        '<Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/>' +
+        '<Default Extension="xml" ContentType="application/xml"/>' +
+        '<Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/>' +
+        '<Override PartName="/xl/worksheets/sheet1.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/>' +
+        '<Override PartName="/xl/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml"/>' +
+        "</Types>" },
+      { nom: "_rels/.rels", contenu:
+        '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>' +
+        '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">' +
+        '<Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/>' +
+        "</Relationships>" },
+      { nom: "xl/workbook.xml", contenu:
+        '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>' +
+        '<workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"' +
+        ' xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">' +
+        '<sheets><sheet name="WACC" sheetId="1" r:id="rId1"/></sheets>' +
+        '<calcPr calcId="124519" fullCalcOnLoad="1"/></workbook>' },
+      { nom: "xl/_rels/workbook.xml.rels", contenu:
+        '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>' +
+        '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">' +
+        '<Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet1.xml"/>' +
+        '<Relationship Id="rId2" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/>' +
+        "</Relationships>" },
+      { nom: "xl/styles.xml", contenu: xlStyles() },
+      { nom: "xl/worksheets/sheet1.xml", contenu: xlFeuille(lignesClasseur(x)) },
+    ];
+    return new Blob([zipStored(parties)], {
+      type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    });
+  }
+
+  function nomClasseur(x) {
+    return ("CMPC_" + x.objet + "_" + params.country + "_" + params.year + ".xlsx")
+      .replace(/[\\/:*?"<>|]/g, "").replace(/\s+/g, "_");
+  }
+
+  function telechargerClasseur() {
+    const x = chiffresClasseur();
+    if (!x) return;
+    const url = URL.createObjectURL(classeurXlsx(x));
+    const lien = document.createElement("a");
+    lien.href = url;
+    lien.download = nomClasseur(x);
+    document.body.appendChild(lien);
+    lien.click();
+    lien.remove();
+    // Révoquée au tour suivant : libérer l'URL dans la même pile d'exécution
+    // annule le téléchargement sur certains navigateurs.
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  }
+
+  // Sans taux publié ni gearing, il n'y a pas de CMPC : le bouton le dit plutôt
+  // que de livrer un classeur à trous.
+  function majBoutonClasseur() {
+    const bouton = $("telecharger");
+    const possible = Boolean(chiffresClasseur());
+    bouton.disabled = !possible;
+    bouton.title = possible
+      ? "Télécharger le calcul au format Excel"
+      : "Le CMPC n'est pas calculable avec ces paramètres";
+  }
+
+  $("telecharger").addEventListener("click", telechargerClasseur);
+
   /* ================= Paramètres et URL ================= */
   function setParam(key, value) {
     if (key === "year") {
@@ -2764,6 +3271,7 @@
 
   function renderAll() {
     $("fiscal").textContent = model.fiscalYear;
+    majBoutonClasseur();
     renderParams();
 
     // On mémorise la carte dépliée pour la rouvrir après redessin, si elle existe encore.
