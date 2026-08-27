@@ -1,7 +1,27 @@
 {
-    "last_update": "2026-08-26 10:04:44",
+    "last_update": "2026-08-27 04:27:53",
     "count": 20,
     "weeks": [
+        {
+            "semaine": "Semaine du 24 Août au 30 Août 2026",
+            "publications": [
+                {
+                    "date": "26/08/2026",
+                    "titre": "PALM CI : Notation Financière",
+                    "url": "https://www.richbourse.com/common/actualite/afficher-fichier/26-08-2026-palm-ci-notation-financiere"
+                },
+                {
+                    "date": "26/08/2026",
+                    "titre": "CORIS BANK INTERNATIONAL BF : Notation Financière",
+                    "url": "https://www.richbourse.com/common/actualite/afficher-fichier/26-08-2026-coris-bank-international-bf-notation-financiere"
+                },
+                {
+                    "date": "26/08/2026",
+                    "titre": "BOA BF : Notation Financière",
+                    "url": "https://www.richbourse.com/common/actualite/afficher-fichier/26-08-2026-boa-bf-notation-financiere"
+                }
+            ]
+        },
         {
             "semaine": "Semaine du 17 Août au 23 Août 2026",
             "publications": [
@@ -27,13 +47,13 @@
                 },
                 {
                     "date": "17/08/2026",
-                    "titre": "SITAB CI : Rapport d'activités - 2eme trimestre 2026",
-                    "url": "https://www.richbourse.com/common/actualite/afficher-fichier/17-08-2026-sitab-ci-rapport-d-activites-2eme-trimestre-2026"
+                    "titre": "ETI TG : Communiqué de Presse",
+                    "url": "https://www.richbourse.com/common/actualite/afficher-fichier/17-08-2026-eti-tg-communique-de-presse"
                 },
                 {
                     "date": "17/08/2026",
-                    "titre": "ETI TG : Communiqué de Presse",
-                    "url": "https://www.richbourse.com/common/actualite/afficher-fichier/17-08-2026-eti-tg-communique-de-presse"
+                    "titre": "SITAB CI : Rapport d'activités - 2eme trimestre 2026",
+                    "url": "https://www.richbourse.com/common/actualite/afficher-fichier/17-08-2026-sitab-ci-rapport-d-activites-2eme-trimestre-2026"
                 }
             ]
         },
@@ -49,6 +69,11 @@
                     "date": "14/08/2026",
                     "titre": "TOTALENERGIES MARKETING CI : Paiement de dividendes - Exercice 2025",
                     "url": "https://www.richbourse.com/common/actualite/afficher-fichier/14-08-2026-totalenergies-marketing-ci-paiement-de-dividendes-exercice-2025"
+                },
+                {
+                    "date": "13/08/2026",
+                    "titre": "LNB BN : Bilan semestriel du contrat de liquidité -1er semestre 2026",
+                    "url": "https://www.richbourse.com/common/actualite/afficher-fichier/13-08-2026-lnb-bn-bilan-semestriel-du-contrat-de-liquidite-1er-semestre-2026"
                 },
                 {
                     "date": "13/08/2026",
@@ -69,11 +94,6 @@
                     "date": "13/08/2026",
                     "titre": "BRVM : Transactions Sur Dossier",
                     "url": "https://www.richbourse.com/common/actualite/afficher-fichier/13-08-2026-brvm-transactions-sur-dossier"
-                },
-                {
-                    "date": "13/08/2026",
-                    "titre": "LNB BN : Bilan semestriel du contrat de liquidité -1er semestre 2026",
-                    "url": "https://www.richbourse.com/common/actualite/afficher-fichier/13-08-2026-lnb-bn-bilan-semestriel-du-contrat-de-liquidite-1er-semestre-2026"
                 },
                 {
                     "date": "12/08/2026",
@@ -97,23 +117,8 @@
                 },
                 {
                     "date": "05/08/2026",
-                    "titre": "BOA BF : Etats financiers - 1er semestre 2026",
-                    "url": "https://www.richbourse.com/common/actualite/afficher-fichier/05-08-2026-boa-bf-etats-financiers-1er-semestre-2026"
-                },
-                {
-                    "date": "05/08/2026",
                     "titre": "Communiqué AMF-UMOA - Liste des cartes professionnelles délivrées en juin 2026",
                     "url": "https://www.richbourse.com/common/actualite/afficher-fichier/05-08-2026-communique-amf-umoa-liste-des-cartes-professionnelles-delivrees-en-juin-2026"
-                },
-                {
-                    "date": "05/08/2026",
-                    "titre": "BOA BF : Rapport d'activités - 1er semestre 2026",
-                    "url": "https://www.richbourse.com/common/actualite/afficher-fichier/05-08-2026-boa-bf-rapport-d-activites-1er-semestre-2026"
-                },
-                {
-                    "date": "04/08/2026",
-                    "titre": "Horaires de cotation du 06 août 2026",
-                    "url": "https://www.richbourse.com/common/actualite/afficher-fichier/04-08-2026-horaires-de-cotation-du-06-aout-2026"
                 }
             ]
         }
