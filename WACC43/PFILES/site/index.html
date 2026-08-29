@@ -2941,9 +2941,17 @@
     const fusions = '<mergeCells count="' + XL_FUSIONS.length + '">' +
       XL_FUSIONS.map((ref) => '<mergeCell ref="' + ref + '"/>').join("") + "</mergeCells>";
 
+    // Jamais tabSelected sur cette vue : sans <bookViews> pour dire quel
+    // onglet est actif dans workbook.xml (que ce classeur n'a jamais eu besoin
+    // d'écrire, un seul onglet), l'attribut isolé mettait Excel dans un état de
+    // sélection fautif propre à ce fichier — invisible à l'ouverture, mais qui
+    // cassait tout copier-coller depuis lui (« Cette action ne fonctionne pas
+    // sur plusieurs sélections. »). Isolé par bissection le 29/08/2026 : le
+    // classeur s'ouvrait, se relisait et se recalculait sans reproche, seul le
+    // copier-coller trahissait le problème.
     const sheet1 = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>' +
       '<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">' +
-      '<sheetViews><sheetView showGridLines="0" tabSelected="1" workbookViewId="0"/></sheetViews>' +
+      '<sheetViews><sheetView showGridLines="0" workbookViewId="0"/></sheetViews>' +
       '<sheetFormatPr defaultRowHeight="' + XL_HAUTEUR + '"/><cols>' + colonnes + "</cols>" +
       "<sheetData>" + corps + "</sheetData>" + fusions + "</worksheet>";
 
