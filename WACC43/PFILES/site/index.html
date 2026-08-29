@@ -2692,7 +2692,7 @@
 
 
   /* ================= Classeur Excel =================
-     Le bouton flèche de l'en-tête rend le calcul dans le gabarit TempWacc :
+     Le bouton flèche de l'en-tête rend le calcul dans le même gabarit qu'à l'origine :
      mêmes sections, mêmes lignes, mêmes formules, et les valeurs de l'écran
      dans la colonne du milieu — celles que le modèle laisse à renseigner. La
      colonne des commentaires porte la source de chaque nombre, ce qui est
@@ -2709,6 +2709,7 @@
   */
   const XL_COLS = [56.3, 3.3, 7.1, 2.0, 64.5];
   const XL_HAUTEUR = 11;
+  const XL_THEME1 = "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?><a:theme xmlns:a=\"http://schemas.openxmlformats.org/drawingml/2006/main\" name=\"Office Theme\"><a:themeElements><a:clrScheme name=\"Office\"><a:dk1><a:sysClr val=\"windowText\" lastClr=\"000000\"/></a:dk1><a:lt1><a:sysClr val=\"window\" lastClr=\"FFFFFF\"/></a:lt1><a:dk2><a:srgbClr val=\"44546A\"/></a:dk2><a:lt2><a:srgbClr val=\"E7E6E6\"/></a:lt2><a:accent1><a:srgbClr val=\"4472C4\"/></a:accent1><a:accent2><a:srgbClr val=\"ED7D31\"/></a:accent2><a:accent3><a:srgbClr val=\"A5A5A5\"/></a:accent3><a:accent4><a:srgbClr val=\"FFC000\"/></a:accent4><a:accent5><a:srgbClr val=\"5B9BD5\"/></a:accent5><a:accent6><a:srgbClr val=\"70AD47\"/></a:accent6><a:hlink><a:srgbClr val=\"0563C1\"/></a:hlink><a:folHlink><a:srgbClr val=\"954F72\"/></a:folHlink></a:clrScheme><a:fontScheme name=\"Office\"><a:majorFont><a:latin typeface=\"Calibri Light\"/><a:ea typeface=\"\"/><a:cs typeface=\"\"/></a:majorFont><a:minorFont><a:latin typeface=\"Calibri\"/><a:ea typeface=\"\"/><a:cs typeface=\"\"/></a:minorFont></a:fontScheme><a:fmtScheme name=\"Office\"><a:fillStyleLst><a:solidFill><a:schemeClr val=\"phClr\"/></a:solidFill><a:solidFill><a:schemeClr val=\"phClr\"/></a:solidFill><a:solidFill><a:schemeClr val=\"phClr\"/></a:solidFill></a:fillStyleLst><a:lnStyleLst><a:ln w=\"6350\"><a:solidFill><a:schemeClr val=\"phClr\"/></a:solidFill></a:ln><a:ln w=\"12700\"><a:solidFill><a:schemeClr val=\"phClr\"/></a:solidFill></a:ln><a:ln w=\"19050\"><a:solidFill><a:schemeClr val=\"phClr\"/></a:solidFill></a:ln></a:lnStyleLst><a:effectStyleLst><a:effectStyle><a:effectLst/></a:effectStyle><a:effectStyle><a:effectLst/></a:effectStyle><a:effectStyle><a:effectLst/></a:effectStyle></a:effectStyleLst><a:bgFillStyleLst><a:solidFill><a:schemeClr val=\"phClr\"/></a:solidFill><a:solidFill><a:schemeClr val=\"phClr\"/></a:solidFill><a:solidFill><a:schemeClr val=\"phClr\"/></a:solidFill></a:bgFillStyleLst></a:fmtScheme></a:themeElements></a:theme>";
   const XL_FUSIONS = ["A1:E1", "A14:E14", "A20:E20", "A26:E26", "A33:E33"];
 
   // Index dans <cellXfs>, tel que les écrit xlStyles().
@@ -2812,7 +2813,7 @@
     return archive;
   }
 
-  // Polices, fonds et bordures du gabarit TempWacc. Le vert des valeurs marque
+  // Polices, fonds et bordures du gabarit d'origine. Le vert des valeurs marque
   // ce que le modèle attend qu'on renseigne : c'est exactement ce que la page
   // remplit, et le laisser vert dit d'où vient chaque nombre.
   function xlStyles() {
@@ -2900,15 +2901,34 @@
       "</styleSheet>";
   }
 
-  function xlFeuille(lignes) {
+  // Chaque chaîne de la feuille (libellés, commentaires, bandeaux) est
+  // écrite une fois dans une table partagée et référencée par indice — c'est
+  // la construction qu'utilise tout tableur qui enregistre un .xlsx. Le
+  // générateur minimal d'origine écrivait des chaînes en ligne (t="inlineStr") :
+  // valide selon la norme, mais ce n'est pas ce qu'un fichier issu d'un vrai
+  // tableur contient jamais, et Excel s'est montré capricieux dessus au
+  // moment de copier une cellule vers un autre classeur.
+  function xlPartageesEtFeuille(lignes) {
+    const table = [];
+    const index = new Map();
+    let total = 0;
+    const indiceChaine = (texte) => {
+      total++;
+      const trouve = index.get(texte);
+      if (trouve !== undefined) return trouve;
+      const i = table.length;
+      table.push(texte);
+      index.set(texte, i);
+      return i;
+    };
+
     const colonnes = XL_COLS.map((w, i) =>
       '<col min="' + (i + 1) + '" max="' + (i + 1) + '" width="' + w + '" customWidth="1"/>').join("");
     const corps = lignes.map((ligne) => {
       const cellules = ligne.cellules.map((c) => {
         const ref = c.col + ligne.r;
         if (c.texte != null) {
-          return '<c r="' + ref + '" s="' + c.s + '" t="inlineStr"><is><t xml:space="preserve">' +
-                 xmlEsc(c.texte) + "</t></is></c>";
+          return '<c r="' + ref + '" s="' + c.s + '" t="s"><v>' + indiceChaine(c.texte) + "</v></c>";
         }
         const f = c.formule ? "<f>" + xmlEsc(c.formule) + "</f>" : "";
         const v = Number.isFinite(c.valeur) ? "<v>" + xlNombre(c.valeur) + "</v>" : "";
@@ -2920,11 +2940,20 @@
     }).join("");
     const fusions = '<mergeCells count="' + XL_FUSIONS.length + '">' +
       XL_FUSIONS.map((ref) => '<mergeCell ref="' + ref + '"/>').join("") + "</mergeCells>";
-    return '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>' +
+
+    const sheet1 = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>' +
       '<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">' +
       '<sheetViews><sheetView showGridLines="0" tabSelected="1" workbookViewId="0"/></sheetViews>' +
       '<sheetFormatPr defaultRowHeight="' + XL_HAUTEUR + '"/><cols>' + colonnes + "</cols>" +
       "<sheetData>" + corps + "</sheetData>" + fusions + "</worksheet>";
+
+    const sharedStrings = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>' +
+      '<sst xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"' +
+      ' count="' + total + '" uniqueCount="' + table.length + '">' +
+      table.map((texte) => '<si><t xml:space="preserve">' + xmlEsc(texte) + "</t></si>").join("") +
+      "</sst>";
+
+    return { sheet1: sheet1, sharedStrings: sharedStrings };
   }
 
   // Une ligne du gabarit : le libellé en A, la valeur en C, le commentaire en E.
@@ -3022,7 +3051,7 @@
     };
   }
 
-  // Le gabarit TempWacc, ligne à ligne. Les numéros de ligne sont ceux du
+  // Le gabarit, ligne à ligne. Les numéros de ligne sont ceux du
   // fichier d'origine : les formules y renvoient, et un lecteur qui connaît le
   // modèle retrouve ses repères sans les chercher.
   function lignesClasseur(x) {
@@ -3092,6 +3121,31 @@
   }
 
   function classeurXlsx(x) {
+    const { sheet1, sharedStrings } = xlPartageesEtFeuille(lignesClasseur(x));
+    const titre = "CMPC " + x.objet + ", " + params.country;
+    const horodatage = new Date().toISOString().replace(/\.\d{3}Z$/, "Z");
+
+    const coreProps = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>' +
+      '<cp:coreProperties xmlns:cp="http://schemas.openxmlformats.org/package/2006/metadata/core-properties"' +
+      ' xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:dcterms="http://purl.org/dc/terms/"' +
+      ' xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">' +
+      "<dc:title>" + xmlEsc(titre) + "</dc:title>" +
+      "<dc:creator>wacc43</dc:creator><cp:lastModifiedBy>wacc43</cp:lastModifiedBy>" +
+      '<dcterms:created xsi:type="dcterms:W3CDTF">' + horodatage + "</dcterms:created>" +
+      '<dcterms:modified xsi:type="dcterms:W3CDTF">' + horodatage + "</dcterms:modified>" +
+      "</cp:coreProperties>";
+
+    const appProps = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>' +
+      '<Properties xmlns="http://schemas.openxmlformats.org/officeDocument/2006/extended-properties"' +
+      ' xmlns:vt="http://schemas.openxmlformats.org/officeDocument/2006/docPropsVTypes">' +
+      "<Application>wacc43</Application><DocSecurity>0</DocSecurity><ScaleCrop>false</ScaleCrop>" +
+      '<HeadingPairs><vt:vector size="2" baseType="variant">' +
+      "<vt:variant><vt:lpstr>Feuilles de calcul</vt:lpstr></vt:variant>" +
+      "<vt:variant><vt:i4>1</vt:i4></vt:variant></vt:vector></HeadingPairs>" +
+      '<TitlesOfParts><vt:vector size="1" baseType="lpstr"><vt:lpstr>WACC</vt:lpstr></vt:vector></TitlesOfParts>' +
+      "<LinksUpToDate>false</LinksUpToDate><SharedDoc>false</SharedDoc>" +
+      "<HyperlinksChanged>false</HyperlinksChanged><AppVersion>16.0300</AppVersion></Properties>";
+
     const parties = [
       { nom: "[Content_Types].xml", contenu:
         '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>' +
@@ -3100,27 +3154,39 @@
         '<Default Extension="xml" ContentType="application/xml"/>' +
         '<Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/>' +
         '<Override PartName="/xl/worksheets/sheet1.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/>' +
+        '<Override PartName="/xl/theme/theme1.xml" ContentType="application/vnd.openxmlformats-officedocument.theme+xml"/>' +
         '<Override PartName="/xl/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml"/>' +
+        '<Override PartName="/xl/sharedStrings.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sharedStrings+xml"/>' +
+        '<Override PartName="/docProps/core.xml" ContentType="application/vnd.openxmlformats-package.core-properties+xml"/>' +
+        '<Override PartName="/docProps/app.xml" ContentType="application/vnd.openxmlformats-officedocument.extended-properties+xml"/>' +
         "</Types>" },
       { nom: "_rels/.rels", contenu:
         '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>' +
         '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">' +
         '<Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/>' +
+        '<Relationship Id="rId2" Type="http://schemas.openxmlformats.org/package/2006/relationships/metadata/core-properties" Target="docProps/core.xml"/>' +
+        '<Relationship Id="rId3" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/extended-properties" Target="docProps/app.xml"/>' +
         "</Relationships>" },
       { nom: "xl/workbook.xml", contenu:
         '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>' +
         '<workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"' +
         ' xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">' +
-        '<sheets><sheet name="WACC" sheetId="1" r:id="rId1"/></sheets>' +
+        '<sheets><sheet name="WACC" sheetId="1" r:id="rId3"/></sheets>' +
         '<calcPr calcId="124519" fullCalcOnLoad="1"/></workbook>' },
       { nom: "xl/_rels/workbook.xml.rels", contenu:
         '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>' +
         '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">' +
-        '<Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet1.xml"/>' +
+        '<Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/theme" Target="theme/theme1.xml"/>' +
         '<Relationship Id="rId2" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/>' +
+        '<Relationship Id="rId3" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet1.xml"/>' +
+        '<Relationship Id="rId4" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/sharedStrings" Target="sharedStrings.xml"/>' +
         "</Relationships>" },
+      { nom: "xl/theme/theme1.xml", contenu: XL_THEME1 },
       { nom: "xl/styles.xml", contenu: xlStyles() },
-      { nom: "xl/worksheets/sheet1.xml", contenu: xlFeuille(lignesClasseur(x)) },
+      { nom: "xl/sharedStrings.xml", contenu: sharedStrings },
+      { nom: "xl/worksheets/sheet1.xml", contenu: sheet1 },
+      { nom: "docProps/core.xml", contenu: coreProps },
+      { nom: "docProps/app.xml", contenu: appProps },
     ];
     return new Blob([zipStored(parties)], {
       type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",

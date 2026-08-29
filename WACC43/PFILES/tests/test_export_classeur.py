@@ -1,4 +1,4 @@
-"""Le bouton flèche : le calcul rendu dans le gabarit TempWacc.
+"""Le bouton flèche : le calcul rendu dans le gabarit d'origine.
 
 Le classeur est écrit dans le navigateur, la page étant servie en statique.
 Deux choses doivent tenir : que le fichier s'ouvre vraiment — un .xlsx est une
@@ -18,7 +18,7 @@ openpyxl = pytest.importorskip("openpyxl")
 
 BOUTON = "#telecharger"
 
-# Les lignes du gabarit, à leur place d'origine dans TempWacc.xlsx.
+# Les lignes du gabarit, à leur place d'origine dans le fichier de départ.
 KE, KD, CMPC, CMPC_LOCAL = 12, 18, 23, 30
 BETA_U, GEARING, SPREAD, POIDS_DETTE = 6, 8, 16, 22
 SYNTHESE, RETENU = 34, 35

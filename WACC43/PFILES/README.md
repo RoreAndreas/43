@@ -69,7 +69,7 @@ construction plutôt que publier une page vide.
 ## Export Excel
 
 Le bouton flèche, en haut à droite de la page, télécharge le calcul dans le
-gabarit `TempWacc.xlsx` : mêmes sections — Ke, Kd, pondération, transposition de
+même gabarit : mêmes sections — Ke, Kd, pondération, transposition de
 Fisher, synthèse — mêmes formules, et les valeurs de l'écran là où le modèle les
 attend. La colonne des commentaires porte la source de chaque nombre. Le
 classeur est écrit dans le navigateur : la page reste autonome, hors ligne
