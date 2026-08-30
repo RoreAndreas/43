@@ -1896,10 +1896,9 @@
           ", taux " + cc.rf.libelle + " publié par le " + cc.rf.source +
           ", prime de risque pays et prime de marché mature Damodaran.",
         hypothesis: (cc.relevable && cc.gearingSaisi
-            ? "Le bêta médian est endetté au levier de l'échantillon : il est désendetté à ce levier puis ré-endetté au gearing cible (Hamada), sinon la structure changerait sans que le risque suive. "
-            : "Le bêta est employé tel quel : la structure retenue est celle de l'échantillon dont il provient, le ré-endettement serait sans effet. ") +
-          "Le taux sans risque est celui des US Bonds sous les deux référentiels : la prime de marché qui multiplie le bêta est mesurée sur le marché américain, et lui adosser un rendement souverain local additionnerait les conditions de deux marchés. Le risque du pays valorisé entre par la prime de risque pays, explicitement. " +
-          "Attention : les bêtas africains publiés sont très faibles — médiane 0,05 à trois ans, souvent proches de zéro faute de liquidité — ce qui écrase mécaniquement le coût des fonds propres vers le taux sans risque.",
+            ? "Bêta désendetté puis ré-endetté au gearing cible (Hamada). "
+            : "Bêta employé tel quel, structure de l'échantillon retenue. ") +
+          "Taux sans risque en US Bonds, cohérent avec la prime de marché. Bêtas africains parfois proches de zéro par illiquidité, ce qui écrase le coût des fonds propres vers le taux sans risque.",
         retained: "Bêta (3 ans) " + frNum(cc.beta, 3) + (cc.beta1 == null ? "" : ", horizon 1 an publié à " + frNum(cc.beta1, 3) + " mais non utilisé") + ", taux sans risque " + frPct(cc.rf.taux) + ", prime de marché " + frPct(cc.prime) + ".",
         formula: (cc.relevable && cc.gearingSaisi
           ? ["Bêta désendetté = " + frNum(cc.betaL, 3) + " / (1 + (1 - " + frPct(cc.tax, 1) + ") x " + frNum(cc.gearingSecteur, 2) + ") = " + frNum(cc.betaU, 3),
@@ -1928,7 +1927,7 @@
           ", prime de risque pays Damodaran, " + (cc.taxDefaut
           ? "taux d'IS non publié par Damodaran pour " + params.country + " : 25 % retenu"
           : "taux d'IS de droit commun Damodaran (" + params.country + ")") + ".",
-        hypothesis: "Aucun spread de financement n'est publié pour ce référentiel : la dette est supposée levée au taux sans risque du pays. L'hypothèse est neutre, et probablement optimiste pour un émetteur privé.",
+        hypothesis: "Aucun spread publié : dette supposée levée au taux souverain — neutre, probablement optimiste pour un émetteur privé.",
         retained: "Taux sans risque " + frPct(cc.rf.taux) + ", IS " + frPct(cc.tax, 1) + ".",
         formula: ["Kd = " + frPct(cc.rf.taux) + " x (1 - " + frPct(cc.tax, 1) + ") = " + frPct(cc.kd)],
       },
@@ -1953,8 +1952,8 @@
           ? "Gearing cible saisi à la main, cadenas de l'encadré « Secteur comparable » ouvert."
           : "Médiane des rapports dette / capitalisation du secteur, sur les sociétés complètes de l'univers de comparables.",
         hypothesis: cc.gearingSaisi
-          ? "Le gearing cible remplace la médiane du secteur, et sert aussi à ré-endetter le bêta."
-          : "Médiane et non moyenne : sur des marchés où quelques capitalisations écrasent la distribution, une moyenne dit surtout ce que fait la plus grosse valeur du secteur.",
+          ? "Le gearing cible remplace la médiane et sert aussi à ré-endetter le bêta."
+          : "Médiane, pas moyenne : une moyenne serait dominée par la plus grosse capitalisation du secteur.",
         retained: "Gearing D/E = " + frNum(cc.gearing, 2) + ".",
         formula: ["E/V = 1 / (1 + D/E) = 1 / " + frNum(1 + cc.gearing, 2) + " = " + frPct(cc.we),
                   "D/V = 1 - E/V = " + frPct(cc.wd)],
@@ -1970,8 +1969,8 @@
         methodology: "Moyenne du coût des fonds propres et du coût de la dette, pondérée par la structure financière.",
         source: "Composantes ci-dessus.",
         hypothesis: cc.conversion
-          ? "Exprimé en " + cc.rf.monnaie + ", la devise du socle souverain qui l'alimente. La conversion en monnaie locale fait l'objet de la carte suivante : actualiser des flux en monnaie locale avec ce taux-ci reviendrait à mélanger deux monnaies."
-          : "Déjà exprimé en monnaie locale : le socle souverain qui l'alimente est libellé dans la monnaie du pays valorisé, aucune conversion d'inflation n'est appliquée.",
+          ? "Exprimé en " + cc.rf.monnaie + ", devise du socle souverain. La conversion en monnaie locale fait l'objet de la carte suivante."
+          : "Déjà en monnaie locale : le socle souverain est libellé dans la devise du pays valorisé, sans conversion.",
         retained: "CMPC = " + frPct(cc.wacc) + (cc.conversion ? " en " + cc.rf.monnaie + "." : "."),
         formula: ["CMPC = E/V x Ke + D/V x Kd",
                   "= " + frPct(cc.we, 0) + " x " + frPct(cc.ke) + " + " + frPct(cc.wd, 0) +
@@ -1993,7 +1992,7 @@
       ],
       methodology: "Conversion du CMPC exprimé dans la devise du socle souverain vers la monnaie du pays valorisé, par le différentiel d'inflation attendu, selon la parité des pouvoirs d'achat.",
       source: "Prévisions d'inflation des deux zones monétaires, saisies dans l'onglet Paramètres — aucune source ne les fournit pour les 157 pays du référentiel.",
-      hypothesis: "Différentiel d'inflation constant sur l'horizon, et parité des pouvoirs d'achat vérifiée à terme. Les deux curseurs sont des hypothèses de l'utilisateur, pas des données : laissés à leurs valeurs par défaut, ils imposent un écart de 0,5 point qui n'a rien à voir avec le pays retenu.",
+      hypothesis: "Différentiel d'inflation constant, parité des pouvoirs d'achat vérifiée à terme. Les deux curseurs sont des hypothèses de l'utilisateur, pas des données : par défaut, ils imposent un écart de 0,5 point sans rapport avec le pays retenu.",
       retained: frPct(cc.wacc) + " en " + cc.rf.monnaie + ", " + frPct(cc.waccLocal) + " en monnaie locale.",
       formula: [
         "CMPC loc. = (1 + CMPC) x (1 + infl. loc.) / (1 + infl. " + cc.rf.monnaie + ") - 1",
