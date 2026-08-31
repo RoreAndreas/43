@@ -2778,11 +2778,26 @@
      Chaque cellule calculée porte sa formule ET sa valeur. Excel recalcule à
      l'ouverture, les autres tableurs affichent la valeur en attendant : le
      classeur reste un modèle qu'on peut tirer, pas une photographie.
+
+     Second onglet, « Sociétés » : l'échantillon de comparables qui produit les
+     médianes, une ligne par valeur, avec ce que le CMPC lui emprunte — bêta et
+     levier — et les agrégats d'exploitation dont se déduisent les multiples
+     d'EBITDA. Le classeur porte ainsi de quoi refaire le calcul et de quoi le
+     confronter à une valorisation par comparables, sans rouvrir la page. Sous
+     le référentiel Damodaran il n'y a pas d'échantillon : aucune société
+     n'entre dans ce calcul-là, et l'onglet n'est pas écrit plutôt que de
+     donner à lire une liste qui ne sert à rien.
   */
   const XL_COLS = [56.3, 3.3, 7.1, 2.0, 64.5];
   const XL_HAUTEUR = 11;
   const XL_THEME1 = "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?><a:theme xmlns:a=\"http://schemas.openxmlformats.org/drawingml/2006/main\" name=\"Office Theme\"><a:themeElements><a:clrScheme name=\"Office\"><a:dk1><a:sysClr val=\"windowText\" lastClr=\"000000\"/></a:dk1><a:lt1><a:sysClr val=\"window\" lastClr=\"FFFFFF\"/></a:lt1><a:dk2><a:srgbClr val=\"44546A\"/></a:dk2><a:lt2><a:srgbClr val=\"E7E6E6\"/></a:lt2><a:accent1><a:srgbClr val=\"4472C4\"/></a:accent1><a:accent2><a:srgbClr val=\"ED7D31\"/></a:accent2><a:accent3><a:srgbClr val=\"A5A5A5\"/></a:accent3><a:accent4><a:srgbClr val=\"FFC000\"/></a:accent4><a:accent5><a:srgbClr val=\"5B9BD5\"/></a:accent5><a:accent6><a:srgbClr val=\"70AD47\"/></a:accent6><a:hlink><a:srgbClr val=\"0563C1\"/></a:hlink><a:folHlink><a:srgbClr val=\"954F72\"/></a:folHlink></a:clrScheme><a:fontScheme name=\"Office\"><a:majorFont><a:latin typeface=\"Calibri Light\"/><a:ea typeface=\"\"/><a:cs typeface=\"\"/></a:majorFont><a:minorFont><a:latin typeface=\"Calibri\"/><a:ea typeface=\"\"/><a:cs typeface=\"\"/></a:minorFont></a:fontScheme><a:fmtScheme name=\"Office\"><a:fillStyleLst><a:solidFill><a:schemeClr val=\"phClr\"/></a:solidFill><a:solidFill><a:schemeClr val=\"phClr\"/></a:solidFill><a:solidFill><a:schemeClr val=\"phClr\"/></a:solidFill></a:fillStyleLst><a:lnStyleLst><a:ln w=\"6350\"><a:solidFill><a:schemeClr val=\"phClr\"/></a:solidFill></a:ln><a:ln w=\"12700\"><a:solidFill><a:schemeClr val=\"phClr\"/></a:solidFill></a:ln><a:ln w=\"19050\"><a:solidFill><a:schemeClr val=\"phClr\"/></a:solidFill></a:ln></a:lnStyleLst><a:effectStyleLst><a:effectStyle><a:effectLst/></a:effectStyle><a:effectStyle><a:effectLst/></a:effectStyle><a:effectStyle><a:effectLst/></a:effectStyle></a:effectStyleLst><a:bgFillStyleLst><a:solidFill><a:schemeClr val=\"phClr\"/></a:solidFill><a:solidFill><a:schemeClr val=\"phClr\"/></a:solidFill><a:solidFill><a:schemeClr val=\"phClr\"/></a:solidFill></a:bgFillStyleLst></a:fmtScheme></a:themeElements></a:theme>";
   const XL_FUSIONS = ["A1:E1", "A14:E14", "A20:E20", "A26:E26", "A33:E33"];
+
+  // Feuille « Sociétés » : une colonne par donnée, dans l'ordre où on la lit —
+  // l'identité, la taille, le levier, les bêtas, puis les comptes et les
+  // multiples qui en découlent.
+  const SOC_COLS = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N"];
+  const XL_COLS_SOC = [40, 10, 8, 17, 14, 12.5, 12.5, 9, 9, 15, 15, 11.5, 14, 11.5];
 
   // Index dans <cellXfs>, tel que les écrit xlStyles().
   const XL = {
@@ -2795,6 +2810,11 @@
     commentaire: 16, commentaireGras: 17,
     syntheseL: 18, syntheseV: 19, syntheseC: 20,
     retenuL: 21, retenuV: 22, retenuC: 23,
+    socNote: 24, socNom: 25, socTexte: 26,
+    socMontant: 27, socNum2: 28, socNum3: 29, socPct1: 30, socMult: 31,
+    medL: 32, medMontant: 33, medNum2: 34, medNum3: 35, medPct1: 36, medMult: 37,
+    reportL: 38, reportNum3: 39, reportNum2: 40, reportPct1: 41, reportMult: 42,
+    reportC: 43,
   };
 
   const xmlEsc = (s) => String(s)
@@ -2959,11 +2979,38 @@
       xf(0, 2, 7, 1, "left", true),              // taux retenu, libellé
       xf(10, 2, 7, 2, "right"),                  // taux retenu, valeur
       xf(0, 6, 7, 1, "left", true),              // taux retenu, commentaire
+
+      // Feuille « Sociétés ». Ces nombres sont des données relevées, pas des
+      // cellules à renseigner : ils gardent l'encre du texte. Seuls la ligne
+      // des médianes et le report vers le CMPC sont mis en avant, parce que
+      // ce sont les deux seules lignes que le calcul reprend.
+      xf(0, 5, 4, 0, "left", true),              // note d'en-tête
+      xf(0, 0, 4, 1, "left"),                    // nom de société
+      xf(0, 0, 4, 1, "center"),                  // ticker, place
+      xf(3, 0, 4, 1, "right"),                   // montant en millions
+      xf(2, 0, 4, 1, "right"),                   // nombre à deux décimales
+      xf(169, 0, 4, 1, "right"),                 // bêta, trois décimales
+      xf(168, 0, 4, 1, "right"),                 // pourcentage à une décimale
+      xf(170, 0, 4, 1, "right"),                 // multiple, 0,0x
+      xf(0, 2, 6, 1, "left"),                    // médiane, libellé
+      xf(3, 4, 6, 1, "right"),                   // médiane, montant
+      xf(2, 4, 6, 1, "right"),                   // médiane, deux décimales
+      xf(169, 4, 6, 1, "right"),                 // médiane, bêta
+      xf(168, 4, 6, 1, "right"),                 // médiane, pourcentage
+      xf(170, 4, 6, 1, "right"),                 // médiane, multiple
+      xf(0, 2, 7, 1, "left", true),              // report vers le CMPC, libellé
+      xf(169, 2, 7, 1, "right"),                 // report, bêta
+      xf(2, 2, 7, 1, "right"),                   // report, nombre
+      xf(168, 2, 7, 1, "right"),                 // report, pourcentage
+      xf(170, 2, 7, 1, "right"),                 // report, multiple
+      xf(0, 6, 7, 1, "left", true),              // report, commentaire
     ];
 
     return '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>' +
       '<styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">' +
-      '<numFmts count="1"><numFmt numFmtId="168" formatCode="0.0%"/></numFmts>' +
+      '<numFmts count="3"><numFmt numFmtId="168" formatCode="0.0%"/>' +
+      '<numFmt numFmtId="169" formatCode="0.000"/>' +
+      '<numFmt numFmtId="170" formatCode="0.0&quot;x&quot;"/></numFmts>' +
       '<fonts count="' + polices.length + '">' + polices.join("") + "</fonts>" +
       '<fills count="' + fonds.length + '">' + fonds.join("") + "</fills>" +
       '<borders count="' + bordures.length + '">' + bordures.join("") + "</borders>" +
@@ -2980,27 +3027,40 @@
   // valide selon la norme, mais ce n'est pas ce qu'un fichier issu d'un vrai
   // tableur contient jamais, et Excel s'est montré capricieux dessus au
   // moment de copier une cellule vers un autre classeur.
-  function xlPartageesEtFeuille(lignes) {
+  function xlChaines() {
     const table = [];
     const index = new Map();
     let total = 0;
-    const indiceChaine = (texte) => {
-      total++;
-      const trouve = index.get(texte);
-      if (trouve !== undefined) return trouve;
-      const i = table.length;
-      table.push(texte);
-      index.set(texte, i);
-      return i;
+    return {
+      // Les deux feuilles puisent dans la même table : un libellé de périmètre
+      // qui figure des deux côtés n'y est écrit qu'une fois.
+      indice: function (texte) {
+        total++;
+        const trouve = index.get(texte);
+        if (trouve !== undefined) return trouve;
+        const i = table.length;
+        table.push(texte);
+        index.set(texte, i);
+        return i;
+      },
+      xml: function () {
+        return '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>' +
+          '<sst xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"' +
+          ' count="' + total + '" uniqueCount="' + table.length + '">' +
+          table.map((texte) => '<si><t xml:space="preserve">' + xmlEsc(texte) + "</t></si>").join("") +
+          "</sst>";
+      },
     };
+  }
 
-    const colonnes = XL_COLS.map((w, i) =>
+  function xlFeuille(lignes, largeurs, fusions, chaines) {
+    const colonnes = largeurs.map((w, i) =>
       '<col min="' + (i + 1) + '" max="' + (i + 1) + '" width="' + w + '" customWidth="1"/>').join("");
     const corps = lignes.map((ligne) => {
       const cellules = ligne.cellules.map((c) => {
         const ref = c.col + ligne.r;
         if (c.texte != null) {
-          return '<c r="' + ref + '" s="' + c.s + '" t="s"><v>' + indiceChaine(c.texte) + "</v></c>";
+          return '<c r="' + ref + '" s="' + c.s + '" t="s"><v>' + chaines.indice(c.texte) + "</v></c>";
         }
         const f = c.formule ? "<f>" + xmlEsc(c.formule) + "</f>" : "";
         const v = Number.isFinite(c.valeur) ? "<v>" + xlNombre(c.valeur) + "</v>" : "";
@@ -3008,32 +3068,29 @@
           ? '<c r="' + ref + '" s="' + c.s + '">' + f + v + "</c>"
           : '<c r="' + ref + '" s="' + c.s + '"/>';
       }).join("");
-      return '<row r="' + ligne.r + '">' + cellules + "</row>";
+      // Une cellule fusionnée qui renvoie à la ligne ne s'ajuste pas toute
+      // seule : là où le texte est long, la hauteur est posée explicitement.
+      const haut = ligne.ht ? ' ht="' + ligne.ht + '" customHeight="1"' : "";
+      return '<row r="' + ligne.r + '"' + haut + ">" + cellules + "</row>";
     }).join("");
-    const fusions = '<mergeCells count="' + XL_FUSIONS.length + '">' +
-      XL_FUSIONS.map((ref) => '<mergeCell ref="' + ref + '"/>').join("") + "</mergeCells>";
+    const merges = fusions.length
+      ? '<mergeCells count="' + fusions.length + '">' +
+        fusions.map((ref) => '<mergeCell ref="' + ref + '"/>').join("") + "</mergeCells>"
+      : "";
 
-    // Jamais tabSelected sur cette vue : sans <bookViews> pour dire quel
-    // onglet est actif dans workbook.xml (que ce classeur n'a jamais eu besoin
-    // d'écrire, un seul onglet), l'attribut isolé mettait Excel dans un état de
-    // sélection fautif propre à ce fichier — invisible à l'ouverture, mais qui
-    // cassait tout copier-coller depuis lui (« Cette action ne fonctionne pas
-    // sur plusieurs sélections. »). Isolé par bissection le 29/08/2026 : le
+    // Jamais tabSelected sur ces vues : sans <bookViews> pour dire quel onglet
+    // est actif dans workbook.xml (que ce classeur n'a jamais eu besoin
+    // d'écrire), l'attribut isolé mettait Excel dans un état de sélection
+    // fautif propre à ce fichier — invisible à l'ouverture, mais qui cassait
+    // tout copier-coller depuis lui (« Cette action ne fonctionne pas sur
+    // plusieurs sélections. »). Isolé par bissection le 29/08/2026 : le
     // classeur s'ouvrait, se relisait et se recalculait sans reproche, seul le
     // copier-coller trahissait le problème.
-    const sheet1 = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>' +
+    return '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>' +
       '<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">' +
       '<sheetViews><sheetView showGridLines="0" workbookViewId="0"/></sheetViews>' +
       '<sheetFormatPr defaultRowHeight="' + XL_HAUTEUR + '"/><cols>' + colonnes + "</cols>" +
-      "<sheetData>" + corps + "</sheetData>" + fusions + "</worksheet>";
-
-    const sharedStrings = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>' +
-      '<sst xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"' +
-      ' count="' + total + '" uniqueCount="' + table.length + '">' +
-      table.map((texte) => '<si><t xml:space="preserve">' + xmlEsc(texte) + "</t></si>").join("") +
-      "</sst>";
-
-    return { sheet1: sheet1, sharedStrings: sharedStrings };
+      "<sheetData>" + corps + "</sheetData>" + merges + "</worksheet>";
   }
 
   // Une ligne du gabarit : le libellé en A, la valeur en C, le commentaire en E.
@@ -3049,8 +3106,8 @@
 
   // Les bandeaux sont fusionnés de A à E : les cinq cellules portent le même
   // style, sinon le trait du bas s'arrête au milieu du bandeau.
-  function bandeauXl(r, texte, style) {
-    return { r: r, cellules: ["A", "B", "C", "D", "E"].map((col, i) =>
+  function bandeauXl(r, texte, style, colonnes) {
+    return { r: r, cellules: (colonnes || ["A", "B", "C", "D", "E"]).map((col, i) =>
       i === 0 ? { col: col, s: style, texte: texte } : { col: col, s: style }) };
   }
 
@@ -3069,8 +3126,18 @@
     if (estComparables()) {
       const cc = cmpcComparables();
       if (!cc) return null;
+      // L'échantillon est repris tel que l'onglet Sociétés le marque : même
+      // périmètre, même tri, mêmes vingt valeurs. Le classeur et l'écran ne
+      // peuvent donc pas décrire deux populations différentes.
+      const ret = societesRetenues();
       return {
         referentiel: "Comparables",
+        societes: ret.ids.length ? {
+          ids: ret.ids, perimetre: cc.perimetre, echelle: cc.echelle,
+          total: cc.societes, relevable: cc.relevable,
+          betaL: cc.betaL, gearingSecteur: cc.gearingSecteur,
+          gearingSaisi: cc.gearingSaisi,
+        } : null,
         objet: params.secteur,
         origineBeta: "médian comparables",
         origineGearing: "moyen comparables",
@@ -3107,6 +3174,11 @@
     if (!b) return null;
     return {
       referentiel: "Damodaran",
+      // Ce référentiel ne lit aucune société : ses bêtas et son levier viennent
+      // des tables sectorielles de Damodaran. Joindre malgré tout une liste de
+      // comparables donnerait à lire des chiffres qui n'entrent pas dans ce
+      // calcul-là — l'onglet n'est donc pas écrit.
+      societes: null,
       objet: params.industry,
       origineBeta: "sectoriel Damodaran",
       origineGearing: "sectoriel Damodaran",
@@ -3200,8 +3272,191 @@
     ];
   }
 
+  /* ---------- Feuille « Sociétés » ---------- */
+  // Une ligne par comparable de l'échantillon, dans l'ordre où l'onglet Sociétés
+  // les classe — par capitalisation décroissante. Trois blocs se suivent : les
+  // sociétés, la médiane de chaque colonne, puis ce que le CMPC reprend de
+  // cette médiane, cellule de la feuille WACC à l'appui. Les multiples d'EBITDA
+  // sont là pour la valorisation par comparables : ils n'entrent pas dans le
+  // coût du capital, et la colonne le dit.
+
+  const mediane = (valeurs) => {
+    const v = valeurs.filter((n) => Number.isFinite(n)).sort((a, b) => a - b);
+    if (!v.length) return null;
+    const i = Math.floor(v.length / 2);
+    return v.length % 2 ? v[i] : (v[i - 1] + v[i]) / 2;
+  };
+
+  // L'exercice de référence de la feuille : le plus récent qu'au moins la
+  // moitié de l'échantillon documente. Prendre la dernière colonne de l'export
+  // sans regarder laisserait un tableau de cases vides dès qu'un exercice n'est
+  // pas encore publié partout.
+  function exerciceReference(sample) {
+    const annees = (sample[0].annees || []).slice().reverse();
+    for (const a of annees) {
+      const publient = sample.filter((s) => (s.ca || {})[String(a)] != null).length;
+      if (publient * 2 >= sample.length) return a;
+    }
+    return annees[0] || null;
+  }
+
+  function lignesSocietes(x) {
+    const info = x.societes;
+    if (!info) return null;
+    const sample = info.ids.map((id) => COMPARABLES[id]).filter(Boolean);
+    if (!sample.length) return null;
+
+    const an = exerciceReference(sample);
+    const cle = String(an);
+    const ca = (s) => (s.ca || {})[cle];
+    const eb = (s) => (s.ebitda || {})[cle];
+    const ve = (s) => s.capitalisation + s.dette;
+
+    const lignes = [];
+    const fusions = ["A1:N1", "A2:N2"];
+
+    lignes.push(bandeauXl(1, "COMPARABLES DU SECTEUR — " + x.objet + ", " + info.perimetre,
+                          XL.bandeau, SOC_COLS));
+    const note = "Les " + sample.length + " sociétés qui produisent les médianes du CMPC : " +
+      (info.total > sample.length
+        ? "les plus grosses capitalisations des " + info.total + " du périmètre retenu, " + info.perimetre
+        : "tout le périmètre retenu, " + info.perimetre) +
+      ". Montants en millions FCFA, exercice " + an + ". VE = capitalisation boursière + dette totale. " +
+      "S&P ne publie pas d'EBITDA pour les banques et les assureurs : leurs multiples restent vides.";
+    lignes.push({ r: 2, ht: 26, cellules: SOC_COLS.map((col, i) =>
+      i === 0 ? { col: col, s: XL.socNote, texte: note } : { col: col, s: XL.socNote }) });
+
+    const entetes = ["Société", "Ticker", "Place", "Pays", "Capitalisation", "Dette totale",
+      "Dette / capi (D/E)", "Bêta 1 an", "Bêta 3 ans", "Chiffre d'affaires " + an,
+      "EBITDA " + an, "Marge d'EBITDA", "VE " + an, "VE / EBITDA"];
+    lignes.push({ r: 4, ht: 26, cellules: entetes.map((t, i) => ({
+      col: SOC_COLS[i], s: i === 0 || i === 3 ? XL.entete : XL.enteteCentre, texte: t })) });
+
+    const PREMIERE = 5;
+    sample.forEach((s, i) => {
+      const r = PREMIERE + i;
+      const c = ca(s);
+      const e = eb(s);
+      lignes.push({ r: r, cellules: [
+        { col: "A", s: XL.socNom, texte: s.nom },
+        { col: "B", s: XL.socTexte, texte: s.ticker || "" },
+        { col: "C", s: XL.socTexte, texte: s.place || "hors cote" },
+        { col: "D", s: XL.socNom, texte: s.pays },
+        { col: "E", s: XL.socMontant, valeur: s.capitalisation },
+        { col: "F", s: XL.socMontant, valeur: s.dette },
+        { col: "G", s: XL.socNum2, formule: "F" + r + "/E" + r,
+          valeur: s.capitalisation ? s.dette / s.capitalisation : null },
+        { col: "H", s: XL.socNum3, valeur: s.beta_1an },
+        { col: "I", s: XL.socNum3, valeur: s.beta_3ans },
+        { col: "J", s: XL.socMontant, valeur: c == null ? null : c },
+        { col: "K", s: XL.socMontant, valeur: e == null ? null : e },
+        { col: "L", s: XL.socPct1, formule: c && e != null ? "K" + r + "/J" + r : null,
+          valeur: c && e != null ? e / c : null },
+        { col: "M", s: XL.socMontant, formule: "E" + r + "+F" + r, valeur: ve(s) },
+        { col: "N", s: XL.socMult, formule: e > 0 ? "M" + r + "/K" + r : null,
+          valeur: e > 0 ? ve(s) / e : null },
+      ] });
+    });
+
+    // La médiane est écrite en formule sur la plage juste au-dessus : qui
+    // retire une société de l'échantillon voit immédiatement le bêta bouger,
+    // ce qu'une valeur figée ne dirait pas.
+    const derniere = PREMIERE + sample.length - 1;
+    const m = derniere + 1;
+    const plage = (col) => "MEDIAN(" + col + PREMIERE + ":" + col + derniere + ")";
+    const colDE = sample.map((s) => s.capitalisation ? s.dette / s.capitalisation : null);
+    const colMarge = sample.map((s) => (ca(s) && eb(s) != null ? eb(s) / ca(s) : null));
+    const colMult = sample.map((s) => (eb(s) > 0 ? ve(s) / eb(s) : null));
+    const medBeta = mediane(sample.map((s) => s.beta_3ans));
+    const medDE = mediane(colDE);
+    const medMult = mediane(colMult);
+
+    lignes.push({ r: m, cellules: [
+      { col: "A", s: XL.medL, texte: "Médiane de l'échantillon (" + sample.length +
+        (sample.length > 1 ? " sociétés)" : " société)") },
+      { col: "B", s: XL.medL }, { col: "C", s: XL.medL }, { col: "D", s: XL.medL },
+      { col: "E", s: XL.medMontant, formule: plage("E"), valeur: mediane(sample.map((s) => s.capitalisation)) },
+      { col: "F", s: XL.medMontant, formule: plage("F"), valeur: mediane(sample.map((s) => s.dette)) },
+      { col: "G", s: XL.medNum2, formule: plage("G"), valeur: medDE },
+      { col: "H", s: XL.medNum3, formule: plage("H"), valeur: mediane(sample.map((s) => s.beta_1an)) },
+      { col: "I", s: XL.medNum3, formule: plage("I"), valeur: medBeta },
+      { col: "J", s: XL.medMontant, formule: plage("J"), valeur: mediane(sample.map(ca)) },
+      { col: "K", s: XL.medMontant, formule: plage("K"), valeur: mediane(sample.map(eb)) },
+      { col: "L", s: XL.medPct1, formule: plage("L"), valeur: mediane(colMarge) },
+      { col: "M", s: XL.medMontant, formule: plage("M"), valeur: mediane(sample.map(ve)) },
+      { col: "N", s: XL.medMult, formule: plage("N"), valeur: medMult },
+    ] });
+
+    // Report vers le CMPC. Le libellé court sur A:D, la valeur tient en E et le
+    // commentaire sur F:N — la seule mise en page où la phrase se lit en entier
+    // sans écraser le tableau au-dessus.
+    const bandeau = m + 2;
+    fusions.push("A" + bandeau + ":N" + bandeau);
+    lignes.push(bandeauXl(bandeau, "VALEURS REPRISES DANS LE CALCUL DU CMPC",
+                          XL.bandeauSynthese, SOC_COLS));
+
+    let ligne = bandeau;
+    const report = (libelle, o) => {
+      ligne++;
+      fusions.push("A" + ligne + ":D" + ligne, "F" + ligne + ":N" + ligne);
+      const cellules = SOC_COLS.slice(0, 4).map((col, i) =>
+        i === 0 ? { col: col, s: XL.reportL, texte: libelle } : { col: col, s: XL.reportL });
+      const valeur = { col: "E", s: o.s };
+      if (o.formule) valeur.formule = o.formule;
+      if (Number.isFinite(o.valeur)) valeur.valeur = o.valeur;
+      cellules.push(valeur);
+      SOC_COLS.slice(5).forEach((col, i) =>
+        cellules.push(i === 0 ? { col: col, s: XL.reportC, texte: o.commentaire }
+                              : { col: col, s: XL.reportC }));
+      lignes.push({ r: ligne, ht: 24, cellules: cellules });
+      return ligne;
+    };
+
+    const rBeta = report("Bêta (3 ans) médian de l'échantillon (βL)", {
+      s: XL.reportNum3, formule: "I" + m, valeur: medBeta,
+      commentaire: info.relevable
+        ? "Endetté au levier de l'échantillon : il est désendetté deux lignes plus bas avant d'entrer dans le CMPC"
+        : "Levier de l'échantillon non publié : reporté tel quel en WACC!C6, sans ré-endettement" });
+
+    let rDE = null;
+    if (info.relevable) {
+      rDE = report("Gearing médian de l'échantillon (D/E)", {
+        s: XL.reportNum2, formule: "G" + m, valeur: medDE,
+        commentaire: "Médiane de la colonne Dette / capitalisation ci-dessus" });
+      report("Bêta désendetté βu = βL / (1 + (1 − t) × D/E)", {
+        s: XL.reportNum3,
+        formule: "E" + rBeta + "/(1+(1-WACC!C7)*E" + rDE + ")",
+        valeur: medBeta / (1 + (1 - x.tax) * medDE),
+        commentaire: "Reporté en WACC!C6 — t est le taux d'IS lu sur la feuille WACC" });
+    }
+
+    // Sans cible saisie, le gearing retenu EST la médiane : on y renvoie plutôt
+    // que d'en recopier le nombre, sans quoi retirer une société du tableau
+    // laisserait deux lignes voisines annoncer deux leviers différents.
+    report("Gearing retenu pour la pondération (D/E)", {
+      s: XL.reportNum2, valeur: x.gearing,
+      formule: info.gearingSaisi || rDE === null ? null : "E" + rDE,
+      commentaire: (info.gearingSaisi
+        ? "Gearing cible posé dans la page"
+        : "Gearing médian de l'échantillon") + " — reporté en WACC!C8" });
+
+    report("VE / EBITDA médian de l'échantillon", {
+      s: XL.reportMult, formule: "N" + m, valeur: medMult,
+      commentaire: "Multiple observé sur les comparables — repère de valorisation, il n'entre pas dans le CMPC" });
+
+    report("Marge d'EBITDA médiane", {
+      s: XL.reportPct1, formule: "L" + m, valeur: mediane(colMarge),
+      commentaire: "Sur les seules sociétés dont S&P publie un EBITDA" });
+
+    return { lignes: lignes, fusions: fusions };
+  }
+
   function classeurXlsx(x) {
-    const { sheet1, sharedStrings } = xlPartageesEtFeuille(lignesClasseur(x));
+    const chaines = xlChaines();
+    const feuilleWacc = xlFeuille(lignesClasseur(x), XL_COLS, XL_FUSIONS, chaines);
+    const soc = lignesSocietes(x);
+    const feuilleSoc = soc ? xlFeuille(soc.lignes, XL_COLS_SOC, soc.fusions, chaines) : null;
+    const onglets = feuilleSoc ? ["WACC", "Sociétés"] : ["WACC"];
     const titre = "CMPC " + x.objet + ", " + params.country;
     const horodatage = new Date().toISOString().replace(/\.\d{3}Z$/, "Z");
 
@@ -3221,8 +3476,10 @@
       "<Application>wacc43</Application><DocSecurity>0</DocSecurity><ScaleCrop>false</ScaleCrop>" +
       '<HeadingPairs><vt:vector size="2" baseType="variant">' +
       "<vt:variant><vt:lpstr>Feuilles de calcul</vt:lpstr></vt:variant>" +
-      "<vt:variant><vt:i4>1</vt:i4></vt:variant></vt:vector></HeadingPairs>" +
-      '<TitlesOfParts><vt:vector size="1" baseType="lpstr"><vt:lpstr>WACC</vt:lpstr></vt:vector></TitlesOfParts>' +
+      "<vt:variant><vt:i4>" + onglets.length + "</vt:i4></vt:variant></vt:vector></HeadingPairs>" +
+      '<TitlesOfParts><vt:vector size="' + onglets.length + '" baseType="lpstr">' +
+      onglets.map((n) => "<vt:lpstr>" + xmlEsc(n) + "</vt:lpstr>").join("") +
+      "</vt:vector></TitlesOfParts>" +
       "<LinksUpToDate>false</LinksUpToDate><SharedDoc>false</SharedDoc>" +
       "<HyperlinksChanged>false</HyperlinksChanged><AppVersion>16.0300</AppVersion></Properties>";
 
@@ -3234,6 +3491,7 @@
         '<Default Extension="xml" ContentType="application/xml"/>' +
         '<Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/>' +
         '<Override PartName="/xl/worksheets/sheet1.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/>' +
+        (feuilleSoc ? '<Override PartName="/xl/worksheets/sheet2.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/>' : "") +
         '<Override PartName="/xl/theme/theme1.xml" ContentType="application/vnd.openxmlformats-officedocument.theme+xml"/>' +
         '<Override PartName="/xl/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml"/>' +
         '<Override PartName="/xl/sharedStrings.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sharedStrings+xml"/>' +
@@ -3251,7 +3509,9 @@
         '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>' +
         '<workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"' +
         ' xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">' +
-        '<sheets><sheet name="WACC" sheetId="1" r:id="rId3"/></sheets>' +
+        "<sheets>" + onglets.map((n, i) =>
+          '<sheet name="' + xmlEsc(n) + '" sheetId="' + (i + 1) + '" r:id="' +
+          (i === 0 ? "rId3" : "rId5") + '"/>').join("") + "</sheets>" +
         '<calcPr calcId="124519" fullCalcOnLoad="1"/></workbook>' },
       { nom: "xl/_rels/workbook.xml.rels", contenu:
         '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>' +
@@ -3260,14 +3520,19 @@
         '<Relationship Id="rId2" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/>' +
         '<Relationship Id="rId3" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet1.xml"/>' +
         '<Relationship Id="rId4" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/sharedStrings" Target="sharedStrings.xml"/>' +
+        (feuilleSoc ? '<Relationship Id="rId5" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet2.xml"/>' : "") +
         "</Relationships>" },
       { nom: "xl/theme/theme1.xml", contenu: XL_THEME1 },
       { nom: "xl/styles.xml", contenu: xlStyles() },
-      { nom: "xl/sharedStrings.xml", contenu: sharedStrings },
-      { nom: "xl/worksheets/sheet1.xml", contenu: sheet1 },
+      { nom: "xl/sharedStrings.xml", contenu: chaines.xml() },
+      { nom: "xl/worksheets/sheet1.xml", contenu: feuilleWacc },
       { nom: "docProps/core.xml", contenu: coreProps },
       { nom: "docProps/app.xml", contenu: appProps },
     ];
+    if (feuilleSoc) {
+      parties.splice(parties.length - 2, 0,
+                     { nom: "xl/worksheets/sheet2.xml", contenu: feuilleSoc });
+    }
     return new Blob([zipStored(parties)], {
       type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
     });
