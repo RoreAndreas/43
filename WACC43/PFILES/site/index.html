@@ -305,6 +305,15 @@
     transition: color 160ms ease, border-color 160ms ease;
   }
   .places:hover .place { color: var(--ink-4); border-color: var(--muted-2); }
+  .places-head { display: flex; justify-content: flex-end; }
+  .place.is-cliquable { cursor: pointer; }
+  .place.is-cliquable:hover { color: var(--ink-3); border-color: var(--muted-2); }
+  .place.is-cliquable:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .place.is-actif, .places:hover .place.is-actif {
+    color: var(--accent);
+    border-color: var(--accent-chip);
+    background: var(--accent-tint);
+  }
 
   /* Le rail est un vrai input range : utilisable au clavier et annoncé par les
      lecteurs d'écran, ce qu'une barre dessinée à la main n'aurait pas été.
@@ -1065,6 +1074,14 @@
     gearing_cible: null,    // poids de dette cible D/V, en %, une fois validé
     gearing_saisie: "",     // texte tel que tapé, conservé pour réafficher l'erreur
     gearing_erreur: null,
+    // Même mécanique que le gearing : la place de cotation est une donnée du
+    // périmètre, pas un réglage. Fermé, le calcul prend la zone entière ;
+    // ouvert, cliquer une place le restreint à elle. Une place qui disparaît
+    // du périmètre courant (changement de secteur ou de zone) redevient
+    // simplement introuvable dans les statistiques publiées : statsSecteur()
+    // retombe alors sur la zone, sans qu'il faille la réinitialiser ici.
+    place_verrou: true,     // fermé : toutes les places du périmètre
+    place_cible: null,      // place choisie pour restreindre le calcul
   }, DATA.defaults);
   if (!params.referentiel) params.referentiel = "damodaran";
   if (!params.secteur) {
@@ -1446,6 +1463,7 @@
         const s = COMPARABLES[id];
         if (ind && s.industrie !== ind) return false;
         if (zones && zones.indexOf(s.zone) === -1) return false;
+        if (params.place_cible && s.place !== params.place_cible) return false;
         return true;
       })
       // Les plus grosses capitalisations d'abord : elles portent le secteur.
@@ -1643,6 +1661,13 @@
 
     const echelles = [];
     if (params.continent !== TOUS) {
+      // La place n'apparaît que verrouillée sur une valeur : cliquer une place
+      // dans le cadrage la met ici, avant la zone, comme échelle la plus étroite
+      // — c'est explicitement celle que l'utilisateur vise.
+      if (params.place_cible) {
+        echelles.push({ echelle: "place", perimetre: params.place_cible,
+                        stats: (bloc.places || {})[params.place_cible] });
+      }
       if (params.zone) {
         echelles.push({ echelle: "zone", perimetre: params.zone,
                         stats: (bloc.zones || {})[params.zone] });
@@ -1659,7 +1684,7 @@
     }
 
     // La plus étroite qui atteigne le seuil ; sinon le premier repli disponible,
-    // dans l'ordre zone -> continent.
+    // dans l'ordre place -> zone -> continent.
     const retenu = echelles.find((e) => e.stats && e.stats.societes >= SEUIL)
       || echelles.find((e, i) => i > 0 && e.stats && e.stats.societes > 0)
       || echelles.find((e) => e.stats && e.stats.societes > 0);
@@ -1715,7 +1740,8 @@
   function societesRetenues() {
     const stats = statsSecteur(params.secteur);
     if (!stats) return { ids: [], stats: null };
-    const dans = (c) => stats.echelle === "zone" ? c.zone === stats.perimetre
+    const dans = (c) => stats.echelle === "place" ? c.place === stats.perimetre
+                      : stats.echelle === "zone" ? c.zone === stats.perimetre
                       : stats.echelle === "continent" ? c.continent === stats.perimetre
                       : true;
     const ids = Object.keys(COMPARABLES)
@@ -2018,16 +2044,51 @@
   // davantage à mesure que l'univers s'étend : repliées dans une bulle sur la
   // ligne de titre, elles la faisaient déborder. La ligne défile plutôt que de
   // s'allonger, et la barre n'apparaît que lorsqu'il y a de quoi défiler.
+  //
+  // Le cadenas n'a de sens que sous Comparables : c'est le seul référentiel où
+  // une place restreint un calcul, celui des médianes sectorielles. Sous
+  // Damodaran, la ligne reste ce qu'elle a toujours été — une information, pas
+  // un contrôle — plutôt que de présenter un bouton sans effet.
   function placesCadrage() {
     const p = perimetreCourant();
     if (!p.n || !p.places.length) return "";
+    const verrouille = estComparables();
+    const ouvert = verrouille && !params.place_verrou;
+    const cadenas = verrouille
+      ? '<button type="button" class="verrou' + (ouvert ? " is-open" : "") + '" id="verrouPlace"' +
+        ' aria-pressed="' + (ouvert ? "true" : "false") + '"' +
+        ' title="' + (ouvert
+          ? "Revenir à toutes les places du périmètre"
+          : "Choisir une place pour restreindre le calcul") + '">' +
+        (ouvert ? CADENAS.ouvert : CADENAS.ferme) +
+        "<span>" + (ouvert ? "Focus" : "Toutes") + "</span></button>"
+      : "";
     return '<div class="places-bloc">' +
+      (cadenas ? '<div class="places-head">' + cadenas + '</div>' : "") +
       '<div class="places" id="placesPiste" tabindex="0" role="group" aria-label="Places de cotation du périmètre">' +
-      p.places.map((m) => '<span class="place">' + esc(m) + "</span>").join("") +
+      p.places.map((m) => {
+        const actif = m === params.place_cible;
+        const classes = "place" + (ouvert ? " is-cliquable" : "") + (actif ? " is-actif" : "");
+        const attrs = ouvert
+          ? ' data-place="' + esc(m) + '" role="button" tabindex="0" aria-pressed="' + (actif ? "true" : "false") + '"'
+          : "";
+        return '<span class="' + classes + '"' + attrs + ">" + esc(m) + "</span>";
+      }).join("") +
       '</div>' +
       '<input type="range" class="places-slider" id="placesRail" min="0" max="100" step="0.1" value="0"' +
       ' aria-label="Faire défiler les places de cotation" hidden>' +
       "</div>";
+  }
+
+  function basculerVerrouPlace() {
+    params.place_verrou = !params.place_verrou;
+    if (params.place_verrou) params.place_cible = null;
+    apply();
+  }
+
+  function choisirPlace(valeur) {
+    params.place_cible = params.place_cible === valeur ? null : valeur;
+    apply();
   }
 
   // Le rail et la bande sont liés dans les deux sens : tirer la poignée fait
@@ -2038,7 +2099,19 @@
   function brancherPlaces() {
     const piste = $("placesPiste");
     const rail = $("placesRail");
+    const verrou = $("verrouPlace");
     ajusterPlaces = null;
+    if (verrou) verrou.addEventListener("click", basculerVerrouPlace);
+    if (piste) {
+      piste.querySelectorAll(".place[data-place]").forEach((el) => {
+        el.addEventListener("click", () => choisirPlace(el.dataset.place));
+        el.addEventListener("keydown", (ev) => {
+          if (ev.key !== "Enter" && ev.key !== " ") return;
+          ev.preventDefault();
+          choisirPlace(el.dataset.place);
+        });
+      });
+    }
     if (!piste || !rail) return;
 
     const amplitude = () => piste.scrollWidth - piste.clientWidth;

@@ -118,6 +118,22 @@ def _place_et_ticker(nom: str, entity_id):
     return None, str(entity_id)
 
 
+# S&P distingue « Wireless » et « Diversified Telecommunication Services » —
+# deux Industry GICS d'un même Industry Group. La frontière n'est pas fiable
+# sur les télécoms africains : Orange CI et Sonatel, deux opérateurs du même
+# groupe au même modèle d'affaires, se retrouvaient de part et d'autre, tout
+# comme MTN Group (Wireless) et MTN Uganda (Diversified). On remonte donc les
+# deux au niveau du groupe d'industries, seule maille qui les traite pareil.
+_FUSIONS_INDUSTRIE = {
+    "Wireless Telecommunication Services": "Telecommunication Services",
+    "Diversified Telecommunication Services": "Telecommunication Services",
+}
+
+
+def _industrie_canonique(industrie: str) -> str:
+    return _FUSIONS_INDUSTRIE.get(industrie, industrie)
+
+
 def trouver_exports(racine: Path) -> list:
     """Tous les exports `comps*.xlsx` trouvés autour du dossier fourni.
 
@@ -162,7 +178,7 @@ def charger(chemin: Path, progress=None) -> dict:
                 "ticker": code,
                 "place": place,
                 "pays": (pays or "").strip() or None,
-                "industrie": (industrie or "").strip() or None,
+                "industrie": _industrie_canonique((industrie or "").strip()) or None,
                 "industrie_fine": (primaire or "").strip() or None,
                 "description": (description or "").strip() or None,
             }
@@ -284,18 +300,21 @@ def statistiques(membres: list) -> dict:
 
 
 def secteurs_par_perimetre(societes: dict, classer) -> dict:
-    """Statistiques de chaque secteur, à trois échelles emboîtées.
+    """Statistiques de chaque secteur, à quatre échelles emboîtées.
 
     Le CMPC se calcule sur la zone retenue. Mais l'univers est mince : sur les
     cent vingt-six couples zone x secteur, quarante pour cent ne comptent aucune
     société et un tiers n'en compte qu'une. Une médiane sur une seule société
     n'est pas une médiane, c'est cette société.
 
-    On publie donc les trois échelles — zone, continent, univers — et la page
-    prend la plus étroite qui atteigne le seuil, en écrivant laquelle a servi.
-    Choisir à la construction figerait ce repli sans que l'utilisateur le voie.
+    On publie donc quatre échelles — place, zone, continent, univers — et la
+    page prend la plus étroite qui atteigne le seuil, en écrivant laquelle a
+    servi. Choisir à la construction figerait ce repli sans que l'utilisateur
+    le voie. La place est la plus étroite des quatre : c'est celle que
+    l'utilisateur vise explicitement en verrouillant le cadrage sur une bourse
+    précise, plutôt que la laisser à la médiane de toute la zone.
     """
-    paniers = {"univers": {}, "continents": {}, "zones": {}}
+    paniers = {"univers": {}, "continents": {}, "zones": {}, "places": {}}
     for s in societes.values():
         if not s.get("visible"):
             continue
@@ -306,6 +325,8 @@ def secteurs_par_perimetre(societes: dict, classer) -> dict:
             paniers["continents"].setdefault(nom, {}).setdefault(continent, []).append(s)
         if zone:
             paniers["zones"].setdefault(nom, {}).setdefault(zone, []).append(s)
+        if s.get("place"):
+            paniers["places"].setdefault(nom, {}).setdefault(s["place"], []).append(s)
 
     sortie = {}
     for nom, membres in sorted(paniers["univers"].items()):
@@ -315,6 +336,8 @@ def secteurs_par_perimetre(societes: dict, classer) -> dict:
                            for c, m in sorted(paniers["continents"].get(nom, {}).items())},
             "zones": {z: statistiques(m)
                       for z, m in sorted(paniers["zones"].get(nom, {}).items())},
+            "places": {p: statistiques(m)
+                       for p, m in sorted(paniers["places"].get(nom, {}).items())},
         }
     return sortie
 

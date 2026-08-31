@@ -9,7 +9,7 @@ geste.
 
 import pytest
 
-from conftest import choisir, continent_vide, mode_comparables
+from conftest import choisir, continent_vide, ligne_resultat, mode_comparables, nombre_fr
 
 PISTE = "#placesPiste"
 RAIL = "#placesRail"
@@ -167,3 +167,101 @@ def test_aucune_bande_de_places_sur_un_perimetre_vide(page, donnees):
     choisir(page, "secteur", "Banks")
     assert page.query_selector(PISTE) is None
     assert page.query_selector(RAIL) is None
+
+
+# --------------------------------------------------------- le focus sur une place
+# Même mécanique que le cadenas du gearing : fermé par défaut, il faut l'ouvrir
+# avant de pouvoir restreindre le calcul à une place précise.
+
+VERROU = "#verrouPlace"
+
+
+def cadrer_telecom(page):
+    """Un secteur avec plusieurs places, dont une (BRVM) qui dépasse le seuil —
+    c'est le cas qui a motivé le focus : Orange CI et Sonatel n'y comptaient
+    pas ensemble avant la fusion des deux intitulés télécoms."""
+    mode_comparables(page)
+    choisir(page, "continent", "Afrique")
+    choisir(page, "secteur", "Telecommunication Services")
+
+
+def test_le_cadenas_est_ferme_par_defaut(page):
+    cadrer_telecom(page)
+    assert page.get_attribute(VERROU, "aria-pressed") == "false"
+    assert page.query_selector(f"{PISTE} .place[data-place]") is None, \
+        "les pastilles ne doivent pas être cliquables verrou fermé"
+
+
+def test_le_cadenas_n_apparait_pas_sous_damodaran(page):
+    """Il n'y a rien à restreindre : le référentiel Damodaran ne calcule pas
+    de médiane sur l'univers de comparables."""
+    page.select_option('#paramsMain select[data-param="continent"]', "Afrique")
+    assert page.query_selector(PISTE) is not None, "les places restent affichées, à titre informatif"
+    assert page.query_selector(VERROU) is None
+
+
+def test_ouvrir_le_cadenas_rend_les_pastilles_cliquables(page):
+    cadrer_telecom(page)
+    page.click(VERROU)
+    assert page.get_attribute(VERROU, "aria-pressed") == "true"
+    assert page.query_selector(f'{PISTE} .place[data-place="BRVM"]') is not None
+
+
+def test_cliquer_une_place_restreint_le_calcul(page):
+    cadrer_telecom(page)
+    avant = nombre_fr(ligne_resultat(page, "Sociétés du secteur"))
+
+    page.click(VERROU)
+    page.click(f'{PISTE} .place[data-place="BRVM"]')
+
+    assert "is-actif" in page.get_attribute(f'{PISTE} .place[data-place="BRVM"]', "class")
+    apres = nombre_fr(ligne_resultat(page, "Sociétés du secteur"))
+    assert apres < avant, "le focus doit réduire l'échantillon à la seule place choisie"
+    # Le libellé de la ligne porte le périmètre retenu, comme il le fait déjà
+    # pour une zone : « Sociétés du secteur, BRVM ».
+    lignes = page.eval_on_selector_all(
+        "#paramsResult .result-row > span:first-child", "els => els.map(e => e.textContent)")
+    assert any("BRVM" in l for l in lignes)
+
+
+def test_orange_ci_et_sonatel_comptent_ensemble_sur_brvm(page):
+    """Le cas qui a motivé la demande : les deux sociétés du même groupe,
+    listées sur la même place, doivent désormais peser dans la même médiane."""
+    cadrer_telecom(page)
+    page.click(VERROU)
+    page.click(f'{PISTE} .place[data-place="BRVM"]')
+    assert nombre_fr(ligne_resultat(page, "Sociétés du secteur")) >= 2
+
+
+def test_recliquer_la_meme_place_annule_le_focus(page):
+    cadrer_telecom(page)
+    avant = nombre_fr(ligne_resultat(page, "Sociétés du secteur"))
+
+    page.click(VERROU)
+    page.click(f'{PISTE} .place[data-place="BRVM"]')
+    page.click(f'{PISTE} .place[data-place="BRVM"]')
+
+    assert "is-actif" not in page.get_attribute(f'{PISTE} .place[data-place="BRVM"]', "class")
+    assert nombre_fr(ligne_resultat(page, "Sociétés du secteur")) == avant
+
+
+def test_refermer_le_cadenas_efface_le_focus(page):
+    cadrer_telecom(page)
+    avant = nombre_fr(ligne_resultat(page, "Sociétés du secteur"))
+
+    page.click(VERROU)
+    page.click(f'{PISTE} .place[data-place="BRVM"]')
+    page.click(VERROU)
+
+    assert page.get_attribute(VERROU, "aria-pressed") == "false"
+    assert page.query_selector(f"{PISTE} .place[data-place]") is None
+    assert nombre_fr(ligne_resultat(page, "Sociétés du secteur")) == avant
+
+
+def test_le_clavier_active_une_place(page):
+    """Les pastilles cliquables sont aussi des boutons au clavier (Entrée/Espace)."""
+    cadrer_telecom(page)
+    page.click(VERROU)
+    page.focus(f'{PISTE} .place[data-place="BRVM"]')
+    page.keyboard.press("Enter")
+    assert "is-actif" in page.get_attribute(f'{PISTE} .place[data-place="BRVM"]', "class")
