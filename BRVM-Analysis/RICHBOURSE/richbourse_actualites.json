@@ -1,10 +1,15 @@
 {
-    "last_update": "2026-09-01 01:45:42",
+    "last_update": "2026-09-01 18:19:37",
     "count": 20,
     "weeks": [
         {
             "semaine": "Semaine du 31 Août au 06 Septembre 2026",
             "publications": [
+                {
+                    "date": "01/09/2026",
+                    "titre": "FCTC NSIA BANQUE : Notation Financière - FCTC ZAKA RMBS NSIA BANQUE CÔTE D·IVOIRE 2025-2044",
+                    "url": "https://www.richbourse.com/common/actualite/afficher-fichier/01-09-2026-fctc-nsia-banque-notation-financiere-fctc-zaka-rmbs-nsia-banque-cote-d-ivoire-2025-2044"
+                },
                 {
                     "date": "31/08/2026",
                     "titre": "CORIS BANK INTERNATIONAL BF : Rapport d'Examen Limité des Commissaires Aux Comptes sur les Etats Financiers au 30 juin 2026",
@@ -114,11 +119,6 @@
                     "date": "13/08/2026",
                     "titre": "BRVM : Horaires de cotation du 14 août 2026",
                     "url": "https://www.richbourse.com/common/actualite/afficher-fichier/13-08-2026-brvm-horaires-de-cotation-du-14-aout-2026"
-                },
-                {
-                    "date": "13/08/2026",
-                    "titre": "Notation Financière - Nourmony Holding SA 7,25% 2024-2029",
-                    "url": "https://www.richbourse.com/common/actualite/afficher-fichier/13-08-2026-notation-financiere-nourmony-holding-sa-7-25-2024-2029"
                 }
             ]
         }
