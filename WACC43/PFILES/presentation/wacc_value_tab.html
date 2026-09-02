@@ -972,6 +972,174 @@
     text-wrap: pretty;
   }
 
+  /* ---------- Onglet Comparables ---------- */
+  .comparables {
+    max-width: 1060px;
+    margin: 0 auto;
+    padding: 30px 32px 120px;
+    display: grid;
+    gap: 20px;
+  }
+  .mult-defs { display: grid; gap: 14px; }
+  .mult-def { display: grid; gap: 10px; }
+  .mult-def-head { display: grid; gap: 3px; }
+  .mult-def-label { font: 500 12.5px/1.4 var(--sans); color: var(--ink); }
+  .mult-def-formule { font: 400 11px/1.5 var(--sans); color: var(--muted-2); text-wrap: pretty; }
+  .mult-cases {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(118px, 1fr));
+    gap: 10px;
+  }
+  .mult-case {
+    display: grid;
+    gap: 6px;
+    padding: 11px 13px;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: var(--tile);
+  }
+  .mult-case.is-accent { border-color: var(--accent-chip); background: var(--accent-tint); }
+  .mult-case-label {
+    font: 400 10px/1 var(--mono);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+  .mult-case.is-accent .mult-case-label { color: var(--accent); }
+  .mult-case-value {
+    font: 500 16px/1 var(--mono);
+    font-variant-numeric: tabular-nums;
+    color: var(--ink);
+  }
+  .mult-case.is-accent .mult-case-value { color: var(--accent); }
+
+  /* Le bloc graphique/calcul bascule en entier au clic — pas ligne par ligne —
+     pour rester lisible avec un échantillon de vingt sociétés ; même mécanique
+     de couleur que les cartes dépliées de l'onglet Sociétés. */
+  .mult-view {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 22px 24px;
+    display: grid;
+    gap: 18px;
+    cursor: pointer;
+    transition: background-color 240ms ease, border-color 240ms ease;
+  }
+  .mult-view:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .mult-view.is-open { background: var(--accent); border-color: var(--accent); }
+  .mult-view-head { display: flex; align-items: baseline; justify-content: space-between; gap: 14px; flex-wrap: wrap; }
+  .mult-view-title {
+    margin: 0;
+    font: 400 10px/1 var(--mono);
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+  .mult-view.is-open .mult-view-title { color: rgba(255, 255, 255, .72); }
+  .mult-view-aside { display: inline-flex; align-items: center; gap: 12px; }
+  .mult-view-med { font: 400 11.5px/1.4 var(--mono); color: var(--accent); }
+  .mult-view.is-open .mult-view-med { color: #fff; }
+  .mult-view-toggle {
+    padding: 5px 9px;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    background: var(--tile);
+    font: 400 10.5px/1 var(--mono);
+    color: var(--ink-3);
+    white-space: nowrap;
+  }
+  .mult-view.is-open .mult-view-toggle {
+    border-color: rgba(255, 255, 255, .36);
+    background: rgba(255, 255, 255, .14);
+    color: #fff;
+  }
+  .mult-view-body { position: relative; transition: min-height 280ms cubic-bezier(.4, 0, .2, 1); }
+  .mult-bars, .mult-detail {
+    position: absolute;
+    inset: 0;
+    transition: opacity 280ms ease;
+    display: grid;
+    align-content: start;
+  }
+  .mult-bars { gap: 8px; }
+  .mult-detail { gap: 12px; }
+  .mult-bar-row { display: grid; grid-template-columns: 186px minmax(0, 1fr) 62px; align-items: center; gap: 14px; }
+  .mult-bar-name {
+    font: 400 12.5px/1.35 var(--sans);
+    color: var(--ink-2);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .mult-bar-track { display: flex; height: 14px; border-radius: 3px; background: #f4f3f6; }
+  .mult-bar-fill { height: 100%; border-radius: 3px; background: #c9bce0; }
+  .mult-bar-fill.is-accent { background: var(--accent); }
+  .mult-bar-value {
+    text-align: right;
+    font: 500 13px/1 var(--mono);
+    font-variant-numeric: tabular-nums;
+    color: var(--ink-4);
+  }
+  .mult-bar-value.is-accent { color: var(--accent); }
+  .mult-view-note { margin: 0; font: 400 11px/1.6 var(--sans); text-wrap: pretty; color: var(--muted-2); }
+  .mult-view.is-open .mult-view-note { color: rgba(255, 255, 255, .66); }
+
+  /* Détail du calcul : VE / EBITDA se dissocie du reste, en panneau à part —
+     jamais dans le tableau, sur demande explicite. */
+  .mult-calc-wrap { display: flex; align-items: flex-start; gap: 22px; }
+  .mult-calc-table { flex: 1 1 auto; border-collapse: separate; border-spacing: 0; }
+  .mult-calc-table th, .mult-calc-table td {
+    padding: 8px 16px 8px 0;
+    border-bottom: 1px solid rgba(255, 255, 255, .18);
+    text-align: right;
+    white-space: nowrap;
+  }
+  .mult-calc-table th {
+    padding: 6px 16px 6px 0;
+    font: 400 10px/1.7 var(--mono);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: rgba(255, 255, 255, .7);
+  }
+  .mult-calc-table td {
+    font: 400 12.5px/1.45 var(--mono);
+    font-variant-numeric: tabular-nums;
+    color: rgba(255, 255, 255, .9);
+  }
+  .mult-calc-table th:first-child, .mult-calc-table td:first-child {
+    padding-left: 0;
+    text-align: left;
+  }
+  .mult-calc-table td:first-child { font-family: var(--sans); color: rgba(255, 255, 255, .82); }
+  .mult-calc-aside {
+    flex: none;
+    display: grid;
+    justify-items: end;
+    padding: 0 16px 9px;
+    border-radius: 10px;
+    background: rgba(255, 255, 255, .16);
+  }
+  .mult-calc-aside-head {
+    padding: 6px 0;
+    border-bottom: 1px solid rgba(255, 255, 255, .18);
+    width: 100%;
+    text-align: right;
+    font: 400 10px/1.7 var(--mono);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: #fff;
+    white-space: nowrap;
+  }
+  .mult-calc-aside-value {
+    padding: 8px 0;
+    text-align: right;
+    white-space: nowrap;
+    font: 500 12.5px/1.45 var(--mono);
+    font-variant-numeric: tabular-nums;
+    color: #fff;
+  }
+
   [hidden] { display: none !important; }
   .is-busy { opacity: .55; transition: opacity 160ms ease; }
   .is-locked { pointer-events: none; }
@@ -1011,6 +1179,7 @@
       <button type="button" data-tab="wacc">CMPC</button>
       <!-- N'apparaît qu'avec le référentiel Comparables -->
       <button type="button" data-tab="societes" id="tabSocietes" hidden>Sociétés</button>
+      <button type="button" data-tab="comparables" id="tabComparables" hidden>Comparables</button>
     </nav>
   </div>
 </header>
@@ -1034,6 +1203,10 @@
     <span class="frame-arrow" id="frameArrowSoc"></span>
     <div class="frame" id="frameSoc"></div>
   </div>
+</main>
+
+<main class="comparables" id="panel-comparables" hidden>
+  <div id="comparablesMain"></div>
 </main>
 
 <script>
@@ -1148,6 +1321,7 @@
   // Separateur de milliers en espace insecable U+00A0 : U+202F manque a IBM Plex Mono.
   const frMontant = (v) =>
     v == null ? "—" : Math.round(v).toString().replace(/\B(?=(\d{3})+(?!\d))/g, " ") + " M";
+  const frMult = (v) => (v == null || !Number.isFinite(v)) ? "—" : frNum(v, 1) + "x";
 
   // Les deux colonnes de cartes — CMPC et Sociétés — partagent la même mécanique :
   // une carte dépliée à la fois, un panneau de détail, une flèche qui la pointe.
@@ -1365,9 +1539,10 @@
 
   /* ================= Onglets ================= */
   function renderTabs() {
-    // L'onglet Sociétés n'existe que sous référentiel Comparables.
-    if (!estComparables() && tab === "societes") tab = "params";
+    // Les onglets Sociétés et Comparables n'existent que sous référentiel Comparables.
+    if (!estComparables() && (tab === "societes" || tab === "comparables")) tab = "params";
     $("tabSocietes").hidden = !estComparables();
+    $("tabComparables").hidden = !estComparables();
 
     document.querySelectorAll(".tabs button").forEach((b) => {
       b.classList.toggle("is-active", b.dataset.tab === tab);
@@ -1375,6 +1550,7 @@
     $("panel-params").hidden = tab !== "params";
     $("panel-wacc").hidden = tab !== "wacc";
     $("panel-societes").hidden = tab !== "societes";
+    $("panel-comparables").hidden = tab !== "comparables";
     if (tab === "wacc" || tab === "societes") requestAnimationFrame(placeArrows);
   }
   document.querySelectorAll(".tabs button").forEach((b) => {
@@ -2772,6 +2948,173 @@
       "zone sur la carte pour les voir.</p>";
   }
 
+  /* ================= Onglet Comparables =================
+     Multiples de valorisation de l'échantillon qui alimente déjà le CMPC
+     (societesRetenues()) : mêmes sociétés, même exercice de référence, mêmes
+     mediane()/exerciceReference() que la feuille « Sociétés » du classeur, pour
+     que l'écran et l'export ne puissent pas diverger.
+  */
+
+  // Une entrée par multiple affiché dans « Multiples de l'échantillon ». En
+  // ajouter une suffit : la carte de statistiques suit. VE / CA et
+  // Capitalisation / RN sont préparés en commentaire pour un futur ajout.
+  function definitionsMultiples(an, ca, eb, ve) {
+    return [
+      { libelle: "VE / EBITDA", numerateur: "VE (capitalisation + dette totale)",
+        denominateur: "EBITDA " + an, calc: (s) => (eb(s) > 0 ? ve(s) / eb(s) : null) },
+      // { libelle: "VE / CA", numerateur: "VE (capitalisation + dette totale)",
+      //   denominateur: "chiffre d'affaires " + an, calc: (s) => ca(s) ? ve(s) / ca(s) : null },
+      // { libelle: "Capitalisation / RN", numerateur: "capitalisation boursière",
+      //   denominateur: "résultat net " + an,
+      //   calc: (s) => { const rn = (s.rn || {})[String(an)]; return rn ? s.capitalisation / rn : null; } },
+    ];
+  }
+
+  // Le graphique et le calcul partagent un seul bloc : cliquer n'importe où le
+  // fait basculer en entier, plutôt que d'ouvrir une ligne à la fois — décidé
+  // après plusieurs essais (ligne cliquable, case cliquable) restés trop fins
+  // pour un échantillon de vingt sociétés.
+  const COMP_UI = { calc: false };
+
+  function chargerComparables() {
+    const main = $("comparablesMain");
+    const retenues = societesRetenues();
+    const sample = retenues.ids.map((id) => COMPARABLES[id]).filter(Boolean);
+
+    if (!sample.length) {
+      main.innerHTML = `
+        <div class="notice">
+          <h3>Comparables indisponibles</h3>
+          <p>Aucune société n'est disponible pour « ${esc(params.secteur || "ce secteur")} » : sans
+          échantillon, il n'y a pas de multiple à calculer. Ce sont les mêmes sociétés qui alimentent
+          l'onglet Sociétés et la médiane du CMPC — élargissez le cadrage dans l'onglet Paramètres si
+          le secteur en compte ailleurs.</p>
+        </div>`;
+      return;
+    }
+
+    const an = exerciceReference(sample);
+    const cle = String(an);
+    const ca = (s) => (s.ca || {})[cle];
+    const eb = (s) => (s.ebitda || {})[cle];
+    const ve = (s) => s.capitalisation + s.dette;
+
+    const definitions = definitionsMultiples(an, ca, eb, ve);
+    const blocsMultiples = definitions.map((d) => {
+      const obs = sample
+        .map((s) => ({ soc: s, v: d.calc(s) }))
+        .filter((o) => Number.isFinite(o.v))
+        .sort((a, b) => a.v - b.v);
+      const moy = obs.length ? obs.reduce((t, o) => t + o.v, 0) / obs.length : null;
+      const med = mediane(obs.map((o) => o.v));
+      const cases = [
+        { libelle: "Moyenne", valeur: frMult(moy) },
+        { libelle: "Minimum", valeur: frMult(obs.length ? obs[0].v : null) },
+        { libelle: "Médiane", valeur: frMult(med), accent: true },
+        { libelle: "Maximum", valeur: frMult(obs.length ? obs[obs.length - 1].v : null) },
+        { libelle: "Base", valeur: String(obs.length) },
+      ];
+      return { libelle: d.libelle, definition: d.numerateur + " ÷ " + d.denominateur, med, cases };
+    });
+
+    // Le bloc graphique/calcul suit toujours le premier multiple (VE / EBITDA) :
+    // c'est le seul dont le CMPC se sert comme repère de valorisation.
+    const medMultiple = blocsMultiples[0].med;
+    const obsBox = sample
+      .map((s) => ({ nom: s.nom, soc: s, v: definitions[0].calc(s) }))
+      .filter((o) => Number.isFinite(o.v))
+      .sort((a, b) => b.v - a.v);
+    const bMax = obsBox.length ? obsBox[0].v : 1;
+
+    const barresHtml = obsBox.map((o) => {
+      const audessus = medMultiple != null && o.v >= medMultiple;
+      const pct = (100 * o.v / (bMax || 1)).toFixed(1);
+      return `
+        <div class="mult-bar-row">
+          <span class="mult-bar-name">${esc(o.nom)}</span>
+          <span class="mult-bar-track"><span class="mult-bar-fill${audessus ? " is-accent" : ""}" style="width:${pct}%"></span></span>
+          <span class="mult-bar-value${audessus ? " is-accent" : ""}">${frMult(o.v)}</span>
+        </div>`;
+    }).join("");
+
+    const detailHtml = `
+      <div class="mult-calc-wrap">
+        <table class="mult-calc-table">
+          <thead><tr><th>Société</th><th>Capitalisation</th><th>Dette</th><th>VE</th><th>EBITDA</th></tr></thead>
+          <tbody>
+            ${obsBox.map((o) => `
+              <tr>
+                <td>${esc(o.soc.nom)}</td>
+                <td>${esc(frMontant(o.soc.capitalisation))}</td>
+                <td>${esc(frMontant(o.soc.dette))}</td>
+                <td>${esc(frMontant(ve(o.soc)))}</td>
+                <td>${esc(frMontant(eb(o.soc)))}</td>
+              </tr>`).join("")}
+          </tbody>
+        </table>
+        <div class="mult-calc-aside">
+          <span class="mult-calc-aside-head">VE / EBITDA</span>
+          ${obsBox.map((o) => `<span class="mult-calc-aside-value">${frMult(o.v)}</span>`).join("")}
+        </div>
+      </div>`;
+
+    const vu = COMP_UI.calc;
+    const hauteur = vu ? 46 + obsBox.length * 38 : 244;
+
+    main.innerHTML = `
+      <section class="card-block">
+        <div class="block-head">
+          <h2>Multiples de l'échantillon</h2>
+          <div class="chips">
+            <span class="chip is-accent">${esc(params.secteur || "")}</span>
+            <span class="chip">${esc(retenues.stats.perimetre)}</span>
+            <span class="chip">exercice ${an}</span>
+          </div>
+        </div>
+        <div class="mult-defs">
+          ${blocsMultiples.map((m) => `
+            <div class="mult-def">
+              <div class="mult-def-head">
+                <span class="mult-def-label">${esc(m.libelle)}</span>
+                <span class="mult-def-formule">${esc(m.definition)}</span>
+              </div>
+              <div class="mult-cases">
+                ${m.cases.map((c) => `
+                  <div class="mult-case${c.accent ? " is-accent" : ""}">
+                    <span class="mult-case-label">${esc(c.libelle)}</span>
+                    <span class="mult-case-value">${esc(c.valeur)}</span>
+                  </div>`).join("")}
+              </div>
+            </div>`).join("")}
+        </div>
+        <p class="note">VE = capitalisation boursière + dette totale. Le multiple est un repère de
+        valorisation : il n'entre pas dans le CMPC. S&amp;P ne publie pas d'EBITDA pour les banques ni
+        les assureurs — leurs multiples restent vides.</p>
+      </section>
+
+      <section class="mult-view${vu ? " is-open" : ""}" id="multView" role="button" tabindex="0" aria-pressed="${vu ? "true" : "false"}">
+        <div class="mult-view-head">
+          <h2 class="mult-view-title">${vu ? "Détail du calcul · VE / EBITDA" : "VE / EBITDA par société"}</h2>
+          <span class="mult-view-aside">
+            <span class="mult-view-med">Médiane ${frMult(medMultiple)}</span>
+            <span class="mult-view-toggle">${vu ? "voir le graphique" : "voir le calcul"}</span>
+          </span>
+        </div>
+        <div class="mult-view-body" style="min-height:${hauteur}px">
+          <div class="mult-bars" style="opacity:${vu ? 0 : 1}; pointer-events:${vu ? "none" : "auto"}">${barresHtml}</div>
+          <div class="mult-detail" style="opacity:${vu ? 1 : 0}; pointer-events:${vu ? "auto" : "none"}">${vu ? detailHtml : ""}</div>
+        </div>
+        <p class="mult-view-note">Cliquez le bloc pour passer du graphique au détail du calcul :
+        capitalisation + dette = VE, puis VE ÷ EBITDA.</p>
+      </section>`;
+
+    const activer = () => { COMP_UI.calc = !COMP_UI.calc; chargerComparables(); };
+    const vueEl = $("multView");
+    vueEl.addEventListener("click", activer);
+    vueEl.addEventListener("keydown", (e) => {
+      if (e.key === "Enter" || e.key === " ") { e.preventDefault(); activer(); }
+    });
+  }
 
   /* ================= Classeur Excel =================
      Le bouton flèche de l'en-tête rend le calcul dans le même gabarit qu'à l'origine :
@@ -3702,6 +4045,7 @@
 
     chargerCmpc();
     chargerSocietes();
+    chargerComparables();
 
     for (const cle of ["cmpc", "soc"]) {
       const garde = ouverts[cle];
