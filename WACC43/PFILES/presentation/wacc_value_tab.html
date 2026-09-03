@@ -972,6 +972,60 @@
     text-wrap: pretty;
   }
 
+
+  /* ---------- Onglet Mode d'emploi ---------- */
+  /* Meme famille graphique que l'ordinateur perplexe des ecrans vides
+     (classes v4-*) : ce n'est pas un guide a part, c'est la meme main qui
+     explique l'outil et qui s'excuse quand une zone est vide. */
+  .v4-accent-line {
+    fill: none; stroke: var(--accent); stroke-width: 2;
+    stroke-linecap: round; stroke-linejoin: round;
+  }
+  .v4-accent-fill { fill: var(--accent-tint); stroke: var(--accent); stroke-width: 1.4; }
+  .v4-accent-point { fill: var(--accent); }
+  .v4-accent-tirets {
+    fill: none; stroke: var(--accent); stroke-width: 1.6;
+    stroke-dasharray: 3 3; stroke-linecap: round;
+  }
+  .v4-etincelle path { stroke: var(--accent-chip); stroke-width: 1.6; stroke-linecap: round; }
+
+  .aide { max-width: 900px; margin: 0 auto; padding: 34px 32px 100px; display: grid; gap: 28px; }
+  .aide-hero {
+    display: grid; grid-template-columns: auto 1fr; gap: 22px; align-items: center;
+    background: var(--surface); border: 1px solid var(--line); border-radius: 12px;
+    padding: 22px 28px;
+  }
+  .aide-hero-img { width: 118px; height: auto; flex-shrink: 0; }
+  .aide-hero h1 { margin: 0 0 6px; font: 500 17px/1.3 var(--sans); color: var(--ink); }
+  .aide-hero p { margin: 0; font: 400 13px/1.6 var(--sans); color: var(--muted); max-width: 48ch; text-wrap: pretty; }
+
+  .aide-etapes { list-style: none; margin: 0; padding: 0; display: grid; gap: 12px; }
+  .aide-etape {
+    display: grid; grid-template-columns: 22px 52px 1fr; gap: 16px; align-items: start;
+    background: var(--surface); border: 1px solid var(--line); border-radius: 10px;
+    padding: 16px 18px;
+  }
+  .aide-num {
+    width: 22px; height: 22px; border-radius: 999px; background: var(--accent-tint);
+    color: var(--accent); font: 500 11px/22px var(--mono); text-align: center;
+  }
+  .aide-icon {
+    width: 52px; height: 52px; border-radius: 10px; background: var(--tile);
+    border: 1px solid var(--line); display: grid; place-items: center; flex-shrink: 0;
+  }
+  .aide-icon svg { width: 30px; height: 30px; overflow: visible; }
+  .aide-etape h2 { margin: 0 0 4px; font: 500 13.5px/1.35 var(--sans); color: var(--ink); }
+  .aide-etape p { margin: 0; font: 400 12.5px/1.6 var(--sans); color: var(--muted); text-wrap: pretty; }
+
+  .aide-note {
+    display: grid; grid-template-columns: auto 1fr; gap: 20px; align-items: center;
+    background: var(--tile); border: 1px dashed var(--line); border-radius: 10px;
+    padding: 18px 24px;
+  }
+  .aide-note .vide404-img { width: 84px; margin: 0; }
+  .aide-note h2 { margin: 0 0 4px; font: 500 13.5px/1.35 var(--sans); color: var(--ink-2); }
+  .aide-note p { margin: 0; font: 400 12.5px/1.6 var(--sans); color: var(--muted); text-wrap: pretty; }
+
   /* ---------- Onglet Comparables ---------- */
   .comparables {
     max-width: 1060px;
@@ -1187,6 +1241,9 @@
     .frame-col { height: auto; min-height: 420px; }
     .frame-arrow { display: none; }
     .result { position: static; }
+    .aide-hero { grid-template-columns: 1fr; text-align: center; justify-items: center; }
+    .aide-etape { grid-template-columns: 1fr; text-align: center; justify-items: center; }
+    .aide-note { grid-template-columns: 1fr; text-align: center; justify-items: center; }
   }
 </style>
 </head>
@@ -1218,6 +1275,8 @@
       <!-- N'apparaissent qu'avec le référentiel Comparables -->
       <button type="button" data-tab="societes" id="tabSocietes" hidden>Sociétés</button>
       <button type="button" data-tab="comparables" id="tabComparables" hidden>Comparables</button>
+      <!-- Toujours visible : ce guide ne depend pas du referentiel choisi. -->
+      <button type="button" data-tab="aide" id="tabAide">Mode d'emploi</button>
     </nav>
   </div>
 </header>
@@ -1245,6 +1304,218 @@
 
 <main class="comparables" id="panel-comparables" hidden>
   <div id="comparablesMain"></div>
+</main>
+
+<main class="aide" id="panel-aide" hidden>
+  <div class="aide">
+    <section class="aide-hero">
+      <svg class="aide-hero-img" viewBox="0 0 168 136" fill="none" aria-hidden="true">
+        <rect x="21" y="11" width="104" height="72" rx="9" class="v4-corps"/>
+        <circle cx="55" cy="43" r="4.2" class="v4-plein"/>
+        <circle cx="91" cy="43" r="4.2" class="v4-plein"/>
+        <path d="M46 32c4-2.6 9.6-2.6 13.2 0" class="v4-trait"/>
+        <path d="M57 65q16 13 31 0" class="v4-trait"/>
+        <path d="M73 83v14M58 99h30" class="v4-trait"/>
+        <path d="M121 60c8-2 13-9 12-18" class="v4-trait"/>
+        <path d="M129 40l4.6-3M133.6 42.4l4.4-.6" class="v4-trait"/>
+        <g transform="rotate(8 137 23)">
+          <rect x="117" y="9" width="40" height="27" rx="8" class="v4-etiquette"/>
+          <path d="M127 23.5l5 5 11-12" class="v4-accent-line"/>
+        </g>
+        <g class="v4-etincelle">
+          <path d="M26 22l3.4 3.4M29.4 22l-3.4 3.4"/>
+          <path d="M142 74l3 3M145 74l-3 3"/>
+        </g>
+      </svg>
+      <div>
+        <h1>Comment utiliser l'outil ?</h1>
+        <p>Huit repères pour aller du secteur à valoriser jusqu'au CMPC retenu, et
+        au classeur qui le documente.</p>
+      </div>
+    </section>
+
+    <ol class="aide-etapes">
+      <li class="aide-etape">
+        <span class="aide-num">1</span>
+        <span class="aide-icon"><svg viewBox="0 0 40 40" fill="none" aria-hidden="true">
+          <circle cx="20" cy="6" r="2.2" class="v4-plein"/>
+          <path d="M20 8v9" class="v4-trait"/>
+          <path d="M20 17c-6 0-10 4-10 9" class="v4-trait"/>
+          <path d="M20 17c6 0 10 4 10 9" class="v4-trait"/>
+          <rect x="5" y="28" width="11" height="8" rx="1.6" class="v4-corps"/>
+          <path d="M7 31h7M7 34h4" class="v4-trait" stroke-width="1.2"/>
+          <path d="M25 36l2.4-6 2.4 3 2.9-8" class="v4-accent-line"/>
+          <circle cx="32.3" cy="21" r="1.6" class="v4-accent-point"/>
+        </svg></span>
+        <div>
+          <h2>Choisir un référentiel</h2>
+          <p><strong>Damodaran</strong> s'appuie sur des tables sectorielles régionalisées
+          (bêta désendetté, spread de dette, D/E). <strong>Comparables</strong> calcule un
+          bêta médian sur un échantillon de sociétés réellement cotées dans le secteur
+          choisi, mis à jour à chaque construction de la page. Le choix se fait en haut
+          de l'onglet Paramètres.</p>
+        </div>
+      </li>
+
+      <li class="aide-etape">
+        <span class="aide-num">2</span>
+        <span class="aide-icon"><svg viewBox="0 0 40 40" fill="none" aria-hidden="true">
+          <circle cx="18" cy="20" r="13" class="v4-corps"/>
+          <path d="M8 15c4 3 5 8 4 12M20 7c-1 5 1 10 4 13" class="v4-trait" stroke-width="1.1"/>
+          <path d="M27.5 15a4.5 4.5 0 0 1 4.5 4.5c0 3.6-4.5 9.4-4.5 9.4s-4.5-5.8-4.5-9.4a4.5 4.5 0 0 1 4.5-4.5z" class="v4-accent-fill"/>
+          <circle cx="27.5" cy="19.4" r="1.5" fill="var(--surface)"/>
+        </svg></span>
+        <div>
+          <h2>Cadrer la géographie</h2>
+          <p>Le pays valorisé porte le taux souverain et le taux d'impôt : lui seul fixe
+          la devise du CMPC. Le continent et la zone ne concernent que l'échantillon de
+          comparables et peuvent s'élargir sans changer de pays — la carte montre où
+          l'échantillon retenu est réellement coté.</p>
+        </div>
+      </li>
+
+      <li class="aide-etape">
+        <span class="aide-num">3</span>
+        <span class="aide-icon"><svg viewBox="0 0 40 40" fill="none" aria-hidden="true">
+          <rect x="10" y="18" width="20" height="15" rx="3" class="v4-corps"/>
+          <path d="M14.5 18v-4a5.5 5.5 0 0 1 11 0v4" class="v4-trait"/>
+          <circle cx="20" cy="25" r="2" class="v4-accent-point"/>
+          <path d="M20 27v2.6" class="v4-accent-line" stroke-width="1.6"/>
+        </svg></span>
+        <div>
+          <h2>Ajuster le gearing</h2>
+          <p>Le CMPC part sur le gearing médian observé, cadenas fermé. L'ouvrir permet
+          de saisir un poids de dette cible : le bêta est alors désendetté puis
+          ré-endetté à ce niveau (formule de Hamada) pour refléter une structure
+          financière différente de celle de l'échantillon.</p>
+        </div>
+      </li>
+
+      <li class="aide-etape">
+        <span class="aide-num">4</span>
+        <span class="aide-icon"><svg viewBox="0 0 40 40" fill="none" aria-hidden="true">
+          <path d="M8 17l12-8 12 8z" class="v4-corps"/>
+          <rect x="8" y="17" width="24" height="12" fill="var(--surface)" stroke="var(--ink-4)" stroke-width="1.5"/>
+          <path d="M13 19.5v7.5M20 19.5v7.5M27 19.5v7.5" class="v4-trait" stroke-width="1.2"/>
+          <path d="M7 30h26" class="v4-trait" stroke-width="1.5"/>
+          <g transform="translate(21 20.5)">
+            <rect x="0" y="3.4" width="10.5" height="8" rx="1.8" class="v4-accent-fill"/>
+            <path d="M2.2 3.4v-1.8a3.1 3.1 0 0 1 6.1 0v1.8" stroke="var(--accent)" stroke-width="1.3" stroke-linecap="round" fill="none"/>
+          </g>
+        </svg></span>
+        <div>
+          <h2>Cibler une place de cotation</h2>
+          <p>Même cadenas, sur l'onglet Sociétés : cliquer une place restreint la médiane
+          à cette seule bourse. Utile quand deux filiales d'un même groupe cotent sur le
+          même marché et doivent peser ensemble dans le calcul.</p>
+        </div>
+      </li>
+
+      <li class="aide-etape">
+        <span class="aide-num">5</span>
+        <span class="aide-icon"><svg viewBox="0 0 40 40" fill="none" aria-hidden="true">
+          <rect x="7" y="17" width="22" height="15" rx="3" class="v4-corps" transform="rotate(-7 18 24.5)"/>
+          <rect x="10" y="14" width="22" height="15" rx="3" class="v4-corps" transform="rotate(4 21 21.5)"/>
+          <rect x="9" y="10" width="22" height="15" rx="3" fill="var(--surface)" stroke="var(--ink-4)" stroke-width="1.6"/>
+          <path d="M13 15h10M13 18.4h14M13 21.8h7" class="v4-trait" stroke-width="1.2"/>
+          <circle cx="26" cy="21" r="1.6" class="v4-accent-point"/>
+        </svg></span>
+        <div>
+          <h2>Lire la cascade du CMPC</h2>
+          <p>L'onglet CMPC déplie chaque composante — coût des fonds propres, coût de
+          la dette, pondération — en cartes qui portent leur méthodologie et leur source.
+          Aucun nombre n'est un résultat brut : chacun se retrace jusqu'à d'où il vient.</p>
+        </div>
+      </li>
+
+      <li class="aide-etape">
+        <span class="aide-num">6</span>
+        <span class="aide-icon"><svg viewBox="0 0 40 40" fill="none" aria-hidden="true">
+          <rect x="6" y="10" width="28" height="20" rx="3" class="v4-corps"/>
+          <circle cx="14" cy="18" r="3.3" class="v4-trait"/>
+          <path d="M9.4 26c1-3 3-4.6 4.6-4.6s3.6 1.6 4.6 4.6" class="v4-trait" stroke-width="1.3"/>
+          <path d="M22 15h8M22 18.4h8M22 21.8h5" class="v4-trait" stroke-width="1.2"/>
+          <circle cx="30.5" cy="25.6" r="2" class="v4-accent-point"/>
+        </svg></span>
+        <div>
+          <h2>Explorer les sociétés retenues</h2>
+          <p>L'onglet Sociétés liste l'échantillon qui produit la médiane, capitalisation
+          décroissante. Un filet coloré marque celles réellement utilisées quand la
+          médiane a été reprise sur un périmètre plus large ; chaque carte s'ouvre sur les
+          comptes et les bêtas de la société.</p>
+        </div>
+      </li>
+
+      <li class="aide-etape">
+        <span class="aide-num">7</span>
+        <span class="aide-icon"><svg viewBox="0 0 40 40" fill="none" aria-hidden="true">
+          <path d="M7 32h26" class="v4-trait" stroke-width="1.3"/>
+          <rect x="10" y="21" width="4.6" height="11" rx="1.2" class="v4-corps"/>
+          <rect x="17.7" y="13" width="4.6" height="19" rx="1.2" class="v4-corps"/>
+          <rect x="25.4" y="24" width="4.6" height="8" rx="1.2" class="v4-corps"/>
+          <path d="M8 18.6h25" class="v4-accent-tirets"/>
+        </svg></span>
+        <div>
+          <h2>Comparer les multiples</h2>
+          <p>L'onglet Comparables calcule VE / EBITDA et VE / CA sur ce même échantillon,
+          en millions FCFA, en graphique ou en détail du calcul. Ces multiples ne
+          participent pas au CMPC : ils servent une valorisation complémentaire, par
+          comparables boursiers.</p>
+        </div>
+      </li>
+
+      <li class="aide-etape">
+        <span class="aide-num">8</span>
+        <span class="aide-icon"><svg viewBox="0 0 40 40" fill="none" aria-hidden="true">
+          <rect x="8" y="23" width="24" height="11" rx="2" class="v4-corps"/>
+          <path d="M12 26.6h16M12 30h16" class="v4-trait" stroke-width="1.1"/>
+          <path d="M20 3v13" class="v4-accent-line" stroke-width="1.8"/>
+          <path d="M14.8 11.4L20 16.6l5.2-5.2" class="v4-accent-line" stroke-width="1.8"/>
+        </svg></span>
+        <div>
+          <h2>Exporter le calcul</h2>
+          <p>Le bouton flèche restitue tout dans un classeur Excel : formules vivantes,
+          recalculées à l'ouverture, avec une feuille Sociétés optionnelle qui reprend
+          l'échantillon dans un gabarit prêt à circuler.</p>
+        </div>
+      </li>
+    </ol>
+
+    <section class="aide-note">
+      <svg class="vide404-img" viewBox="0 0 168 136" fill="none" aria-hidden="true">
+        <rect x="21" y="11" width="104" height="72" rx="9" class="v4-corps"/>
+        <circle cx="55" cy="43" r="4.2" class="v4-plein"/>
+        <circle cx="91" cy="43" r="4.2" class="v4-plein"/>
+        <path d="M46 30c4-3.4 9.6-3.4 13.2-.4" class="v4-trait"/>
+        <path d="M57 63c3.9-4.4 7.8-4.4 11.7 0s7.8 4.4 11.7 0" class="v4-trait"/>
+        <path d="M73 83v14M58 99h30" class="v4-trait"/>
+        <g transform="rotate(-9 132 30)">
+          <rect x="112" y="16" width="41" height="27" rx="8" class="v4-etiquette"/>
+          <text x="132.5" y="34" text-anchor="middle" class="v4-etiquette-texte">404</text>
+        </g>
+        <g class="v4-boulon">
+          <path d="M36 110l5.2 3v6l-5.2 3-5.2-3v-6z"/>
+          <circle cx="36" cy="116" r="2.2"/>
+          <circle cx="59" cy="124" r="3.6"/>
+          <circle cx="59" cy="124" r="1.4"/>
+          <g transform="rotate(-14 90 112)">
+            <circle cx="90" cy="112" r="4"/>
+            <path d="M87.9 112h4.2M94 112h13"/>
+          </g>
+          <path d="M124 116l4.3 2.5v5l-4.3 2.5-4.3-2.5v-5z"/>
+          <circle cx="124" cy="121" r="1.8"/>
+          <circle cx="143" cy="111" r="2.4"/>
+        </g>
+      </svg>
+      <div>
+        <h2>Un écran vide n'est pas une panne</h2>
+        <p>Quand un secteur ou une zone ne comptent aucune société, ce même personnage
+        l'annonce plutôt que de laisser un tableau muet. Le CMPC reste souvent
+        calculable : le message dit alors sur quel périmètre plus large la médiane a
+        été reprise.</p>
+      </div>
+    </section>
+  </div>
 </main>
 
 <!-- Le bouton flèche ne télécharge pas tout de suite : il demande d'abord si
@@ -1615,6 +1886,7 @@
     $("panel-wacc").hidden = tab !== "wacc";
     $("panel-societes").hidden = tab !== "societes";
     $("panel-comparables").hidden = tab !== "comparables";
+    $("panel-aide").hidden = tab !== "aide";
     if (tab === "comparables") ajusterCadreMultiples();
     if (tab === "wacc" || tab === "societes") requestAnimationFrame(placeArrows);
   }
