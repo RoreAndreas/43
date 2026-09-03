@@ -3454,7 +3454,10 @@
       // d'en-tête et son fond blanc, pas par un quadrillage. Les quatre
       // statistiques partagent les formats des colonnes qu'elles résument, et
       // la médiane — la seule que le CMPC reprenne — passe à l'outremer.
-      xf(0, 1, 10, 1, "left"),                   // bandeau de titre
+      // Le gabarit pose ces deux bandeaux avec un filet fin sur les quatre
+      // côtés ; à l'usage il coupe le fond bleu sans rien ajouter à la
+      // lecture, et l'export s'en passe.
+      xf(0, 1, 10, 0, "left"),                   // bandeau de titre
       xf(0, 8, 0, 4, "left", true),              // en-tête, colonne des noms
       xf(0, 8, 0, 4, "right", true),             // en-tête, colonnes de chiffres
       xf(0, 9, 4, 0, "left"),                    // nom de société
@@ -3823,9 +3826,9 @@
       // ces deux nombres-là n'en étaient pas, ils mesuraient du vide.
       { cle: "pays", entete: "Pays", largeur: 15.5, s: XL.socTexteD,
         sS: XL.statG, sM: XL.medG, texte: (s) => s.pays },
-      { cle: "capi", entete: "Capitalisation", largeur: 12.7, s: XL.socMontant,
+      { cle: "capi", entete: "Capitalisation (M FCFA)", largeur: 12.7, s: XL.socMontant,
         sS: XL.statMontant, sM: XL.medMontant, valeur: (s) => s.capitalisation },
-      { cle: "dette", entete: "Dette totale", largeur: 12.5, s: XL.socMontant,
+      { cle: "dette", entete: "Dette totale (M FCFA)", largeur: 12.5, s: XL.socMontant,
         sS: XL.statMontant, sM: XL.medMontant, valeur: (s) => s.dette },
       { cle: "de", entete: "Dette / capi (D/E)", largeur: 14.6, s: XL.socNum2,
         sS: XL.statNum2, sM: XL.medNum2,
@@ -3835,15 +3838,15 @@
         sS: XL.statNum3, sM: XL.medNum3, valeur: (s) => s.beta_1an },
       { cle: "beta3", entete: "Bêta 3 ans", largeur: null, s: XL.socNum3,
         sS: XL.statNum3, sM: XL.medNum3, valeur: (s) => s.beta_3ans },
-      { cle: "ca", entete: "Chiffre d'affaires " + an, largeur: 15, s: XL.socMontant,
+      { cle: "ca", entete: "Chiffre d'affaires " + an + " (M FCFA)", largeur: 15, s: XL.socMontant,
         sS: XL.statMontant, sM: XL.medMontant, valeur: ca },
-      { cle: "ebitda", entete: "EBITDA " + an, largeur: 15, s: XL.socMontant,
+      { cle: "ebitda", entete: "EBITDA " + an + " (M FCFA)", largeur: 15, s: XL.socMontant,
         sS: XL.statMontant, sM: XL.medMontant, valeur: eb, ebitda: true },
       { cle: "marge", entete: "Marge d'EBITDA", largeur: 11.5, s: XL.socPct1,
         sS: XL.statPct1, sM: XL.medPct1, ebitda: true,
         valeur: (s) => (ca(s) && eb(s) != null ? eb(s) / ca(s) : null),
         formule: (s, r, L) => (ca(s) && eb(s) != null ? L.ebitda + r + "/" + L.ca + r : null) },
-      { cle: "ve", entete: "VE " + an, largeur: 14, s: XL.socMontant,
+      { cle: "ve", entete: "VE " + an + " (M FCFA)", largeur: 14, s: XL.socMontant,
         sS: XL.statMontant, sM: XL.medMontant, valeur: ve,
         formule: (s, r, L) => L.capi + r + "+" + L.dette + r },
       { cle: "mult", entete: "VE / EBITDA", largeur: 11.5, s: XL.socMult,

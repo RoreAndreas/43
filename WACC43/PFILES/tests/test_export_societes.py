@@ -156,12 +156,29 @@ def test_les_entetes_sont_ceux_du_gabarit(page, tmp_path):
     f, _ = feuille(page, tmp_path)
     lus = [f.cell(row=ENTETES, column=c).value for c in range(NOM, MULTIPLE + 1)]
     assert lus[:4] == ["Société", "Ticker", "Place", "Pays"]
-    assert lus[4:9] == ["Capitalisation", "Dette totale", "Dette / capi (D/E)",
-                        "Bêta 1 an", "Bêta 3 ans"]
-    assert lus[9].startswith("Chiffre d'affaires") and lus[10].startswith("EBITDA")
-    assert lus[11] == "Marge d'EBITDA" and lus[12].startswith("VE ")
+    assert lus[4] == "Capitalisation (M FCFA)" and lus[5] == "Dette totale (M FCFA)"
+    assert lus[6:9] == ["Dette / capi (D/E)", "Bêta 1 an", "Bêta 3 ans"]
+    assert lus[9].startswith("Chiffre d'affaires") and lus[9].endswith("(M FCFA)")
+    assert lus[10].startswith("EBITDA") and lus[10].endswith("(M FCFA)")
+    assert lus[11] == "Marge d'EBITDA"
+    assert lus[12].startswith("VE ") and lus[12].endswith("(M FCFA)")
     assert lus[13] == "VE / EBITDA"
     assert f.row_dimensions[ENTETES].height == 26.0
+
+
+def test_les_colonnes_monetaires_annoncent_leur_unite(page, tmp_path):
+    """Les montants sont déjà en FCFA — chaque export S&P, Amérique comprise,
+    est configuré en devise BCEAO — mais l'unité n'était visible que dans la
+    note en bas de feuille, en corps 6. Elle est reprise dans chaque en-tête
+    monétaire, là où on la lit vraiment."""
+    cadrer(page)
+    f, _ = feuille(page, tmp_path)
+    monetaires = (CAPI, DETTE, CA, EBITDA, VE)
+    for c in monetaires:
+        assert f.cell(row=ENTETES, column=c).value.endswith("(M FCFA)")
+    # Un ratio n'a pas d'unité monétaire : le libellé ne doit pas s'y glisser.
+    for c in (DE, BETA1, BETA3, MARGE, MULTIPLE):
+        assert "M FCFA" not in (f.cell(row=ENTETES, column=c).value or "")
 
 
 def test_les_formats_de_nombre_sont_ceux_du_gabarit(page, tmp_path):
@@ -303,6 +320,27 @@ def test_la_source_suit_les_statistiques(page, tmp_path):
     f, _ = feuille(page, tmp_path)
     ligne = ligne_stat(f, "Max") + 1
     assert f.cell(row=ligne, column=NOM).value == "Source: Capital IQ Pro | 43WACC"
+
+
+def bordure(cellule):
+    b = cellule.border
+    return "".join(n[0] for n in ("left", "right", "top", "bottom")
+                   if getattr(b, n) and getattr(b, n).style)
+
+
+def test_les_deux_bandeaux_sont_sans_bordure(page, tmp_path):
+    """Le gabarit pose « Comparables boursiers » et « Paramètres » avec un
+    filet fin sur les quatre côtés ; il coupe le fond bleu sans rien ajouter
+    à la lecture, et a été retiré des deux dans l'export."""
+    cadrer(page)
+    f, _ = feuille(page, tmp_path)
+    for c in range(NOM, MULTIPLE + 1):
+        assert bordure(f.cell(row=TITRE, column=c)) == "", f"bordure sur {f.cell(row=TITRE, column=c).coordinate}"
+    ligne = ligne_libelle(f, "Paramètres")
+    for c in (NOM, TICKER):
+        assert bordure(f.cell(row=ligne, column=c)) == "", f"bordure sur {f.cell(row=ligne, column=c).coordinate}"
+    # Le filet sous « Intitulé », lui, n'est pas concerné par la demande.
+    assert bordure(f.cell(row=ligne + 1, column=NOM)) == "b"
 
 
 def test_le_bloc_parametres_consigne_le_cadrage(page, tmp_path):
