@@ -1,16 +1,24 @@
-"""Le second onglet du classeur : les comparables qui produisent la médiane.
+"""La feuille « Sociétés » du classeur, au gabarit posé à la main dans WACC43.
 
-Un CMPC par comparables ne se relit pas sans son échantillon. Le classeur
-exporté porte donc, à côté de la feuille de calcul, la liste des sociétés
-retenues : ce que le coût du capital leur emprunte — bêta et levier — et les
-agrégats d'exploitation dont se déduisent les multiples d'EBITDA, qui servent
-la valorisation sans entrer dans le taux.
+Un CMPC par comparables ne se relit pas sans son échantillon. Le classeur porte
+donc, à côté de la feuille de calcul, la liste des sociétés retenues : ce que le
+coût du capital leur emprunte — bêta et levier — et les agrégats d'exploitation
+dont se déduisent les multiples d'EBITDA, qui servent la valorisation sans
+entrer dans le taux.
 
-Deux choses doivent tenir. Que la feuille décrive exactement la population que
-l'écran marque comme retenue : deux listes qui divergent feraient dire au
-fichier autre chose qu'à la page. Et que les médianes y soient des formules sur
-la plage juste au-dessus, pour que retirer une société fasse bouger le bêta au
-lieu de laisser un nombre figé qui ne correspond plus à rien.
+La mise en page n'est pas un choix refait ici : elle vient du fichier
+`CMPC_Telecommunication_Services_Côte d'Ivoire_2026 (version 1).xlsx` déposé
+dans WACC43, où elle a été arrêtée à la main. Gouttière en colonne A, tableau de
+B à O, bandeau de titre, quatre statistiques sous l'échantillon, mention de
+source, bloc de paramètres, note de bas de feuille. Ces tests vérifient la
+géométrie autant que les nombres : c'est le format dans lequel les notes de
+valorisation sont relues, et un décalage d'une colonne suffit à le rompre.
+
+Trois choses doivent tenir. Que la feuille décrive exactement la population que
+l'écran marque comme retenue. Que les statistiques soient des formules sur la
+plage juste au-dessus, pour que retirer une société les fasse bouger. Et que les
+colonnes d'EBITDA suivent la quantité d'information : S&P n'en publie ni pour
+les banques ni pour les assureurs.
 """
 
 import pytest
@@ -20,22 +28,17 @@ from conftest import (choisir, ligne_resultat, mode_comparables, nombre_fr,
 
 openpyxl = pytest.importorskip("openpyxl")
 
-BOUTON = "#telecharger"
 SECTEUR = "Telecommunication Services"
 
-# La feuille Sociétés, colonne par colonne.
-NOM, TICKER, PLACE, PAYS = 1, 2, 3, 4
-CAPI, DETTE, DE, BETA1, BETA3 = 5, 6, 7, 8, 9
-CA, EBITDA, MARGE, VE, MULTIPLE = 10, 11, 12, 13, 14
-PREMIERE = 5
-
-# Le bloc de report réutilise la grille : le libellé court sur A:D, la valeur
-# tient en E, le commentaire sur F:N.
-VALEUR_REPORT, COMMENTAIRE_REPORT = 5, 6
+# Le gabarit : colonne A en gouttière, tableau de B à O.
+NOM, TICKER, PLACE, PAYS = 2, 3, 4, 5
+CAPI, DETTE, DE, BETA1, BETA3 = 6, 7, 8, 9, 10
+CA, EBITDA, MARGE, VE, MULTIPLE = 11, 12, 13, 14, 15
+TITRE, ENTETES, PREMIERE = 2, 3, 4
+STATS = ("Min", "Moy", "Médiane", "Max")
 
 
 def telecharger(page, tmp_path, nom="export.xlsx"):
-    """Clique le bouton et rend le classeur reçu, formules et valeurs."""
     chemin = tmp_path / nom
     recevoir_classeur(page, chemin)
     return (openpyxl.load_workbook(chemin),
@@ -55,31 +58,29 @@ def feuille(page, tmp_path):
 
 
 def societes(f):
-    """Les lignes de sociétés, jusqu'à la ligne des médianes exclue."""
-    lignes = []
-    ligne = PREMIERE
-    while f.cell(row=ligne, column=NOM).value and not str(
-            f.cell(row=ligne, column=NOM).value).startswith("Médiane"):
+    """Les lignes de sociétés, jusqu'à la première statistique exclue."""
+    lignes, ligne = [], PREMIERE
+    while True:
+        nom = f.cell(row=ligne, column=NOM).value
+        if not nom or nom in STATS:
+            return lignes
         lignes.append(ligne)
         ligne += 1
-    return lignes
 
 
-def ligne_mediane(f):
-    return societes(f)[-1] + 1
-
-
-def ligne_report(f, debut):
-    """Le numéro de ligne du bloc de report, cherché par son libellé."""
-    for ligne in range(ligne_mediane(f), f.max_row + 1):
-        libelle = f.cell(row=ligne, column=NOM).value
-        if libelle and str(libelle).startswith(debut):
+def ligne_stat(f, nom):
+    debut = societes(f)[-1] + 1
+    for ligne in range(debut, debut + len(STATS)):
+        if f.cell(row=ligne, column=NOM).value == nom:
             return ligne
-    raise AssertionError(f"ligne de report « {debut} » absente")
+    raise AssertionError(f"statistique « {nom} » absente")
 
 
-def report(f, debut):
-    return f.cell(row=ligne_report(f, debut), column=VALEUR_REPORT).value
+def ligne_libelle(f, libelle):
+    for ligne in range(1, f.max_row + 1):
+        if f.cell(row=ligne, column=NOM).value == libelle:
+            return ligne
+    raise AssertionError(f"ligne « {libelle} » absente")
 
 
 # ------------------------------------------------------------------ l'onglet
@@ -98,12 +99,50 @@ def test_pas_de_feuille_societes_sous_damodaran(page, tmp_path):
     assert formules.sheetnames == ["WACC"]
 
 
-def test_l_entete_annonce_le_secteur_et_le_perimetre(page, tmp_path):
+# --------------------------------------------------------------- le gabarit
+
+def test_la_gouttiere_et_les_largeurs_sont_celles_du_gabarit(page, tmp_path):
+    """Relevées sur le fichier de référence. Deux colonnes y sont laissées à la
+    largeur par défaut : les réécrire les changerait."""
     cadrer(page)
     f, _ = feuille(page, tmp_path)
-    assert f["A1"].value.startswith("COMPARABLES DU SECTEUR")
-    assert SECTEUR in f["A1"].value
-    assert "Afrique" in f["A1"].value
+    largeurs = {c: round(d.width, 2) for c, d in f.column_dimensions.items() if d.width}
+    assert largeurs == {
+        "A": 3.0, "B": 21.5, "C": 10.0, "D": 8.0, "E": 5.2, "F": 12.7, "G": 12.5,
+        "H": 14.6, "I": 9.0, "K": 15.0, "M": 11.5, "N": 14.0, "O": 11.5,
+    }
+
+
+def test_le_tableau_commence_en_B(page, tmp_path):
+    cadrer(page)
+    f, _ = feuille(page, tmp_path)
+    assert f.cell(row=TITRE, column=NOM).value == "Comparables boursiers"
+    assert f.cell(row=TITRE, column=1).value is None, "la colonne A est une gouttière"
+    assert f.cell(row=PREMIERE, column=1).value is None
+
+
+def test_les_entetes_sont_ceux_du_gabarit(page, tmp_path):
+    cadrer(page)
+    f, _ = feuille(page, tmp_path)
+    lus = [f.cell(row=ENTETES, column=c).value for c in range(NOM, MULTIPLE + 1)]
+    assert lus[:4] == ["Société", "Ticker", "Place", "Pays"]
+    assert lus[4:9] == ["Capitalisation", "Dette totale", "Dette / capi (D/E)",
+                        "Bêta 1 an", "Bêta 3 ans"]
+    assert lus[9].startswith("Chiffre d'affaires") and lus[10].startswith("EBITDA")
+    assert lus[11] == "Marge d'EBITDA" and lus[12].startswith("VE ")
+    assert lus[13] == "VE / EBITDA"
+    assert f.row_dimensions[ENTETES].height == 26.0
+
+
+def test_les_formats_de_nombre_sont_ceux_du_gabarit(page, tmp_path):
+    cadrer(page)
+    f, _ = feuille(page, tmp_path)
+    ligne = societes(f)[0]
+    attendus = {CAPI: "#,##0", DETTE: "#,##0", DE: "0.00", BETA1: "0.000",
+                BETA3: "0.000", CA: "#,##0", EBITDA: "#,##0", MARGE: "0.0%",
+                VE: "#,##0", MULTIPLE: '0.0"x"'}
+    for col, fmt in attendus.items():
+        assert f.cell(row=ligne, column=col).number_format == fmt, col
 
 
 # ------------------------------------------------------------ la population
@@ -118,28 +157,18 @@ def test_la_feuille_liste_les_societes_retenues(page, tmp_path):
 
 
 def test_orange_ci_et_sonatel_figurent_ensemble(page, tmp_path):
-    """Le cas qui a motivé la fusion des deux intitulés télécoms : les deux
-    filiales du même groupe doivent se lire dans le même échantillon."""
+    """Le cas qui a motivé la fusion des deux intitulés télécoms."""
     cadrer(page)
     f, _ = feuille(page, tmp_path)
     noms = [f.cell(row=l, column=NOM).value for l in societes(f)]
     assert "Orange CI" in noms and "Sonatel SA" in noms
 
 
-def test_chaque_societe_porte_son_identite(page, tmp_path):
-    cadrer(page)
-    f, _ = feuille(page, tmp_path)
-    for ligne in societes(f):
-        for colonne in (NOM, TICKER, PLACE, PAYS):
-            assert f.cell(row=ligne, column=colonne).value
-
-
 def test_les_chiffres_sont_ceux_du_jeu_de_donnees(page, tmp_path, donnees):
     """Capitalisation et dette viennent de l'export S&P, pas d'un recalcul."""
     cadrer(page)
     f, _ = feuille(page, tmp_path)
-    source = {s["nom"]: s
-              for s in (donnees["comparables"]["societes"]).values()}
+    source = {s["nom"]: s for s in donnees["comparables"]["societes"].values()}
     for ligne in societes(f):
         s = source[f.cell(row=ligne, column=NOM).value]
         assert f.cell(row=ligne, column=CAPI).value == pytest.approx(s["capitalisation"])
@@ -148,30 +177,27 @@ def test_les_chiffres_sont_ceux_du_jeu_de_donnees(page, tmp_path, donnees):
 
 
 def test_les_societes_sont_classees_par_taille(page, tmp_path):
-    """Même ordre que l'onglet Sociétés — les plus grosses capitalisations
-    d'abord, puisque ce sont elles qui portent le secteur."""
     cadrer(page)
     _, v = feuille(page, tmp_path)
     tailles = [v.cell(row=l, column=CAPI).value for l in societes(v)]
     assert tailles == sorted(tailles, reverse=True)
 
 
-# -------------------------------------------------------- les comparables EBITDA
+# -------------------------------------------------------- les multiples d'EBITDA
 
-def test_le_multiple_d_ebitda_est_une_formule(page, tmp_path):
-    """VE et VE/EBITDA se recalculent : le classeur reste un modèle qu'on peut
-    tirer, pas une photographie."""
+def test_ve_et_multiple_sont_des_formules(page, tmp_path):
+    """Le classeur reste un modèle qu'on peut tirer, pas une photographie."""
     cadrer(page)
-    f, v = feuille(page, tmp_path)
+    f, _ = feuille(page, tmp_path)
     ligne = societes(f)[0]
-    assert f.cell(row=ligne, column=VE).value == f"=E{ligne}+F{ligne}"
-    assert f.cell(row=ligne, column=MULTIPLE).value == f"=M{ligne}/K{ligne}"
-    assert f.cell(row=ligne, column=MARGE).value == f"=K{ligne}/J{ligne}"
+    assert f.cell(row=ligne, column=VE).value == f"=F{ligne}+G{ligne}"
+    assert f.cell(row=ligne, column=MULTIPLE).value == f"=N{ligne}/L{ligne}"
+    assert f.cell(row=ligne, column=MARGE).value == f"=L{ligne}/K{ligne}"
+    assert f.cell(row=ligne, column=DE).value == f"=G{ligne}/F{ligne}"
 
 
 def test_le_multiple_vaut_bien_ve_sur_ebitda(page, tmp_path):
-    """Les valeurs en cache — ce qu'affichent les tableurs qui ne recalculent
-    pas — doivent dire la même chose que les formules."""
+    """Les valeurs en cache doivent dire la même chose que les formules."""
     cadrer(page)
     _, v = feuille(page, tmp_path)
     for ligne in societes(v):
@@ -185,84 +211,99 @@ def test_le_multiple_vaut_bien_ve_sur_ebitda(page, tmp_path):
             (capi + dette) / ebitda, rel=1e-9)
 
 
-def test_sans_ebitda_publie_les_colonnes_restent_vides(page, tmp_path):
-    """S&P n'en publie pas pour les banques ni les assureurs : la notion n'a
-    pas de sens pour elles, et un zéro s'y lirait comme une donnée."""
+def test_les_colonnes_d_ebitda_disparaissent_quand_nul_ne_le_publie(page, tmp_path):
+    """Un en-tête au-dessus de vingt cases vides est un cadre sans information,
+    pas une donnée manquante."""
     mode_comparables(page)
-    choisir(page, "continent", "Afrique")
+    choisir(page, "continent", "Tous")
     choisir(page, "secteur", "Banks")
-    f, v = feuille(page, tmp_path)
-    sans = [l for l in societes(v) if v.cell(row=l, column=EBITDA).value is None]
-    if not sans:
-        pytest.skip("toutes les banques du périmètre publient un EBITDA")
-    for ligne in sans:
-        assert v.cell(row=ligne, column=MARGE).value is None
-        assert v.cell(row=ligne, column=MULTIPLE).value is None
-        assert f.cell(row=ligne, column=MULTIPLE).value is None
+    f, _ = feuille(page, tmp_path)
+    entetes = [f.cell(row=ENTETES, column=c).value
+               for c in range(NOM, f.max_column + 1)]
+    entetes = [e for e in entetes if e]
+    assert not any(e.startswith("EBITDA") for e in entetes), entetes
+    assert "VE / EBITDA" not in entetes
+    assert "Marge d'EBITDA" not in entetes
+    assert any(e.startswith("VE ") for e in entetes), "la VE ne dépend pas de l'EBITDA"
 
 
-# ------------------------------------------------------------- les médianes
+# ------------------------------------------------------------ les statistiques
 
-def test_la_mediane_est_une_formule_sur_la_plage(page, tmp_path):
+@pytest.mark.parametrize("nom, fonction",
+                         list(zip(STATS, ("MIN", "AVERAGE", "MEDIAN", "MAX"))))
+def test_chaque_statistique_est_une_formule_sur_la_plage(page, tmp_path, nom, fonction):
     cadrer(page)
     f, _ = feuille(page, tmp_path)
     lignes = societes(f)
-    m = ligne_mediane(f)
-    attendu = f"=MEDIAN(I{lignes[0]}:I{lignes[-1]})"
-    assert f.cell(row=m, column=BETA3).value == attendu
-    assert f.cell(row=m, column=MULTIPLE).value == f"=MEDIAN(N{lignes[0]}:N{lignes[-1]})"
+    ligne = ligne_stat(f, nom)
+    assert f.cell(row=ligne, column=BETA3).value == \
+        f"={fonction}(J{lignes[0]}:J{lignes[-1]})"
+
+
+def test_les_quatre_statistiques_se_suivent_sous_l_echantillon(page, tmp_path):
+    cadrer(page)
+    f, _ = feuille(page, tmp_path)
+    debut = societes(f)[-1] + 1
+    lus = [f.cell(row=debut + i, column=NOM).value for i in range(4)]
+    assert lus == list(STATS)
 
 
 def test_la_mediane_du_beta_est_celle_du_cmpc(page, tmp_path):
-    """La feuille et l'encadré doivent porter le même bêta : c'est le même
-    échantillon, calculé par la même règle."""
+    """La feuille et l'encadré portent le même bêta : même échantillon, même
+    règle."""
     cadrer(page)
     affiche = nombre_fr(ligne_resultat(page, "Bêta médian (3 ans)"))
-    _, v = feuille(page, tmp_path)
-    assert round(v.cell(row=ligne_mediane(v), column=BETA3).value, 3) == affiche
+    f, v = feuille(page, tmp_path)
+    ligne = ligne_stat(f, "Médiane")
+    assert round(v.cell(row=ligne, column=BETA3).value, 3) == affiche
 
 
-# ------------------------------------------------- le report vers la feuille WACC
+def test_min_et_max_encadrent_la_mediane(page, tmp_path):
+    cadrer(page)
+    f, v = feuille(page, tmp_path)
+    lus = {nom: v.cell(row=ligne_stat(f, nom), column=MULTIPLE).value for nom in STATS}
+    assert lus["Min"] <= lus["Médiane"] <= lus["Max"]
+    assert lus["Min"] <= lus["Moy"] <= lus["Max"]
 
-def test_le_report_reprend_la_ligne_des_medianes(page, tmp_path):
+
+# ------------------------------------------------- source, paramètres et note
+
+def test_la_source_suit_les_statistiques(page, tmp_path):
     cadrer(page)
     f, _ = feuille(page, tmp_path)
-    m = ligne_mediane(f)
-    assert report(f, "Bêta (3 ans) médian") == f"=I{m}"
-    assert report(f, "Gearing médian") == f"=G{m}"
-    assert report(f, "VE / EBITDA médian") == f"=N{m}"
+    ligne = ligne_stat(f, "Max") + 1
+    assert f.cell(row=ligne, column=NOM).value == "Source: Capital IQ Pro | 43WACC"
 
 
-def test_le_beta_desendette_est_celui_de_la_feuille_wacc(page, tmp_path):
-    """C'est la valeur qui part en WACC!C6 : si les deux feuilles divergent,
-    le classeur documente un calcul qu'il ne fait pas."""
+def test_le_bloc_parametres_consigne_le_cadrage(page, tmp_path):
     cadrer(page)
-    formules, valeurs = telecharger(page, tmp_path)
-    assert report(valeurs["Sociétés"], "Bêta désendetté") == pytest.approx(
-        valeurs["WACC"]["C6"].value, rel=1e-3)
-    # La formule va chercher le taux d'IS sur l'autre feuille plutôt que d'en
-    # recopier le nombre : les deux onglets restent liés si on le change.
-    assert "WACC!C7" in report(formules["Sociétés"], "Bêta désendetté")
+    f, _ = feuille(page, tmp_path)
+    debut = ligne_libelle(f, "Paramètres")
+    assert f.cell(row=debut + 1, column=NOM).value == "Intitulé"
+    assert f.row_dimensions[debut + 1].height == 12.0
+    lus = {f.cell(row=debut + 2 + i, column=NOM).value:
+           f.cell(row=debut + 2 + i, column=TICKER).value for i in range(3)}
+    assert lus["Continent"] == "Afrique"
+    assert lus["Industrie"] == SECTEUR
+    assert "Zone" in lus
 
 
-def test_le_gearing_retenu_est_celui_de_la_feuille_wacc(page, tmp_path):
+def test_la_note_ferme_la_feuille_et_court_sur_toute_sa_largeur(page, tmp_path):
     cadrer(page)
-    _, valeurs = telecharger(page, tmp_path)
-    retenu = report(valeurs["Sociétés"], "Gearing retenu")
-    assert retenu == pytest.approx(valeurs["WACC"]["C8"].value, rel=1e-3)
+    f, _ = feuille(page, tmp_path)
+    ligne = ligne_libelle(f, "Paramètres") + 6
+    note = f.cell(row=ligne, column=NOM).value
+    assert "EBITDA" in note
+    assert f"B{ligne}:O{ligne}" in [str(m) for m in f.merged_cells.ranges]
 
 
-def test_un_gearing_cible_remplace_la_mediane_dans_le_report(page, tmp_path):
-    """Cible saisie : le report n'est plus la médiane de l'échantillon, et le
-    commentaire doit le dire — sans quoi on croirait lire le levier observé."""
-    cadrer(page)
-    page.click("#paramsResult #verrouGearing")
-    page.fill("#paramsResult #champGearingCible", "40")
-    page.dispatch_event("#paramsResult #champGearingCible", "change")
-
-    formules, valeurs = telecharger(page, tmp_path, "cible.xlsx")
-    soc = formules["Sociétés"]
-    ligne = ligne_report(soc, "Gearing retenu")
-    assert "cible" in soc.cell(row=ligne, column=COMMENTAIRE_REPORT).value
-    assert valeurs["Sociétés"].cell(row=ligne, column=VALEUR_REPORT).value == pytest.approx(
-        valeurs["WACC"]["C8"].value, rel=1e-3)
+def test_la_note_chiffre_ce_que_l_ebitda_couvre(page, tmp_path):
+    """Sur les banques africaines, une seule des vingt retenues en publie : la
+    note doit le dire plutôt que de laisser lire des colonnes à trous."""
+    mode_comparables(page)
+    choisir(page, "continent", "Afrique")
+    choisir(page, "secteur", "Banks")
+    f, _ = feuille(page, tmp_path)
+    note = f.cell(row=ligne_libelle(f, "Paramètres") + 6, column=NOM).value
+    assert "EBITDA publié pour" in note
+    assert "sociétés retenues" in note

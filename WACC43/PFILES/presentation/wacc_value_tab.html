@@ -3263,11 +3263,16 @@
     commentaire: 16, commentaireGras: 17,
     syntheseL: 18, syntheseV: 19, syntheseC: 20,
     retenuL: 21, retenuV: 22, retenuC: 23,
-    socNote: 24, socNom: 25, socTexte: 26,
-    socMontant: 27, socNum2: 28, socNum3: 29, socPct1: 30, socMult: 31,
-    medL: 32, medMontant: 33, medNum2: 34, medNum3: 35, medPct1: 36, medMult: 37,
-    reportL: 38, reportNum3: 39, reportNum2: 40, reportPct1: 41, reportMult: 42,
-    reportC: 43,
+    // Feuille « Sociétés », d'après le gabarit posé à la main dans WACC43.
+    socBandeau: 24, socEnteteG: 25, socEnteteD: 26,
+    socNomD: 27, socTexteD: 28,
+    socMontant: 29, socNum2: 30, socNum3: 31, socPct1: 32, socMult: 33,
+    statL: 34, statC: 35, statG: 36,
+    statMontant: 37, statNum2: 38, statNum3: 39, statPct1: 40, statMult: 41,
+    medC: 42, medG: 43,
+    medMontant: 44, medNum2: 45, medNum3: 46, medPct1: 47, medMult: 48,
+    socSource: 49, socNote: 50,
+    socParamE: 51, socParamL: 52, socParamV: 53,
   };
 
   const xmlEsc = (s) => String(s)
@@ -3362,8 +3367,9 @@
   // ce que le modèle attend qu'on renseigne : c'est exactement ce que la page
   // remplit, et le laisser vert dit d'où vient chaque nombre.
   function xlStyles() {
-    const police = (attrs, couleur) =>
-      "<font>" + attrs + '<sz val="9"/><color rgb="' + couleur + '"/><name val="Arial"/></font>';
+    const police = (attrs, couleur, taille) =>
+      "<font>" + attrs + '<sz val="' + (taille || 9) + '"/><color rgb="' + couleur +
+      '"/><name val="Arial"/></font>';
     const remplissage = (couleur) =>
       '<fill><patternFill patternType="solid"><fgColor rgb="' + couleur +
       '"/><bgColor indexed="64"/></patternFill></fill>';
@@ -3380,7 +3386,10 @@
       "/></xf>";
 
     // Polices : 0 encre, 1 blanc gras, 2 encre gras, 3 vert (à renseigner),
-    // 4 noir gras, 5 italique, 6 italique gras, 7 noir simple.
+    // 4 noir gras, 5 italique, 6 italique gras, 7 noir simple. Les quatre
+    // suivantes viennent du gabarit de la feuille « Sociétés » : ardoise pour
+    // les en-têtes et les données, outremer pour les statistiques retenues,
+    // gris six points pour les mentions de source.
     const polices = [
       police("", "FF0D1B2A"),
       police("<b/>", "FFFFFFFF"),
@@ -3390,6 +3399,10 @@
       police("<i/>", "FF0D1B2A"),
       police("<b/><i/>", "FF0D1B2A"),
       police("", "FF000000"),
+      police("<b/>", "FF464B4B"),
+      police("", "FF464B4B"),
+      police("", "FF171C8F"),
+      police("", "FF727578", 6),
     ];
     // Fonds : 2 bandeau, 3 en-tête, 4 blanc, 5 calcul, 6 résultat,
     // 7 synthèse retenue, 8 bandeau Fisher, 9 bandeau synthèse.
@@ -3399,12 +3412,15 @@
       remplissage("FF2C6FAC"), remplissage("FF1B3A5C"), remplissage("FFFFFFFF"),
       remplissage("FFF8FAFC"), remplissage("FFD6E4F0"), remplissage("FFF4ECD6"),
       remplissage("FF171C8F"), remplissage("FF27B093"),
+      remplissage("FF265173"),   // bandeaux de la feuille « Sociétés »
     ];
     const bordures = [
       bordure(null, null, null, null),
       bordure("thin", "thin", "thin", "thin"),
       bordure("medium", "medium", "medium", "medium"),
       bordure("thin", null, "thin", "thin"),
+      bordure(null, null, null, "thin"),   // filet sous les en-têtes
+      bordure("thin", null, null, null),   // filet à gauche des mentions de source
     ];
 
     const styles = [
@@ -3433,30 +3449,41 @@
       xf(10, 2, 7, 2, "right"),                  // taux retenu, valeur
       xf(0, 6, 7, 1, "left", true),              // taux retenu, commentaire
 
-      // Feuille « Sociétés ». Ces nombres sont des données relevées, pas des
-      // cellules à renseigner : ils gardent l'encre du texte. Seuls la ligne
-      // des médianes et le report vers le CMPC sont mis en avant, parce que
-      // ce sont les deux seules lignes que le calcul reprend.
-      xf(0, 5, 4, 0, "left", true),              // note d'en-tête
-      xf(0, 0, 4, 1, "left"),                    // nom de société
-      xf(0, 0, 4, 1, "center"),                  // ticker, place
-      xf(3, 0, 4, 1, "right"),                   // montant en millions
-      xf(2, 0, 4, 1, "right"),                   // nombre à deux décimales
-      xf(169, 0, 4, 1, "right"),                 // bêta, trois décimales
-      xf(168, 0, 4, 1, "right"),                 // pourcentage à une décimale
-      xf(170, 0, 4, 1, "right"),                 // multiple, 0,0x
-      xf(0, 2, 6, 1, "left"),                    // médiane, libellé
-      xf(3, 4, 6, 1, "right"),                   // médiane, montant
-      xf(2, 4, 6, 1, "right"),                   // médiane, deux décimales
-      xf(169, 4, 6, 1, "right"),                 // médiane, bêta
-      xf(168, 4, 6, 1, "right"),                 // médiane, pourcentage
-      xf(170, 4, 6, 1, "right"),                 // médiane, multiple
-      xf(0, 2, 7, 1, "left", true),              // report vers le CMPC, libellé
-      xf(169, 2, 7, 1, "right"),                 // report, bêta
-      xf(2, 2, 7, 1, "right"),                   // report, nombre
-      xf(168, 2, 7, 1, "right"),                 // report, pourcentage
-      xf(170, 2, 7, 1, "right"),                 // report, multiple
-      xf(0, 6, 7, 1, "left", true),              // report, commentaire
+      // Feuille « Sociétés », d'après le gabarit posé à la main dans WACC43.
+      // Aucune bordure sur les données : le tableau se lit par ses filets
+      // d'en-tête et son fond blanc, pas par un quadrillage. Les quatre
+      // statistiques partagent les formats des colonnes qu'elles résument, et
+      // la médiane — la seule que le CMPC reprenne — passe à l'outremer.
+      xf(0, 1, 10, 1, "left"),                   // bandeau de titre
+      xf(0, 8, 0, 4, "left", true),              // en-tête, colonne des noms
+      xf(0, 8, 0, 4, "right", true),             // en-tête, colonnes de chiffres
+      xf(0, 9, 4, 0, "left"),                    // nom de société
+      xf(0, 9, 4, 0, "right"),                   // ticker, place, pays
+      xf(3, 9, 4, 0, "right"),                   // montant en millions
+      xf(2, 9, 4, 0, "right"),                   // nombre à deux décimales
+      xf(169, 9, 4, 0, "right"),                 // bêta, trois décimales
+      xf(168, 9, 4, 0, "right"),                 // pourcentage à une décimale
+      xf(170, 9, 4, 0, "right"),                 // multiple, 0,0x
+      xf(0, 10, 0, 0, "left"),                   // libellé Min / Moy / Médiane / Max
+      xf(0, 0, 4, 0, "center"),                  // statistique, colonne centrée
+      xf(0, 0, 4, 0, "left"),                    // statistique, colonne à gauche
+      xf(3, 0, 4, 0, "right"),                   // statistique, montant
+      xf(2, 0, 4, 0, "right"),                   // statistique, deux décimales
+      xf(169, 0, 4, 0, "right"),                 // statistique, bêta
+      xf(168, 0, 4, 0, "right"),                 // statistique, pourcentage
+      xf(170, 0, 4, 0, "right"),                 // statistique, multiple
+      xf(0, 10, 4, 0, "center"),                 // médiane, colonne centrée
+      xf(0, 10, 4, 0, "left"),                   // médiane, colonne à gauche
+      xf(3, 10, 4, 0, "right"),                  // médiane, montant
+      xf(2, 10, 4, 0, "right"),                  // médiane, deux décimales
+      xf(169, 10, 4, 0, "right"),                // médiane, bêta
+      xf(168, 10, 4, 0, "right"),                // médiane, pourcentage
+      xf(170, 10, 4, 0, "right"),                // médiane, multiple
+      xf(0, 11, 4, 5, "left"),                   // mention de source
+      xf(0, 11, 4, 5, "left", true),             // note de bas de feuille
+      xf(0, 8, 0, 4, "left", true),              // Paramètres, en-tête
+      xf(0, 9, 4, 0, "left"),                    // Paramètres, libellé
+      xf(0, 0, 0, 0, "left"),                    // Paramètres, valeur
     ];
 
     return '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>' +
@@ -3507,8 +3534,10 @@
   }
 
   function xlFeuille(lignes, largeurs, fusions, chaines) {
-    const colonnes = largeurs.map((w, i) =>
-      '<col min="' + (i + 1) + '" max="' + (i + 1) + '" width="' + w + '" customWidth="1"/>').join("");
+    // Une largeur nulle laisse la colonne à la largeur par défaut du classeur,
+    // comme le fait le gabarit pour deux de ses colonnes.
+    const colonnes = largeurs.map((w, i) => w == null ? ""
+      : '<col min="' + (i + 1) + '" max="' + (i + 1) + '" width="' + w + '" customWidth="1"/>').join("");
     const corps = lignes.map((ligne) => {
       const cellules = ligne.cellules.map((c) => {
         const ref = c.col + ligne.r;
@@ -3767,92 +3796,77 @@
     const eb = (s) => (s.ebitda || {})[cle];
     const ve = (s) => s.capitalisation + s.dette;
 
-    // Combien de sociétés portent réellement un EBITDA à cet exercice. Tout ce
-    // qui en découle se règle sur ce nombre, jamais sur la taille de
-    // l'échantillon : c'est le même seuil que la page applique aux médianes de
-    // zone, pour la même raison — en deçà, la médiane serait cette société.
+    // Combien de sociétés portent réellement un EBITDA à cet exercice. Les
+    // colonnes qui en dérivent sortent du tableau quand personne n'en publie,
+    // et les statistiques se taisent sous le seuil — le même que celui des
+    // médianes de zone du CMPC, pour la même raison : en deçà, la statistique
+    // décrirait ces sociétés-là et non le secteur.
     const avecEbitda = sample.filter((s) => eb(s) != null).length;
     const multiples = avecEbitda >= SEUIL;
 
-    // Une colonne par donnée, dans l'ordre où on la lit — l'identité, la taille,
-    // le levier, les bêtas, puis les comptes et les multiples qui en découlent.
-    // Celles qui dérivent de l'EBITDA sortent du tableau quand personne n'en
-    // publie : un en-tête au-dessus de vingt cases vides est un cadre sans
-    // information, et non une donnée manquante.
+    // Les largeurs viennent du gabarit, y compris ses deux colonnes laissées à
+    // la largeur par défaut : c'est un format de note de valorisation, on ne le
+    // redessine pas ici.
     const colonnes = [
-      { cle: "nom", entete: "Société", largeur: 40, sE: XL.entete, s: XL.socNom,
-        texte: (s) => s.nom },
-      { cle: "ticker", entete: "Ticker", largeur: 10, s: XL.socTexte,
-        texte: (s) => s.ticker || "" },
-      { cle: "place", entete: "Place", largeur: 8, s: XL.socTexte,
-        texte: (s) => s.place || "hors cote" },
-      { cle: "pays", entete: "Pays", largeur: 17, sE: XL.entete, s: XL.socNom,
-        texte: (s) => s.pays },
-      { cle: "capi", entete: "Capitalisation", largeur: 14, s: XL.socMontant,
-        sM: XL.medMontant, valeur: (s) => s.capitalisation },
+      { cle: "nom", entete: "Société", largeur: 21.5, sE: XL.socEnteteG,
+        s: XL.socNomD, sS: XL.statG, sM: XL.medG, texte: (s) => s.nom },
+      { cle: "ticker", entete: "Ticker", largeur: 10, s: XL.socTexteD,
+        sS: XL.statC, sM: XL.medC, texte: (s) => s.ticker || "" },
+      { cle: "place", entete: "Place", largeur: 8, s: XL.socTexteD,
+        sS: XL.statC, sM: XL.medC, texte: (s) => s.place || "hors cote" },
+      { cle: "pays", entete: "Pays", largeur: 5.2, s: XL.socTexteD,
+        sS: XL.statG, sM: XL.medG, texte: (s) => s.pays },
+      { cle: "capi", entete: "Capitalisation", largeur: 12.7, s: XL.socMontant,
+        sS: XL.statMontant, sM: XL.medMontant, valeur: (s) => s.capitalisation },
       { cle: "dette", entete: "Dette totale", largeur: 12.5, s: XL.socMontant,
-        sM: XL.medMontant, valeur: (s) => s.dette },
-      { cle: "de", entete: "Dette / capi (D/E)", largeur: 12.5, s: XL.socNum2,
-        sM: XL.medNum2,
+        sS: XL.statMontant, sM: XL.medMontant, valeur: (s) => s.dette },
+      { cle: "de", entete: "Dette / capi (D/E)", largeur: 14.6, s: XL.socNum2,
+        sS: XL.statNum2, sM: XL.medNum2,
         valeur: (s) => (s.capitalisation ? s.dette / s.capitalisation : null),
         formule: (s, r, L) => L.dette + r + "/" + L.capi + r },
-      { cle: "beta1", entete: "Bêta 1 an", largeur: 9, s: XL.socNum3, sM: XL.medNum3,
-        valeur: (s) => s.beta_1an },
-      { cle: "beta3", entete: "Bêta 3 ans", largeur: 9, s: XL.socNum3, sM: XL.medNum3,
-        valeur: (s) => s.beta_3ans },
+      { cle: "beta1", entete: "Bêta 1 an", largeur: 9, s: XL.socNum3,
+        sS: XL.statNum3, sM: XL.medNum3, valeur: (s) => s.beta_1an },
+      { cle: "beta3", entete: "Bêta 3 ans", largeur: null, s: XL.socNum3,
+        sS: XL.statNum3, sM: XL.medNum3, valeur: (s) => s.beta_3ans },
       { cle: "ca", entete: "Chiffre d'affaires " + an, largeur: 15, s: XL.socMontant,
-        sM: XL.medMontant, valeur: ca },
-      { cle: "ebitda", entete: "EBITDA " + an, largeur: 15, s: XL.socMontant,
-        sM: XL.medMontant, valeur: eb, ebitda: true },
+        sS: XL.statMontant, sM: XL.medMontant, valeur: ca },
+      { cle: "ebitda", entete: "EBITDA " + an, largeur: null, s: XL.socMontant,
+        sS: XL.statMontant, sM: XL.medMontant, valeur: eb, ebitda: true },
       { cle: "marge", entete: "Marge d'EBITDA", largeur: 11.5, s: XL.socPct1,
-        sM: XL.medPct1, ebitda: true,
+        sS: XL.statPct1, sM: XL.medPct1, ebitda: true,
         valeur: (s) => (ca(s) && eb(s) != null ? eb(s) / ca(s) : null),
         formule: (s, r, L) => (ca(s) && eb(s) != null ? L.ebitda + r + "/" + L.ca + r : null) },
-      { cle: "ve", entete: "VE " + an, largeur: 14, s: XL.socMontant, sM: XL.medMontant,
-        valeur: ve, formule: (s, r, L) => L.capi + r + "+" + L.dette + r },
+      { cle: "ve", entete: "VE " + an, largeur: 14, s: XL.socMontant,
+        sS: XL.statMontant, sM: XL.medMontant, valeur: ve,
+        formule: (s, r, L) => L.capi + r + "+" + L.dette + r },
       { cle: "mult", entete: "VE / EBITDA", largeur: 11.5, s: XL.socMult,
-        sM: XL.medMult, ebitda: true,
+        sS: XL.statMult, sM: XL.medMult, ebitda: true,
         valeur: (s) => (eb(s) > 0 ? ve(s) / eb(s) : null),
         formule: (s, r, L) => (eb(s) > 0 ? L.ve + r + "/" + L.ebitda + r : null) },
     ].filter((c) => avecEbitda > 0 || !c.ebitda);
 
-    // Les lettres sont attribuées après le filtrage, et les formules les lisent
-    // par clé : retirer une colonne ne décale rien à la main.
+    // Colonne A en gouttière : le tableau commence en B, comme dans le gabarit.
+    // Les lettres sont attribuées après le filtrage et les formules les lisent
+    // par clé — retirer une colonne ne décale rien à la main.
     const LETTRES = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
     const L = {};
-    colonnes.forEach((c, i) => { c.col = LETTRES[i]; L[c.cle] = c.col; });
+    colonnes.forEach((c, i) => { c.col = LETTRES[i + 1]; L[c.cle] = c.col; });
     const cols = colonnes.map((c) => c.col);
     const fin = cols[cols.length - 1];
 
     const lignes = [];
-    const fusions = ["A1:" + fin + "1", "A2:" + fin + "2"];
+    const fusions = [];
 
-    lignes.push(bandeauXl(1, "COMPARABLES DU SECTEUR — " + x.objet + ", " + info.perimetre,
-                          XL.bandeau, cols));
+    // Bandeau de titre : chaque cellule porte le fond, sans fusion — c'est
+    // ainsi que le gabarit le pose.
+    lignes.push({ r: 2, cellules: cols.map((col, i) =>
+      i === 0 ? { col: col, s: XL.socBandeau, texte: "Comparables boursiers" }
+              : { col: col, s: XL.socBandeau }) });
 
-    // La note chiffre séparément l'effectif de l'échantillon et celui qui porte
-    // un EBITDA : les deux diffèrent dès qu'un secteur mêle des modèles
-    // comptables, et les confondre ferait décrire une population en en
-    // chiffrant une autre.
-    const note = "Les " + sample.length + " sociétés qui produisent les médianes du CMPC : " +
-      (info.total > sample.length
-        ? "les plus grosses capitalisations des " + info.total + " du périmètre retenu, " + info.perimetre
-        : "tout le périmètre retenu, " + info.perimetre) +
-      ". Montants en millions FCFA, exercice " + an + ". VE = capitalisation boursière + dette totale. " +
-      (avecEbitda === 0
-        ? "Aucune ne publie d'EBITDA à cet exercice — S&P n'en publie ni pour les banques ni pour les assureurs : " +
-          "les colonnes qui en dérivent sont retirées plutôt que laissées vides."
-        : (avecEbitda < sample.length
-            ? "EBITDA publié pour " + avecEbitda + " d'entre elles seulement : la marge et le multiple ne portent que sur celles-là. "
-            : "Toutes publient un EBITDA à cet exercice. ") +
-          (multiples ? "" : "Moins de " + SEUIL + " valeurs : aucune médiane n'en est tirée, elle décrirait ces sociétés et non le secteur."));
-    lignes.push({ r: 2, ht: 26, cellules: cols.map((col, i) =>
-      i === 0 ? { col: col, s: XL.socNote, texte: note } : { col: col, s: XL.socNote }) });
+    lignes.push({ r: 3, ht: 26, cellules: colonnes.map((c) => ({
+      col: c.col, s: c.sE || XL.socEnteteD, texte: c.entete })) });
 
-    lignes.push({ r: 4, ht: 26, cellules: colonnes.map((c) => ({
-      col: c.col, s: c.sE || XL.enteteCentre, texte: c.entete })) });
-
-    const PREMIERE = 5;
+    const PREMIERE = 4;
     sample.forEach((s, i) => {
       const r = PREMIERE + i;
       lignes.push({ r: r, cellules: colonnes.map((c) => {
@@ -3869,112 +3883,81 @@
       }) });
     });
 
-    // La médiane est écrite en formule sur la plage juste au-dessus : qui
-    // retire une société de l'échantillon voit immédiatement le bêta bouger,
-    // ce qu'une valeur figée ne dirait pas.
+    // Min, Moy, Médiane, Max : quatre lignes sous l'échantillon, en formules
+    // sur la plage juste au-dessus. Retirer une société les fait toutes bouger,
+    // ce qu'une valeur figée ne dirait pas. La médiane est celle que le CMPC
+    // reprend : elle seule passe à l'outremer.
     const derniere = PREMIERE + sample.length - 1;
-    const m = derniere + 1;
-    const med = {};
-    colonnes.forEach((c) => {
-      if (c.valeur) med[c.cle] = mediane(sample.map((s) => c.valeur(s)));
+    const plage = (col) => col + PREMIERE + ":" + col + derniere;
+    const serie = (c) => sample.map((s) => c.valeur(s)).filter((v) => Number.isFinite(v));
+    const STATS = [
+      { nom: "Min", fn: "MIN", js: (v) => Math.min.apply(null, v) },
+      { nom: "Moy", fn: "AVERAGE", js: (v) => v.reduce((a, b) => a + b, 0) / v.length },
+      { nom: "Médiane", fn: "MEDIAN", js: mediane, accent: true },
+      { nom: "Max", fn: "MAX", js: (v) => Math.max.apply(null, v) },
+    ];
+
+    STATS.forEach((stat, i) => {
+      const r = derniere + 1 + i;
+      lignes.push({ r: r, cellules: colonnes.map((c, j) => {
+        if (j === 0) return { col: c.col, s: XL.statL, texte: stat.nom };
+        const style = stat.accent ? c.sM : c.sS;
+        if (!c.valeur || (c.ebitda && !multiples)) return { col: c.col, s: style };
+        const v = serie(c);
+        if (!v.length) return { col: c.col, s: style };
+        return { col: c.col, s: style, valeur: stat.js(v),
+                 formule: stat.fn + "(" + plage(c.col) + ")" };
+      }) });
     });
 
-    lignes.push({ r: m, cellules: colonnes.map((c, i) => {
-      if (!c.valeur) {
-        return i === 0
-          ? { col: c.col, s: XL.medL, texte: "Médiane de l'échantillon (" + sample.length +
-              (sample.length > 1 ? " sociétés)" : " société)") }
-          : { col: c.col, s: XL.medL };
-      }
-      // MEDIAN() sur une plage vide rend #NUM!, et sur une seule valeur rend
-      // cette valeur en la faisant passer pour une médiane de secteur : sous
-      // le seuil, la cellule reste vide et le bas de feuille dit pourquoi.
-      if (c.ebitda && !multiples) return { col: c.col, s: c.sM };
-      return { col: c.col, s: c.sM, valeur: med[c.cle],
-               formule: "MEDIAN(" + c.col + PREMIERE + ":" + c.col + derniere + ")" };
-    }) });
+    const rSource = derniere + 1 + STATS.length;
+    lignes.push({ r: rSource, cellules: [
+      { col: "B", s: XL.socSource, texte: "Source: Capital IQ Pro | 43WACC" }] });
 
-    // Report vers le CMPC. Le libellé court sur A:D, la valeur tient en E et le
-    // commentaire jusqu'à la dernière colonne — la seule mise en page où la
-    // phrase se lit en entier sans écraser le tableau au-dessus.
-    const bandeau = m + 2;
-    fusions.push("A" + bandeau + ":" + fin + bandeau);
-    lignes.push(bandeauXl(bandeau, "VALEURS REPRISES DANS LE CALCUL DU CMPC",
-                          XL.bandeauSynthese, cols));
+    // Bloc Paramètres : le cadrage consigné dans la feuille, sept lignes sous
+    // la source — c'est l'écart que le gabarit ménage.
+    const rParam = rSource + 7;
+    lignes.push({ r: rParam, cellules: [
+      { col: "B", s: XL.socBandeau, texte: "Paramètres" },
+      { col: "C", s: XL.socBandeau }] });
+    lignes.push({ r: rParam + 1, ht: 12, cellules: [
+      { col: "B", s: XL.socParamE, texte: "Intitulé" },
+      { col: "C", s: XL.socParamE }] });
+    const cadrage = [
+      ["Continent", params.continent === TOUS ? "tous continents" : params.continent],
+      // Sans zone retenue, la case reste explicite plutôt que de répéter le
+      // continent : « Zone : Afrique » ferait passer un continent pour une zone.
+      ["Zone", params.zone || "toutes zones du continent"],
+      ["Industrie", x.objet],
+    ];
+    cadrage.forEach((paire, i) => {
+      lignes.push({ r: rParam + 2 + i, cellules: [
+        { col: "B", s: XL.socParamL, texte: paire[0] },
+        { col: "C", s: XL.socParamV, texte: paire[1] }] });
+    });
 
-    let ligne = bandeau;
-    const report = (libelle, o) => {
-      ligne++;
-      fusions.push("A" + ligne + ":D" + ligne, "F" + ligne + ":" + fin + ligne);
-      const cellules = cols.slice(0, 4).map((col, i) =>
-        i === 0 ? { col: col, s: XL.reportL, texte: libelle } : { col: col, s: XL.reportL });
-      const valeur = { col: "E", s: o.s };
-      if (o.formule) valeur.formule = o.formule;
-      if (Number.isFinite(o.valeur)) valeur.valeur = o.valeur;
-      cellules.push(valeur);
-      cols.slice(5).forEach((col, i) =>
-        cellules.push(i === 0 ? { col: col, s: XL.reportC, texte: o.commentaire }
-                              : { col: col, s: XL.reportC }));
-      lignes.push({ r: ligne, ht: 24, cellules: cellules });
-      return ligne;
-    };
+    // La note dit sur combien de sociétés portent les colonnes d'EBITDA, et
+    // non sur combien compte l'échantillon : les deux nombres diffèrent dès
+    // qu'un secteur mêle des modèles comptables.
+    const note = avecEbitda === 0
+      ? " Aucune des " + sample.length + " sociétés retenues ne publie d'EBITDA à cet " +
+        "exercice — S&P n'en publie ni pour les banques ni pour les assureurs : les " +
+        "colonnes qui en dérivent sont retirées."
+      : (avecEbitda < sample.length
+          ? " EBITDA publié pour " + avecEbitda + " des " + sample.length +
+            " sociétés retenues : la marge et le multiple ne portent que sur celles-là."
+          : " S&P ne publie pas d'EBITDA pour les banques et les assureurs : leurs " +
+            "multiples restent vides.") +
+        (multiples ? "" : " Moins de " + SEUIL + " valeurs : aucune statistique n'en est tirée.");
 
-    const rBeta = report("Bêta (3 ans) médian de l'échantillon (βL)", {
-      s: XL.reportNum3, formule: L.beta3 + m, valeur: med.beta3,
-      commentaire: info.relevable
-        ? "Endetté au levier de l'échantillon : il est désendetté deux lignes plus bas avant d'entrer dans le CMPC"
-        : "Levier de l'échantillon non publié : reporté tel quel en WACC!C6, sans ré-endettement" });
-
-    let rDE = null;
-    if (info.relevable) {
-      rDE = report("Gearing médian de l'échantillon (D/E)", {
-        s: XL.reportNum2, formule: L.de + m, valeur: med.de,
-        commentaire: "Médiane de la colonne Dette / capitalisation ci-dessus" });
-      report("Bêta désendetté βu = βL / (1 + (1 − t) × D/E)", {
-        s: XL.reportNum3,
-        formule: "E" + rBeta + "/(1+(1-WACC!C7)*E" + rDE + ")",
-        valeur: med.beta3 / (1 + (1 - x.tax) * med.de),
-        commentaire: "Reporté en WACC!C6 — t est le taux d'IS lu sur la feuille WACC" });
-    }
-
-    // Sans cible saisie, le gearing retenu EST la médiane : on y renvoie plutôt
-    // que d'en recopier le nombre, sans quoi retirer une société du tableau
-    // laisserait deux lignes voisines annoncer deux leviers différents.
-    report("Gearing retenu pour la pondération (D/E)", {
-      s: XL.reportNum2, valeur: x.gearing,
-      formule: info.gearingSaisi || rDE === null ? null : "E" + rDE,
-      commentaire: (info.gearingSaisi
-        ? "Gearing cible posé dans la page"
-        : "Gearing médian de l'échantillon") + " — reporté en WACC!C8" });
-
-    // Les deux lignes d'EBITDA portent leur propre effectif : c'est la seule
-    // façon de ne pas laisser lire un multiple d'une société comme un multiple
-    // de secteur. Elles disparaissent avec les colonnes dont elles dépendent.
-    if (avecEbitda > 0) {
-      const porte = avecEbitda + (avecEbitda > 1 ? " sociétés" : " société") +
-        " sur " + sample.length;
-      const trop_peu = "Seulement " + porte + " publient un EBITDA — sous " + SEUIL +
-        ", la médiane décrirait ces sociétés et non le secteur : elle n'est pas calculée";
-
-      report("VE / EBITDA médian (" + porte + ")", {
-        s: XL.reportMult,
-        formule: multiples ? L.mult + m : null,
-        valeur: multiples ? med.mult : null,
-        commentaire: multiples
-          ? "Multiple observé sur les comparables — repère de valorisation, il n'entre pas dans le CMPC"
-          : trop_peu });
-
-      report("Marge d'EBITDA médiane (" + porte + ")", {
-        s: XL.reportPct1,
-        formule: multiples ? L.marge + m : null,
-        valeur: multiples ? med.marge : null,
-        commentaire: multiples
-          ? "Sur les seules sociétés dont S&P publie un EBITDA"
-          : trop_peu });
-    }
+    const rNote = rParam + 6;
+    fusions.push("B" + rNote + ":" + fin + rNote);
+    lignes.push({ r: rNote, cellules: cols.map((col, i) =>
+      i === 0 ? { col: col, s: XL.socNote, texte: note }
+              : { col: col, s: XL.socNote }) });
 
     return { lignes: lignes, fusions: fusions,
-             largeurs: colonnes.map((c) => c.largeur) };
+             largeurs: [3].concat(colonnes.map((c) => c.largeur)) };
   }
 
   function classeurXlsx(x, avecSocietes) {
