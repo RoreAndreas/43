@@ -1,10 +1,15 @@
 {
-    "last_update": "2026-09-02 18:31:50",
+    "last_update": "2026-09-03 18:28:30",
     "count": 20,
     "weeks": [
         {
             "semaine": "Semaine du 31 Août au 06 Septembre 2026",
             "publications": [
+                {
+                    "date": "03/09/2026",
+                    "titre": "SAFCA CI : Rapport d'activités - 2eme trimestre 2026",
+                    "url": "https://www.richbourse.com/common/actualite/afficher-fichier/03-09-2026-safca-ci-rapport-d-activites-2eme-trimestre-2026"
+                },
                 {
                     "date": "02/09/2026",
                     "titre": "SODE CI : Paiement de dividendes - Exercice 2025",
@@ -114,11 +119,6 @@
                     "date": "14/08/2026",
                     "titre": "SERVAIR ABIDJAN CÔTE D·IVOIRE : Paiement de dividendes - Exercice 2025",
                     "url": "https://www.richbourse.com/common/actualite/afficher-fichier/14-08-2026-servair-abidjan-cote-d-ivoire-paiement-de-dividendes-exercice-2025"
-                },
-                {
-                    "date": "13/08/2026",
-                    "titre": "BRVM : Horaires de cotation du 14 août 2026",
-                    "url": "https://www.richbourse.com/common/actualite/afficher-fichier/13-08-2026-brvm-horaires-de-cotation-du-14-aout-2026"
                 }
             ]
         }
