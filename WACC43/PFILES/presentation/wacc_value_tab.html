@@ -972,6 +972,125 @@
     text-wrap: pretty;
   }
 
+  /* ---------- Onglet Multiples ---------- */
+  .multiples { max-width: 1060px; margin: 0 auto; padding: 22px 32px 40px; }
+  .multiples-bar {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 20px; padding-bottom: 14px; border-bottom: 1px solid var(--line);
+  }
+  .multiples-toggle { display: inline-flex; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
+  .multiples-toggle button {
+    font: 400 12px/1 var(--sans); letter-spacing: 0.02em;
+    padding: 8px 16px; border: none; background: var(--surface); color: var(--muted);
+    cursor: pointer; transition: background 200ms ease, color 200ms ease;
+  }
+  .multiples-toggle button.is-active { background: var(--ink); color: #fff; }
+  .multiples-exercice { font: 400 11.5px/1 var(--mono); color: var(--muted); }
+  .multiples-view { min-height: 500px; }
+  .multiples-vide {
+    text-align: center; padding: 60px 20px; color: var(--muted);
+    font: 400 13px/1.6 var(--sans);
+  }
+  .multiples-graph-wrap { display: flex; flex-direction: column; gap: 24px; }
+  .multiples-chart {
+    background: var(--surface); border: 1px solid var(--line); border-radius: 12px;
+    padding: 20px 24px 16px;
+  }
+  .multiples-chart-head {
+    display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 16px;
+  }
+  .multiples-chart-title { font: 500 13px/1 var(--sans); color: var(--ink); }
+  .multiples-chart-ville { font: 400 11px/1 var(--mono); color: var(--muted); }
+  .multiples-bars { display: flex; flex-direction: column; gap: 10px; padding-top: 14px; }
+  .multiple-bar-row { display: flex; align-items: center; gap: 12px; }
+  .multiple-bar-label {
+    width: 140px; flex-shrink: 0; font: 400 11.5px/1 var(--mono); color: var(--ink-3);
+    text-align: right; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .multiple-bar-track {
+    /* Débordement visible : le repère de médiane dépasse la piste en haut et
+       en bas pour former un trait continu d'une barre à l'autre, et sa légende
+       se pose au-dessus de la première. */
+    flex: 1; height: 28px; background: var(--tile); border-radius: 6px; position: relative;
+  }
+  .multiple-bar-fill {
+    position: absolute; top: 0; left: 0; bottom: 0; border-radius: 6px;
+    display: flex; align-items: center; padding: 0 10px; min-width: 48px;
+    font: 500 11px/1 var(--mono); color: #fff;
+  }
+  .multiple-bar-fill.tone-ve-ebitda { background: var(--green); }
+  .multiple-bar-fill.tone-ve-ca { background: var(--blue); }
+  .multiple-bar-mediane {
+    position: absolute; top: -3px; bottom: -3px; width: 2px; background: var(--warn);
+    z-index: 2;
+  }
+  .multiple-bar-mediane.is-suite::after { content: none; }
+  .multiple-bar-mediane::after {
+    content: "méd."; position: absolute; top: -16px; left: 50%; transform: translateX(-50%);
+    font: 500 9px/1 var(--mono); color: var(--warn); white-space: nowrap;
+  }
+  .multiples-table {
+    width: 100%; border-collapse: collapse; background: var(--surface);
+    border: 1px solid var(--line); border-radius: 12px; overflow: hidden;
+  }
+  .multiples-table th, .multiples-table td {
+    padding: 10px 14px; text-align: right;
+    font: 400 12px/1 var(--mono);
+    border-bottom: 1px solid var(--line);
+  }
+  .multiples-table th:first-child, .multiples-table td:first-child { text-align: left; }
+  .multiples-table th {
+    background: var(--tile); font-weight: 500; color: var(--ink-3);
+    font-family: var(--sans); font-size: 11px; letter-spacing: 0.03em; text-transform: uppercase;
+  }
+  .multiples-table td { color: var(--ink); }
+  .multiples-table tr:last-child td { border-bottom: none; }
+  .multiples-table tr.is-mediane td { background: var(--green-tint); font-weight: 500; }
+  .multiples-table .cell-nul { color: var(--muted-2); font-style: italic; }
+  .multiples-note {
+    font: 400 11.5px/1.5 var(--sans); color: var(--muted); margin-top: 16px;
+    padding: 10px 14px; background: var(--accent-tint); border-radius: 8px;
+    border-left: 3px solid var(--accent);
+  }
+
+  /* ---------- Boîte de dialogue de l'export ---------- */
+  .export-fond {
+    position: fixed; inset: 0; z-index: 60; display: flex;
+    align-items: center; justify-content: center; padding: 24px;
+    background: rgba(13, 27, 42, 0.42);
+  }
+  .export-boite {
+    width: min(440px, 100%); background: var(--surface);
+    border: 1px solid var(--line); border-radius: 14px;
+    padding: 26px 28px 22px; text-align: center;
+    box-shadow: 0 18px 48px rgba(13, 27, 42, 0.18);
+  }
+  .export-image { display: block; margin: 0 auto 16px; }
+  .export-titre {
+    display: block; font: 500 15px/1.35 var(--sans); color: var(--ink);
+    margin-bottom: 8px;
+  }
+  .export-detail {
+    display: block; font: 400 12.5px/1.55 var(--sans); color: var(--muted);
+    margin-bottom: 22px;
+  }
+  .export-choix { display: flex; gap: 10px; justify-content: center; margin-bottom: 12px; }
+  .export-choix button {
+    min-width: 104px; padding: 9px 18px; border-radius: 8px; cursor: pointer;
+    font: 400 13px/1 var(--sans); letter-spacing: 0.02em;
+    transition: background 160ms ease, border-color 160ms ease, color 160ms ease;
+  }
+  .export-oui { border: 1px solid var(--ink); background: var(--ink); color: #fff; }
+  .export-oui:hover { background: var(--accent); border-color: var(--accent); }
+  .export-non { border: 1px solid var(--line); background: var(--surface); color: var(--ink-3); }
+  .export-non:hover { border-color: var(--ink); color: var(--ink); }
+  .export-annuler {
+    border: 0; background: none; cursor: pointer; padding: 4px 6px;
+    font: 400 11.5px/1.4 var(--sans); color: var(--muted);
+    text-decoration: underline; text-underline-offset: 2px;
+  }
+  .export-annuler:hover { color: var(--ink); }
+
   [hidden] { display: none !important; }
   .is-busy { opacity: .55; transition: opacity 160ms ease; }
   .is-locked { pointer-events: none; }
@@ -1009,8 +1128,9 @@
     <nav class="tabs">
       <button type="button" data-tab="params" class="is-active">Paramètres</button>
       <button type="button" data-tab="wacc">CMPC</button>
-      <!-- N'apparaît qu'avec le référentiel Comparables -->
+      <!-- N'apparaissent qu'avec le référentiel Comparables -->
       <button type="button" data-tab="societes" id="tabSocietes" hidden>Sociétés</button>
+      <button type="button" data-tab="multiples" id="tabMultiples" hidden>Multiples</button>
     </nav>
   </div>
 </header>
@@ -1035,6 +1155,44 @@
     <div class="frame" id="frameSoc"></div>
   </div>
 </main>
+
+<main class="multiples" id="panel-multiples" hidden>
+  <div class="multiples-bar">
+    <div class="multiples-toggle" id="multiplesToggle">
+      <button type="button" data-view="graph" class="is-active">Graphique</button>
+      <button type="button" data-view="calc">Calcul</button>
+    </div>
+    <span class="multiples-exercice" id="multiplesExercice"></span>
+  </div>
+  <div class="multiples-view" id="multiplesGraph"></div>
+  <div class="multiples-view" id="multiplesCalc" hidden></div>
+</main>
+
+<!-- Le bouton flèche ne télécharge pas tout de suite : il demande d'abord si
+     l'échantillon de comparables doit accompagner le calcul. -->
+<div class="export-fond" id="exportFond" hidden>
+  <div class="export-boite" role="dialog" aria-modal="true"
+       aria-labelledby="exportTitre" aria-describedby="exportDetail">
+    <svg class="export-image" width="168" height="108" viewBox="0 0 168 108"
+         fill="none" aria-hidden="true">
+      <path d="M84 22v60" stroke="var(--muted)" stroke-width="2.4" stroke-linecap="round"/>
+      <path d="M62 88h44" stroke="var(--muted)" stroke-width="2.4" stroke-linecap="round"/>
+      <path d="M72 88c2-8 5-11 12-11s10 3 12 11" stroke="var(--line)" stroke-width="2.4" stroke-linecap="round"/>
+      <path d="M30 30h108" stroke="var(--accent)" stroke-width="2.4" stroke-linecap="round"/>
+      <circle cx="84" cy="19" r="4.4" fill="var(--surface)" stroke="var(--accent)" stroke-width="2.4"/>
+      <path d="M30 30v8M138 30v8" stroke="var(--line)" stroke-width="2"/>
+      <path d="M16 42h28l-14 20z" fill="var(--accent-tint)" stroke="var(--accent)" stroke-width="2.2" stroke-linejoin="round"/>
+      <path d="M124 42h28l-14 20z" fill="var(--surface)" stroke="var(--muted)" stroke-width="2.2" stroke-linejoin="round"/>
+    </svg>
+    <span class="export-titre" id="exportTitre">Voulez-vous inclure les comparables boursiers à l'export ?</span>
+    <span class="export-detail" id="exportDetail">Les comparables ajoutent une feuille : capitalisation, dette, VE, EBITDA et VE / EBITDA par société.</span>
+    <div class="export-choix">
+      <button type="button" class="export-oui" id="exportOui">Oui</button>
+      <button type="button" class="export-non" id="exportNon">Non</button>
+    </div>
+    <button type="button" class="export-annuler" id="exportAnnuler">Annuler l'export</button>
+  </div>
+</div>
 
 <script>
   // ---- Jeu de données injecté au build (wacc_html.py) ----
@@ -1365,9 +1523,10 @@
 
   /* ================= Onglets ================= */
   function renderTabs() {
-    // L'onglet Sociétés n'existe que sous référentiel Comparables.
-    if (!estComparables() && tab === "societes") tab = "params";
+    // Les onglets Sociétés et Multiples n'existent que sous référentiel Comparables.
+    if (!estComparables() && (tab === "societes" || tab === "multiples")) tab = "params";
     $("tabSocietes").hidden = !estComparables();
+    $("tabMultiples").hidden = !estComparables();
 
     document.querySelectorAll(".tabs button").forEach((b) => {
       b.classList.toggle("is-active", b.dataset.tab === tab);
@@ -1375,7 +1534,9 @@
     $("panel-params").hidden = tab !== "params";
     $("panel-wacc").hidden = tab !== "wacc";
     $("panel-societes").hidden = tab !== "societes";
+    $("panel-multiples").hidden = tab !== "multiples";
     if (tab === "wacc" || tab === "societes") requestAnimationFrame(placeArrows);
+    if (tab === "multiples") chargerMultiples();
   }
   document.querySelectorAll(".tabs button").forEach((b) => {
     b.addEventListener("click", () => { tab = b.dataset.tab; renderTabs(); });
@@ -2735,6 +2896,248 @@
     renderFrame("soc");
   }
 
+  /* ================= Onglet Multiples VE/EBITDA =================
+     Les multiples d'entreprise (VE/EBITDA, VE/CA) calculés à partir des
+     sociétés retenues pour la médiane sectorielle. Ils servent la valorisation
+     par comparables : ils n'entrent pas dans le coût du capital, mais c'est la
+     même population qui les produit.
+
+     Deux vues sont proposées :
+      - Graphique : barres horizontales par exercice, avec la médiane marquée.
+      - Calcul   : tableau détaillé société par société, formules à l'appui.
+
+     VE = capitalisation boursière + dette totale (en millions, même unité).
+     VE/EBITDA = VE / EBITDA de l'exercice ; vide si l'EBITDA n'est pas publié
+     (banques, assureurs — S&P ne le fournit pas pour elles).
+     VE/CA = VE / chiffre d'affaires de l'exercice.
+  */
+
+  // Calcule les multiples d'une société pour un exercice donné.
+  function multiplesSociete(s, an) {
+    const ca = (s.ca || {})[String(an)];
+    const ebitda = (s.ebitda || {})[String(an)];
+    const ve = (s.capitalisation != null && s.dette != null)
+      ? s.capitalisation + s.dette : null;
+    return {
+      ve: ve,
+      veEbitda: (ve != null && ebitda) ? ve / ebitda : null,
+      veCa: (ve != null && ca) ? ve / ca : null,
+    };
+  }
+
+  // Médiane d'une liste de valeurs, les trous ignorés. Partagée par cet onglet
+  // et par la feuille « Sociétés » du classeur : deux implantations finiraient
+  // par diverger d'un arrondi, et le fichier ne dirait plus ce que dit l'écran.
+  function mediane(valeurs) {
+    const v = valeurs.filter((x) => Number.isFinite(x)).sort((a, b) => a - b);
+    if (!v.length) return null;
+    const m = Math.floor(v.length / 2);
+    return v.length % 2 ? v[m] : (v[m - 1] + v[m]) / 2;
+  }
+
+  // Agrège les multiples de toutes les sociétés retenues pour un exercice.
+  function multiplesParExercice(an) {
+    const ids = societesRetenues().ids;
+    const lignes = [];
+    const tousVeEbitda = [];
+    const tousVeCa = [];
+    for (const id of ids) {
+      const s = COMPARABLES[id];
+      if (!s) continue;
+      const m = multiplesSociete(s, an);
+      if (m.ve == null) continue;
+      if (m.veEbitda != null) tousVeEbitda.push(m.veEbitda);
+      if (m.veCa != null) tousVeCa.push(m.veCa);
+      lignes.push({
+        id, nom: s.nom, pays: s.pays, place: s.place,
+        ve: m.ve, veEbitda: m.veEbitda, veCa: m.veCa,
+      });
+    }
+    lignes.sort((a, b) => (b.ve || 0) - (a.ve || 0));
+    return {
+      lignes,
+      medianes: { veEbitda: mediane(tousVeEbitda), veCa: mediane(tousVeCa) },
+      nbAvecEbitda: tousVeEbitda.length,
+      nbAvecCa: tousVeCa.length,
+      nbTotal: lignes.length,
+    };
+  }
+
+  /* ---------- Rendu ---------- */
+  // La vue choisie survit au changement de cadrage : on passe d'un continent à
+  // l'autre pour comparer, pas pour retrouver un onglet remis à zéro.
+  let vueMultiples = "graph";
+
+  const RATIOS_MULT = [
+    { cle: "veEbitda", titre: "VE / EBITDA", tone: "tone-ve-ebitda", denom: "EBITDA",
+      absent: "S&P n'en publie ni pour les banques ni pour les assureurs — la notion n'a pas de sens pour elles." },
+    { cle: "veCa", titre: "VE / chiffre d'affaires", tone: "tone-ve-ca",
+      denom: "chiffre d'affaires", absent: "" },
+  ];
+
+  const frMult = (v) => (v == null ? "—" : frNum(v, 1) + "x");
+
+  // Combien de sociétés portent le ratio — et non combien sont retenues. Les
+  // deux nombres diffèrent dès qu'un secteur mêle des modèles comptables : sur
+  // les banques africaines, une seule des vingt retenues publie un EBITDA. Les
+  // confondre ferait décrire une population en en chiffrant une autre, et la
+  // médiane n'est rendue qu'au-delà du seuil qui gouverne déjà celles du CMPC.
+  function porteeRatio(bloc, ratio) {
+    const valeurs = bloc.lignes.map((l) => l[ratio.cle]).filter((v) => v != null);
+    return { valeurs: valeurs, n: valeurs.length,
+             mediane: valeurs.length >= SEUIL ? bloc.medianes[ratio.cle] : null };
+  }
+
+  // « sur 11 sociétés sur 11 » se lit mal : le dénominateur ne s'écrit que
+  // lorsqu'il diffère, c'est-à-dire quand il apprend quelque chose.
+  const effectifRatio = (n, total) =>
+    n + (n > 1 ? " sociétés" : " société") + (n === total ? "" : " sur " + total);
+
+  // Le cadre suit l'information. Sans barre, pas de graphique : un cadre vide
+  // se lirait comme une panne plutôt que comme une donnée absente. Sans assez
+  // de barres, pas de repère de médiane : le trait se poserait sur une société
+  // en se donnant pour le secteur. Et dans les deux cas la tête de graphique
+  // écrit l'effectif, pour qu'on lise le nombre avec sa portée.
+  function graphiqueMultiple(ratio, bloc, an) {
+    const portee = porteeRatio(bloc, ratio);
+    const tete = (droite) =>
+      '<div class="multiples-chart-head"><span class="multiples-chart-title">' +
+      esc(ratio.titre) + '</span><span class="multiples-chart-ville">' + esc(droite) +
+      "</span></div>";
+
+    if (!portee.n) {
+      return '<section class="multiples-chart">' + tete("exercice " + an) +
+        '<p class="multiples-vide">Aucune des ' + bloc.nbTotal +
+        " sociétés retenues ne publie de " + esc(ratio.denom) + " pour l'exercice " +
+        an + ". " + esc(ratio.absent) + "</p></section>";
+    }
+
+    // Une valeur ne fait pas un graphique : seule, sa barre remplit toute la
+    // piste et se lit comme un maximum, alors qu'elle n'est comparée à rien.
+    // Sous le seuil on écrit donc les nombres en clair — le cadre rend ce
+    // qu'il y a, pas un dessin qui en promettrait plus.
+    if (portee.n < SEUIL) {
+      const detail = bloc.lignes.filter((l) => l[ratio.cle] != null)
+        .sort((a, b) => b[ratio.cle] - a[ratio.cle])
+        .map((l) => esc(l.nom) + " " + esc(frMult(l[ratio.cle])))
+        .join(" · ");
+      return '<section class="multiples-chart">' +
+        tete("exercice " + an + " — " + effectifRatio(portee.n, bloc.nbTotal)) +
+        '<p class="multiples-vide">' + detail + ". Trop peu de sociétés publient un " +
+        esc(ratio.denom) + " ici pour en tirer une médiane de secteur.</p></section>";
+    }
+
+    const haut = Math.max.apply(null, portee.valeurs);
+    const part = (v) => Math.max(4, Math.round((v / haut) * 100));
+    const barres = bloc.lignes.filter((l) => l[ratio.cle] != null)
+      .sort((a, b) => b[ratio.cle] - a[ratio.cle])
+      .map((l, i) =>
+        '<div class="multiple-bar-row">' +
+        '<span class="multiple-bar-label" title="' + esc(l.nom) + '">' + esc(l.nom) + "</span>" +
+        '<span class="multiple-bar-track">' +
+        '<span class="multiple-bar-fill ' + ratio.tone + '" style="width:' +
+        part(l[ratio.cle]) + '%">' + esc(frMult(l[ratio.cle])) + "</span>" +
+        // Le trait traverse tout le graphique, mais ne porte sa légende qu'une
+        // fois : vingt « méd. » empilés feraient du bruit, pas de la lecture.
+        '<span class="multiple-bar-mediane' + (i ? " is-suite" : "") +
+        '" style="left:' + part(portee.mediane) + '%"></span>' +
+        "</span></div>").join("");
+
+    const droite = "exercice " + an + " — médiane " + frMult(portee.mediane) +
+      " sur " + effectifRatio(portee.n, bloc.nbTotal);
+    return '<section class="multiples-chart">' + tete(droite) +
+      '<div class="multiples-bars">' + barres + "</div></section>";
+  }
+
+  // La vue Calcul montre le numérateur et le dénominateur à côté du rapport :
+  // un multiple qu'on ne peut pas refaire de tête ne se vérifie pas. Les
+  // colonnes d'un ratio que personne ne publie ne sont pas dessinées.
+  function tableauMultiples(bloc, an) {
+    const cle = String(an);
+    const avec = RATIOS_MULT.map((ratio) => porteeRatio(bloc, ratio));
+    const nul = (t) => '<span class="cell-nul">' + t + "</span>";
+    const montant = (v) => (v == null ? nul("n. p.") : esc(frMontant(v)));
+    const rapport = (v) => (v == null ? nul("—") : esc(frMult(v)));
+
+    const entetes = ["Société", "Place", "VE"]
+      .concat(avec[0].n ? ["EBITDA " + an, "VE / EBITDA"] : [])
+      .concat(avec[1].n ? ["CA " + an, "VE / CA"] : []);
+
+    const corps = bloc.lignes.map((l) => {
+      const s = COMPARABLES[l.id] || {};
+      return "<tr><td>" + esc(l.nom) + "</td><td>" + esc(l.place || "hors cote") +
+        "</td><td>" + montant(l.ve) + "</td>" +
+        (avec[0].n ? "<td>" + montant((s.ebitda || {})[cle]) + "</td><td>" +
+                     rapport(l.veEbitda) + "</td>" : "") +
+        (avec[1].n ? "<td>" + montant((s.ca || {})[cle]) + "</td><td>" +
+                     rapport(l.veCa) + "</td>" : "") + "</tr>";
+    }).join("");
+
+    // La ligne de médiane ne remplit que les colonnes qui en supportent une :
+    // une case vide dit « pas assez de valeurs », un nombre dirait le contraire.
+    const ligneMediane = '<tr class="is-mediane"><td>Médiane</td><td></td><td></td>' +
+      (avec[0].n ? "<td></td><td>" + rapport(avec[0].mediane) + "</td>" : "") +
+      (avec[1].n ? "<td></td><td>" + rapport(avec[1].mediane) + "</td>" : "") + "</tr>";
+
+    const manquants = RATIOS_MULT
+      .map((ratio, i) => ({ ratio: ratio, portee: avec[i] }))
+      .filter((o) => o.portee.n < bloc.nbTotal)
+      .map((o) => o.ratio.titre + " : " + (o.portee.n
+        ? effectifRatio(o.portee.n, bloc.nbTotal)
+        : "aucune société"));
+
+    return '<table class="multiples-table"><thead><tr>' +
+      entetes.map((t) => "<th>" + esc(t) + "</th>").join("") +
+      "</tr></thead><tbody>" + corps + ligneMediane + "</tbody></table>" +
+      '<p class="multiples-note">VE = capitalisation boursière + dette totale, en ' +
+      "millions FCFA, exercice " + an + ". " +
+      (manquants.length
+        ? "Tous les comparables ne publient pas tout : " + esc(manquants.join(", ")) +
+          ". Les médianes ne portent que sur les sociétés renseignées, et ne sont " +
+          "calculées qu'au-delà de " + SEUIL + " valeurs. "
+        : "Tous les comparables retenus publient les deux dénominateurs. ") +
+      "Ces multiples servent la valorisation par comparables : ils n'entrent pas " +
+      "dans le coût du capital.</p>";
+  }
+
+  function chargerMultiples() {
+    const retenues = societesRetenues();
+    const membres = retenues.ids.map((id) => COMPARABLES[id]).filter(Boolean);
+    // Le même exercice de référence que la feuille « Sociétés » du classeur :
+    // l'écran et le fichier exporté doivent parler du même millésime.
+    const an = membres.length ? exerciceReference(membres) : null;
+    const graph = $("multiplesGraph");
+    const calc = $("multiplesCalc");
+
+    $("multiplesToggle").querySelectorAll("button").forEach((b) =>
+      b.classList.toggle("is-active", b.dataset.view === vueMultiples));
+    graph.hidden = vueMultiples !== "graph";
+    calc.hidden = vueMultiples !== "calc";
+
+    if (an == null) {
+      $("multiplesExercice").textContent = "";
+      const vide = '<p class="multiples-vide">Aucune société retenue sur ce cadrage : ' +
+        "il n'y a pas de multiple à calculer. Changez d'industrie, ou élargissez la zone.</p>";
+      graph.innerHTML = vide;
+      calc.innerHTML = vide;
+      return;
+    }
+
+    const bloc = multiplesParExercice(an);
+    $("multiplesExercice").textContent = retenues.stats.perimetre + " — exercice " +
+      an + " — " + bloc.nbTotal + (bloc.nbTotal > 1 ? " sociétés" : " société");
+    graph.innerHTML = '<div class="multiples-graph-wrap">' +
+      RATIOS_MULT.map((ratio) => graphiqueMultiple(ratio, bloc, an)).join("") + "</div>";
+    calc.innerHTML = tableauMultiples(bloc, an);
+  }
+
+  $("multiplesToggle").addEventListener("click", (e) => {
+    const bouton = e.target.closest("button[data-view]");
+    if (!bouton || bouton.dataset.view === vueMultiples) return;
+    vueMultiples = bouton.dataset.view;
+    chargerMultiples();
+  });
+
   // Un filet coloré sans légende est une énigme. Et quand la médiane a été
   // reprise sur un périmètre plus large, aucune carte de la liste n'est marquée :
   // il faut alors dire où sont passées les sociétés retenues plutôt que de
@@ -2803,11 +3206,6 @@
   const XL_THEME1 = "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?><a:theme xmlns:a=\"http://schemas.openxmlformats.org/drawingml/2006/main\" name=\"Office Theme\"><a:themeElements><a:clrScheme name=\"Office\"><a:dk1><a:sysClr val=\"windowText\" lastClr=\"000000\"/></a:dk1><a:lt1><a:sysClr val=\"window\" lastClr=\"FFFFFF\"/></a:lt1><a:dk2><a:srgbClr val=\"44546A\"/></a:dk2><a:lt2><a:srgbClr val=\"E7E6E6\"/></a:lt2><a:accent1><a:srgbClr val=\"4472C4\"/></a:accent1><a:accent2><a:srgbClr val=\"ED7D31\"/></a:accent2><a:accent3><a:srgbClr val=\"A5A5A5\"/></a:accent3><a:accent4><a:srgbClr val=\"FFC000\"/></a:accent4><a:accent5><a:srgbClr val=\"5B9BD5\"/></a:accent5><a:accent6><a:srgbClr val=\"70AD47\"/></a:accent6><a:hlink><a:srgbClr val=\"0563C1\"/></a:hlink><a:folHlink><a:srgbClr val=\"954F72\"/></a:folHlink></a:clrScheme><a:fontScheme name=\"Office\"><a:majorFont><a:latin typeface=\"Calibri Light\"/><a:ea typeface=\"\"/><a:cs typeface=\"\"/></a:majorFont><a:minorFont><a:latin typeface=\"Calibri\"/><a:ea typeface=\"\"/><a:cs typeface=\"\"/></a:minorFont></a:fontScheme><a:fmtScheme name=\"Office\"><a:fillStyleLst><a:solidFill><a:schemeClr val=\"phClr\"/></a:solidFill><a:solidFill><a:schemeClr val=\"phClr\"/></a:solidFill><a:solidFill><a:schemeClr val=\"phClr\"/></a:solidFill></a:fillStyleLst><a:lnStyleLst><a:ln w=\"6350\"><a:solidFill><a:schemeClr val=\"phClr\"/></a:solidFill></a:ln><a:ln w=\"12700\"><a:solidFill><a:schemeClr val=\"phClr\"/></a:solidFill></a:ln><a:ln w=\"19050\"><a:solidFill><a:schemeClr val=\"phClr\"/></a:solidFill></a:ln></a:lnStyleLst><a:effectStyleLst><a:effectStyle><a:effectLst/></a:effectStyle><a:effectStyle><a:effectLst/></a:effectStyle><a:effectStyle><a:effectLst/></a:effectStyle></a:effectStyleLst><a:bgFillStyleLst><a:solidFill><a:schemeClr val=\"phClr\"/></a:solidFill><a:solidFill><a:schemeClr val=\"phClr\"/></a:solidFill><a:solidFill><a:schemeClr val=\"phClr\"/></a:solidFill></a:bgFillStyleLst></a:fmtScheme></a:themeElements></a:theme>";
   const XL_FUSIONS = ["A1:E1", "A14:E14", "A20:E20", "A26:E26", "A33:E33"];
 
-  // Feuille « Sociétés » : une colonne par donnée, dans l'ordre où on la lit —
-  // l'identité, la taille, le levier, les bêtas, puis les comptes et les
-  // multiples qui en découlent.
-  const SOC_COLS = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N"];
-  const XL_COLS_SOC = [40, 10, 8, 17, 14, 12.5, 12.5, 9, 9, 15, 15, 11.5, 14, 11.5];
 
   // Index dans <cellXfs>, tel que les écrit xlStyles().
   const XL = {
@@ -3288,14 +3686,16 @@
   // sociétés, la médiane de chaque colonne, puis ce que le CMPC reprend de
   // cette médiane, cellule de la feuille WACC à l'appui. Les multiples d'EBITDA
   // sont là pour la valorisation par comparables : ils n'entrent pas dans le
-  // coût du capital, et la colonne le dit.
-
-  const mediane = (valeurs) => {
-    const v = valeurs.filter((n) => Number.isFinite(n)).sort((a, b) => a - b);
-    if (!v.length) return null;
-    const i = Math.floor(v.length / 2);
-    return v.length % 2 ? v[i] : (v[i - 1] + v[i]) / 2;
-  };
+  // coût du capital, et la ligne de report le dit.
+  //
+  // Le cadre suit l'information, et pas l'inverse. S&P ne publie pas d'EBITDA
+  // pour les banques ni les assureurs — la notion n'a pas de sens pour elles —
+  // si bien qu'un secteur de vingt comparables peut n'en compter qu'une qui en
+  // porte un, ou aucune. Les colonnes qui en dérivent sont donc retirées quand
+  // personne n'en publie, leurs médianes tues sous le seuil, et le multiple
+  // reporté annonce sur combien de sociétés il porte. Sans cela la feuille
+  // affichait « médiane de l'échantillon (20 sociétés) » au-dessus d'un multiple
+  // tiré d'une seule — et un #NUM! là où il n'y en avait aucune.
 
   // L'exercice de référence de la feuille : le plus récent qu'au moins la
   // moitié de l'échantillon documente. Prendre la dernière colonne de l'export
@@ -3322,50 +3722,106 @@
     const eb = (s) => (s.ebitda || {})[cle];
     const ve = (s) => s.capitalisation + s.dette;
 
+    // Combien de sociétés portent réellement un EBITDA à cet exercice. Tout ce
+    // qui en découle se règle sur ce nombre, jamais sur la taille de
+    // l'échantillon : c'est le même seuil que la page applique aux médianes de
+    // zone, pour la même raison — en deçà, la médiane serait cette société.
+    const avecEbitda = sample.filter((s) => eb(s) != null).length;
+    const multiples = avecEbitda >= SEUIL;
+
+    // Une colonne par donnée, dans l'ordre où on la lit — l'identité, la taille,
+    // le levier, les bêtas, puis les comptes et les multiples qui en découlent.
+    // Celles qui dérivent de l'EBITDA sortent du tableau quand personne n'en
+    // publie : un en-tête au-dessus de vingt cases vides est un cadre sans
+    // information, et non une donnée manquante.
+    const colonnes = [
+      { cle: "nom", entete: "Société", largeur: 40, sE: XL.entete, s: XL.socNom,
+        texte: (s) => s.nom },
+      { cle: "ticker", entete: "Ticker", largeur: 10, s: XL.socTexte,
+        texte: (s) => s.ticker || "" },
+      { cle: "place", entete: "Place", largeur: 8, s: XL.socTexte,
+        texte: (s) => s.place || "hors cote" },
+      { cle: "pays", entete: "Pays", largeur: 17, sE: XL.entete, s: XL.socNom,
+        texte: (s) => s.pays },
+      { cle: "capi", entete: "Capitalisation", largeur: 14, s: XL.socMontant,
+        sM: XL.medMontant, valeur: (s) => s.capitalisation },
+      { cle: "dette", entete: "Dette totale", largeur: 12.5, s: XL.socMontant,
+        sM: XL.medMontant, valeur: (s) => s.dette },
+      { cle: "de", entete: "Dette / capi (D/E)", largeur: 12.5, s: XL.socNum2,
+        sM: XL.medNum2,
+        valeur: (s) => (s.capitalisation ? s.dette / s.capitalisation : null),
+        formule: (s, r, L) => L.dette + r + "/" + L.capi + r },
+      { cle: "beta1", entete: "Bêta 1 an", largeur: 9, s: XL.socNum3, sM: XL.medNum3,
+        valeur: (s) => s.beta_1an },
+      { cle: "beta3", entete: "Bêta 3 ans", largeur: 9, s: XL.socNum3, sM: XL.medNum3,
+        valeur: (s) => s.beta_3ans },
+      { cle: "ca", entete: "Chiffre d'affaires " + an, largeur: 15, s: XL.socMontant,
+        sM: XL.medMontant, valeur: ca },
+      { cle: "ebitda", entete: "EBITDA " + an, largeur: 15, s: XL.socMontant,
+        sM: XL.medMontant, valeur: eb, ebitda: true },
+      { cle: "marge", entete: "Marge d'EBITDA", largeur: 11.5, s: XL.socPct1,
+        sM: XL.medPct1, ebitda: true,
+        valeur: (s) => (ca(s) && eb(s) != null ? eb(s) / ca(s) : null),
+        formule: (s, r, L) => (ca(s) && eb(s) != null ? L.ebitda + r + "/" + L.ca + r : null) },
+      { cle: "ve", entete: "VE " + an, largeur: 14, s: XL.socMontant, sM: XL.medMontant,
+        valeur: ve, formule: (s, r, L) => L.capi + r + "+" + L.dette + r },
+      { cle: "mult", entete: "VE / EBITDA", largeur: 11.5, s: XL.socMult,
+        sM: XL.medMult, ebitda: true,
+        valeur: (s) => (eb(s) > 0 ? ve(s) / eb(s) : null),
+        formule: (s, r, L) => (eb(s) > 0 ? L.ve + r + "/" + L.ebitda + r : null) },
+    ].filter((c) => avecEbitda > 0 || !c.ebitda);
+
+    // Les lettres sont attribuées après le filtrage, et les formules les lisent
+    // par clé : retirer une colonne ne décale rien à la main.
+    const LETTRES = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+    const L = {};
+    colonnes.forEach((c, i) => { c.col = LETTRES[i]; L[c.cle] = c.col; });
+    const cols = colonnes.map((c) => c.col);
+    const fin = cols[cols.length - 1];
+
     const lignes = [];
-    const fusions = ["A1:N1", "A2:N2"];
+    const fusions = ["A1:" + fin + "1", "A2:" + fin + "2"];
 
     lignes.push(bandeauXl(1, "COMPARABLES DU SECTEUR — " + x.objet + ", " + info.perimetre,
-                          XL.bandeau, SOC_COLS));
+                          XL.bandeau, cols));
+
+    // La note chiffre séparément l'effectif de l'échantillon et celui qui porte
+    // un EBITDA : les deux diffèrent dès qu'un secteur mêle des modèles
+    // comptables, et les confondre ferait décrire une population en en
+    // chiffrant une autre.
     const note = "Les " + sample.length + " sociétés qui produisent les médianes du CMPC : " +
       (info.total > sample.length
         ? "les plus grosses capitalisations des " + info.total + " du périmètre retenu, " + info.perimetre
         : "tout le périmètre retenu, " + info.perimetre) +
       ". Montants en millions FCFA, exercice " + an + ". VE = capitalisation boursière + dette totale. " +
-      "S&P ne publie pas d'EBITDA pour les banques et les assureurs : leurs multiples restent vides.";
-    lignes.push({ r: 2, ht: 26, cellules: SOC_COLS.map((col, i) =>
+      (avecEbitda === 0
+        ? "Aucune ne publie d'EBITDA à cet exercice — S&P n'en publie ni pour les banques ni pour les assureurs : " +
+          "les colonnes qui en dérivent sont retirées plutôt que laissées vides."
+        : (avecEbitda < sample.length
+            ? "EBITDA publié pour " + avecEbitda + " d'entre elles seulement : la marge et le multiple ne portent que sur celles-là. "
+            : "Toutes publient un EBITDA à cet exercice. ") +
+          (multiples ? "" : "Moins de " + SEUIL + " valeurs : aucune médiane n'en est tirée, elle décrirait ces sociétés et non le secteur."));
+    lignes.push({ r: 2, ht: 26, cellules: cols.map((col, i) =>
       i === 0 ? { col: col, s: XL.socNote, texte: note } : { col: col, s: XL.socNote }) });
 
-    const entetes = ["Société", "Ticker", "Place", "Pays", "Capitalisation", "Dette totale",
-      "Dette / capi (D/E)", "Bêta 1 an", "Bêta 3 ans", "Chiffre d'affaires " + an,
-      "EBITDA " + an, "Marge d'EBITDA", "VE " + an, "VE / EBITDA"];
-    lignes.push({ r: 4, ht: 26, cellules: entetes.map((t, i) => ({
-      col: SOC_COLS[i], s: i === 0 || i === 3 ? XL.entete : XL.enteteCentre, texte: t })) });
+    lignes.push({ r: 4, ht: 26, cellules: colonnes.map((c) => ({
+      col: c.col, s: c.sE || XL.enteteCentre, texte: c.entete })) });
 
     const PREMIERE = 5;
     sample.forEach((s, i) => {
       const r = PREMIERE + i;
-      const c = ca(s);
-      const e = eb(s);
-      lignes.push({ r: r, cellules: [
-        { col: "A", s: XL.socNom, texte: s.nom },
-        { col: "B", s: XL.socTexte, texte: s.ticker || "" },
-        { col: "C", s: XL.socTexte, texte: s.place || "hors cote" },
-        { col: "D", s: XL.socNom, texte: s.pays },
-        { col: "E", s: XL.socMontant, valeur: s.capitalisation },
-        { col: "F", s: XL.socMontant, valeur: s.dette },
-        { col: "G", s: XL.socNum2, formule: "F" + r + "/E" + r,
-          valeur: s.capitalisation ? s.dette / s.capitalisation : null },
-        { col: "H", s: XL.socNum3, valeur: s.beta_1an },
-        { col: "I", s: XL.socNum3, valeur: s.beta_3ans },
-        { col: "J", s: XL.socMontant, valeur: c == null ? null : c },
-        { col: "K", s: XL.socMontant, valeur: e == null ? null : e },
-        { col: "L", s: XL.socPct1, formule: c && e != null ? "K" + r + "/J" + r : null,
-          valeur: c && e != null ? e / c : null },
-        { col: "M", s: XL.socMontant, formule: "E" + r + "+F" + r, valeur: ve(s) },
-        { col: "N", s: XL.socMult, formule: e > 0 ? "M" + r + "/K" + r : null,
-          valeur: e > 0 ? ve(s) / e : null },
-      ] });
+      lignes.push({ r: r, cellules: colonnes.map((c) => {
+        const cellule = { col: c.col, s: c.s };
+        if (c.texte) {
+          cellule.texte = c.texte(s);
+          return cellule;
+        }
+        const f = c.formule ? c.formule(s, r, L) : null;
+        const v = c.valeur(s);
+        if (f) cellule.formule = f;
+        if (Number.isFinite(v)) cellule.valeur = v;
+        return cellule;
+      }) });
     });
 
     // La médiane est écrite en formule sur la plage juste au-dessus : qui
@@ -3373,49 +3829,45 @@
     // ce qu'une valeur figée ne dirait pas.
     const derniere = PREMIERE + sample.length - 1;
     const m = derniere + 1;
-    const plage = (col) => "MEDIAN(" + col + PREMIERE + ":" + col + derniere + ")";
-    const colDE = sample.map((s) => s.capitalisation ? s.dette / s.capitalisation : null);
-    const colMarge = sample.map((s) => (ca(s) && eb(s) != null ? eb(s) / ca(s) : null));
-    const colMult = sample.map((s) => (eb(s) > 0 ? ve(s) / eb(s) : null));
-    const medBeta = mediane(sample.map((s) => s.beta_3ans));
-    const medDE = mediane(colDE);
-    const medMult = mediane(colMult);
+    const med = {};
+    colonnes.forEach((c) => {
+      if (c.valeur) med[c.cle] = mediane(sample.map((s) => c.valeur(s)));
+    });
 
-    lignes.push({ r: m, cellules: [
-      { col: "A", s: XL.medL, texte: "Médiane de l'échantillon (" + sample.length +
-        (sample.length > 1 ? " sociétés)" : " société)") },
-      { col: "B", s: XL.medL }, { col: "C", s: XL.medL }, { col: "D", s: XL.medL },
-      { col: "E", s: XL.medMontant, formule: plage("E"), valeur: mediane(sample.map((s) => s.capitalisation)) },
-      { col: "F", s: XL.medMontant, formule: plage("F"), valeur: mediane(sample.map((s) => s.dette)) },
-      { col: "G", s: XL.medNum2, formule: plage("G"), valeur: medDE },
-      { col: "H", s: XL.medNum3, formule: plage("H"), valeur: mediane(sample.map((s) => s.beta_1an)) },
-      { col: "I", s: XL.medNum3, formule: plage("I"), valeur: medBeta },
-      { col: "J", s: XL.medMontant, formule: plage("J"), valeur: mediane(sample.map(ca)) },
-      { col: "K", s: XL.medMontant, formule: plage("K"), valeur: mediane(sample.map(eb)) },
-      { col: "L", s: XL.medPct1, formule: plage("L"), valeur: mediane(colMarge) },
-      { col: "M", s: XL.medMontant, formule: plage("M"), valeur: mediane(sample.map(ve)) },
-      { col: "N", s: XL.medMult, formule: plage("N"), valeur: medMult },
-    ] });
+    lignes.push({ r: m, cellules: colonnes.map((c, i) => {
+      if (!c.valeur) {
+        return i === 0
+          ? { col: c.col, s: XL.medL, texte: "Médiane de l'échantillon (" + sample.length +
+              (sample.length > 1 ? " sociétés)" : " société)") }
+          : { col: c.col, s: XL.medL };
+      }
+      // MEDIAN() sur une plage vide rend #NUM!, et sur une seule valeur rend
+      // cette valeur en la faisant passer pour une médiane de secteur : sous
+      // le seuil, la cellule reste vide et le bas de feuille dit pourquoi.
+      if (c.ebitda && !multiples) return { col: c.col, s: c.sM };
+      return { col: c.col, s: c.sM, valeur: med[c.cle],
+               formule: "MEDIAN(" + c.col + PREMIERE + ":" + c.col + derniere + ")" };
+    }) });
 
     // Report vers le CMPC. Le libellé court sur A:D, la valeur tient en E et le
-    // commentaire sur F:N — la seule mise en page où la phrase se lit en entier
-    // sans écraser le tableau au-dessus.
+    // commentaire jusqu'à la dernière colonne — la seule mise en page où la
+    // phrase se lit en entier sans écraser le tableau au-dessus.
     const bandeau = m + 2;
-    fusions.push("A" + bandeau + ":N" + bandeau);
+    fusions.push("A" + bandeau + ":" + fin + bandeau);
     lignes.push(bandeauXl(bandeau, "VALEURS REPRISES DANS LE CALCUL DU CMPC",
-                          XL.bandeauSynthese, SOC_COLS));
+                          XL.bandeauSynthese, cols));
 
     let ligne = bandeau;
     const report = (libelle, o) => {
       ligne++;
-      fusions.push("A" + ligne + ":D" + ligne, "F" + ligne + ":N" + ligne);
-      const cellules = SOC_COLS.slice(0, 4).map((col, i) =>
+      fusions.push("A" + ligne + ":D" + ligne, "F" + ligne + ":" + fin + ligne);
+      const cellules = cols.slice(0, 4).map((col, i) =>
         i === 0 ? { col: col, s: XL.reportL, texte: libelle } : { col: col, s: XL.reportL });
       const valeur = { col: "E", s: o.s };
       if (o.formule) valeur.formule = o.formule;
       if (Number.isFinite(o.valeur)) valeur.valeur = o.valeur;
       cellules.push(valeur);
-      SOC_COLS.slice(5).forEach((col, i) =>
+      cols.slice(5).forEach((col, i) =>
         cellules.push(i === 0 ? { col: col, s: XL.reportC, texte: o.commentaire }
                               : { col: col, s: XL.reportC }));
       lignes.push({ r: ligne, ht: 24, cellules: cellules });
@@ -3423,7 +3875,7 @@
     };
 
     const rBeta = report("Bêta (3 ans) médian de l'échantillon (βL)", {
-      s: XL.reportNum3, formule: "I" + m, valeur: medBeta,
+      s: XL.reportNum3, formule: L.beta3 + m, valeur: med.beta3,
       commentaire: info.relevable
         ? "Endetté au levier de l'échantillon : il est désendetté deux lignes plus bas avant d'entrer dans le CMPC"
         : "Levier de l'échantillon non publié : reporté tel quel en WACC!C6, sans ré-endettement" });
@@ -3431,12 +3883,12 @@
     let rDE = null;
     if (info.relevable) {
       rDE = report("Gearing médian de l'échantillon (D/E)", {
-        s: XL.reportNum2, formule: "G" + m, valeur: medDE,
+        s: XL.reportNum2, formule: L.de + m, valeur: med.de,
         commentaire: "Médiane de la colonne Dette / capitalisation ci-dessus" });
       report("Bêta désendetté βu = βL / (1 + (1 − t) × D/E)", {
         s: XL.reportNum3,
         formule: "E" + rBeta + "/(1+(1-WACC!C7)*E" + rDE + ")",
-        valeur: medBeta / (1 + (1 - x.tax) * medDE),
+        valeur: med.beta3 / (1 + (1 - x.tax) * med.de),
         commentaire: "Reporté en WACC!C6 — t est le taux d'IS lu sur la feuille WACC" });
     }
 
@@ -3450,22 +3902,41 @@
         ? "Gearing cible posé dans la page"
         : "Gearing médian de l'échantillon") + " — reporté en WACC!C8" });
 
-    report("VE / EBITDA médian de l'échantillon", {
-      s: XL.reportMult, formule: "N" + m, valeur: medMult,
-      commentaire: "Multiple observé sur les comparables — repère de valorisation, il n'entre pas dans le CMPC" });
+    // Les deux lignes d'EBITDA portent leur propre effectif : c'est la seule
+    // façon de ne pas laisser lire un multiple d'une société comme un multiple
+    // de secteur. Elles disparaissent avec les colonnes dont elles dépendent.
+    if (avecEbitda > 0) {
+      const porte = avecEbitda + (avecEbitda > 1 ? " sociétés" : " société") +
+        " sur " + sample.length;
+      const trop_peu = "Seulement " + porte + " publient un EBITDA — sous " + SEUIL +
+        ", la médiane décrirait ces sociétés et non le secteur : elle n'est pas calculée";
 
-    report("Marge d'EBITDA médiane", {
-      s: XL.reportPct1, formule: "L" + m, valeur: mediane(colMarge),
-      commentaire: "Sur les seules sociétés dont S&P publie un EBITDA" });
+      report("VE / EBITDA médian (" + porte + ")", {
+        s: XL.reportMult,
+        formule: multiples ? L.mult + m : null,
+        valeur: multiples ? med.mult : null,
+        commentaire: multiples
+          ? "Multiple observé sur les comparables — repère de valorisation, il n'entre pas dans le CMPC"
+          : trop_peu });
 
-    return { lignes: lignes, fusions: fusions };
+      report("Marge d'EBITDA médiane (" + porte + ")", {
+        s: XL.reportPct1,
+        formule: multiples ? L.marge + m : null,
+        valeur: multiples ? med.marge : null,
+        commentaire: multiples
+          ? "Sur les seules sociétés dont S&P publie un EBITDA"
+          : trop_peu });
+    }
+
+    return { lignes: lignes, fusions: fusions,
+             largeurs: colonnes.map((c) => c.largeur) };
   }
 
-  function classeurXlsx(x) {
+  function classeurXlsx(x, avecSocietes) {
     const chaines = xlChaines();
     const feuilleWacc = xlFeuille(lignesClasseur(x), XL_COLS, XL_FUSIONS, chaines);
-    const soc = lignesSocietes(x);
-    const feuilleSoc = soc ? xlFeuille(soc.lignes, XL_COLS_SOC, soc.fusions, chaines) : null;
+    const soc = avecSocietes ? lignesSocietes(x) : null;
+    const feuilleSoc = soc ? xlFeuille(soc.lignes, soc.largeurs, soc.fusions, chaines) : null;
     const onglets = feuilleSoc ? ["WACC", "Sociétés"] : ["WACC"];
     const titre = "CMPC " + x.objet + ", " + params.country;
     const horodatage = new Date().toISOString().replace(/\.\d{3}Z$/, "Z");
@@ -3553,10 +4024,32 @@
       .replace(/[\\/:*?"<>|]/g, "").replace(/\s+/g, "_");
   }
 
-  function telechargerClasseur() {
+  // La question ne se pose que s'il y a une feuille à joindre : sous le
+  // référentiel Damodaran, ou sur un cadrage sans comparable, il n'y a rien à
+  // inclure et poser la question ferait choisir entre une réponse et rien.
+  function exportProposable() {
+    const x = chiffresClasseur();
+    return Boolean(x && lignesSocietes(x));
+  }
+
+  function ouvrirExport() {
+    if (!exportProposable()) {
+      telechargerClasseur(false);
+      return;
+    }
+    $("exportFond").hidden = false;
+    $("exportOui").focus();
+  }
+
+  function fermerExport() {
+    $("exportFond").hidden = true;
+    $("telecharger").focus();
+  }
+
+  function telechargerClasseur(avecSocietes) {
     const x = chiffresClasseur();
     if (!x) return;
-    const url = URL.createObjectURL(classeurXlsx(x));
+    const url = URL.createObjectURL(classeurXlsx(x, avecSocietes));
     const lien = document.createElement("a");
     lien.href = url;
     lien.download = nomClasseur(x);
@@ -3577,9 +4070,24 @@
     bouton.title = possible
       ? "Télécharger le calcul au format Excel"
       : "Le CMPC n'est pas calculable avec ces paramètres";
+    // Un changement de cadrage sous la boîte ouverte la laisserait poser une
+    // question sur un calcul qui n'existe plus.
+    if (!possible) $("exportFond").hidden = true;
   }
 
-  $("telecharger").addEventListener("click", telechargerClasseur);
+  $("telecharger").addEventListener("click", ouvrirExport);
+  $("exportOui").addEventListener("click", () => { fermerExport(); telechargerClasseur(true); });
+  $("exportNon").addEventListener("click", () => { fermerExport(); telechargerClasseur(false); });
+  $("exportAnnuler").addEventListener("click", fermerExport);
+
+  // Le fond ferme, la boîte non : sans cette coupure, tout clic sur un bouton
+  // remonterait au fond et annulerait l'export qu'on vient de demander.
+  $("exportFond").addEventListener("click", (e) => {
+    if (e.target === $("exportFond")) fermerExport();
+  });
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape" && !$("exportFond").hidden) fermerExport();
+  });
 
   /* ================= Paramètres et URL ================= */
   function setParam(key, value) {
