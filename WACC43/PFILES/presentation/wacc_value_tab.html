@@ -112,7 +112,11 @@
     font: 400 11.5px/1.4 var(--mono);
     color: var(--muted);
   }
-  .tabs { display: flex; gap: 26px; }
+  /* Les onglets se replient plutôt que de pousser la page : depuis le
+     cinquième, ils ne tiennent plus sur une ligne étroite, et un débordement
+     horizontal ferait glisser toute la mise en page sous le doigt. Le gap de
+     colonne reste celui d'origine — rien ne bouge tant qu'il y a la place. */
+  .tabs { display: flex; flex-wrap: wrap; gap: 10px 26px; }
   .tabs button {
     font: 400 13px/1 var(--sans);
     color: var(--muted);
@@ -989,7 +993,7 @@
   }
   .v4-etincelle path { stroke: var(--accent-chip); stroke-width: 1.6; stroke-linecap: round; }
 
-  .aide { max-width: 900px; margin: 0 auto; padding: 34px 32px 100px; display: grid; gap: 28px; }
+  .aide { max-width: 1060px; margin: 0 auto; padding: 34px 32px 100px; display: grid; gap: 28px; }
   .aide-hero {
     display: grid; grid-template-columns: auto 1fr; gap: 22px; align-items: center;
     background: var(--surface); border: 1px solid var(--line); border-radius: 12px;
@@ -999,7 +1003,14 @@
   .aide-hero h1 { margin: 0 0 6px; font: 500 17px/1.3 var(--sans); color: var(--ink); }
   .aide-hero p { margin: 0; font: 400 13px/1.6 var(--sans); color: var(--muted); max-width: 48ch; text-wrap: pretty; }
 
-  .aide-etapes { list-style: none; margin: 0; padding: 0; display: grid; gap: 12px; }
+  /* Deux cartes par ligne : les huit repères tiennent alors sous les yeux sans
+     défilement, ce qu'une colonne unique ne permettait pas. Les cartes d'une
+     même ligne s'étirent à la hauteur de la plus haute — sans quoi les textes
+     inégaux laisseraient des marches. */
+  .aide-etapes {
+    list-style: none; margin: 0; padding: 0;
+    display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px;
+  }
   .aide-etape {
     display: grid; grid-template-columns: 22px 52px 1fr; gap: 16px; align-items: start;
     background: var(--surface); border: 1px solid var(--line); border-radius: 10px;
@@ -1014,8 +1025,24 @@
     border: 1px solid var(--line); display: grid; place-items: center; flex-shrink: 0;
   }
   .aide-icon svg { width: 30px; height: 30px; overflow: visible; }
-  .aide-etape h2 { margin: 0 0 4px; font: 500 13.5px/1.35 var(--sans); color: var(--ink); }
+  .aide-etape h2 { margin: 0 0 2px; font: 500 13.5px/1.35 var(--sans); color: var(--ink); }
+  /* Ou trouver la commande, en toutes lettres : sans cette ligne le guide
+     decrit un reglage sans dire ou l'on clique. */
+  .aide-ou {
+    display: block; margin: 0 0 7px;
+    font: 400 10px/1.4 var(--mono); letter-spacing: 0.03em; color: var(--accent);
+  }
+  .aide-etape ul {
+    list-style: disc; margin: 7px 0 0; padding: 0 0 0 15px;
+    display: grid; gap: 5px;
+  }
+  .aide-etape li { font: 400 12.5px/1.55 var(--sans); color: var(--muted); text-wrap: pretty; }
+  .aide-etape li::marker { color: var(--muted-2); }
+  .aide-etape strong { color: var(--ink-3); font-weight: 500; }
   .aide-etape p { margin: 0; font: 400 12.5px/1.6 var(--sans); color: var(--muted); text-wrap: pretty; }
+  /* Deux paragraphes qui se suivent, ou un paragraphe apres une liste :
+     sans cet ecart ils se lisent comme une seule coulee de texte. */
+  .aide-etape p + p, .aide-etape ul + p { margin-top: 8px; }
 
   .aide-note {
     display: grid; grid-template-columns: auto 1fr; gap: 20px; align-items: center;
@@ -1241,6 +1268,8 @@
     .frame-col { height: auto; min-height: 420px; }
     .frame-arrow { display: none; }
     .result { position: static; }
+    .aide { max-width: 100%; }
+    .aide-etapes { grid-template-columns: 1fr; }
     .aide-hero { grid-template-columns: 1fr; text-align: center; justify-items: center; }
     .aide-etape { grid-template-columns: 1fr; text-align: center; justify-items: center; }
     .aide-note { grid-template-columns: 1fr; text-align: center; justify-items: center; }
@@ -1329,8 +1358,7 @@
       </svg>
       <div>
         <h1>Comment utiliser l'outil ?</h1>
-        <p>Huit repères pour aller du secteur à valoriser jusqu'au CMPC retenu, et
-        au classeur qui le documente.</p>
+        <p>Ce que fait chaque réglage, et où le trouver à l'écran.</p>
       </div>
     </section>
 
@@ -1349,16 +1377,36 @@
         </svg></span>
         <div>
           <h2>Choisir un référentiel</h2>
-          <p><strong>Damodaran</strong> s'appuie sur des tables sectorielles régionalisées
-          (bêta désendetté, spread de dette, D/E). <strong>Comparables</strong> calcule un
-          bêta médian sur un échantillon de sociétés réellement cotées dans le secteur
-          choisi, mis à jour à chaque construction de la page. Le choix se fait en haut
-          de l'onglet Paramètres.</p>
+          <span class="aide-ou">Paramètres › Contexte de marché</span>
+          <p>Deux façons d'obtenir le bêta, c'est-à-dire le risque du secteur.</p>
+          <ul>
+            <li><strong>Damodaran</strong> : des moyennes de secteur publiées une fois par an.</li>
+            <li><strong>Comparables</strong> : le bêta calculé sur de vraies sociétés cotées. Ce
+            choix fait apparaître deux onglets de plus, Sociétés et Comparables.</li>
+          </ul>
         </div>
       </li>
 
       <li class="aide-etape">
         <span class="aide-num">2</span>
+        <span class="aide-icon"><svg viewBox="0 0 40 40" fill="none" aria-hidden="true">
+          <path d="M11 6v28" class="v4-trait"/>
+          <path d="M11 9h18l-4 5.5 4 5.5H11z" class="v4-accent-fill"/>
+          <circle cx="11" cy="33" r="1.8" class="v4-plein"/>
+        </svg></span>
+        <div>
+          <h2>Dire quel pays vous valorisez</h2>
+          <span class="aide-ou">Paramètres › Cadrage › Pays de valorisation</span>
+          <p>Ce menu sert à trois choses : la prime de risque du pays, le taux d'impôt,
+          et la devise du résultat.</p>
+          <p>Il ne choisit pas les sociétés comparées. C'est le réglage suivant qui s'en
+          occupe : on peut valoriser une société ivoirienne avec des comparables du monde
+          entier.</p>
+        </div>
+      </li>
+
+      <li class="aide-etape">
+        <span class="aide-num">3</span>
         <span class="aide-icon"><svg viewBox="0 0 40 40" fill="none" aria-hidden="true">
           <circle cx="18" cy="20" r="13" class="v4-corps"/>
           <path d="M8 15c4 3 5 8 4 12M20 7c-1 5 1 10 4 13" class="v4-trait" stroke-width="1.1"/>
@@ -1366,48 +1414,46 @@
           <circle cx="27.5" cy="19.4" r="1.5" fill="var(--surface)"/>
         </svg></span>
         <div>
-          <h2>Cadrer la géographie</h2>
-          <p>Le pays valorisé porte le taux souverain et le taux d'impôt : lui seul fixe
-          la devise du CMPC. Le continent et la zone ne concernent que l'échantillon de
-          comparables et peuvent s'élargir sans changer de pays — la carte montre où
-          l'échantillon retenu est réellement coté.</p>
-        </div>
-      </li>
-
-      <li class="aide-etape">
-        <span class="aide-num">3</span>
-        <span class="aide-icon"><svg viewBox="0 0 40 40" fill="none" aria-hidden="true">
-          <rect x="10" y="18" width="20" height="15" rx="3" class="v4-corps"/>
-          <path d="M14.5 18v-4a5.5 5.5 0 0 1 11 0v4" class="v4-trait"/>
-          <circle cx="20" cy="25" r="2" class="v4-accent-point"/>
-          <path d="M20 27v2.6" class="v4-accent-line" stroke-width="1.6"/>
-        </svg></span>
-        <div>
-          <h2>Ajuster le gearing</h2>
-          <p>Le CMPC part sur le gearing médian observé, cadenas fermé. L'ouvrir permet
-          de saisir un poids de dette cible : le bêta est alors désendetté puis
-          ré-endetté à ce niveau (formule de Hamada) pour refléter une structure
-          financière différente de celle de l'échantillon.</p>
+          <h2>Choisir où chercher les comparables</h2>
+          <span class="aide-ou">Paramètres › Contexte de marché, puis Cadrage</span>
+          <p>Trois réglages, du plus large au plus précis :</p>
+          <ul>
+            <li><strong>Continent</strong> : menu déroulant, dans le premier cadre.
+            « Tous » ne filtre rien.</li>
+            <li><strong>Zone</strong> : il n'y a pas de menu. <strong>Cliquez directement sur
+            la carte</strong>, sur la région voulue. Elle se colore. Un second clic dessus
+            annule le choix et revient au continent entier.</li>
+            <li><strong>Industrie</strong> : menu déroulant, sous la carte.</li>
+          </ul>
+          <p>Les pastilles au-dessus de la carte disent sur quelles bourses les sociétés
+          trouvées sont cotées.</p>
         </div>
       </li>
 
       <li class="aide-etape">
         <span class="aide-num">4</span>
         <span class="aide-icon"><svg viewBox="0 0 40 40" fill="none" aria-hidden="true">
-          <path d="M8 17l12-8 12 8z" class="v4-corps"/>
-          <rect x="8" y="17" width="24" height="12" fill="var(--surface)" stroke="var(--ink-4)" stroke-width="1.5"/>
-          <path d="M13 19.5v7.5M20 19.5v7.5M27 19.5v7.5" class="v4-trait" stroke-width="1.2"/>
-          <path d="M7 30h26" class="v4-trait" stroke-width="1.5"/>
-          <g transform="translate(21 20.5)">
-            <rect x="0" y="3.4" width="10.5" height="8" rx="1.8" class="v4-accent-fill"/>
-            <path d="M2.2 3.4v-1.8a3.1 3.1 0 0 1 6.1 0v1.8" stroke="var(--accent)" stroke-width="1.3" stroke-linecap="round" fill="none"/>
-          </g>
+          <rect x="4" y="19" width="14" height="12" rx="2.6" class="v4-corps"/>
+          <path d="M7.4 19v-3.2a3.6 3.6 0 0 1 7.2 0V19" class="v4-trait"/>
+          <circle cx="11" cy="24.6" r="1.5" class="v4-plein"/>
+          <rect x="22" y="19" width="14" height="12" rx="2.6" class="v4-accent-fill"/>
+          <path d="M25.4 19v-3.2a3.6 3.6 0 0 1 6.5-2.1" stroke="var(--accent)" stroke-width="1.5" stroke-linecap="round" fill="none"/>
+          <circle cx="29" cy="24.6" r="1.5" class="v4-accent-point"/>
+          <path d="M19 25h2.4" class="v4-trait" stroke-width="1.3"/>
         </svg></span>
         <div>
-          <h2>Cibler une place de cotation</h2>
-          <p>Même cadenas, sur l'onglet Sociétés : cliquer une place restreint la médiane
-          à cette seule bourse. Utile quand deux filiales d'un même groupe cotent sur le
-          même marché et doivent peser ensemble dans le calcul.</p>
+          <h2>Les deux cadenas</h2>
+          <span class="aide-ou">À droite du résultat, et au-dessus de la carte</span>
+          <p>Même principe aux deux endroits. <strong>Fermé</strong> : l'outil garde ce
+          qu'il observe. <strong>Ouvert</strong> : c'est vous qui décidez.</p>
+          <ul>
+            <li><strong>Le gearing</strong>, dans le panneau de droite. Fermé (« Observé »),
+            il prend le niveau de dette médian du secteur. Ouvert (« Cible »), vous tapez
+            votre propre part de dette, en pourcentage.</li>
+            <li><strong>La place de cotation</strong>, au-dessus de la carte. Fermé
+            (« Toutes »), toutes les bourses comptent. Ouvert (« Focus »), cliquez une
+            pastille pour ne garder que cette bourse-là.</li>
+          </ul>
         </div>
       </li>
 
@@ -1421,10 +1467,11 @@
           <circle cx="26" cy="21" r="1.6" class="v4-accent-point"/>
         </svg></span>
         <div>
-          <h2>Lire la cascade du CMPC</h2>
-          <p>L'onglet CMPC déplie chaque composante — coût des fonds propres, coût de
-          la dette, pondération — en cartes qui portent leur méthodologie et leur source.
-          Aucun nombre n'est un résultat brut : chacun se retrace jusqu'à d'où il vient.</p>
+          <h2>Ce que contient l'onglet CMPC</h2>
+          <span class="aide-ou">Onglet CMPC</span>
+          <p>Le calcul détaillé, en quatre cartes : coût des fonds propres, coût de la
+          dette, pondération entre les deux, puis le taux final. Chaque carte s'ouvre au
+          clic sur ses chiffres intermédiaires et ses sources.</p>
         </div>
       </li>
 
@@ -1438,11 +1485,11 @@
           <circle cx="30.5" cy="25.6" r="2" class="v4-accent-point"/>
         </svg></span>
         <div>
-          <h2>Explorer les sociétés retenues</h2>
-          <p>L'onglet Sociétés liste l'échantillon qui produit la médiane, capitalisation
-          décroissante. Un filet coloré marque celles réellement utilisées quand la
-          médiane a été reprise sur un périmètre plus large ; chaque carte s'ouvre sur les
-          comptes et les bêtas de la société.</p>
+          <h2>Ce que contient l'onglet Sociétés</h2>
+          <span class="aide-ou">Onglet Sociétés — référentiel Comparables</span>
+          <p>La liste des sociétés qui servent au calcul, de la plus grosse à la plus
+          petite. Une carte par société : pays, bourse, bêta, capitalisation, dette, et les
+          comptes des quatre derniers exercices.</p>
         </div>
       </li>
 
@@ -1456,11 +1503,11 @@
           <path d="M8 18.6h25" class="v4-accent-tirets"/>
         </svg></span>
         <div>
-          <h2>Comparer les multiples</h2>
-          <p>L'onglet Comparables calcule VE / EBITDA et VE / CA sur ce même échantillon,
-          en millions FCFA, en graphique ou en détail du calcul. Ces multiples ne
-          participent pas au CMPC : ils servent une valorisation complémentaire, par
-          comparables boursiers.</p>
+          <h2>Ce que contient l'onglet Comparables</h2>
+          <span class="aide-ou">Onglet Comparables — référentiel Comparables</span>
+          <p>Les multiples de valorisation des mêmes sociétés : VE / EBITDA et VE / CA.
+          En barres, ou en tableau détaillé si vous cliquez le bloc. Avec le minimum, la
+          moyenne, la médiane et le maximum.</p>
         </div>
       </li>
 
@@ -1473,10 +1520,12 @@
           <path d="M14.8 11.4L20 16.6l5.2-5.2" class="v4-accent-line" stroke-width="1.8"/>
         </svg></span>
         <div>
-          <h2>Exporter le calcul</h2>
-          <p>Le bouton flèche restitue tout dans un classeur Excel : formules vivantes,
-          recalculées à l'ouverture, avec une feuille Sociétés optionnelle qui reprend
-          l'échantillon dans un gabarit prêt à circuler.</p>
+          <h2>Télécharger le fichier Excel</h2>
+          <span class="aide-ou">La flèche, en haut à droite de la page</span>
+          <p>Une question s'affiche : joindre ou non la feuille des comparables. Répondez,
+          le fichier se télécharge.</p>
+          <p>Le classeur contient les formules, pas seulement les résultats : vous pouvez
+          changer une valeur dans Excel et tout se recalcule.</p>
         </div>
       </li>
     </ol>
@@ -1508,11 +1557,10 @@
         </g>
       </svg>
       <div>
-        <h2>Un écran vide n'est pas une panne</h2>
-        <p>Quand un secteur ou une zone ne comptent aucune société, ce même personnage
-        l'annonce plutôt que de laisser un tableau muet. Le CMPC reste souvent
-        calculable : le message dit alors sur quel périmètre plus large la médiane a
-        été reprise.</p>
+        <h2>Si cet écran apparaît, ce n'est pas une panne</h2>
+        <p>Il s'affiche quand aucune société ne correspond à votre sélection : essayez un
+        autre secteur, ou une zone plus large. Le CMPC est souvent calculé quand même,
+        sur un périmètre plus large — le message vous dit lequel.</p>
       </div>
     </section>
   </div>

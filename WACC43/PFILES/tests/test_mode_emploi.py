@@ -54,17 +54,42 @@ def test_les_fonctionnalites_cles_sont_couvertes(page):
     page.click(ONGLET)
     texte = page.inner_text(PANNEAU)
     attendus = [
-        "référentiel", "Damodaran", "Comparables",
-        "géographie", "zone",
-        "gearing", "Hamada",
-        "place de cotation",
-        "CMPC",
-        "Sociétés",
-        "VE / EBITDA",
-        "Excel",
+        "Damodaran", "Comparables",
+        "Continent", "Zone", "Industrie",
+        "Pays de valorisation",
+        "gearing", "place de cotation",
+        "CMPC", "Sociétés", "VE / EBITDA", "Excel",
     ]
     for mot in attendus:
         assert mot in texte, f"« {mot} » absent du mode d'emploi"
+
+
+def test_chaque_carte_dit_ou_trouver_la_commande(page):
+    """Un guide qui décrit un réglage sans dire où l'on clique n'aide personne :
+    chaque carte porte son chemin, en toutes lettres."""
+    page.click(ONGLET)
+    for etape in page.query_selector_all(".aide-etape"):
+        ou = etape.query_selector(".aide-ou")
+        assert ou is not None, etape.query_selector("h2").inner_text()
+        assert ou.inner_text().strip()
+
+
+def test_les_deux_cadenas_sont_expliques_ensemble(page):
+    """Gearing et place de cotation partagent le même cadenas : les séparer en
+    deux cartes ferait chercher deux mécaniques là où il n'y en a qu'une."""
+    page.click(ONGLET)
+    cartes = [e.inner_text() for e in page.query_selector_all(".aide-etape")]
+    fusionnee = [c for c in cartes if "gearing" in c and "place de cotation" in c]
+    assert len(fusionnee) == 1, "les deux cadenas ne sont pas dans la même carte"
+    assert "Observé" in fusionnee[0] and "Cible" in fusionnee[0]
+    assert "Toutes" in fusionnee[0] and "Focus" in fusionnee[0]
+
+
+def test_la_zone_se_choisit_en_cliquant_la_carte(page):
+    """Le point que le guide manquait : la zone n'a pas de menu déroulant."""
+    page.click(ONGLET)
+    texte = page.inner_text(PANNEAU)
+    assert "Cliquez directement sur la carte" in texte
 
 
 def test_la_note_de_cloture_reutilise_le_personnage_du_404(page):
