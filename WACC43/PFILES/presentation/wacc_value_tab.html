@@ -3814,7 +3814,14 @@
         sS: XL.statC, sM: XL.medC, texte: (s) => s.ticker || "" },
       { cle: "place", entete: "Place", largeur: 8, s: XL.socTexteD,
         sS: XL.statC, sM: XL.medC, texte: (s) => s.place || "hors cote" },
-      { cle: "pays", entete: "Pays", largeur: 5.2, s: XL.socTexteD,
+      // Deux largeurs s'écartent du gabarit, et seulement deux : dans le fichier
+      // de référence les données étaient remplaçées par des « xxx », si bien que
+      // « Pays » avait été ajusté sur son seul en-tête et « EBITDA » laissé à la
+      // largeur par défaut. Sur des données réelles la première tronque
+      // « United Kingdom » et la seconde rend ######## dès qu'un opérateur
+      // américain entre dans l'échantillon. Le format est celui du gabarit ;
+      // ces deux nombres-là n'en étaient pas, ils mesuraient du vide.
+      { cle: "pays", entete: "Pays", largeur: 15.5, s: XL.socTexteD,
         sS: XL.statG, sM: XL.medG, texte: (s) => s.pays },
       { cle: "capi", entete: "Capitalisation", largeur: 12.7, s: XL.socMontant,
         sS: XL.statMontant, sM: XL.medMontant, valeur: (s) => s.capitalisation },
@@ -3830,7 +3837,7 @@
         sS: XL.statNum3, sM: XL.medNum3, valeur: (s) => s.beta_3ans },
       { cle: "ca", entete: "Chiffre d'affaires " + an, largeur: 15, s: XL.socMontant,
         sS: XL.statMontant, sM: XL.medMontant, valeur: ca },
-      { cle: "ebitda", entete: "EBITDA " + an, largeur: null, s: XL.socMontant,
+      { cle: "ebitda", entete: "EBITDA " + an, largeur: 15, s: XL.socMontant,
         sS: XL.statMontant, sM: XL.medMontant, valeur: eb, ebitda: true },
       { cle: "marge", entete: "Marge d'EBITDA", largeur: 11.5, s: XL.socPct1,
         sS: XL.statPct1, sM: XL.medPct1, ebitda: true,

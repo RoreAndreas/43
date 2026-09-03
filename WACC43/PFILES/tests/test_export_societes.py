@@ -102,15 +102,45 @@ def test_pas_de_feuille_societes_sous_damodaran(page, tmp_path):
 # --------------------------------------------------------------- le gabarit
 
 def test_la_gouttiere_et_les_largeurs_sont_celles_du_gabarit(page, tmp_path):
-    """Relevées sur le fichier de référence. Deux colonnes y sont laissées à la
-    largeur par défaut : les réécrire les changerait."""
+    """Relevées sur le fichier de référence, à deux exceptions près.
+
+    Dans ce fichier les données étaient remplacées par des « xxx » : « Pays »
+    y avait donc été ajusté sur son seul en-tête (5,2) et « EBITDA » laissé à
+    la largeur par défaut. Ces deux nombres mesuraient du vide, pas le format —
+    voir `test_aucune_colonne_ne_tronque_les_donnees`.
+    """
     cadrer(page)
     f, _ = feuille(page, tmp_path)
     largeurs = {c: round(d.width, 2) for c, d in f.column_dimensions.items() if d.width}
     assert largeurs == {
-        "A": 3.0, "B": 21.5, "C": 10.0, "D": 8.0, "E": 5.2, "F": 12.7, "G": 12.5,
-        "H": 14.6, "I": 9.0, "K": 15.0, "M": 11.5, "N": 14.0, "O": 11.5,
+        "A": 3.0, "B": 21.5, "C": 10.0, "D": 8.0, "E": 15.5, "F": 12.7, "G": 12.5,
+        "H": 14.6, "I": 9.0, "K": 15.0, "L": 15.0, "M": 11.5, "N": 14.0, "O": 11.5,
     }
+
+
+def test_aucune_colonne_ne_tronque_les_donnees(page, tmp_path):
+    """Le pire cas de l'univers : les opérateurs américains, dont les montants
+    tiennent sur dix chiffres et les pays sur quatorze lettres. Aux largeurs du
+    fichier de référence, la colonne EBITDA rendait ######## et « United
+    Kingdom » était coupé — deux colonnes qui y avaient été dimensionnées sur
+    des cellules vides."""
+    mode_comparables(page)
+    choisir(page, "continent", "Tous")
+    choisir(page, "secteur", SECTEUR)
+    f, v = feuille(page, tmp_path)
+
+    # Un nombre trop large pour sa colonne s'affiche ######## : on compare donc
+    # le rendu attendu, séparateurs compris, à la largeur déclarée.
+    largeurs = {c: d.width for c, d in f.column_dimensions.items() if d.width}
+    for ligne in societes(v):
+        for col, cle in ((CAPI, "F"), (DETTE, "G"), (CA, "K"), (EBITDA, "L"), (VE, "N")):
+            valeur = v.cell(row=ligne, column=col).value
+            if valeur is None:
+                continue
+            rendu = "{:,.0f}".format(valeur)
+            assert len(rendu) <= largeurs[cle], (cle, ligne, rendu, largeurs[cle])
+        pays = v.cell(row=ligne, column=PAYS).value or ""
+        assert len(pays) <= largeurs["E"], (ligne, pays)
 
 
 def test_le_tableau_commence_en_B(page, tmp_path):
