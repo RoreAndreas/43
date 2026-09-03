@@ -12,7 +12,8 @@ d'appeler les fonctions d'export directement.
 
 import pytest
 
-from conftest import choisir, ligne_resultat, mode_comparables, nombre_fr
+from conftest import (choisir, ligne_resultat, mode_comparables, nombre_fr,
+                      recevoir_classeur)
 
 openpyxl = pytest.importorskip("openpyxl")
 
@@ -27,13 +28,11 @@ VALEUR, COMMENTAIRE = 3, 5
 
 def classeur(page, tmp_path, nom="export.xlsx"):
     """Clique le bouton et rend le classeur reçu, formules et valeurs."""
-    with page.expect_download() as attente:
-        page.click(BOUTON)
     chemin = tmp_path / nom
-    attente.value.save_as(str(chemin))
+    nom_recu = recevoir_classeur(page, chemin)
     formules = openpyxl.load_workbook(chemin)
     valeurs = openpyxl.load_workbook(chemin, data_only=True)
-    return attente.value.suggested_filename, formules.active, valeurs.active
+    return nom_recu, formules.active, valeurs.active
 
 
 def pct(feuille, ligne):

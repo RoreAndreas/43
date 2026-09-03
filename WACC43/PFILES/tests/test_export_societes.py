@@ -15,7 +15,8 @@ lieu de laisser un nombre figé qui ne correspond plus à rien.
 
 import pytest
 
-from conftest import choisir, ligne_resultat, mode_comparables, nombre_fr
+from conftest import (choisir, ligne_resultat, mode_comparables, nombre_fr,
+                      recevoir_classeur)
 
 openpyxl = pytest.importorskip("openpyxl")
 
@@ -35,10 +36,8 @@ VALEUR_REPORT, COMMENTAIRE_REPORT = 5, 6
 
 def telecharger(page, tmp_path, nom="export.xlsx"):
     """Clique le bouton et rend le classeur reçu, formules et valeurs."""
-    with page.expect_download() as attente:
-        page.click(BOUTON)
     chemin = tmp_path / nom
-    attente.value.save_as(str(chemin))
+    recevoir_classeur(page, chemin)
     return (openpyxl.load_workbook(chemin),
             openpyxl.load_workbook(chemin, data_only=True))
 

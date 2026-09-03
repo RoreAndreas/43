@@ -85,6 +85,25 @@ def mode_comparables(page, pays: str = "Benin") -> None:
     choisir(page, "country", pays)
 
 
+def recevoir_classeur(page, chemin, comparables: bool = True):
+    """Clique la flèche de l'en-tête et enregistre le classeur reçu.
+
+    Le bouton n'exporte plus directement : sous le référentiel Comparables il
+    demande d'abord si la feuille « Sociétés » doit accompagner le calcul. Les
+    tests passent donc par la même porte que l'utilisateur, plutôt que
+    d'appeler l'export par-dessous — c'est précisément le chemin qui casse
+    quand l'interaction change. Sous Damodaran la question ne se pose pas et le
+    téléchargement part du premier clic.
+    """
+    with page.expect_download() as attente:
+        page.click("#telecharger")
+        page.wait_for_timeout(150)
+        if page.is_visible("#exportFond"):
+            page.click("#exportOui" if comparables else "#exportNon")
+    attente.value.save_as(str(chemin))
+    return attente.value.suggested_filename
+
+
 def ligne_resultat(page, libelle: str) -> str:
     """Valeur affichée en regard d'un libellé de l'encadré de droite."""
     for bloc in page.query_selector_all("#paramsResult .result-row"):
