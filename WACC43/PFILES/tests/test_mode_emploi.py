@@ -41,11 +41,16 @@ def test_les_huit_etapes_sont_presentes(page):
 
 
 def test_chaque_etape_porte_un_titre_un_texte_et_une_icone(page):
+    """Le corps peut être un paragraphe ou une liste : la carte des cadenas
+    n'est faite que de puces, et n'a pas à s'inventer une phrase d'introduction
+    pour satisfaire un test."""
     page.click(ONGLET)
     for etape in page.query_selector_all(".aide-etape"):
-        assert etape.query_selector("h2").inner_text().strip()
-        assert etape.query_selector("p").inner_text().strip()
-        assert etape.query_selector(".aide-icon svg") is not None
+        titre = etape.query_selector("h2").inner_text().strip()
+        assert titre
+        corps = etape.query_selector("p") or etape.query_selector("ul")
+        assert corps is not None and corps.inner_text().strip(), titre
+        assert etape.query_selector(".aide-icon svg") is not None, titre
 
 
 def test_les_fonctionnalites_cles_sont_couvertes(page):
