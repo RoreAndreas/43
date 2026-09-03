@@ -1605,6 +1605,7 @@
     $("panel-wacc").hidden = tab !== "wacc";
     $("panel-societes").hidden = tab !== "societes";
     $("panel-comparables").hidden = tab !== "comparables";
+    if (tab === "comparables") ajusterCadreMultiples();
     if (tab === "wacc" || tab === "societes") requestAnimationFrame(placeArrows);
   }
   document.querySelectorAll(".tabs button").forEach((b) => {
@@ -3041,6 +3042,26 @@
   // pour un échantillon de vingt sociétés.
   const COMP_UI = { calc: false };
 
+  // L'estimation posée au rendu évite un saut ; cette mesure la corrige, sans
+  // dépendre de la géométrie exacte d'une ligne qu'un changement de police
+  // suffirait à démentir. La boîte est affaissée le temps du relevé, sinon
+  // scrollHeight rendrait la hauteur du conteneur et non celle du contenu.
+  //
+  // Elle ne peut pas se faire panneau masqué : un élément caché mesure zéro, et
+  // le cadre resterait plat. chargerComparables() étant appelé depuis apply(),
+  // donc souvent hors onglet, la mesure est reprise à l'affichage — c'est là
+  // seulement que les hauteurs existent.
+  function ajusterCadreMultiples() {
+    const corps = document.querySelector("#comparablesMain .mult-view-body");
+    if (!corps || $("panel-comparables").hidden) return;
+    const couche = corps.querySelector(COMP_UI.calc ? ".mult-detail" : ".mult-bars");
+    if (!couche) return;
+    const pose = corps.style.minHeight;
+    corps.style.minHeight = "0px";
+    const mesure = Math.ceil(couche.scrollHeight);
+    corps.style.minHeight = mesure > 0 ? mesure + "px" : pose;
+  }
+
   function chargerComparables() {
     const main = $("comparablesMain");
     const retenues = societesRetenues();
@@ -3123,8 +3144,15 @@
         </div>
       </div>`;
 
+    // Le cadre suit le nombre de sociétés présentées, dans les deux vues. Les
+    // deux couches sont en position absolue : rien ne pousse la boîte, c'est
+    // min-height seul qui la dimensionne. Figée à 244 px, elle débordait dès
+    // onze comparables — 267 px de barres dans 244 — et laissait deux cents
+    // pixels de vide quand une seule société du secteur porte un EBITDA, ce
+    // qui est le cas ordinaire des banques.
     const vu = COMP_UI.calc;
-    const hauteur = vu ? 46 + obsBox.length * 38 : 244;
+    const hauteur = vu ? 46 + obsBox.length * 38
+                       : Math.max(0, obsBox.length * 25 - 8);
 
     main.innerHTML = `
       <section class="card-block">
@@ -3172,6 +3200,8 @@
         <p class="mult-view-note">Cliquez le bloc pour passer du graphique au détail du calcul :
         capitalisation + dette = VE, puis VE ÷ EBITDA.</p>
       </section>`;
+
+    ajusterCadreMultiples();
 
     const activer = () => { COMP_UI.calc = !COMP_UI.calc; chargerComparables(); };
     const vueEl = $("multView");
