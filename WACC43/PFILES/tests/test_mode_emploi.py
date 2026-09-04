@@ -32,12 +32,25 @@ def test_cliquer_l_onglet_affiche_le_panneau(page):
     assert page.is_hidden("#panel-params")
 
 
-def test_les_huit_etapes_sont_presentes(page):
+def test_les_etapes_se_suivent_sans_trou(page):
+    """Le compte n'est pas figé — des cartes ont déjà fusionné — mais la
+    numérotation doit rester continue : un saut se verrait tout de suite."""
     page.click(ONGLET)
     etapes = page.query_selector_all(".aide-etape")
-    assert len(etapes) == 8
+    assert len(etapes) >= 5
     numeros = [e.query_selector(".aide-num").inner_text() for e in etapes]
-    assert numeros == [str(n) for n in range(1, 9)]
+    assert numeros == [str(n) for n in range(1, len(etapes) + 1)]
+
+
+def test_la_derniere_carte_occupe_la_ligne_si_le_compte_est_impair(page):
+    """Sans cela elle resterait seule à gauche, la moitié droite vide."""
+    page.click(ONGLET)
+    etapes = page.query_selector_all(".aide-etape")
+    largeurs = [e.bounding_box()["width"] for e in etapes]
+    if len(etapes) % 2:
+        assert largeurs[-1] > largeurs[0] * 1.5
+    else:
+        assert abs(largeurs[-1] - largeurs[0]) < 2
 
 
 def test_chaque_etape_porte_un_titre_un_texte_et_une_icone(page):

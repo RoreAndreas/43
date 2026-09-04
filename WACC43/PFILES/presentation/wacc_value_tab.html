@@ -1016,6 +1016,10 @@
     background: var(--surface); border: 1px solid var(--line); border-radius: 10px;
     padding: 16px 18px;
   }
+  /* Un nombre impair de cartes laisserait la dernière seule à gauche, la
+     moitié droite vide. Elle prend alors toute la largeur — et le sélecteur se
+     désarme de lui-même si le compte redevient pair. */
+  .aide-etape:last-child:nth-child(odd) { grid-column: 1 / -1; }
   .aide-num {
     width: 22px; height: 22px; border-radius: 999px; background: var(--accent-tint);
     color: var(--accent); font: 500 11px/22px var(--mono); text-align: center;
@@ -1376,34 +1380,21 @@
           <circle cx="32.3" cy="21" r="1.6" class="v4-accent-point"/>
         </svg></span>
         <div>
-          <h2>Choisir un référentiel</h2>
-          <span class="aide-ou">Paramètres › Contexte de marché</span>
+          <h2>Choisir un référentiel et un pays</h2>
+          <span class="aide-ou">Paramètres › Contexte de marché, puis Cadrage</span>
           <p>Deux façons d'obtenir le bêta, c'est-à-dire le risque du secteur.</p>
           <ul>
             <li><strong>Damodaran</strong> : des moyennes de secteur publiées une fois par an.</li>
             <li><strong>Comparables</strong> : le bêta calculé sur de vraies sociétés cotées. Ce
             choix fait apparaître deux onglets de plus, Sociétés et Comparables.</li>
           </ul>
+          <p>Le menu <strong>Pays de valorisation</strong>, à côté de la carte, sert à
+          fixer la prime de risque du pays, le taux d'impôt, et la devise du résultat.</p>
         </div>
       </li>
 
       <li class="aide-etape">
         <span class="aide-num">2</span>
-        <span class="aide-icon"><svg viewBox="0 0 40 40" fill="none" aria-hidden="true">
-          <path d="M11 6v28" class="v4-trait"/>
-          <path d="M11 9h18l-4 5.5 4 5.5H11z" class="v4-accent-fill"/>
-          <circle cx="11" cy="33" r="1.8" class="v4-plein"/>
-        </svg></span>
-        <div>
-          <h2>Dire quel pays vous valorisez</h2>
-          <span class="aide-ou">Paramètres › Cadrage › Pays de valorisation</span>
-          <p>Le pays de valorisation sert à fixer la prime de risque du pays, le taux
-          d'impôt, et la devise du résultat.</p>
-        </div>
-      </li>
-
-      <li class="aide-etape">
-        <span class="aide-num">3</span>
         <span class="aide-icon"><svg viewBox="0 0 40 40" fill="none" aria-hidden="true">
           <circle cx="18" cy="20" r="13" class="v4-corps"/>
           <path d="M8 15c4 3 5 8 4 12M20 7c-1 5 1 10 4 13" class="v4-trait" stroke-width="1.1"/>
@@ -1424,7 +1415,7 @@
       </li>
 
       <li class="aide-etape">
-        <span class="aide-num">4</span>
+        <span class="aide-num">3</span>
         <span class="aide-icon"><svg viewBox="0 0 40 40" fill="none" aria-hidden="true">
           <rect x="4" y="19" width="14" height="12" rx="2.6" class="v4-corps"/>
           <path d="M7.4 19v-3.2a3.6 3.6 0 0 1 7.2 0V19" class="v4-trait"/>
@@ -1449,7 +1440,7 @@
       </li>
 
       <li class="aide-etape">
-        <span class="aide-num">5</span>
+        <span class="aide-num">4</span>
         <span class="aide-icon"><svg viewBox="0 0 40 40" fill="none" aria-hidden="true">
           <rect x="7" y="17" width="22" height="15" rx="3" class="v4-corps" transform="rotate(-7 18 24.5)"/>
           <rect x="10" y="14" width="22" height="15" rx="3" class="v4-corps" transform="rotate(4 21 21.5)"/>
@@ -1467,7 +1458,7 @@
       </li>
 
       <li class="aide-etape">
-        <span class="aide-num">6</span>
+        <span class="aide-num">5</span>
         <span class="aide-icon"><svg viewBox="0 0 40 40" fill="none" aria-hidden="true">
           <rect x="6" y="10" width="28" height="20" rx="3" class="v4-corps"/>
           <circle cx="14" cy="18" r="3.3" class="v4-trait"/>
@@ -1485,7 +1476,7 @@
       </li>
 
       <li class="aide-etape">
-        <span class="aide-num">7</span>
+        <span class="aide-num">6</span>
         <span class="aide-icon"><svg viewBox="0 0 40 40" fill="none" aria-hidden="true">
           <path d="M7 32h26" class="v4-trait" stroke-width="1.3"/>
           <rect x="10" y="21" width="4.6" height="11" rx="1.2" class="v4-corps"/>
@@ -1503,7 +1494,7 @@
       </li>
 
       <li class="aide-etape">
-        <span class="aide-num">8</span>
+        <span class="aide-num">7</span>
         <span class="aide-icon"><svg viewBox="0 0 40 40" fill="none" aria-hidden="true">
           <rect x="8" y="23" width="24" height="11" rx="2" class="v4-corps"/>
           <path d="M12 26.6h16M12 30h16" class="v4-trait" stroke-width="1.1"/>
