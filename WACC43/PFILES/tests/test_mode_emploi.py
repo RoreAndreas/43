@@ -137,6 +137,23 @@ def test_la_zone_se_choisit_en_cliquant_la_carte(page):
     assert "Cliquez directement sur la carte" in texte
 
 
+def test_le_guide_nomme_les_zones_comme_l_application(page, donnees):
+    """Le guide a un temps annoncé « Sud » là où la carte affiche « Afrique
+    australe » : on lisait un nom et on en cliquait un autre. Les noms viennent
+    désormais du jeu de données, et ce test le vérifie plutôt que de les
+    recopier."""
+    page.click(ONGLET)
+    texte = page.inner_text(PANNEAU)
+    zones = [z for z, _ in donnees["options"]["zones_par_continent"]["Afrique"]]
+    assert zones, "aucune zone africaine dans le jeu de données"
+    for zone in zones:
+        # « Afrique du Nord » est cité sous la forme « du Nord » après le mot
+        # Afrique : on cherche le qualificatif, pas la chaîne entière.
+        qualificatif = zone.replace("Afrique ", "")
+        assert qualificatif in texte, f"« {zone} » n'est pas nommée comme dans l'application"
+    assert "Sud" not in texte.split("Cliquez")[0].split("continent et par zone")[-1],         "« Sud » désigne un pays, pas la zone australe"
+
+
 def test_la_note_de_cloture_reutilise_le_personnage_du_404(page):
     """La demande était explicite : des illustrations dans le sens de celle
     des écrans vides. La note de clôture va plus loin qu'un simple style
