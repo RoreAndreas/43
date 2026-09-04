@@ -10,20 +10,45 @@ délibéré, la demande était des illustrations « dans le sens du 404 ».
 
 from conftest import mode_comparables
 
-ONGLET = '.tabs button[data-tab="aide"]'
+# Le guide n'est pas un onglet : c'est un bouton « ? » dans l'en-tête, à côté
+# du titre. Les onglets portent des vues du calcul, lui explique l'outil.
+ONGLET = "#tabAide"
 PANNEAU = "#panel-aide"
 
 
-def test_l_onglet_est_visible_sans_rien_choisir(page):
+def test_le_bouton_est_dans_l_entete_et_non_dans_la_barre(page):
+    assert page.query_selector('.tabs button[data-tab="aide"]') is None
+    assert page.query_selector(".brand-row #tabAide") is not None
+    assert page.inner_text("#tabAide").strip() == "?"
+
+
+def test_une_fleche_annotee_designe_le_bouton(page):
+    """Sans elle, un « ? » seul dans un en-tête ne se remarque pas."""
+    appel = page.query_selector(".aide-appel")
+    assert appel.query_selector(".aide-appel-mot").inner_text().strip() == "how to use me"
+    assert appel.query_selector("svg.aide-appel-fleche") is not None
+    assert appel.query_selector("#tabAide") is not None
+
+
+def test_le_bouton_est_visible_sans_rien_choisir(page):
     """Contrairement à Sociétés et Comparables, le guide ne dépend pas du
     référentiel : il doit s'ouvrir dès l'arrivée sur la page."""
-    assert page.get_attribute("#tabAide", "hidden") is None
+    assert page.is_visible("#tabAide")
 
 
-def test_l_onglet_reste_visible_sous_comparables(page):
+def test_le_bouton_reste_visible_sous_comparables(page):
     mode_comparables(page)
-    assert page.get_attribute("#tabAide", "hidden") is None
+    assert page.is_visible("#tabAide")
     assert page.get_attribute("#tabSocietes", "hidden") is None
+
+
+def test_le_bouton_marque_qu_il_est_ouvert(page):
+    """Il est hors de la barre, donc hors de la boucle qui allume les onglets :
+    son état actif se pose à part, et pourrait être oublié."""
+    page.click(ONGLET)
+    assert "is-on" in page.get_attribute("#tabAide", "class")
+    page.click('.tabs button[data-tab="params"]')
+    assert "is-on" not in page.get_attribute("#tabAide", "class")
 
 
 def test_cliquer_l_onglet_affiche_le_panneau(page):
@@ -101,6 +126,8 @@ def test_les_deux_cadenas_sont_expliques_ensemble(page):
     assert len(fusionnee) == 1, "les deux cadenas ne sont pas dans la même carte"
     assert "Observé" in fusionnee[0] and "Cible" in fusionnee[0]
     assert "Toutes" in fusionnee[0] and "Focus" in fusionnee[0]
+    assert "marchés boursiers" in fusionnee[0]
+    assert "bourse" not in fusionnee[0], "dire « marché boursier », pas « bourse »"
 
 
 def test_la_zone_se_choisit_en_cliquant_la_carte(page):
