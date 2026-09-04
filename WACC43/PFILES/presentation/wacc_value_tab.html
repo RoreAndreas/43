@@ -130,10 +130,6 @@
   .dl:hover { border-color: var(--ink-3); color: var(--ink); }
   .dl:disabled { color: var(--muted-2); cursor: default; }
   .dl:disabled:hover { border-color: var(--line); color: var(--muted-2); }
-  .fiscal {
-    font: 400 11.5px/1.4 var(--mono);
-    color: var(--muted);
-  }
   /* Les onglets se replient plutôt que de pousser la page : depuis le
      cinquième, ils ne tiennent plus sur une ligne étroite, et un débordement
      horizontal ferait glisser toute la mise en page sous le doigt. Le gap de
@@ -1327,7 +1323,6 @@
         </div>
       </div>
       <div class="brand-aside">
-        <span class="fiscal" id="fiscal">Exercice 2026</span>
         <button type="button" class="dl" id="telecharger"
                 title="Télécharger le calcul au format Excel"
                 aria-label="Télécharger le calcul au format Excel">
@@ -1910,7 +1905,6 @@
     ];
 
     return {
-      fiscalYear: "Exercice " + p.year,
       chips: [p.country, p.industry],
       market: [
         { label: "Prime de risque pays", value: frPct(crp) },
@@ -4579,7 +4573,6 @@
   }
 
   function renderAll() {
-    $("fiscal").textContent = model.fiscalYear;
     majBoutonClasseur();
     renderParams();
 
