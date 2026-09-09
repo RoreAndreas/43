@@ -1,10 +1,15 @@
 {
-    "last_update": "2026-09-09 07:17:11",
+    "last_update": "2026-09-09 18:28:02",
     "count": 20,
     "weeks": [
         {
             "semaine": "Semaine du 07 Septembre au 13 Septembre 2026",
             "publications": [
+                {
+                    "date": "09/09/2026",
+                    "titre": "ECOBANK CI : Rapport d'activités - 1er semestre 2026",
+                    "url": "https://www.richbourse.com/common/actualite/afficher-fichier/09-09-2026-ecobank-ci-rapport-d-activites-1er-semestre-2026"
+                },
                 {
                     "date": "08/09/2026",
                     "titre": "BRIDGE BANK GROUP COTE D'IVOIRE : Première cotation",
@@ -114,11 +119,6 @@
                     "date": "18/08/2026",
                     "titre": "BOA ML : Notation Financière",
                     "url": "https://www.richbourse.com/common/actualite/afficher-fichier/18-08-2026-boa-ml-notation-financiere"
-                },
-                {
-                    "date": "17/08/2026",
-                    "titre": "ETI TG : Communiqué de Presse",
-                    "url": "https://www.richbourse.com/common/actualite/afficher-fichier/17-08-2026-eti-tg-communique-de-presse"
                 }
             ]
         }
