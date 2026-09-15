@@ -1,7 +1,17 @@
 {
-    "last_update": "2026-09-09 18:28:02",
+    "last_update": "2026-09-15 01:21:19",
     "count": 20,
     "weeks": [
+        {
+            "semaine": "Semaine du 14 Septembre au 20 Septembre 2026",
+            "publications": [
+                {
+                    "date": "14/09/2026",
+                    "titre": "AMF-UMOA : Homologation des tarifs de la SGI SA2IF",
+                    "url": "https://www.richbourse.com/common/actualite/afficher-fichier/14-09-2026-amf-umoa-homologation-des-tarifs-de-la-sgi-sa2if"
+                }
+            ]
+        },
         {
             "semaine": "Semaine du 07 Septembre au 13 Septembre 2026",
             "publications": [
@@ -47,11 +57,6 @@
                 },
                 {
                     "date": "31/08/2026",
-                    "titre": "SAFCA CI : Transaction Sur Dossier",
-                    "url": "https://www.richbourse.com/common/actualite/afficher-fichier/31-08-2026-safca-ci-transaction-sur-dossier"
-                },
-                {
-                    "date": "31/08/2026",
                     "titre": "CORIS BANK INTERNATIONAL BF : Rapport d'Examen Limité des Commissaires Aux Comptes sur les Etats Financiers au 30 juin 2026",
                     "url": "https://www.richbourse.com/common/actualite/afficher-fichier/31-08-2026-coris-bank-international-bf-rapport-d-examen-limite-des-commissaires-aux-comptes-sur-les-etats-financiers-au-30-juin-2026"
                 },
@@ -59,6 +64,11 @@
                     "date": "31/08/2026",
                     "titre": "CORIS BANK INTERNATIONAL BF : Rapport d'activités - 1er semestre 2026",
                     "url": "https://www.richbourse.com/common/actualite/afficher-fichier/31-08-2026-coris-bank-international-bf-rapport-d-activites-1er-semestre-2026"
+                },
+                {
+                    "date": "31/08/2026",
+                    "titre": "SAFCA CI : Transaction Sur Dossier",
+                    "url": "https://www.richbourse.com/common/actualite/afficher-fichier/31-08-2026-safca-ci-transaction-sur-dossier"
                 },
                 {
                     "date": "31/08/2026",
@@ -102,18 +112,13 @@
             "publications": [
                 {
                     "date": "21/08/2026",
-                    "titre": "VIVO ENERGY CI : Paiement de dividendes - Exercice 2025",
-                    "url": "https://www.richbourse.com/common/actualite/afficher-fichier/21-08-2026-vivo-energy-ci-paiement-de-dividendes-exercice-2025-2"
-                },
-                {
-                    "date": "21/08/2026",
                     "titre": "BRVM : Rappel, mardi 25 août 2026, jour férié",
                     "url": "https://www.richbourse.com/common/actualite/afficher-fichier/21-08-2026-brvm-rappel-mardi-25-aout-2026-jour-ferie"
                 },
                 {
-                    "date": "18/08/2026",
-                    "titre": "BOA BN : Notation Financière",
-                    "url": "https://www.richbourse.com/common/actualite/afficher-fichier/18-08-2026-boa-bn-notation-financiere"
+                    "date": "21/08/2026",
+                    "titre": "VIVO ENERGY CI : Paiement de dividendes - Exercice 2025",
+                    "url": "https://www.richbourse.com/common/actualite/afficher-fichier/21-08-2026-vivo-energy-ci-paiement-de-dividendes-exercice-2025-2"
                 },
                 {
                     "date": "18/08/2026",
