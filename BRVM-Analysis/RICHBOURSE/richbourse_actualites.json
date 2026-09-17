@@ -1,10 +1,25 @@
 {
-    "last_update": "2026-09-15 01:21:19",
+    "last_update": "2026-09-17 01:15:46",
     "count": 20,
     "weeks": [
         {
             "semaine": "Semaine du 14 Septembre au 20 Septembre 2026",
             "publications": [
+                {
+                    "date": "16/09/2026",
+                    "titre": "SONOCO METAL PACKAGING SIEM CI : Suspension de la cotation",
+                    "url": "https://www.richbourse.com/common/actualite/afficher-fichier/16-09-2026-brvm-suspension-de-la-cotation-de-sonoco-metal-packaging-siem-ci"
+                },
+                {
+                    "date": "16/09/2026",
+                    "titre": "SICOR S.A : Suspension de la cotation",
+                    "url": "https://www.richbourse.com/common/actualite/afficher-fichier/16-09-2026-sicor-s-a-suspension-de-la-cotation-de-sicor-s-a"
+                },
+                {
+                    "date": "16/09/2026",
+                    "titre": "SUCRIVOIRE S.A : Suspension de la cotation",
+                    "url": "https://www.richbourse.com/common/actualite/afficher-fichier/16-09-2026-sucrivoire-s-a-suspension-de-la-cotation-de-sucrivoire-s-a"
+                },
                 {
                     "date": "14/09/2026",
                     "titre": "AMF-UMOA : Homologation des tarifs de la SGI SA2IF",
@@ -32,13 +47,13 @@
             "publications": [
                 {
                     "date": "04/09/2026",
-                    "titre": "SAPH CI : Rapport d'activités et Attestation des Commissaires Aux Comptes sur le rapport d'activités - 1er semestre 2026",
-                    "url": "https://www.richbourse.com/common/actualite/afficher-fichier/04-09-2026-saph-ci-rapport-d-activites-et-attestation-des-commissaires-aux-comptes-sur-le-rapport-d-activites-1er-semestre-2026"
+                    "titre": "SMB CI : Paiement de dividendes - Exercice 2025",
+                    "url": "https://www.richbourse.com/common/actualite/afficher-fichier/04-09-2026-smb-ci-paiement-de-dividendes-exercice-2025"
                 },
                 {
                     "date": "04/09/2026",
-                    "titre": "SMB CI : Paiement de dividendes - Exercice 2025",
-                    "url": "https://www.richbourse.com/common/actualite/afficher-fichier/04-09-2026-smb-ci-paiement-de-dividendes-exercice-2025"
+                    "titre": "SAPH CI : Rapport d'activités et Attestation des Commissaires Aux Comptes sur le rapport d'activités - 1er semestre 2026",
+                    "url": "https://www.richbourse.com/common/actualite/afficher-fichier/04-09-2026-saph-ci-rapport-d-activites-et-attestation-des-commissaires-aux-comptes-sur-le-rapport-d-activites-1er-semestre-2026"
                 },
                 {
                     "date": "03/09/2026",
@@ -57,8 +72,8 @@
                 },
                 {
                     "date": "31/08/2026",
-                    "titre": "CORIS BANK INTERNATIONAL BF : Rapport d'Examen Limité des Commissaires Aux Comptes sur les Etats Financiers au 30 juin 2026",
-                    "url": "https://www.richbourse.com/common/actualite/afficher-fichier/31-08-2026-coris-bank-international-bf-rapport-d-examen-limite-des-commissaires-aux-comptes-sur-les-etats-financiers-au-30-juin-2026"
+                    "titre": "SAFCA CI : Transaction Sur Dossier",
+                    "url": "https://www.richbourse.com/common/actualite/afficher-fichier/31-08-2026-safca-ci-transaction-sur-dossier"
                 },
                 {
                     "date": "31/08/2026",
@@ -67,8 +82,8 @@
                 },
                 {
                     "date": "31/08/2026",
-                    "titre": "SAFCA CI : Transaction Sur Dossier",
-                    "url": "https://www.richbourse.com/common/actualite/afficher-fichier/31-08-2026-safca-ci-transaction-sur-dossier"
+                    "titre": "CORIS BANK INTERNATIONAL BF : Rapport d'Examen Limité des Commissaires Aux Comptes sur les Etats Financiers au 30 juin 2026",
+                    "url": "https://www.richbourse.com/common/actualite/afficher-fichier/31-08-2026-coris-bank-international-bf-rapport-d-examen-limite-des-commissaires-aux-comptes-sur-les-etats-financiers-au-30-juin-2026"
                 },
                 {
                     "date": "31/08/2026",
@@ -82,13 +97,13 @@
             "publications": [
                 {
                     "date": "27/08/2026",
-                    "titre": "NEI CEDA CI : Paiement de dividendes - Exercice 2025",
-                    "url": "https://www.richbourse.com/common/actualite/afficher-fichier/27-08-2026-nei-ceda-ci-paiement-de-dividendes-exercice-2025"
+                    "titre": "AMF-UMOA : Approbation du fractionnement de la valeur liquidative de la SICAV ABDOU DIOUF et visa de son prospectus modifié",
+                    "url": "https://www.richbourse.com/common/actualite/afficher-fichier/27-08-2026-amf-umoa-approbation-du-fractionnement-de-la-valeur-liquidative-de-la-sicav-abdou-diouf-et-visa-de-son-prospectus-modifie"
                 },
                 {
                     "date": "27/08/2026",
-                    "titre": "AMF-UMOA : Approbation du fractionnement de la valeur liquidative de la SICAV ABDOU DIOUF et visa de son prospectus modifié",
-                    "url": "https://www.richbourse.com/common/actualite/afficher-fichier/27-08-2026-amf-umoa-approbation-du-fractionnement-de-la-valeur-liquidative-de-la-sicav-abdou-diouf-et-visa-de-son-prospectus-modifie"
+                    "titre": "NEI CEDA CI : Paiement de dividendes - Exercice 2025",
+                    "url": "https://www.richbourse.com/common/actualite/afficher-fichier/27-08-2026-nei-ceda-ci-paiement-de-dividendes-exercice-2025"
                 },
                 {
                     "date": "26/08/2026",
@@ -104,26 +119,6 @@
                     "date": "26/08/2026",
                     "titre": "PALM CI : Notation Financière",
                     "url": "https://www.richbourse.com/common/actualite/afficher-fichier/26-08-2026-palm-ci-notation-financiere"
-                }
-            ]
-        },
-        {
-            "semaine": "Semaine du 17 Août au 23 Août 2026",
-            "publications": [
-                {
-                    "date": "21/08/2026",
-                    "titre": "BRVM : Rappel, mardi 25 août 2026, jour férié",
-                    "url": "https://www.richbourse.com/common/actualite/afficher-fichier/21-08-2026-brvm-rappel-mardi-25-aout-2026-jour-ferie"
-                },
-                {
-                    "date": "21/08/2026",
-                    "titre": "VIVO ENERGY CI : Paiement de dividendes - Exercice 2025",
-                    "url": "https://www.richbourse.com/common/actualite/afficher-fichier/21-08-2026-vivo-energy-ci-paiement-de-dividendes-exercice-2025-2"
-                },
-                {
-                    "date": "18/08/2026",
-                    "titre": "BOA ML : Notation Financière",
-                    "url": "https://www.richbourse.com/common/actualite/afficher-fichier/18-08-2026-boa-ml-notation-financiere"
                 }
             ]
         }
