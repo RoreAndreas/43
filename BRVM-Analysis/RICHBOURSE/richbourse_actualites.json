@@ -1,10 +1,20 @@
 {
-    "last_update": "2026-09-18 07:18:38",
+    "last_update": "2026-09-19 01:05:35",
     "count": 20,
     "weeks": [
         {
             "semaine": "Semaine du 14 Septembre au 20 Septembre 2026",
             "publications": [
+                {
+                    "date": "18/09/2026",
+                    "titre": "UNIWAX : Communiqué - Declaration de franchissement de seuil - FRAGECI, VLISCO B.V, CFCI SA, COIC SA",
+                    "url": "https://www.richbourse.com/common/actualite/afficher-fichier/18-09-2026-uniwax-communique-declaration-de-franchissement-de-seuil-frageci-vlisco-bv-cfci-sa-coic-sa"
+                },
+                {
+                    "date": "18/09/2026",
+                    "titre": "Transactions Sur Dossier",
+                    "url": "https://www.richbourse.com/common/actualite/afficher-fichier/18-09-2026-transactions-sur-dossier"
+                },
                 {
                     "date": "17/09/2026",
                     "titre": "AFRICA GLOBAL LOGISTICS CI : Etats Financiers certifiés - Exercice 2025",
@@ -27,13 +37,13 @@
                 },
                 {
                     "date": "16/09/2026",
-                    "titre": "SONOCO METAL PACKAGING SIEM CI : Suspension de la cotation",
-                    "url": "https://www.richbourse.com/common/actualite/afficher-fichier/16-09-2026-brvm-suspension-de-la-cotation-de-sonoco-metal-packaging-siem-ci"
+                    "titre": "SUCRIVOIRE S.A : Suspension de la cotation",
+                    "url": "https://www.richbourse.com/common/actualite/afficher-fichier/16-09-2026-sucrivoire-s-a-suspension-de-la-cotation-de-sucrivoire-s-a"
                 },
                 {
                     "date": "16/09/2026",
-                    "titre": "SUCRIVOIRE S.A : Suspension de la cotation",
-                    "url": "https://www.richbourse.com/common/actualite/afficher-fichier/16-09-2026-sucrivoire-s-a-suspension-de-la-cotation-de-sucrivoire-s-a"
+                    "titre": "SONOCO METAL PACKAGING SIEM CI : Suspension de la cotation",
+                    "url": "https://www.richbourse.com/common/actualite/afficher-fichier/16-09-2026-brvm-suspension-de-la-cotation-de-sonoco-metal-packaging-siem-ci"
                 },
                 {
                     "date": "14/09/2026",
@@ -104,21 +114,6 @@
                     "date": "31/08/2026",
                     "titre": "SAFCA CI : Transaction Sur Dossier",
                     "url": "https://www.richbourse.com/common/actualite/afficher-fichier/31-08-2026-safca-ci-transaction-sur-dossier"
-                }
-            ]
-        },
-        {
-            "semaine": "Semaine du 24 Août au 30 Août 2026",
-            "publications": [
-                {
-                    "date": "27/08/2026",
-                    "titre": "AMF-UMOA : Approbation du fractionnement de la valeur liquidative de la SICAV ABDOU DIOUF et visa de son prospectus modifié",
-                    "url": "https://www.richbourse.com/common/actualite/afficher-fichier/27-08-2026-amf-umoa-approbation-du-fractionnement-de-la-valeur-liquidative-de-la-sicav-abdou-diouf-et-visa-de-son-prospectus-modifie"
-                },
-                {
-                    "date": "27/08/2026",
-                    "titre": "NEI CEDA CI : Paiement de dividendes - Exercice 2025",
-                    "url": "https://www.richbourse.com/common/actualite/afficher-fichier/27-08-2026-nei-ceda-ci-paiement-de-dividendes-exercice-2025"
                 }
             ]
         }
