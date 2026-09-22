@@ -1,7 +1,42 @@
 {
-    "last_update": "2026-09-19 01:05:35",
+    "last_update": "2026-09-22 01:33:12",
     "count": 20,
     "weeks": [
+        {
+            "semaine": "Semaine du 21 Septembre au 27 Septembre 2026",
+            "publications": [
+                {
+                    "date": "21/09/2026",
+                    "titre": "SUCRIVOIRE S.A : Levée de suspension de la cotation de SUCRIVOIRE S.A.",
+                    "url": "https://www.richbourse.com/common/actualite/afficher-fichier/21-09-2026-sucrivoire-s-a-levee-de-suspension-de-la-cotation-de-sucrivoire-s-a"
+                },
+                {
+                    "date": "21/09/2026",
+                    "titre": "BOA SENEGAL : Rapport d'activités - 1er semestre 2026",
+                    "url": "https://www.richbourse.com/common/actualite/afficher-fichier/21-09-2026-boa-senegal-rapport-d-activites-1er-semestre-2026"
+                },
+                {
+                    "date": "21/09/2026",
+                    "titre": "BIIC BN : Rapport d'activités et Etats financiers IFRS - 1er semestre 2026",
+                    "url": "https://www.richbourse.com/common/actualite/afficher-fichier/21-09-2026-biic-bn-rapport-d-activites-et-etats-financiers-ifrs-1er-semestre-2026"
+                },
+                {
+                    "date": "21/09/2026",
+                    "titre": "SUCRIVOIRE CI : Rapport d'activités - 1er trimestre 2026",
+                    "url": "https://www.richbourse.com/common/actualite/afficher-fichier/21-09-2026-sucrivoire-ci-rapport-d-activites-1er-trimestre-2026"
+                },
+                {
+                    "date": "21/09/2026",
+                    "titre": "SAPH CI : Avis de nomination",
+                    "url": "https://www.richbourse.com/common/actualite/afficher-fichier/21-09-2026-saph-ci-avis-de-nomination"
+                },
+                {
+                    "date": "21/09/2026",
+                    "titre": "SAPH CI : Communiqué - Changement important dans la Direction",
+                    "url": "https://www.richbourse.com/common/actualite/afficher-fichier/21-09-2026-saph-ci-communique-changement-important-dans-la-direction"
+                }
+            ]
+        },
         {
             "semaine": "Semaine du 14 Septembre au 20 Septembre 2026",
             "publications": [
@@ -17,11 +52,6 @@
                 },
                 {
                     "date": "17/09/2026",
-                    "titre": "AFRICA GLOBAL LOGISTICS CI : Etats Financiers certifiés - Exercice 2025",
-                    "url": "https://www.richbourse.com/common/actualite/afficher-fichier/17-09-2026-africa-global-logistics-ci-etats-financiers-certifies-exercice-2025"
-                },
-                {
-                    "date": "17/09/2026",
                     "titre": "SONATEL SN : Avis de convocation - Assemblée Générale Extraordinaire",
                     "url": "https://www.richbourse.com/common/actualite/afficher-fichier/17-09-2026-sonatel-sn-avis-de-convocation-assemblee-generale-extraordinaire"
                 },
@@ -31,9 +61,9 @@
                     "url": "https://www.richbourse.com/common/actualite/afficher-fichier/17-09-2026-africa-global-logistics-ci-rapport-des-commissaires-aux-comptes-sur-les-etats-financiers"
                 },
                 {
-                    "date": "16/09/2026",
-                    "titre": "SICOR S.A : Suspension de la cotation",
-                    "url": "https://www.richbourse.com/common/actualite/afficher-fichier/16-09-2026-sicor-s-a-suspension-de-la-cotation-de-sicor-s-a"
+                    "date": "17/09/2026",
+                    "titre": "AFRICA GLOBAL LOGISTICS CI : Etats Financiers certifiés - Exercice 2025",
+                    "url": "https://www.richbourse.com/common/actualite/afficher-fichier/17-09-2026-africa-global-logistics-ci-etats-financiers-certifies-exercice-2025"
                 },
                 {
                     "date": "16/09/2026",
@@ -44,6 +74,11 @@
                     "date": "16/09/2026",
                     "titre": "SONOCO METAL PACKAGING SIEM CI : Suspension de la cotation",
                     "url": "https://www.richbourse.com/common/actualite/afficher-fichier/16-09-2026-brvm-suspension-de-la-cotation-de-sonoco-metal-packaging-siem-ci"
+                },
+                {
+                    "date": "16/09/2026",
+                    "titre": "SICOR S.A : Suspension de la cotation",
+                    "url": "https://www.richbourse.com/common/actualite/afficher-fichier/16-09-2026-sicor-s-a-suspension-de-la-cotation-de-sicor-s-a"
                 },
                 {
                     "date": "14/09/2026",
@@ -84,36 +119,6 @@
                     "date": "03/09/2026",
                     "titre": "SAFCA CI : Rapport d'activités - 2eme trimestre 2026",
                     "url": "https://www.richbourse.com/common/actualite/afficher-fichier/03-09-2026-safca-ci-rapport-d-activites-2eme-trimestre-2026"
-                },
-                {
-                    "date": "02/09/2026",
-                    "titre": "SODE CI : Paiement de dividendes - Exercice 2025",
-                    "url": "https://www.richbourse.com/common/actualite/afficher-fichier/02-09-2026-sode-ci-paiement-de-dividendes-exercice-2025"
-                },
-                {
-                    "date": "01/09/2026",
-                    "titre": "FCTC NSIA BANQUE : Notation Financière - FCTC ZAKA RMBS NSIA BANQUE CÔTE D·IVOIRE 2025-2044",
-                    "url": "https://www.richbourse.com/common/actualite/afficher-fichier/01-09-2026-fctc-nsia-banque-notation-financiere-fctc-zaka-rmbs-nsia-banque-cote-d-ivoire-2025-2044"
-                },
-                {
-                    "date": "31/08/2026",
-                    "titre": "SOCIETE GENERALE CI : Rapport d'activités - 1er semestre 2026",
-                    "url": "https://www.richbourse.com/common/actualite/afficher-fichier/31-08-2026-societe-generale-ci-rapport-d-activites-1er-semestre-2026"
-                },
-                {
-                    "date": "31/08/2026",
-                    "titre": "CORIS BANK INTERNATIONAL BF : Rapport d'activités - 1er semestre 2026",
-                    "url": "https://www.richbourse.com/common/actualite/afficher-fichier/31-08-2026-coris-bank-international-bf-rapport-d-activites-1er-semestre-2026"
-                },
-                {
-                    "date": "31/08/2026",
-                    "titre": "CORIS BANK INTERNATIONAL BF : Rapport d'Examen Limité des Commissaires Aux Comptes sur les Etats Financiers au 30 juin 2026",
-                    "url": "https://www.richbourse.com/common/actualite/afficher-fichier/31-08-2026-coris-bank-international-bf-rapport-d-examen-limite-des-commissaires-aux-comptes-sur-les-etats-financiers-au-30-juin-2026"
-                },
-                {
-                    "date": "31/08/2026",
-                    "titre": "SAFCA CI : Transaction Sur Dossier",
-                    "url": "https://www.richbourse.com/common/actualite/afficher-fichier/31-08-2026-safca-ci-transaction-sur-dossier"
                 }
             ]
         }
