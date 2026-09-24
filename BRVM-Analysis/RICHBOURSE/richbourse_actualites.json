@@ -1,10 +1,30 @@
 {
-    "last_update": "2026-09-24 01:17:08",
+    "last_update": "2026-09-24 18:58:44",
     "count": 20,
     "weeks": [
         {
             "semaine": "Semaine du 21 Septembre au 27 Septembre 2026",
             "publications": [
+                {
+                    "date": "24/09/2026",
+                    "titre": "TOTALENERGIES MARKETING SN : Changement important dans la Direction",
+                    "url": "https://www.richbourse.com/common/actualite/afficher-fichier/24-09-2026-totalenergies-marketing-sn-changement-important-dans-la-direction"
+                },
+                {
+                    "date": "24/09/2026",
+                    "titre": "BRIDGE BANK GROUP CI : Rapport d'activités - 1er semestre 2026",
+                    "url": "https://www.richbourse.com/common/actualite/afficher-fichier/24-09-2026-bridge-bank-group-ci-rapport-d-activites-1er-semestre-2026"
+                },
+                {
+                    "date": "24/09/2026",
+                    "titre": "BRIDGE BANK GROUP COTE D'IVOIRE (BBGC) : Résultats de première cotation",
+                    "url": "https://www.richbourse.com/common/actualite/afficher-fichier/24-09-2026-cote-d-ivoire-bbgc-resultats-de-premiere-cotation"
+                },
+                {
+                    "date": "24/09/2026",
+                    "titre": "BRIDGE BANK GROUP CI : Rapport des Commissaires Aux Comptes - 1er semestre 2026",
+                    "url": "https://www.richbourse.com/common/actualite/afficher-fichier/24-09-2026-bridge-bank-group-ci-rapport-des-commissaires-aux-comptes-1er-semestre-2026"
+                },
                 {
                     "date": "23/09/2026",
                     "titre": "BOA MALI : Rapport d'activités - 1er semestre 2026",
@@ -57,11 +77,6 @@
                 },
                 {
                     "date": "17/09/2026",
-                    "titre": "AFRICA GLOBAL LOGISTICS CI : Etats Financiers certifiés - Exercice 2025",
-                    "url": "https://www.richbourse.com/common/actualite/afficher-fichier/17-09-2026-africa-global-logistics-ci-etats-financiers-certifies-exercice-2025"
-                },
-                {
-                    "date": "17/09/2026",
                     "titre": "SONATEL SN : Avis de convocation - Assemblée Générale Extraordinaire",
                     "url": "https://www.richbourse.com/common/actualite/afficher-fichier/17-09-2026-sonatel-sn-avis-de-convocation-assemblee-generale-extraordinaire"
                 },
@@ -69,6 +84,11 @@
                     "date": "17/09/2026",
                     "titre": "AFRICA GLOBAL LOGISTICS CI : Rapport des Commissaires Aux Comptes sur les Etats Financiers",
                     "url": "https://www.richbourse.com/common/actualite/afficher-fichier/17-09-2026-africa-global-logistics-ci-rapport-des-commissaires-aux-comptes-sur-les-etats-financiers"
+                },
+                {
+                    "date": "17/09/2026",
+                    "titre": "AFRICA GLOBAL LOGISTICS CI : Etats Financiers certifiés - Exercice 2025",
+                    "url": "https://www.richbourse.com/common/actualite/afficher-fichier/17-09-2026-africa-global-logistics-ci-etats-financiers-certifies-exercice-2025"
                 },
                 {
                     "date": "16/09/2026",
@@ -89,36 +109,6 @@
                     "date": "14/09/2026",
                     "titre": "AMF-UMOA : Homologation des tarifs de la SGI SA2IF",
                     "url": "https://www.richbourse.com/common/actualite/afficher-fichier/14-09-2026-amf-umoa-homologation-des-tarifs-de-la-sgi-sa2if"
-                }
-            ]
-        },
-        {
-            "semaine": "Semaine du 07 Septembre au 13 Septembre 2026",
-            "publications": [
-                {
-                    "date": "09/09/2026",
-                    "titre": "ECOBANK CI : Rapport d'activités - 1er semestre 2026",
-                    "url": "https://www.richbourse.com/common/actualite/afficher-fichier/09-09-2026-ecobank-ci-rapport-d-activites-1er-semestre-2026"
-                },
-                {
-                    "date": "08/09/2026",
-                    "titre": "BRIDGE BANK GROUP COTE D'IVOIRE : Première cotation",
-                    "url": "https://www.richbourse.com/common/actualite/afficher-fichier/08-09-2026-brvm-premiere-cotation"
-                }
-            ]
-        },
-        {
-            "semaine": "Semaine du 31 Août au 06 Septembre 2026",
-            "publications": [
-                {
-                    "date": "04/09/2026",
-                    "titre": "SAPH CI : Rapport d'activités et Attestation des Commissaires Aux Comptes sur le rapport d'activités - 1er semestre 2026",
-                    "url": "https://www.richbourse.com/common/actualite/afficher-fichier/04-09-2026-saph-ci-rapport-d-activites-et-attestation-des-commissaires-aux-comptes-sur-le-rapport-d-activites-1er-semestre-2026"
-                },
-                {
-                    "date": "04/09/2026",
-                    "titre": "SMB CI : Paiement de dividendes - Exercice 2025",
-                    "url": "https://www.richbourse.com/common/actualite/afficher-fichier/04-09-2026-smb-ci-paiement-de-dividendes-exercice-2025"
                 }
             ]
         }
