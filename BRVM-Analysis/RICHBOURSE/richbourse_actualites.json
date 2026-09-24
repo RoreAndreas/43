@@ -1,10 +1,15 @@
 {
-    "last_update": "2026-09-22 01:33:12",
+    "last_update": "2026-09-24 01:17:08",
     "count": 20,
     "weeks": [
         {
             "semaine": "Semaine du 21 Septembre au 27 Septembre 2026",
             "publications": [
+                {
+                    "date": "23/09/2026",
+                    "titre": "BOA MALI : Rapport d'activités - 1er semestre 2026",
+                    "url": "https://www.richbourse.com/common/actualite/afficher-fichier/23-09-2026-boa-mali-rapport-dactivites-1er-semestre-2026"
+                },
                 {
                     "date": "21/09/2026",
                     "titre": "SUCRIVOIRE S.A : Levée de suspension de la cotation de SUCRIVOIRE S.A.",
@@ -12,13 +17,8 @@
                 },
                 {
                     "date": "21/09/2026",
-                    "titre": "BOA SENEGAL : Rapport d'activités - 1er semestre 2026",
-                    "url": "https://www.richbourse.com/common/actualite/afficher-fichier/21-09-2026-boa-senegal-rapport-d-activites-1er-semestre-2026"
-                },
-                {
-                    "date": "21/09/2026",
-                    "titre": "BIIC BN : Rapport d'activités et Etats financiers IFRS - 1er semestre 2026",
-                    "url": "https://www.richbourse.com/common/actualite/afficher-fichier/21-09-2026-biic-bn-rapport-d-activites-et-etats-financiers-ifrs-1er-semestre-2026"
+                    "titre": "SAPH CI : Communiqué - Changement important dans la Direction",
+                    "url": "https://www.richbourse.com/common/actualite/afficher-fichier/21-09-2026-saph-ci-communique-changement-important-dans-la-direction"
                 },
                 {
                     "date": "21/09/2026",
@@ -32,8 +32,13 @@
                 },
                 {
                     "date": "21/09/2026",
-                    "titre": "SAPH CI : Communiqué - Changement important dans la Direction",
-                    "url": "https://www.richbourse.com/common/actualite/afficher-fichier/21-09-2026-saph-ci-communique-changement-important-dans-la-direction"
+                    "titre": "BIIC BN : Rapport d'activités et Etats financiers IFRS - 1er semestre 2026",
+                    "url": "https://www.richbourse.com/common/actualite/afficher-fichier/21-09-2026-biic-bn-rapport-d-activites-et-etats-financiers-ifrs-1er-semestre-2026"
+                },
+                {
+                    "date": "21/09/2026",
+                    "titre": "BOA SENEGAL : Rapport d'activités - 1er semestre 2026",
+                    "url": "https://www.richbourse.com/common/actualite/afficher-fichier/21-09-2026-boa-senegal-rapport-d-activites-1er-semestre-2026"
                 }
             ]
         },
@@ -42,13 +47,18 @@
             "publications": [
                 {
                     "date": "18/09/2026",
+                    "titre": "Transactions Sur Dossier",
+                    "url": "https://www.richbourse.com/common/actualite/afficher-fichier/18-09-2026-transactions-sur-dossier"
+                },
+                {
+                    "date": "18/09/2026",
                     "titre": "UNIWAX : Communiqué - Declaration de franchissement de seuil - FRAGECI, VLISCO B.V, CFCI SA, COIC SA",
                     "url": "https://www.richbourse.com/common/actualite/afficher-fichier/18-09-2026-uniwax-communique-declaration-de-franchissement-de-seuil-frageci-vlisco-bv-cfci-sa-coic-sa"
                 },
                 {
-                    "date": "18/09/2026",
-                    "titre": "Transactions Sur Dossier",
-                    "url": "https://www.richbourse.com/common/actualite/afficher-fichier/18-09-2026-transactions-sur-dossier"
+                    "date": "17/09/2026",
+                    "titre": "AFRICA GLOBAL LOGISTICS CI : Etats Financiers certifiés - Exercice 2025",
+                    "url": "https://www.richbourse.com/common/actualite/afficher-fichier/17-09-2026-africa-global-logistics-ci-etats-financiers-certifies-exercice-2025"
                 },
                 {
                     "date": "17/09/2026",
@@ -59,11 +69,6 @@
                     "date": "17/09/2026",
                     "titre": "AFRICA GLOBAL LOGISTICS CI : Rapport des Commissaires Aux Comptes sur les Etats Financiers",
                     "url": "https://www.richbourse.com/common/actualite/afficher-fichier/17-09-2026-africa-global-logistics-ci-rapport-des-commissaires-aux-comptes-sur-les-etats-financiers"
-                },
-                {
-                    "date": "17/09/2026",
-                    "titre": "AFRICA GLOBAL LOGISTICS CI : Etats Financiers certifiés - Exercice 2025",
-                    "url": "https://www.richbourse.com/common/actualite/afficher-fichier/17-09-2026-africa-global-logistics-ci-etats-financiers-certifies-exercice-2025"
                 },
                 {
                     "date": "16/09/2026",
@@ -114,11 +119,6 @@
                     "date": "04/09/2026",
                     "titre": "SMB CI : Paiement de dividendes - Exercice 2025",
                     "url": "https://www.richbourse.com/common/actualite/afficher-fichier/04-09-2026-smb-ci-paiement-de-dividendes-exercice-2025"
-                },
-                {
-                    "date": "03/09/2026",
-                    "titre": "SAFCA CI : Rapport d'activités - 2eme trimestre 2026",
-                    "url": "https://www.richbourse.com/common/actualite/afficher-fichier/03-09-2026-safca-ci-rapport-d-activites-2eme-trimestre-2026"
                 }
             ]
         }
