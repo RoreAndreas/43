@@ -1075,14 +1075,168 @@
   .aide-note h2 { margin: 0 0 4px; font: 500 13.5px/1.35 var(--sans); color: var(--ink-2); }
   .aide-note p { margin: 0; font: 400 12.5px/1.6 var(--sans); color: var(--muted); text-wrap: pretty; }
 
-  /* ---------- Onglet Comparables ---------- */
-  .comparables {
-    max-width: 1060px;
+  /* ---------- Onglet Valorisation ---------- */
+  /* Deux vues sous un même onglet : le DCF, toujours disponible, et les
+     multiples de l'échantillon, qui n'existent qu'en référentiel Comparables. */
+  /* Plus large que les autres onglets : le calcul et la sensibilité tiennent
+     côte à côte sans replier leurs libellés. L'en-tête suit (body.is-large). */
+  .valo {
+    max-width: 1344px;
     margin: 0 auto;
     padding: 30px 32px 120px;
     display: grid;
     gap: 20px;
   }
+  body.is-large .top-inner { max-width: 1344px; }
+  .valo-corps { display: grid; gap: 20px; }
+  .valo-vues {
+    justify-self: start;
+    display: inline-flex;
+    gap: 2px;
+    padding: 3px;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    background: var(--surface);
+  }
+  .valo-vues button {
+    padding: 7px 16px;
+    border: 0;
+    border-radius: 999px;
+    background: transparent;
+    font: 400 12px/1 var(--sans);
+    color: var(--muted);
+    cursor: pointer;
+    transition: color 160ms ease, background-color 160ms ease;
+  }
+  .valo-vues button.is-active { background: var(--ink); color: #fff; font-weight: 500; }
+
+  /* Hypothèses : une ligne de champs au-dessus des deux colonnes de calcul. */
+  .dcf-hyp {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 16px 18px;
+  }
+  .dcf-champ { display: grid; gap: 7px; align-content: start; }
+  .dcf-champ-tete { display: flex; align-items: center; justify-content: space-between; gap: 8px; min-height: 22px; }
+  .dcf-champ .mini-input { width: 100%; padding: 7px 10px; font-size: 13px; }
+  .dcf-champ .field-hint { min-height: 14px; }
+  .dcf-auto {
+    padding: 8px 10px;
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    background: var(--tile);
+    font: 500 13px/1.2 var(--mono);
+    font-variant-numeric: tabular-nums;
+    color: var(--ink);
+  }
+  .dcf-annees { display: flex; align-items: center; gap: 6px; }
+  .dcf-annees .mini-input { flex: 1 1 auto; min-width: 0; }
+  .dcf-annees button, .dcf-conv button {
+    flex: none;
+    height: 30px;
+    min-width: 30px;
+    padding: 0 9px;
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    background: var(--surface);
+    font: 400 12px/1 var(--mono);
+    color: var(--ink-3);
+    cursor: pointer;
+  }
+  .dcf-annees button:disabled { color: var(--muted-2); cursor: default; }
+  .dcf-conv { display: flex; gap: 4px; }
+  .dcf-conv button { flex: 1 1 0; font-family: var(--sans); }
+  .dcf-conv button.is-active { border-color: var(--ink); background: var(--ink); color: #fff; }
+
+  /* À gauche le calcul, à droite la sensibilité et le passage à la VFP. */
+  .dcf-grille {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 468px;
+    gap: 20px;
+    align-items: start;
+  }
+  .dcf-droite { display: grid; gap: 20px; }
+  @media (max-width: 1180px) { .dcf-grille { grid-template-columns: minmax(0, 1fr); } }
+  /* Sans min-width nul, la grille de sensibilité impose sa largeur à la
+     carte au lieu de défiler dans son cadre. */
+  .dcf-grille > *, .dcf-droite > *, .card-block > .dcf-defile { min-width: 0; }
+  .dcf-defile { overflow-x: auto; }
+
+  /* Tableaux au format de la note de valorisation : bandeaux marine, saisies
+     en bleu, montants négatifs entre parenthèses. */
+  .dcf-table, .pont-table, .sens-table {
+    width: 100%;
+    border-collapse: collapse;
+    font: 400 12.5px/1.35 var(--mono);
+    font-variant-numeric: tabular-nums;
+    color: var(--ink-2);
+  }
+  .dcf-table th, .dcf-table td, .pont-table th, .pont-table td {
+    padding: 5px 8px;
+    text-align: right;
+    white-space: nowrap;
+  }
+  .dcf-table th:first-child, .dcf-table td:first-child,
+  .pont-table th:first-child, .pont-table td:first-child {
+    text-align: left;
+    font-family: var(--sans);
+    white-space: normal;
+  }
+  .dcf-table td:first-child { padding-left: 16px; white-space: nowrap; }
+  .dcf-table .is-bandeau th, .dcf-table .is-bandeau td,
+  .pont-table .is-bandeau th, .pont-table .is-bandeau td {
+    background: var(--blue-ink);
+    color: #fff;
+    font-weight: 600;
+    padding-top: 7px;
+    padding-bottom: 7px;
+  }
+  .dcf-table .is-bandeau td:first-child { padding-left: 8px; }
+  .dcf-table .is-fort td { font-weight: 600; color: var(--ink); }
+  .dcf-table .is-fcff td { background: var(--blue-tint); }
+  .dcf-table .is-vt td { background: var(--green-tint); }
+  .dcf-table .is-discret td { font-style: italic; color: var(--blue-ink); }
+  .dcf-table .dcf-tcam { color: var(--muted); }
+  .dcf-table .is-bandeau .dcf-tcam { color: rgba(255, 255, 255, .78); }
+  .dcf-saisie {
+    width: 100%;
+    min-width: 76px;
+    padding: 3px 5px;
+    border: 1px solid transparent;
+    border-radius: 4px;
+    background: var(--blue-tint);
+    font: 400 12.5px/1.35 var(--mono);
+    font-variant-numeric: tabular-nums;
+    color: var(--blue);
+    text-align: right;
+  }
+  .dcf-saisie:hover { border-color: var(--blue-soft); }
+  .dcf-saisie:focus { outline: none; border-color: var(--blue); background: var(--surface); }
+  .dcf-saisie.is-invalide { border-color: var(--warn); background: var(--warn-tint); color: var(--warn); }
+  .pont-table td:first-child { padding-left: 0; }
+  .pont-table .is-bandeau td:first-child { padding-left: 8px; }
+  .pont-table thead th {
+    font: 400 10px/1.7 var(--mono);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--muted);
+    border-bottom: 1px solid var(--line);
+  }
+
+  /* Sensibilité : le coeur de grille (± un pas) en bleu moyen, les trois
+     valeurs reprises dans le passage à la VFP en marine. */
+  .sens-table th, .sens-table td { padding: 6px 5px; text-align: right; white-space: nowrap; }
+  .sens-table thead th { font-size: 11px; color: var(--muted); font-weight: 400; }
+  .sens-table tbody th { font-size: 11px; color: var(--muted); font-weight: 400; padding-right: 8px; }
+  .sens-table .sens-coin { text-align: left; font: 400 10px/1.3 var(--mono); letter-spacing: 0.04em; }
+  .sens-table td { background: var(--blue-tint); border: 1px solid var(--surface); color: var(--ink-2); }
+  .sens-table td.is-coeur { background: var(--blue-soft); }
+  .sens-table td.is-cle { background: var(--blue-ink); color: #fff; font-weight: 600; }
+  .sens-table td.is-vide { color: var(--muted-2); }
+  .sens-pas { display: flex; gap: 14px; flex-wrap: wrap; align-items: center; }
+  .sens-pas label { display: inline-flex; align-items: center; gap: 6px; font: 400 11px/1 var(--sans); color: var(--ink-4); }
+  .sens-pas .mini-input { width: 64px; }
+  .dcf-alerte { margin: 0; font: 400 11.5px/1.55 var(--sans); color: var(--warn); }
   .mult-defs { display: grid; gap: 14px; }
   .mult-def { display: grid; gap: 10px; }
   .mult-def-head { display: grid; gap: 3px; }
@@ -1339,7 +1493,7 @@
       <button type="button" data-tab="wacc">CMPC</button>
       <!-- N'apparaissent qu'avec le référentiel Comparables -->
       <button type="button" data-tab="societes" id="tabSocietes" hidden>Sociétés</button>
-      <button type="button" data-tab="comparables" id="tabComparables" hidden>Comparables</button>
+      <button type="button" data-tab="valorisation">Valorisation</button>
     </nav>
   </div>
 </header>
@@ -1365,8 +1519,21 @@
   </div>
 </main>
 
-<main class="comparables" id="panel-comparables" hidden>
-  <div id="comparablesMain"></div>
+<main class="valo" id="panel-valorisation" hidden>
+  <div class="valo-vues" role="tablist" aria-label="Méthode de valorisation">
+    <button type="button" role="tab" data-vue="dcf" class="is-active">DCF</button>
+    <button type="button" role="tab" data-vue="comparables">Comparables</button>
+  </div>
+  <div class="valo-corps" id="valoDcf"></div>
+  <div class="valo-corps" id="valoComparables" hidden>
+    <div class="notice" id="comparablesAbsents" hidden>
+      <h3>Référentiel Comparables requis</h3>
+      <p>Les multiples viennent de l'échantillon de sociétés cotées qui alimente le CMPC en
+      référentiel Comparables. Choisissez ce référentiel dans l'onglet Paramètres pour les
+      afficher ici.</p>
+    </div>
+    <div class="valo-corps" id="comparablesMain"></div>
+  </div>
 </main>
 
 <main class="aide" id="panel-aide" hidden>
@@ -1516,11 +1683,14 @@
           <path d="M8 18.6h25" class="v4-accent-tirets"/>
         </svg></span>
         <div>
-          <h2>L'onglet Comparables</h2>
-          <span class="aide-ou">Onglet Comparables — référentiel Comparables</span>
-          <p>Les multiples de valorisation des mêmes sociétés : VE / EBITDA et VE / CA.
-          En barres, ou en tableau détaillé si vous cliquez le bloc. Avec le minimum, la
-          moyenne, la médiane et le maximum.</p>
+          <h2>L'onglet Valorisation</h2>
+          <span class="aide-ou">Onglet Valorisation — vues DCF et Comparables</span>
+          <p>Le DCF actualise les flux de trésorerie saisis au CMPC de l'onglet CMPC, que
+          le cadenas permet de remplacer. À droite, la sensibilité de la VE au CMPC et à g,
+          puis le passage de la VE à la valeur des fonds propres.</p>
+          <p>La vue Comparables présente les multiples des sociétés de l'échantillon :
+          VE / EBITDA, en barres ou en tableau détaillé si vous cliquez le bloc. Elle
+          demande le référentiel Comparables.</p>
         </div>
       </li>
 
@@ -1933,10 +2103,10 @@
 
   /* ================= Onglets ================= */
   function renderTabs() {
-    // Les onglets Sociétés et Comparables n'existent que sous référentiel Comparables.
-    if (!estComparables() && (tab === "societes" || tab === "comparables")) tab = "params";
+    // L'onglet Sociétés n'existe que sous référentiel Comparables. L'onglet
+    // Valorisation reste toujours là : son DCF ne dépend pas du référentiel.
+    if (!estComparables() && tab === "societes") tab = "params";
     $("tabSocietes").hidden = !estComparables();
-    $("tabComparables").hidden = !estComparables();
 
     document.querySelectorAll(".tabs button").forEach((b) => {
       b.classList.toggle("is-active", b.dataset.tab === tab);
@@ -1944,12 +2114,13 @@
     $("panel-params").hidden = tab !== "params";
     $("panel-wacc").hidden = tab !== "wacc";
     $("panel-societes").hidden = tab !== "societes";
-    $("panel-comparables").hidden = tab !== "comparables";
+    $("panel-valorisation").hidden = tab !== "valorisation";
     $("panel-aide").hidden = tab !== "aide";
     // Le bouton du guide est hors de la barre : son etat actif ne suit pas la
     // boucle ci-dessus, qui ne balaie que les onglets.
     $("tabAide").classList.toggle("is-on", tab === "aide");
-    if (tab === "comparables") ajusterCadreMultiples();
+    document.body.classList.toggle("is-large", tab === "valorisation");
+    if (tab === "valorisation") ajusterCadreMultiples();
     if (tab === "wacc" || tab === "societes") requestAnimationFrame(placeArrows);
   }
   // Tout ce qui porte data-tab bascule la vue, dans la barre ou ailleurs :
@@ -3399,7 +3570,7 @@
   // seulement que les hauteurs existent.
   function ajusterCadreMultiples() {
     const corps = document.querySelector("#comparablesMain .mult-view-body");
-    if (!corps || $("panel-comparables").hidden) return;
+    if (!corps || $("panel-valorisation").hidden || $("valoComparables").hidden) return;
     const couche = corps.querySelector(COMP_UI.calc ? ".mult-detail" : ".mult-bars");
     if (!couche) return;
     const pose = corps.style.minHeight;
@@ -3556,6 +3727,460 @@
       if (e.key === "Enter" || e.key === " ") { e.preventDefault(); activer(); }
     });
   }
+
+  /* ================= Onglet Valorisation : DCF =================
+     Flux de trésorerie disponibles pour l'entreprise, actualisés au CMPC en
+     monnaie locale, valeur terminale de Gordon-Shapiro :
+
+       NOPAT = EBIT − impôt normatif (taux d'IS × EBIT, nul si l'EBIT est négatif)
+       FCFF  = NOPAT + D&A − CapEx + variation du BFR (signée comme un flux)
+       VT    = FCFF(N) × (1 + g) / (CMPC − g)
+       VE    = Σ FCFF(t) × facteur(t) + VT × facteur(N)
+       VFP   = VE − dette nette
+
+     En convention mi-année, les flux tombent au milieu de l'exercice :
+     facteur(t) = (1 + CMPC)^−(t − 0,5). La VT résume à fin N des flux reçus eux
+     aussi en milieu d'année : elle s'actualise donc avec le facteur de la
+     dernière année, et non avec (1 + CMPC)^−N.
+
+     Les états financiers ne sont pas encore importés : les flux se saisissent
+     dans le tableau. Ils partent d'un exemple, signalé comme tel tant que rien
+     n'a été modifié. Cet état reste hors de l'URL : cinq lignes de montants par
+     exercice n'ont rien à faire dans un lien partagé.
+  */
+  const VALO = {
+    vue: "dcf",
+    exemple: true,
+    premiere: 2026,
+    ebit: [54463, 63821, 76624, 106636],
+    da: [63230, 80311, 100131, 82320],       // positif, ajouté au NOPAT
+    capex: [86641, 79152, 77427, 77427],     // positif, retranché
+    bfr: [-2723, -4404, -5212, -850],        // signé comme un flux : négatif si le BFR croît
+    detteNette: 129455,                      // négative pour une trésorerie nette
+    g: 0.02,
+    waccVerrou: true, waccSaisie: null,      // fermé : CMPC de l'onglet CMPC
+    impotVerrou: true, impotSaisie: null,    // fermé : taux d'IS du pays
+    miAnnee: true,
+    pasWacc: 0.01,
+    pasG: 0.003,
+  };
+  const DCF_ANNEES_MAX = 10;
+
+  // « (86 641) », « −86641 », « 86 641,5 » : la saisie suit les conventions
+  // d'affichage du tableau. Vide vaut zéro ; un texte illisible rend null.
+  function lireMontant(texte) {
+    let s = String(texte == null ? "" : texte).trim();
+    if (!s) return 0;
+    let signe = 1;
+    if (/^\(.*\)$/.test(s)) { signe = -1; s = s.slice(1, -1).trim(); }
+    if (/^[-−]/.test(s)) { signe = -signe; s = s.slice(1); }
+    s = s.replace(/[\s  ]/g, "").replace(",", ".");
+    if (!/^(\d+\.?\d*|\.\d+)$/.test(s)) return null;
+    return signe * Number(s);
+  }
+  function lirePct(texte) {
+    const s = String(texte == null ? "" : texte).replace("%", "").trim();
+    if (!s) return null;
+    const v = lireMontant(s);
+    return v == null ? null : v / 100;
+  }
+
+  const frMillier = (v) =>
+    Math.round(Math.abs(v)).toString().replace(/\B(?=(\d{3})+(?!\d))/g, " ");
+  // Négatifs entre parenthèses, comme dans la note de valorisation.
+  const frFlux = (v) => (v == null || !Number.isFinite(v)) ? "—"
+    : (Math.round(v) < 0 ? "(" + frMillier(v) + ")" : frMillier(v));
+  const frFy = (an) => "FY" + String(an).slice(-2);
+
+  function cmpcAuto() {
+    if (estComparables()) {
+      const cc = cmpcComparables();
+      return cc ? cc.waccLocal : null;
+    }
+    return model && model.brut && Number.isFinite(model.brut.waccLocal) ? model.brut.waccLocal : null;
+  }
+  // Même repli que le CMPC : 25 % quand Damodaran ne publie pas le taux du
+  // pays, pour que le DCF et le CMPC reposent sur le même impôt.
+  const impotNonPublie = () => !Number.isFinite((DATA.pays[params.country] || {}).tax);
+  function impotAuto() {
+    return impotNonPublie() ? 0.25 : DATA.pays[params.country].tax;
+  }
+  function hypothesesDcf() {
+    const impot = VALO.impotVerrou ? impotAuto() : VALO.impotSaisie;
+    return {
+      wacc: VALO.waccVerrou ? cmpcAuto() : VALO.waccSaisie,
+      impot: impot == null ? 0 : impot,
+    };
+  }
+
+  // Fonction pure : la sensibilité la rappelle vingt-cinq fois avec d'autres
+  // couples (CMPC, g), sans rien toucher à l'état.
+  function calculDcf(wacc, g, impot) {
+    const n = VALO.ebit.length;
+    const r = { impot: [], nopat: [], fcff: [], periode: [], facteur: [], actualise: [], somme: 0 };
+    for (let t = 0; t < n; t++) {
+      const ebit = VALO.ebit[t];
+      const imp = -Math.max(0, ebit) * impot;
+      const fcff = ebit + imp + VALO.da[t] - VALO.capex[t] + VALO.bfr[t];
+      const periode = t + 1;
+      const facteur = Number.isFinite(wacc) && wacc > -1
+        ? Math.pow(1 + wacc, -(VALO.miAnnee ? periode - 0.5 : periode)) : null;
+      r.impot.push(imp);
+      r.nopat.push(ebit + imp);
+      r.fcff.push(fcff);
+      r.periode.push(periode);
+      r.facteur.push(facteur);
+      r.actualise.push(facteur == null ? null : fcff * facteur);
+      r.somme += facteur == null ? 0 : fcff * facteur;
+    }
+    const valide = n > 0 && r.facteur[n - 1] != null && wacc > g;
+    r.vt = valide ? r.fcff[n - 1] * (1 + g) / (wacc - g) : null;
+    r.vtAct = valide ? r.vt * r.facteur[n - 1] : null;
+    r.ve = valide ? r.somme + r.vtAct : null;
+    if (!valide) r.somme = r.facteur[n - 1] == null ? null : r.somme;
+    return r;
+  }
+
+  function champVerrouDcf(cle, libelle, ouvert, valeur, aide) {
+    return `
+      <div class="dcf-champ">
+        <span class="dcf-champ-tete">
+          <span class="field-label">${libelle}</span>
+          <button type="button" class="verrou${ouvert ? " is-open" : ""}" data-verrou="${cle}"
+                  aria-pressed="${ouvert ? "true" : "false"}"
+                  title="${ouvert ? "Revenir à la valeur calculée" : "Saisir une autre valeur"}">
+            ${ouvert ? CADENAS.ouvert : CADENAS.ferme}<span>${ouvert ? "Saisi" : "Auto"}</span>
+          </button>
+        </span>
+        ${ouvert
+          ? `<input class="mini-input" data-pct="${cle}" inputmode="decimal" aria-label="${esc(libelle)}"
+                    value="${valeur == null ? "" : frNum(valeur * 100, 2)}" placeholder="en %">`
+          : `<span class="dcf-auto" data-o="${cle}-auto">${valeur == null ? "—" : frPct(valeur)}</span>`}
+        <span class="field-hint">${aide}</span>
+      </div>`;
+  }
+
+  function renderDcf() {
+    const n = VALO.ebit.length;
+    const h = hypothesesDcf();
+    const nomsLignes = { ebit: "EBIT", da: "D&A", capex: "CapEx", bfr: "Variation du BFR" };
+    const saisies = (ligne, signe) => VALO[ligne].map((v, t) => `
+      <td><input class="dcf-saisie" data-ligne="${ligne}" data-i="${t}" inputmode="decimal"
+                 aria-label="${nomsLignes[ligne]} ${frFy(VALO.premiere + t)}"
+                 value="${frFlux(signe * v)}"></td>`).join("");
+    const calcul = (cle) => VALO.ebit.map((_, t) => `<td data-o="${cle}-${t}"></td>`).join("");
+    const total = (cle, libelle, classe) => `
+      <tr class="${classe}"><td data-o="${cle}-lib">${libelle}</td>${"<td></td>".repeat(n - 1)}<td data-o="${cle}"></td><td></td></tr>`;
+
+    $("valoDcf").innerHTML = `
+      <section class="card-block">
+        <div class="block-head">
+          <h2>Hypothèses du DCF</h2>
+          <div class="chips">
+            <span class="chip is-accent" data-o="exemple"${VALO.exemple ? "" : " hidden"}>Chiffres d'exemple, à remplacer</span>
+            <span class="chip">M FCFA</span>
+          </div>
+        </div>
+        <div class="dcf-hyp">
+          ${champVerrouDcf("wacc", "CMPC, monnaie locale", !VALO.waccVerrou,
+            VALO.waccVerrou ? h.wacc : VALO.waccSaisie,
+            VALO.waccVerrou ? "Repris de l'onglet CMPC" : "Saisi dans cet onglet")}
+          <div class="dcf-champ">
+            <span class="dcf-champ-tete"><span class="field-label">Croissance à l'infini (g)</span></span>
+            <input class="mini-input" data-pct="g" inputmode="decimal" aria-label="Croissance à l'infini"
+                   value="${frNum(VALO.g * 100, 2)}">
+            <span class="field-hint">En %, Gordon-Shapiro</span>
+          </div>
+          ${champVerrouDcf("impot", "Taux d'IS normatif", !VALO.impotVerrou,
+            VALO.impotVerrou ? impotAuto() : VALO.impotSaisie,
+            !VALO.impotVerrou ? "Saisi dans cet onglet"
+              : esc(params.country) + (impotNonPublie() ? " : non publié, 25 % retenu" : ""))}
+          <div class="dcf-champ">
+            <span class="dcf-champ-tete"><span class="field-label">Dette nette</span></span>
+            <input class="mini-input" data-montant="detteNette" inputmode="decimal" aria-label="Dette nette"
+                   value="${frFlux(VALO.detteNette)}">
+            <span class="field-hint">Négative si trésorerie nette</span>
+          </div>
+          <div class="dcf-champ">
+            <span class="dcf-champ-tete"><span class="field-label">Premier exercice</span></span>
+            <span class="dcf-annees">
+              <input class="mini-input" data-annee="premiere" inputmode="numeric" aria-label="Premier exercice"
+                     value="${VALO.premiere}">
+              <button type="button" data-annees="-1" aria-label="Retirer un exercice"${n <= 1 ? " disabled" : ""}>−</button>
+              <button type="button" data-annees="1" aria-label="Ajouter un exercice"${n >= DCF_ANNEES_MAX ? " disabled" : ""}>+</button>
+            </span>
+            <span class="field-hint">${n} exercice${n > 1 ? "s" : ""} projeté${n > 1 ? "s" : ""}</span>
+          </div>
+          <div class="dcf-champ">
+            <span class="dcf-champ-tete"><span class="field-label">Actualisation</span></span>
+            <span class="dcf-conv">
+              <button type="button" data-conv="mi" class="${VALO.miAnnee ? "is-active" : ""}">Mi-année</button>
+              <button type="button" data-conv="fin" class="${VALO.miAnnee ? "" : "is-active"}">Fin d'année</button>
+            </span>
+            <span class="field-hint">Date des flux dans l'exercice</span>
+          </div>
+        </div>
+        <p class="dcf-alerte" data-o="alerte" hidden></p>
+      </section>
+
+      <div class="dcf-grille">
+        <section class="card-block">
+          <div class="block-head"><h2>Flux de trésorerie actualisés</h2></div>
+          <div class="dcf-defile">
+            <table class="dcf-table">
+              <thead>
+                <tr class="is-bandeau">
+                  <th>DCF</th>
+                  ${VALO.ebit.map((_, t) => `<th data-o="an-${t}"></th>`).join("")}
+                  <th class="dcf-tcam" data-o="tcam-tete"></th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr><td>EBIT (résultat d'exploitation)</td>${saisies("ebit", 1)}<td class="dcf-tcam" data-o="tcam"></td></tr>
+                <tr><td>(−) Impôt normatif sur l'EBIT</td>${calcul("impot")}<td></td></tr>
+                <tr class="is-fort"><td>NOPAT (résultat d'exploitation après impôt)</td>${calcul("nopat")}<td></td></tr>
+                <tr><td>(+) Dotations nettes (D&amp;A)</td>${saisies("da", 1)}<td></td></tr>
+                <tr><td>(−) Investissements (CapEx)</td>${saisies("capex", -1)}<td></td></tr>
+                <tr><td title="Signée comme un flux : négative quand le BFR augmente">(−) Variation du BFR</td>${saisies("bfr", 1)}<td></td></tr>
+                <tr class="is-fort is-fcff"><td>FCFF (flux disponible pour l'entreprise)</td>${calcul("fcff")}<td></td></tr>
+                <tr class="is-discret"><td>Période d'actualisation (n)</td>${calcul("periode")}<td></td></tr>
+                <tr class="is-discret"><td>Facteur d'actualisation</td>${calcul("facteur")}<td></td></tr>
+                <tr class="is-fort"><td>FCFF actualisé</td>${calcul("actualise")}<td></td></tr>
+                ${total("somme", "", "")}
+                ${total("vt", "", "is-discret")}
+                ${total("vtact", "Valeur terminale actualisée", "is-fort is-vt")}
+                ${total("ve", "Valeur d'entreprise (VE)", "is-bandeau")}
+              </tbody>
+            </table>
+          </div>
+          <p class="note" data-o="note-vt"></p>
+        </section>
+
+        <div class="dcf-droite">
+          <section class="card-block">
+            <div class="block-head"><h2>Sensibilité de la VE</h2></div>
+            <div class="sens-pas">
+              <label>Pas CMPC <input class="mini-input" data-pct="pasWacc" inputmode="decimal"
+                     aria-label="Pas du CMPC" value="${frNum(VALO.pasWacc * 100, 2)}"> %</label>
+              <label>Pas g <input class="mini-input" data-pct="pasG" inputmode="decimal"
+                     aria-label="Pas de g" value="${frNum(VALO.pasG * 100, 2)}"> %</label>
+            </div>
+            <div class="dcf-defile" data-html="sens"></div>
+          </section>
+          <section class="card-block">
+            <div class="block-head"><h2>De la VE à la valeur des fonds propres</h2></div>
+            <div data-html="pont"></div>
+          </section>
+        </div>
+      </div>`;
+    majDcf();
+  }
+
+  // Remplit les cellules calculées sans redessiner les champs : la saisie en
+  // cours garde son curseur, et chaque frappe met le résultat à jour.
+  function majDcf() {
+    const racine = $("valoDcf");
+    const ecrire = (cle, texte) => {
+      const el = racine.querySelector(`[data-o="${cle}"]`);
+      if (el) el.textContent = texte;
+    };
+    const remplir = (cle, html) => {
+      const el = racine.querySelector(`[data-html="${cle}"]`);
+      if (el) el.innerHTML = html;
+    };
+    const n = VALO.ebit.length;
+    const h = hypothesesDcf();
+    const r = calculDcf(h.wacc, VALO.g, h.impot);
+    const debut = frFy(VALO.premiere), fin = frFy(VALO.premiere + n - 1);
+
+    for (let t = 0; t < n; t++) {
+      ecrire("an-" + t, frFy(VALO.premiere + t));
+      ecrire("impot-" + t, frFlux(r.impot[t]));
+      ecrire("nopat-" + t, frFlux(r.nopat[t]));
+      ecrire("fcff-" + t, frFlux(r.fcff[t]));
+      ecrire("periode-" + t, String(r.periode[t]));
+      ecrire("facteur-" + t, r.facteur[t] == null ? "—" : frNum(r.facteur[t], 2));
+      ecrire("actualise-" + t, frFlux(r.actualise[t]));
+    }
+    // TCAM de l'EBIT : seulement entre deux exercices positifs.
+    const e0 = VALO.ebit[0], eN = VALO.ebit[n - 1];
+    const tcam = n > 1 && e0 > 0 && eN > 0 ? Math.pow(eN / e0, 1 / (n - 1)) - 1 : null;
+    ecrire("tcam-tete", n > 1 ? "TCAM " + debut.slice(2) + "-" + fin.slice(2) : "");
+    ecrire("tcam", tcam == null ? "" : frPct(tcam, 1));
+    ecrire("somme-lib", "Somme des FCFF actualisés, " + debut + " à " + fin);
+    ecrire("somme", frFlux(r.somme));
+    ecrire("vt-lib", "Valeur terminale à fin " + fin + " (Gordon-Shapiro)");
+    ecrire("vt", frFlux(r.vt));
+    ecrire("vtact", frFlux(r.vtAct));
+    ecrire("ve", frFlux(r.ve));
+    ecrire("wacc-auto", h.wacc == null ? "—" : frPct(h.wacc));
+    ecrire("impot-auto", frPct(impotAuto()));
+    const chip = racine.querySelector('[data-o="exemple"]');
+    if (chip) chip.hidden = !VALO.exemple;
+
+    let alerte = "";
+    if (h.wacc == null) alerte = "Aucun CMPC n'est calculé pour ces paramètres : ouvrez le cadenas du CMPC pour en saisir un.";
+    else if (h.wacc <= VALO.g) alerte = "Le CMPC doit dépasser la croissance à l'infini : sans cela, la valeur terminale n'a pas de sens.";
+    const alerteEl = racine.querySelector('[data-o="alerte"]');
+    if (alerteEl) { alerteEl.textContent = alerte; alerteEl.hidden = !alerte; }
+
+    ecrire("note-vt", r.ve > 0
+      ? "La valeur terminale représente " + frPct(r.vtAct / r.ve, 0) + " de la VE"
+        + (r.vtAct / r.ve > 0.75 ? " : l'essentiel de la valeur tient à l'hypothèse de g." : ".")
+        + " Actualisation au CMPC de " + frPct(h.wacc) + (VALO.miAnnee ? ", flux en milieu d'année." : ", flux en fin d'année.")
+      : "");
+
+    remplir("sens", grilleSensibilite(h));
+    remplir("pont", pontVfp(h));
+  }
+
+  // Cinq CMPC × cinq g autour des valeurs retenues. Le coeur (± un pas) est
+  // teinté ; le centre et les deux coins opposés sont les trois VE reprises
+  // dans le passage à la VFP.
+  function grilleSensibilite(h) {
+    if (h.wacc == null) return '<p class="note">Sans CMPC, pas de sensibilité.</p>';
+    const k = [-2, -1, 0, 1, 2];
+    const ws = k.map((i) => h.wacc + i * VALO.pasWacc);
+    const gs = k.map((j) => VALO.g + j * VALO.pasG);
+    const cles = ["2,2", "3,1", "1,3"];
+    return `
+      <table class="sens-table">
+        <thead><tr><th class="sens-coin">CMPC ↓ g →</th>${gs.map((g) => `<th>${frPct(g, 1)}</th>`).join("")}</tr></thead>
+        <tbody>
+          ${ws.map((w, i) => `
+            <tr><th>${frPct(w, 1)}</th>${gs.map((g, j) => {
+              const ve = calculDcf(w, g, h.impot).ve;
+              const classe = ve == null ? "is-vide"
+                : cles.includes(i + "," + j) ? "is-cle"
+                : Math.abs(i - 2) <= 1 && Math.abs(j - 2) <= 1 ? "is-coeur" : "";
+              return `<td class="${classe}">${frFlux(ve)}</td>`;
+            }).join("")}</tr>`).join("")}
+        </tbody>
+      </table>`;
+  }
+
+  // Min : CMPC un pas au-dessus, g un pas au-dessous — et l'inverse pour Max.
+  function pontVfp(h) {
+    const scenarios = [
+      { libelle: "Min", w: h.wacc + VALO.pasWacc, g: VALO.g - VALO.pasG },
+      { libelle: "Méd", w: h.wacc, g: VALO.g },
+      { libelle: "Max", w: h.wacc - VALO.pasWacc, g: VALO.g + VALO.pasG },
+    ].map((s) => {
+      const ve = h.wacc == null ? null : calculDcf(s.w, s.g, h.impot).ve;
+      return Object.assign(s, { ve: ve, vfp: ve == null ? null : ve - VALO.detteNette });
+    });
+    return `
+      <table class="pont-table">
+        <thead><tr><th>En M FCFA</th>${scenarios.map((s) => `<th>${s.libelle}</th>`).join("")}</tr></thead>
+        <tbody>
+          <tr><td>Valeur d'entreprise</td>${scenarios.map((s) => `<td>${frFlux(s.ve)}</td>`).join("")}</tr>
+          <tr><td>Dette nette / trésorerie nette</td>${scenarios.map(() => `<td>${frFlux(-VALO.detteNette)}</td>`).join("")}</tr>
+          <tr class="is-bandeau"><td>Valeur des fonds propres</td>${scenarios.map((s) => `<td>${frFlux(s.vfp)}</td>`).join("")}</tr>
+        </tbody>
+      </table>
+      ${h.wacc == null ? "" : `<p class="note">Min : CMPC ${frPct(scenarios[0].w)} et g ${frPct(scenarios[0].g)}.
+      Max : CMPC ${frPct(scenarios[2].w)} et g ${frPct(scenarios[2].g)}.</p>`}`;
+  }
+
+  function chargerValorisation() {
+    document.querySelectorAll(".valo-vues button").forEach((b) => {
+      const actif = b.dataset.vue === VALO.vue;
+      b.classList.toggle("is-active", actif);
+      b.setAttribute("aria-selected", actif ? "true" : "false");
+    });
+    $("valoDcf").hidden = VALO.vue !== "dcf";
+    $("valoComparables").hidden = VALO.vue !== "comparables";
+    $("comparablesAbsents").hidden = estComparables();
+    $("comparablesMain").hidden = !estComparables();
+    renderDcf();
+  }
+
+  document.querySelectorAll(".valo-vues button").forEach((b) => {
+    b.addEventListener("click", () => {
+      VALO.vue = b.dataset.vue;
+      chargerValorisation();
+      ajusterCadreMultiples();
+    });
+  });
+
+  // Les champs sont redessinés à chaque changement de paramètres : on écoute
+  // donc le conteneur, qui, lui, ne change pas.
+  $("valoDcf").addEventListener("input", (e) => {
+    const el = e.target;
+    let valide = true;
+    if (el.dataset.ligne) {
+      const v = lireMontant(el.value);
+      valide = v != null;
+      if (valide) {
+        const ligne = el.dataset.ligne;
+        VALO[ligne][Number(el.dataset.i)] = ligne === "da" || ligne === "capex" ? Math.abs(v) : v;
+      }
+    } else if (el.dataset.montant) {
+      const v = lireMontant(el.value);
+      valide = v != null;
+      if (valide) VALO.detteNette = v;
+    } else if (el.dataset.pct) {
+      const v = lirePct(el.value);
+      const cle = el.dataset.pct;
+      valide = v != null && ((cle !== "pasWacc" && cle !== "pasG") || v > 0);
+      if (valide) {
+        if (cle === "wacc") VALO.waccSaisie = v;
+        else if (cle === "impot") VALO.impotSaisie = v;
+        else VALO[cle] = v;
+      }
+    } else if (el.dataset.annee) {
+      const v = Number(el.value);
+      valide = Number.isInteger(v) && v >= 1900 && v <= 2200;
+      if (valide) VALO.premiere = v;
+    } else {
+      return;
+    }
+    el.classList.toggle("is-invalide", !valide);
+    if (!valide) return;
+    if (el.dataset.ligne || el.dataset.montant) VALO.exemple = false;
+    majDcf();
+  });
+
+  // À la sortie du champ, la saisie reprend le format du tableau.
+  $("valoDcf").addEventListener("change", (e) => {
+    const el = e.target;
+    if (el.classList.contains("is-invalide")) return;
+    if (el.dataset.ligne) {
+      const ligne = el.dataset.ligne;
+      el.value = frFlux((ligne === "capex" ? -1 : 1) * VALO[ligne][Number(el.dataset.i)]);
+    } else if (el.dataset.montant) {
+      el.value = frFlux(VALO.detteNette);
+    } else if (el.dataset.pct) {
+      const cle = el.dataset.pct;
+      const v = cle === "wacc" ? VALO.waccSaisie : cle === "impot" ? VALO.impotSaisie : VALO[cle];
+      if (v != null) el.value = frNum(v * 100, 2);
+    }
+  });
+
+  $("valoDcf").addEventListener("click", (e) => {
+    const bouton = e.target.closest("button");
+    if (!bouton) return;
+    if (bouton.dataset.verrou) {
+      // Ouvrir part de la valeur affichée ; refermer oublie la saisie, comme
+      // pour le gearing cible.
+      const cle = bouton.dataset.verrou;
+      const verrou = cle + "Verrou", saisie = cle + "Saisie";
+      VALO[verrou] = !VALO[verrou];
+      VALO[saisie] = VALO[verrou] ? null : (cle === "wacc" ? cmpcAuto() : impotAuto());
+    } else if (bouton.dataset.annees) {
+      if (bouton.dataset.annees === "1" && VALO.ebit.length < DCF_ANNEES_MAX) {
+        // Le nouvel exercice reprend le précédent : un point de départ à ajuster.
+        for (const ligne of ["ebit", "da", "capex", "bfr"]) VALO[ligne].push(VALO[ligne][VALO[ligne].length - 1]);
+      } else if (bouton.dataset.annees === "-1" && VALO.ebit.length > 1) {
+        for (const ligne of ["ebit", "da", "capex", "bfr"]) VALO[ligne].pop();
+      }
+    } else if (bouton.dataset.conv) {
+      VALO.miAnnee = bouton.dataset.conv === "mi";
+    } else {
+      return;
+    }
+    renderDcf();
+  });
 
   /* ================= Classeur Excel =================
      Le bouton flèche de l'en-tête rend le calcul dans le même gabarit qu'à l'origine :
@@ -4584,6 +5209,7 @@
     chargerCmpc();
     chargerSocietes();
     chargerComparables();
+    chargerValorisation();
 
     for (const cle of ["cmpc", "soc"]) {
       const garde = ouverts[cle];
