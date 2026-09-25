@@ -84,15 +84,23 @@ CASES = {"actualise": "somme", "vt": "vt", "cmpc": "cmpc", "tcam": "tcam"}
 
 
 def carte(page, cle):
+    # textContent : le DCF se lit aussi quand une autre vue est affichée.
     if cle in ("ve", "vfp"):
-        return page.inner_text(f'#valoDcf [data-o="{cle}"]')
-    return page.inner_text(f'#valoDcf [data-case="{CASES[cle]}"] .dcf-case-valeur')
+        return page.text_content(f'#valoDcf [data-o="{cle}"]')
+    return page.text_content(f'#valoDcf [data-case="{CASES[cle]}"] .dcf-case-valeur')
 
 
 def importer(page, chemin):
+    """Le prévisionnel s'importe dans les États financiers ; le DCF le lit.
+    On attend ce fichier-là, accepté ou refusé, puis on passe au DCF s'il a
+    été lu."""
+    nom = str(chemin).replace("\\", "/").split("/")[-1]
     page.click(ONGLET)
+    page.click('.valo-vues button[data-vue="etats"]')
     page.set_input_files("#valoFichier", str(chemin))
-    page.wait_for_selector('#valoDcf [data-o="ve"], #valoDcf .valo-erreurs')
+    page.wait_for_function("(n) => VALO.fichier === n || VALO.fichierRefuse === n", arg=nom)
+    if page.evaluate("(n) => VALO.fichier === n && !VALO.erreurs.length", nom):
+        page.click('.valo-vues button[data-vue="dcf"]')
 
 
 def cmpc(page):
@@ -100,9 +108,12 @@ def cmpc(page):
 
 
 def test_sans_fichier_la_vue_invite_a_importer(page):
+    """L'import est dans les États financiers ; le DCF y renvoie."""
     page.click(ONGLET)
-    assert page.is_visible('#valoDcf [data-action="importer"]')
-    assert page.is_visible('#valoDcf [data-action="modele"]')
+    assert page.is_visible('#valoEtats [data-action="importer"]')
+    assert page.is_visible('#valoEtats [data-action="modele"]')
+    page.click('.valo-vues button[data-vue="dcf"]')
+    assert page.is_visible('#valoDcf [data-action="aller-etats"]')
     assert page.query_selector("#valoDcf .dcf-hyp") is None
     assert page.query_selector('.tabs button[data-tab="comparables"]') is None
 
@@ -197,7 +208,7 @@ def test_capex_negatif_et_taux_d_is_du_pays(page, tmp_path):
 
 def test_un_classeur_incomplet_est_refuse(page, tmp_path):
     importer(page, classeur(tmp_path / "trou.xlsx", sans=("CapEx",)))
-    erreurs = page.inner_text("#valoDcf .valo-erreurs")
+    erreurs = page.inner_text("#valoEtats .valo-erreurs")
     assert "CapEx" in erreurs
     assert page.query_selector('#valoDcf [data-o="ve"]') is None
 
@@ -205,7 +216,7 @@ def test_un_classeur_incomplet_est_refuse(page, tmp_path):
 def test_le_modele_se_telecharge_et_se_reimporte(page, tmp_path):
     page.click(ONGLET)
     with page.expect_download() as dl:
-        page.click('#valoDcf [data-action="modele"]')
+        page.click('#valoEtats [data-action="modele"]')
     chemin = tmp_path / "modele.xlsx"
     dl.value.save_as(chemin)
     wb = openpyxl.load_workbook(chemin)
@@ -243,11 +254,15 @@ def test_la_vue_comparables_montre_les_multiples(page):
     assert "VE / EBITDA" in page.inner_text("#comparablesMain")
 
 
+BOULON_TEST = '#valoEtats [data-action="test"]'
+BANDEAU_PREV = "#valoEtats .prev-carte .valo-import"
+
+
 def test_le_boulon_pose_les_donnees_de_test_puis_ramene_a_l_import(page):
     page.click(ONGLET)
-    boulon = '#valoDcf .valo-boulon'
+    boulon = BOULON_TEST
     # Il dépasse bien de la case : son centre est sur le bord haut de la zone d'import.
-    cadre = page.eval_on_selector("#valoDcf .valo-depot", "e => e.getBoundingClientRect().top")
+    cadre = page.eval_on_selector('#valoEtats .valo-depot[data-depot="prev"]', "e => e.getBoundingClientRect().top")
     haut = page.eval_on_selector(boulon, "e => e.getBoundingClientRect().top")
     bas = page.eval_on_selector(boulon, "e => e.getBoundingClientRect().bottom")
     assert haut < cadre < bas
@@ -255,30 +270,31 @@ def test_le_boulon_pose_les_donnees_de_test_puis_ramene_a_l_import(page):
 
     page.click(boulon)
     assert page.get_attribute(boulon, "aria-pressed") == "true"
-    assert "Données de test" in page.inner_text("#valoDcf .valo-import")
+    assert "Données de test" in page.inner_text(BANDEAU_PREV)
     assert abs(montant(carte(page, "ve")) - ve_attendue(cmpc(page))) < 1
     # Ce sont les chiffres de la note : g = 2 %, dette nette 129 455, IS 25 %.
     pont = page.query_selector_all("#valoDcf .dcf-pont > span b")
-    assert montant(pont[1].inner_text()) == -DETTE_NETTE
+    assert montant(pont[1].text_content()) == -DETTE_NETTE
 
     page.click(boulon)
-    assert page.is_visible('#valoDcf [data-action="importer"]')
+    assert page.is_visible('#valoEtats [data-action="importer"]')
     assert page.query_selector('#valoDcf [data-o="ve"]') is None
 
 
 def test_le_boulon_ne_perd_pas_le_fichier_importe(page, tmp_path):
     importer(page, classeur(tmp_path / "mien.xlsx", g=0.01))
     mien = carte(page, "ve")
-    page.click("#valoDcf .valo-boulon")
+    page.click('.valo-vues button[data-vue="etats"]')
+    page.click(BOULON_TEST)
     assert carte(page, "ve") != mien
-    page.click("#valoDcf .valo-boulon")
+    page.click(BOULON_TEST)
     assert carte(page, "ve") == mien
-    assert "mien.xlsx" in page.inner_text("#valoDcf .valo-import")
+    assert "mien.xlsx" in page.inner_text(BANDEAU_PREV)
     # Importer un fichier sort du mode test.
-    page.click("#valoDcf .valo-boulon")
+    page.click(BOULON_TEST)
     page.set_input_files("#valoFichier", str(classeur(tmp_path / "autre.xlsx")))
-    page.wait_for_function("document.querySelector('#valoDcf .valo-import').innerText.includes('autre.xlsx')")
-    assert page.get_attribute("#valoDcf .valo-boulon", "aria-pressed") == "false"
+    page.wait_for_function("document.querySelector('#valoEtats .prev-carte .valo-import').innerText.includes('autre.xlsx')")
+    assert page.get_attribute(BOULON_TEST, "aria-pressed") == "false"
 
 
 # ------------------------------------------------ historique, comparables, synthèse
@@ -312,7 +328,7 @@ def test_historique_apres_previsionnel_refuse(page, tmp_path):
     ws.append(["M FCFA", "2026E", "2027A"])
     wb.save(chemin)
     importer(page, chemin)
-    assert "précéder" in page.inner_text("#valoDcf .valo-erreurs")
+    assert "précéder" in page.inner_text("#valoEtats .valo-erreurs")
 
 
 def _comparables_avec_multiple(page):
@@ -383,7 +399,7 @@ def test_synthese_sans_comparables_prend_le_dcf(page, tmp_path):
 
 def test_le_boulon_alimente_aussi_la_synthese(page):
     page.click(ONGLET)
+    page.click(BOULON_TEST)
     vers_synthese(page)
-    page.click("#valoSynthese .valo-boulon")
     page.wait_for_selector("#valoSynthese .syn-graphe")
     assert abs(montant(synthese(page, "ve")) - ve_attendue(cmpc(page))) < 1

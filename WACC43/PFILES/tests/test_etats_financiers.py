@@ -236,3 +236,114 @@ def test_le_graphique_suit_la_largeur_de_la_fenetre(page, tmp_path):
     page.wait_for_function("document.documentElement.scrollWidth <= 390")
     largeur = page.eval_on_selector("#valoEtats .traj-svg", "e => e.getBoundingClientRect().width")
     assert largeur <= 390
+
+
+# ------------------------------------------------ prévisionnel estimé par hypothèses
+
+def ve_de(f, wacc, impot):
+    """DCF de référence : flux en milieu d'année, Gordon-Shapiro."""
+    fcff = [e - max(0, e) * impot + d - c + b for e, d, c, b in zip(f["ebit"], f["da"], f["capex"], f["bfr"])]
+    fac = [(1 + wacc) ** -(t + 0.5) for t in range(len(fcff))]
+    return sum(x * y for x, y in zip(fcff, fac)) + fcff[-1] * (1 + f["g"]) / (wacc - f["g"]) * fac[-1]
+
+
+def estimer(page, tmp_path):
+    importer_balance(page, balance(tmp_path / "bg.xlsx"))
+    page.click('#valoEtats [data-action="mode-prev"]')
+    page.wait_for_selector("#valoEtats .traj-enveloppe .hyp-boulon")
+
+
+def test_les_etats_financiers_viennent_en_premier(page):
+    page.click(ONGLET)
+    vues = [b.get_attribute("data-vue") for b in page.query_selector_all(".valo-vues button")]
+    assert vues == ["etats", "dcf", "comparables", "synthese"]
+    assert page.is_visible("#valoEtats") and page.is_hidden("#valoDcf")
+
+
+def test_l_estimation_demande_la_balance(page):
+    page.click(ONGLET)
+    assert page.is_disabled('#valoEtats [data-action="mode-prev"]')
+
+
+def test_le_boulon_sort_de_derriere_le_graphique(page, tmp_path):
+    estimer(page, tmp_path)
+    boulon = "#valoEtats .traj-enveloppe .hyp-boulon"
+    assert "is-sortie" in page.get_attribute(boulon, "class")
+    # Derrière le cadre du graphique : plus bas dans l'empilement, et il n'en
+    # dépasse que par le haut.
+    z = page.eval_on_selector(boulon, "e => [getComputedStyle(e).zIndex, getComputedStyle(e.nextElementSibling).zIndex]")
+    assert int(z[0]) < int(z[1])
+    # Fermé : les hypothèses n'occupent pas la vue.
+    assert page.is_hidden("#valoEtats .hyp-panneau")
+    assert page.is_visible("#valoEtats .traj-svg")
+
+
+def test_ouvertes_les_hypotheses_sont_seules_a_l_ecran(page, tmp_path):
+    estimer(page, tmp_path)
+    page.click("#valoEtats .traj-enveloppe .hyp-boulon")
+    visibles = page.evaluate("[...document.querySelectorAll('#valoEtats > *')].filter(e => e.offsetParent !== null).map(e => e.className)")
+    assert visibles == ["hyp-panneau"]
+    # Valeurs de départ : les ratios du dernier exercice de la balance.
+    valeur = lambda cle: page.input_value(f'#valoEtats input[data-hyp="{cle}"]')
+    assert valeur("marge") == f"{EBITDA[2] / CA[2] * 100:.1f}".replace(".", ",")
+    assert valeur("da") == f"{3e6 / CA[2] * 100:.1f}".replace(".", ",")
+    assert valeur("g") == "2,0"
+    assert page.input_value('#valoEtats input[data-hyp-an="croissance"][data-i="0"]') == "10,0"
+    # Un clic sur le boulon du panneau le referme ; le reste revient.
+    page.click("#valoEtats .hyp-panneau .hyp-boulon")
+    assert page.is_hidden("#valoEtats .hyp-panneau")
+    assert page.is_visible("#valoEtats .traj-svg")
+    # Échap referme aussi.
+    page.click("#valoEtats .traj-enveloppe .hyp-boulon")
+    page.keyboard.press("Escape")
+    assert page.is_hidden("#valoEtats .hyp-panneau")
+
+
+def test_le_previsionnel_estime_alimente_le_dcf(page, tmp_path):
+    estimer(page, tmp_path)
+    page.click("#valoEtats .traj-enveloppe .hyp-boulon")
+    page.fill('#valoEtats input[data-hyp="marge"]', "40")
+    page.fill('#valoEtats input[data-hyp="da"]', "3")
+    page.fill('#valoEtats input[data-hyp="bfr"]', "15")
+    page.fill('#valoEtats input[data-hyp-an="capex"][data-i="0"]', "12")
+    assert page.inner_text('#valoEtats [data-o="hyp-ebitda-0"]') == "63,9"      # 145,2 × 1,1 × 40 %
+    f = page.evaluate("estimerPrevisionnel()")
+    ca0 = CA[2] / 1e6 * 1.1
+    assert f["ca"][0] == pytest.approx(ca0)
+    assert f["ebitda"][0] == pytest.approx(ca0 * 0.40)
+    assert f["da"][0] == pytest.approx(ca0 * 0.03)
+    assert f["ebit"][0] == pytest.approx(ca0 * 0.37)
+    assert f["capex"][0] == 12
+    assert f["bfr"][0] == pytest.approx(-0.15 * (ca0 - CA[2] / 1e6))            # signé comme un flux
+    # La dette nette vient de la balance : ici une trésorerie nette.
+    treso = montant(ligne(page, "tresorerie_nette")[2])
+    assert f["detteNette"] == pytest.approx(-treso, abs=0.05)
+    page.keyboard.press("Escape")
+    page.click('.valo-vues button[data-vue="dcf"]')
+    assert "Estimé à partir d'hypothèses" in page.inner_text("#valoDcf .valo-import")
+    wacc, impot = page.evaluate("cmpcAuto()"), page.evaluate("impotAuto()")
+    ve = montant(page.text_content('#valoDcf [data-o="ve"]'))
+    assert abs(ve - ve_de(f, wacc, impot)) < 1
+
+
+def test_l_horizon_se_regle(page, tmp_path):
+    estimer(page, tmp_path)
+    page.click("#valoEtats .traj-enveloppe .hyp-boulon")
+    page.click('#valoEtats [data-horizon="1"]')
+    assert len(page.query_selector_all('#valoEtats input[data-hyp-an="capex"]')) == 6
+    page.keyboard.press("Escape")
+    assert len(page.query_selector_all("#valoEtats .traj-an")) == 3 + 6
+
+
+def test_revenir_a_l_import(page, tmp_path):
+    """Le fichier importé reste en mémoire pendant l'estimation."""
+    from test_valorisation import classeur
+    importer_balance(page, balance(tmp_path / "bg.xlsx"))
+    page.set_input_files("#valoFichier", str(classeur(tmp_path / "prev.xlsx")))
+    page.wait_for_selector('#valoEtats .prev-carte[data-prev="fichier"]')
+    page.click('#valoEtats [data-action="mode-prev"]')
+    page.wait_for_selector('#valoEtats .prev-carte[data-prev="estimation"]')
+    assert page.query_selector("#valoEtats .prev-carte .valo-import") is None
+    page.click('#valoEtats [data-action="mode-prev"]')
+    assert "prev.xlsx" in page.inner_text("#valoEtats .prev-carte .valo-import")
+    assert page.query_selector("#valoEtats .hyp-boulon") is None

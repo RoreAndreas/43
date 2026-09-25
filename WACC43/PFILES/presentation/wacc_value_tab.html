@@ -1644,6 +1644,91 @@
   .etat-table td.is-ok { color: var(--green); }
   .etat-table td.is-ecart { color: var(--warn); font-weight: 600; }
 
+  /* ---------- Prévisionnel : importer ou estimer ---------- */
+  .prev-carte { display: grid; gap: 10px; }
+  .prev-question {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px 18px;
+    flex-wrap: wrap;
+    padding: 14px 18px;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    background: var(--surface);
+  }
+  .prev-carte.is-estimation .prev-question { border-color: var(--accent-chip); background: var(--accent-tint); }
+  .prev-question-texte { flex: 1 1 320px; font: 400 12.5px/1.55 var(--sans); color: var(--ink-3); text-wrap: pretty; }
+  .prev-question-texte b { font-weight: 600; color: var(--ink); }
+  .prev-question .valo-bouton:disabled { opacity: .45; cursor: default; }
+  .valo-import.is-lecture { padding: 10px 16px; }
+
+  /* Le boulon des hypothèses loge derrière le graphique : le cadre passe
+     devant lui (z-index), et il en sort en tournant à l'entrée du mode
+     estimation, pour dépasser du bord haut comme celui de l'import. */
+  .traj-enveloppe { position: relative; }
+  .traj-enveloppe > .card-block { position: relative; z-index: 1; }
+  .hyp-boulon { top: -21px; right: 30px; z-index: 0; }
+  .hyp-boulon.is-sortie { animation: boulon-sort 760ms cubic-bezier(.2, .8, .25, 1.25) 160ms both; }
+  @keyframes boulon-sort {
+    from { transform: translateY(30px) rotate(-150deg); }
+    to { transform: translateY(0) rotate(0); }
+  }
+
+  /* Hypothèses ouvertes : elles seules restent dans la vue, le reste s'efface
+     jusqu'au clic suivant sur le boulon. Le panneau porte son propre boulon,
+     enfoncé, qui le referme. */
+  .hyp-panneau { display: none; }
+  #valoEtats.is-hypotheses > :not(.hyp-panneau) { display: none; }
+  #valoEtats.is-hypotheses > .hyp-panneau {
+    display: block;
+    animation: valo-entree 380ms cubic-bezier(.2, .7, .2, 1) both;
+  }
+  .hyp-corps {
+    position: relative;
+    display: grid;
+    gap: 16px;
+    margin-top: 16px;
+    padding: 24px 26px;
+    border: 1px solid var(--accent-chip);
+    border-radius: 10px;
+    background: var(--accent-tint);
+  }
+  .hyp-corps .hyp-boulon { top: -16px; right: 28px; z-index: 1; }
+  .hyp-corps h2 {
+    margin: 0;
+    font: 400 10px/1 var(--mono);
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+    color: var(--accent);
+  }
+  .hyp-globales { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 14px 18px; }
+  .hyp-champ { display: grid; gap: 6px; align-content: start; }
+  .hyp-saisie { display: inline-flex; align-items: center; gap: 6px; font: 400 12px/1 var(--mono); color: var(--muted); }
+  .hyp-saisie .mini-input { width: 84px; padding: 6px 9px; font-size: 13px; }
+  .hyp-horizon { display: inline-flex; align-items: center; gap: 6px; }
+  .hyp-horizon b { font: 500 13px/1 var(--mono); color: var(--ink); margin-right: 4px; }
+  .hyp-horizon button {
+    width: 28px;
+    height: 28px;
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    background: var(--surface);
+    font: 400 13px/1 var(--mono);
+    color: var(--ink-3);
+    cursor: pointer;
+  }
+  .hyp-horizon button:disabled { color: var(--muted-2); cursor: default; }
+  .hyp-defile { overflow-x: auto; }
+  .hyp-table { width: 100%; border-collapse: collapse; font: 400 12px/1.35 var(--mono); font-variant-numeric: tabular-nums; }
+  .hyp-table th, .hyp-table td { padding: 6px 0 6px 10px; text-align: right; white-space: nowrap; border-bottom: 1px solid var(--accent-chip); }
+  .hyp-table th:first-child, .hyp-table td:first-child { padding-left: 0; text-align: left; font-family: var(--sans); }
+  .hyp-table thead th { font: 400 10px/1.7 var(--mono); letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); }
+  .hyp-table tr.is-calc td { color: var(--ink-4); }
+  .hyp-table tr.is-saisie td:first-child { color: var(--ink-2); font-weight: 500; }
+  .hyp-table .mini-input { width: 76px; }
+  .hyp-corps .note { margin: 0; }
+
   /* ---------- Fluidité ----------
      Le contenu entre par un léger fondu montant, les barres poussent depuis
      la ligne de base l'une après l'autre, et le bloc graphique / calcul glisse
@@ -1954,12 +2039,12 @@
 <main class="valo" id="panel-valorisation" hidden>
   <div class="valo-vues" role="tablist" aria-label="Méthode de valorisation">
     <span class="valo-vues-curseur" aria-hidden="true"></span>
-    <button type="button" role="tab" data-vue="dcf" class="is-active">DCF</button>
+    <button type="button" role="tab" data-vue="etats" class="is-active">États financiers</button>
+    <button type="button" role="tab" data-vue="dcf">DCF</button>
     <button type="button" role="tab" data-vue="comparables">Comparables</button>
     <button type="button" role="tab" data-vue="synthese">Synthèse</button>
-    <button type="button" role="tab" data-vue="etats">États financiers</button>
   </div>
-  <div class="valo-corps" id="valoDcf"></div>
+  <div class="valo-corps" id="valoDcf" hidden></div>
   <div class="valo-corps" id="valoComparables" hidden>
     <div id="valoCompVe" hidden></div>
     <div class="notice" id="comparablesAbsents" hidden>
@@ -1971,7 +2056,7 @@
     <div class="valo-corps" id="comparablesMain"></div>
   </div>
   <div class="valo-corps" id="valoSynthese" hidden></div>
-  <div class="valo-corps" id="valoEtats" hidden></div>
+  <div class="valo-corps" id="valoEtats"></div>
   <input type="file" id="valoBgFichier" hidden
          accept=".xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet">
   <input type="file" id="valoFichier" hidden
@@ -2126,10 +2211,12 @@
         </svg></span>
         <div>
           <h2>L'onglet Valorisation</h2>
-          <span class="aide-ou">Onglet Valorisation — vues DCF et Comparables</span>
-          <p>Le DCF part d'un classeur Excel que vous importez : le bouton « Télécharger le
-          modèle » en donne un prêt à remplir. Les flux sont actualisés au CMPC de l'onglet
-          CMPC ; un triangle signale une valeur terminale au-delà de 65 % de la VE. Le
+          <span class="aide-ou">Onglet Valorisation — vues États financiers, DCF, Comparables et Synthèse</span>
+          <p>Tout commence dans la vue États financiers : on y importe la balance générale,
+          puis le prévisionnel — un fichier, ou une estimation à partir d'hypothèses. En mode
+          estimation, un boulon sort de derrière le graphique : il ouvre les hypothèses.</p>
+          <p>Le DCF actualise les flux prévisionnels au CMPC de l'onglet CMPC ; un triangle
+          signale une valeur terminale au-delà de 65 % de la VE. Le
           graphique des FCFF bascule, au clic, sur le détail du calcul ; le cadre de résultat
           mène de la VE à la valeur des fonds propres.</p>
           <p>La vue Comparables applique la médiane VE / EBITDA de l'échantillon à l'EBITDA
@@ -2139,10 +2226,10 @@
           <p>La vue Synthèse fait la moyenne des VE des deux méthodes, retranche la dette
           nette et donne la valeur des fonds propres, avec sa sensibilité au CMPC et à g.
           Le cadenas des méthodes permet de leur attribuer des poids.</p>
-          <p>La vue États financiers lit la balance générale comparée : chaque compte est
-          classé selon le plan SYSCOHADA pour monter le compte de résultat et l'actif net.
-          Un graphique suit le CA, l'EBITDA et l'EBIT, de l'historique au prévisionnel, et
-          l'export Excel rend le modèle complet en formules.</p>
+          <p>Dans les États financiers, chaque compte de la balance est classé selon le plan
+          SYSCOHADA pour monter le compte de résultat et l'actif net. Un graphique suit le CA,
+          l'EBITDA et l'EBIT, de l'historique au prévisionnel, et l'export Excel rend le modèle
+          complet en formules.</p>
         </div>
       </li>
 
@@ -4207,7 +4294,7 @@
      dont les flux font le DCF.
   */
   const VALO = {
-    vue: "dcf",
+    vue: "etats",       // les données s'entrent là : c'est la vue d'arrivée
     flux: null,        // classeur lu et validé
     fichier: null,     // son nom
     erreurs: [],       // ce qui manquait au dernier classeur refusé
@@ -4222,6 +4309,10 @@
     bgErreurs: [],     // ce qui manquait à la dernière balance refusée
     trajActif: null,   // exercice survolé dans le graphique ; null : le dernier
     seriesEtats: { ca: true, ebitda: true, ebit: false },
+    prevMode: "import", // prévisionnel importé, ou "estimation" à partir d'hypothèses
+    hyp: null,          // hypothèses d'estimation, posées à la première bascule
+    hypOuvert: false,   // panneau des hypothèses déplié
+    animerBoulon: false,
   };
   // Au-delà, la valeur tient surtout à l'hypothèse de croissance à l'infini.
   const SEUIL_VT = 0.65;
@@ -4240,7 +4331,10 @@
   };
   const NOM_TEST = "Données de test (note de valorisation)";
   // Le fichier lu reste en mémoire pendant qu'on regarde les données de test.
-  const fluxActif = () => (VALO.test ? FLUX_TEST : VALO.flux);
+  // En mode estimation, les hypothèses ; sinon, le fichier importé, ou les
+  // données de test tant que le boulon est enfoncé.
+  const fluxActif = () => (VALO.prevMode === "estimation" ? estimerPrevisionnel()
+    : VALO.test ? FLUX_TEST : VALO.flux);
 
   const frMillier = (v) =>
     Math.round(Math.abs(v)).toString().replace(/\B(?=(\d{3})+(?!\d))/g, " ");
@@ -4682,22 +4776,25 @@
     return d === fin ? d : d + "–" + fin;
   };
 
-  // Le bandeau du fichier lu, commun au DCF et à la synthèse.
-  function bandeauImport(f) {
+  // Le bandeau du prévisionnel. Complet dans les États financiers, où l'on
+  // importe ; en lecture dans le DCF et la synthèse, qui y renvoient.
+  function bandeauImport(f, lecture) {
     const hist = f.historique ? plageFy(f.historique.annees) : null;
+    const nom = f.estime ? "Estimé à partir d'hypothèses" : VALO.test ? NOM_TEST : VALO.fichier;
     return `
-      <div class="valo-import">
-        ${BOULON()}
+      <div class="valo-import${lecture ? " is-lecture" : ""}">
+        ${lecture ? "" : BOULON()}
         <span class="valo-fichier">
           <svg width="13" height="15" viewBox="0 0 13 15" fill="none" aria-hidden="true"><path d="M2 1h6l3.5 3.5V13a1 1 0 01-1 1H2a1 1 0 01-1-1V2a1 1 0 011-1z" stroke="currentColor" stroke-width="1.2"/><path d="M8 1v3.5h3.5" stroke="currentColor" stroke-width="1.2"/></svg>
-          ${esc(VALO.test ? NOM_TEST : VALO.fichier)}
+          ${esc(nom)}
         </span>
         ${hist ? `<span class="chip">Historique ${hist}</span>` : ""}
         <span class="chip${hist ? " is-accent" : ""}">${hist ? "Prévisionnel " : ""}${plageFy(f.annees)}</span>
         <span class="chip">M FCFA</span>
         <span class="valo-espace"></span>
+        ${lecture ? `<button type="button" class="valo-bouton" data-action="aller-etats">Modifier dans les États financiers</button>` : `
         <button type="button" class="valo-bouton" data-action="modele">Télécharger le modèle</button>
-        <button type="button" class="valo-bouton" data-action="importer">Remplacer le fichier</button>
+        <button type="button" class="valo-bouton" data-action="importer">Remplacer le fichier</button>`}
       </div>`;
   }
 
@@ -4805,19 +4902,13 @@
     const f = fluxActif();
     if (!f) {
       racine.innerHTML = `
-        <div class="valo-depot" data-depot>
-          ${BOULON()}
-          <h3>Importer les flux du DCF</h3>
-          <p>Chargez un classeur Excel (.xlsx) en deux parties : l'historique, dont la dernière
-          année donne l'EBITDA des comparables, et le prévisionnel — EBIT, D&amp;A, CapEx et
-          variation du BFR — qui fait le DCF, avec la croissance à l'infini et la dette nette.
-          Le fichier est lu dans votre navigateur : rien n'est envoyé.</p>
+        <div class="valo-depot">
+          <h3>Pas encore de prévisionnel</h3>
+          <p>Le prévisionnel se renseigne dans la vue États financiers : importez un fichier, ou
+          estimez-le à partir d'hypothèses de valorisation, depuis la balance générale.</p>
           <div class="valo-actions">
-            <button type="button" class="valo-bouton is-plein" data-action="importer">Importer un fichier Excel</button>
-            <button type="button" class="valo-bouton" data-action="modele">Télécharger le modèle</button>
+            <button type="button" class="valo-bouton is-plein" data-action="aller-etats">Aller aux États financiers</button>
           </div>
-          <p class="valo-glisser">ou déposez le fichier ici</p>
-          ${erreursHtml()}
         </div>`;
       return;
     }
@@ -4858,11 +4949,11 @@
     const vu = Boolean(VALO.calc);
 
     racine.innerHTML = `
-      ${bandeauImport(f)}
+      ${bandeauImport(f, true)}
       ${erreursHtml()}
       ${avis ? `<p class="dcf-avis" role="alert">${esc(avis)}</p>` : ""}
 
-      <div class="dcf-tete${VALO.animer ? " valo-anime" : ""}" data-depot>
+      <div class="dcf-tete${VALO.animer ? " valo-anime" : ""}">
         <aside class="dcf-gauche">
           <h2 class="dcf-rubrique">Hypothèses du DCF</h2>
           <div class="dcf-hyp">
@@ -5150,6 +5241,7 @@
       r.bg.fichier = fichier.name;
       r.bg.etats = calculerEtats(r.bg);
       VALO.bg = r.bg;
+      if (VALO.hyp) VALO.hyp = hypothesesParDefaut(r.bg, VALO.hyp.horizon);
       VALO.bgErreurs = [];
       VALO.trajActif = null;
       VALO.animer = true;
@@ -5432,9 +5524,10 @@
       </div>`;
     const remarques = bg ? bg.remarques.concat(equilibree ? [] : bg.annees.map((a, t) => Math.abs(bg.soldes[t]) >= 1
       ? "Balance " + frFy(a) + " déséquilibrée de " + frMillier(bg.soldes[t]) + " FCFA : l'actif net et les capitaux propres ne se rejoignent pas." : null).filter(Boolean)) : [];
+    const estimation = VALO.prevMode === "estimation" && Boolean(VALO.bg && VALO.hyp);
     const sources = [];
-    if (h) sources.push("Historique : " + (h.source === "balance" ? "balance générale" : "classeur DCF"));
-    if (p) sources.push("Prévisionnel : classeur DCF");
+    if (h) sources.push("Historique : " + (h.source === "balance" ? "balance générale" : "fichier prévisionnel"));
+    if (p) sources.push("Prévisionnel : " + (estimation ? "hypothèses" : "fichier importé"));
 
     racine.innerHTML = `
       ${bandeau}
@@ -5444,7 +5537,10 @@
           <summary>${remarques.length} remarque${remarques.length > 1 ? "s" : ""} sur la lecture de la balance</summary>
           <ul>${remarques.map((r) => `<li>${esc(r)}</li>`).join("")}</ul>
         </details>` : ""}
+      ${cartePrevisionnel()}
       ${points.length ? `
+        <div class="traj-enveloppe${estimation ? " is-estimation" : ""}">
+        ${estimation ? BOULON_HYPOTHESES() : ""}
         <section class="card-block traj${VALO.animer ? " valo-anime" : ""}">
           <div class="block-head">
             <h2>Historique et prévisionnel</h2>
@@ -5453,10 +5549,12 @@
           <div class="traj-tete" data-html="traj-tete"></div>
           <div class="traj-cadre" data-trajectoire tabindex="0"
                aria-label="Graphique : flèches gauche et droite pour parcourir les exercices"></div>
-          <p class="note">Barres pleines : historique${p ? " ; hachurées : prévisionnel du classeur DCF" : ""}. Survolez un
+          <p class="note">Barres pleines : historique${p ? " ; hachurées : prévisionnel" + (estimation ? " estimé" : "") : ""}. Survolez un
           exercice pour lire ses valeurs ; la pastille donne le TCAM depuis le dernier exercice historique.
           Cliquez une série pour l'afficher ou la masquer.</p>
-        </section>` : ""}
+        </section>
+        </div>
+        ${estimation ? panneauHypotheses() : ""}` : ""}
       ${bg ? `
         <div class="etats-grille">
           <section class="card-block">
@@ -5468,7 +5566,246 @@
             ${tableauEtat(bg.annees, PLAN_BILAN, bg.etats.bilan, { masquerVides: true })}
           </section>
         </div>` : ""}`;
+    racine.classList.toggle("is-hypotheses", estimation && VALO.hypOuvert);
     dessinerTrajectoire(Boolean(VALO.animer));
+  }
+
+  /* ---- Prévisionnel estimé à partir d'hypothèses ----
+     Sans fichier prévisionnel, le prévisionnel part du dernier exercice de la
+     balance :
+
+       CA(t)     = CA(t−1) × (1 + croissance(t))
+       EBITDA(t) = CA(t) × marge d'EBITDA
+       D&A(t)    = CA(t) × taux de D&A                 (en % du CA)
+       EBIT(t)   = EBITDA(t) − D&A(t)
+       CapEx(t)  : saisi, exercice par exercice
+       ΔBFR(t)   = taux de BFR × (CA(t) − CA(t−1))      (en % de la variation du CA)
+
+     La dette nette est celle de la balance au dernier exercice ; le taux d'IS,
+     celui du pays. Les valeurs de départ reprennent les ratios du dernier
+     exercice historique : ce sont des points de départ, pas des prévisions. */
+
+  const arrondiPct = (x) => Math.round(x * 1000) / 1000;   // au dixième de point
+  const arrondiM = (x) => Math.round(x * 10) / 10;
+  const HORIZON_MIN = 3, HORIZON_MAX = 10;
+
+  // Dernier exercice de la balance, en M FCFA : le point d'où l'on projette.
+  function baseEstimation(bg) {
+    const k = bg.annees.length - 1;
+    const e = bg.etats;
+    return {
+      an: bg.annees[k],
+      ca: e.cdr.ca[k] / 1e6,
+      ebitda: e.cdr.ebitda[k] / 1e6,
+      da: -e.cdr.da[k] / 1e6,
+      bfr: e.bilan.bfr[k],
+      dette: -e.bilan.tresorerie_nette[k],
+    };
+  }
+
+  function hypothesesParDefaut(bg, horizon) {
+    const b = baseEstimation(bg);
+    const n = bg.annees.length;
+    const tc = n > 1 ? tcamEntre(bg.etats.cdr.ca[0], bg.etats.cdr.ca[n - 1], bg.annees[n - 1] - bg.annees[0]) : null;
+    const h = {
+      horizon: 0, croissance: [], capex: [], g: 0.02,
+      marge: b.ca > 0 ? arrondiPct(b.ebitda / b.ca) : 0.2,
+      da: b.ca > 0 ? arrondiPct(Math.max(0, b.da / b.ca)) : 0.03,
+      bfr: b.ca > 0 ? arrondiPct(b.bfr / b.ca) : 0.1,
+    };
+    // La croissance de départ est le TCAM historique, borné : une balance de
+    // deux exercices dont l'un est atypique donnerait sinon +200 % par an.
+    ajusterHorizon(h, bg, horizon || 5, arrondiPct(tc == null ? 0.05 : Math.max(-0.2, Math.min(0.3, tc))));
+    return h;
+  }
+
+  // Un exercice ajouté reprend la croissance du précédent, et son CapEx part
+  // des D&A de l'exercice ; un exercice retiré emporte ses saisies.
+  function ajusterHorizon(h, bg, horizon, croissanceDefaut) {
+    h.horizon = horizon;
+    h.croissance = h.croissance.slice(0, horizon);
+    h.capex = h.capex.slice(0, horizon);
+    let ca = baseEstimation(bg).ca;
+    for (let t = 0; t < horizon; t++) {
+      if (h.croissance[t] == null) h.croissance[t] = t ? h.croissance[t - 1] : croissanceDefaut;
+      ca *= 1 + h.croissance[t];
+      if (h.capex[t] == null) h.capex[t] = arrondiM(ca * h.da);
+    }
+  }
+
+  function estimerPrevisionnel() {
+    const bg = VALO.bg, h = VALO.hyp;
+    if (!bg || !h) return null;
+    const b = baseEstimation(bg);
+    const f = {
+      annees: [], ca: [], ebitda: [], da: [], ebit: [], capex: [], bfr: [],
+      g: h.g, detteNette: b.dette, impot: null, historique: null, estime: true,
+    };
+    let prec = b.ca;
+    for (let t = 0; t < h.horizon; t++) {
+      const ca = prec * (1 + h.croissance[t]);
+      const ebitda = ca * h.marge, da = ca * h.da;
+      f.annees.push(b.an + 1 + t);
+      f.ca.push(ca);
+      f.ebitda.push(ebitda);
+      f.da.push(da);
+      f.ebit.push(ebitda - da);
+      f.capex.push(h.capex[t]);
+      f.bfr.push(-h.bfr * (ca - prec));   // signé comme un flux : négatif quand le BFR croît
+      prec = ca;
+    }
+    return f;
+  }
+
+  // La carte qui pose la question : importer un fichier, ou estimer ?
+  function cartePrevisionnel() {
+    const estimation = VALO.prevMode === "estimation";
+    const fichier = VALO.test ? FLUX_TEST : VALO.flux;
+    const f = estimation ? estimerPrevisionnel() : fichier;
+    const question = estimation ? `
+        <span class="prev-question-texte"><b>Prévisionnel estimé</b> à partir d'hypothèses${f ? ", " + plageFy(f.annees) : ""}.
+        Le boulon, derrière le graphique, ouvre les hypothèses.</span>
+        <button type="button" class="valo-bouton" data-action="mode-prev">Revenir à l'import d'un fichier</button>` : `
+        <span class="prev-question-texte">Voulez-vous <b>estimer le prévisionnel</b> à partir d'hypothèses de valorisation
+        plutôt que l'importer ? Marge d'EBITDA, D&amp;A, CapEx, BFR et croissance à l'infini.</span>
+        <button type="button" class="valo-bouton is-plein" data-action="mode-prev"${VALO.bg ? ""
+          : ` disabled title="Importez d'abord la balance : l'estimation part de son dernier exercice."`}>Estimer à partir d'hypothèses</button>`;
+    const depot = `
+      <div class="valo-depot is-compact" data-depot="prev">
+        ${BOULON()}
+        <h3>Importer le prévisionnel</h3>
+        <p>Un classeur Excel : l'EBIT, les D&amp;A, le CapEx et la variation du BFR de chaque exercice
+        prévisionnel, avec la croissance à l'infini et la dette nette. Le fichier est lu dans votre
+        navigateur : rien n'est envoyé.</p>
+        <div class="valo-actions">
+          <button type="button" class="valo-bouton is-plein" data-action="importer">Importer un fichier Excel</button>
+          <button type="button" class="valo-bouton" data-action="modele">Télécharger le modèle</button>
+        </div>
+        ${erreursHtml()}
+      </div>`;
+    return `
+      <section class="prev-carte${estimation ? " is-estimation" : ""}" data-prev="${estimation ? "estimation" : fichier ? "fichier" : "vide"}">
+        <h2 class="dcf-rubrique">Prévisionnel</h2>
+        <div class="prev-question">${question}</div>
+        ${estimation ? "" : fichier ? bandeauImport(fichier) + erreursHtml() : depot}
+        ${!estimation && !VALO.bg ? `<p class="syn-note">L'estimation part du dernier exercice de la balance : importez-la ci-dessus pour l'activer.</p>` : ""}
+      </section>`;
+  }
+
+  function panneauHypotheses() {
+    const h = VALO.hyp, f = estimerPrevisionnel(), b = baseEstimation(VALO.bg);
+    const champ = (cle, libelle, aide) => `
+      <label class="hyp-champ">
+        <span class="field-label">${libelle}</span>
+        <span class="hyp-saisie"><input class="mini-input" data-hyp="${cle}" inputmode="decimal"
+               value="${frNum(h[cle] * 100, 1)}" aria-label="${esc(libelle)}, en %"><span>%</span></span>
+        <span class="field-hint">${aide}</span>
+      </label>`;
+    const calcul = (cle, valeurs) => valeurs.map((v, t) => `<td data-o="hyp-${cle}-${t}">${frM(v)}</td>`).join("");
+    return `
+      <div class="hyp-panneau" id="hypPanneau">
+        <div class="hyp-clip">
+          <section class="hyp-corps" aria-label="Hypothèses du prévisionnel">
+            ${BOULON_HYPOTHESES(true)}
+            <div class="block-head">
+              <h2>Hypothèses du prévisionnel</h2>
+              <div class="chips">
+                <span class="chip">Base ${frFy(b.an)} : CA ${frM(b.ca)} M FCFA</span>
+                <button type="button" class="valo-bouton" data-action="hyp-defaut">Revenir aux valeurs de départ</button>
+              </div>
+            </div>
+            <div class="hyp-globales">
+              ${champ("marge", "Marge d'EBITDA", "% du chiffre d'affaires")}
+              ${champ("da", "Dotations aux amortissements", "% du chiffre d'affaires")}
+              ${champ("bfr", "Variation du BFR", "% de la variation du CA")}
+              ${champ("g", "Croissance à l'infini (g)", "Valeur terminale, Gordon-Shapiro")}
+              <div class="hyp-champ">
+                <span class="field-label">Horizon</span>
+                <span class="hyp-horizon">
+                  <b>${h.horizon} exercices</b>
+                  <button type="button" data-horizon="-1" aria-label="Retirer un exercice"${h.horizon <= HORIZON_MIN ? " disabled" : ""}>−</button>
+                  <button type="button" data-horizon="1" aria-label="Ajouter un exercice"${h.horizon >= HORIZON_MAX ? " disabled" : ""}>+</button>
+                </span>
+                <span class="field-hint">${plageFy(f.annees)}</span>
+              </div>
+            </div>
+            <div class="hyp-defile">
+              <table class="hyp-table">
+                <thead><tr><th>M FCFA</th>${f.annees.map((an) => `<th>${frFy(an)}</th>`).join("")}</tr></thead>
+                <tbody>
+                  <tr class="is-saisie"><td>Croissance du CA (%)</td>${h.croissance.map((v, t) => `
+                    <td><input class="mini-input" data-hyp-an="croissance" data-i="${t}" inputmode="decimal"
+                               value="${frNum(v * 100, 1)}" aria-label="Croissance du CA ${frFy(f.annees[t])}, en %"></td>`).join("")}</tr>
+                  <tr class="is-calc"><td>Chiffre d'affaires</td>${calcul("ca", f.ca)}</tr>
+                  <tr class="is-calc"><td>EBITDA</td>${calcul("ebitda", f.ebitda)}</tr>
+                  <tr class="is-calc"><td>D&amp;A</td>${calcul("da", f.da.map((v) => -v))}</tr>
+                  <tr class="is-saisie"><td>CapEx</td>${h.capex.map((v, t) => `
+                    <td><input class="mini-input" data-hyp-an="capex" data-i="${t}" inputmode="decimal"
+                               value="${frNum(v, 1)}" aria-label="CapEx ${frFy(f.annees[t])}, en M FCFA"></td>`).join("")}</tr>
+                  <tr class="is-calc"><td>Variation du BFR</td>${calcul("bfr", f.bfr)}</tr>
+                </tbody>
+              </table>
+            </div>
+            <p class="note">Valeurs de départ : les ratios de ${frFy(b.an)}, dernier exercice de la balance ; la
+            croissance du CA part de son TCAM historique, et le CapEx des D&amp;A de chaque exercice. ${b.dette < 0 ? "La trésorerie nette (" + frM(-b.dette) : "La dette nette (" + frM(b.dette)}
+            M FCFA) vient de la balance, le taux d'IS du pays. Variation du BFR signée comme
+            un flux : négative quand le BFR augmente.</p>
+          </section>
+        </div>
+      </div>`;
+  }
+
+  // Une saisie met à jour les montants calculés et le graphique sur place :
+  // le champ garde le curseur.
+  function majEstimation() {
+    const panneau = $("hypPanneau");
+    const f = estimerPrevisionnel();
+    if (!panneau || !f) return;
+    const ecrire = (cle, valeurs) => valeurs.forEach((v, t) => {
+      const el = panneau.querySelector(`[data-o="hyp-${cle}-${t}"]`);
+      if (el) el.textContent = frM(v);
+    });
+    ecrire("ca", f.ca);
+    ecrire("ebitda", f.ebitda);
+    ecrire("da", f.da.map((v) => -v));
+    ecrire("bfr", f.bfr);
+    dessinerTrajectoire(false);
+  }
+
+  // Le boulon sort de derrière le graphique à l'entrée en mode estimation ;
+  // le cliquer déplie ou replie les hypothèses, sans redessiner la vue.
+  const BOULON_HYPOTHESES = (surPanneau) => `
+    <button type="button" class="valo-boulon hyp-boulon${surPanneau ? " is-on" : VALO.animerBoulon ? " is-sortie" : ""}"
+            data-action="hypotheses" aria-expanded="${VALO.hypOuvert ? "true" : "false"}" aria-controls="hypPanneau"
+            title="${surPanneau ? "Refermer les hypothèses" : "Ouvrir les hypothèses du prévisionnel"}"
+            aria-label="Hypothèses du prévisionnel">
+      <svg width="26" height="26" viewBox="0 0 26 26" fill="none" aria-hidden="true">
+        <path d="M13 2.4l9.2 5.3v10.6L13 23.6l-9.2-5.3V7.7z" fill="currentColor" fill-opacity=".1"
+              stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/>
+        <circle cx="13" cy="13" r="3.6" stroke="currentColor" stroke-width="1.7"/>
+      </svg>
+    </button>`;
+
+  // Ouvertes, les hypothèses occupent seules la vue ; refermées, le reste
+  // revient et le graphique se redessine sur les valeurs saisies.
+  function basculerHypotheses() {
+    VALO.hypOuvert = !VALO.hypOuvert;
+    const racine = $("valoEtats");
+    racine.classList.toggle("is-hypotheses", VALO.hypOuvert);
+    racine.querySelectorAll(".hyp-boulon").forEach((b) => {
+      b.classList.remove("is-sortie");
+      b.setAttribute("aria-expanded", VALO.hypOuvert ? "true" : "false");
+    });
+    const haut = racine.getBoundingClientRect().top + window.scrollY - 90;
+    if (window.scrollY > haut) window.scrollTo({ top: Math.max(0, haut), behavior: mouvementReduit() ? "auto" : "smooth" });
+    if (VALO.hypOuvert) {
+      const champ = racine.querySelector('.hyp-panneau input[data-hyp="marge"]');
+      if (champ) champ.focus({ preventScroll: true });
+    } else {
+      dessinerTrajectoire(true);
+      const boulon = racine.querySelector(".traj-enveloppe .hyp-boulon");
+      if (boulon) boulon.focus({ preventScroll: true });
+    }
   }
 
   /* ---- Export au format du modèle TEMPLATE ----
@@ -5803,14 +6140,11 @@
     if (!f) {
       racine.innerHTML = `
         <div class="valo-depot">
-          ${BOULON()}
           <h3>Synthèse des valorisations</h3>
-          <p>La synthèse réunit le DCF et les comparables. Elle part du classeur importé dans la vue
-          DCF : les flux prévisionnels pour le DCF, l'EBITDA de la dernière année historique pour
-          les comparables.</p>
+          <p>La synthèse réunit le DCF et les comparables. Elle part des États financiers : le
+          prévisionnel pour le DCF, l'EBITDA du dernier exercice historique pour les comparables.</p>
           <div class="valo-actions">
-            <button type="button" class="valo-bouton is-plein" data-action="aller-dcf">Importer un fichier Excel</button>
-            <button type="button" class="valo-bouton" data-action="modele">Télécharger le modèle</button>
+            <button type="button" class="valo-bouton is-plein" data-action="aller-etats">Aller aux États financiers</button>
           </div>
         </div>`;
       return;
@@ -5819,7 +6153,7 @@
     const deux = methodes.every((m) => m.ve != null);
     const ouvert = !VALO.poidsVerrou;
     racine.innerHTML = `
-      ${bandeauImport(f)}
+      ${bandeauImport(f, true)}
       <div class="dcf-tete${VALO.animer ? " valo-anime" : ""}">
         <aside class="dcf-gauche">
           <div class="syn-rubrique">
@@ -6082,16 +6416,49 @@
         VALO.erreurs = [];
         VALO.animer = true;
         renderValo();
-      } else if (a === "aller-dcf") {
-        VALO.vue = "dcf";
+      } else if (a === "aller-etats") {
+        VALO.vue = "etats";
         chargerValorisation(true);
-        $("valoFichier").click();
+      } else if (a === "mode-prev") {
+        // Importer ou estimer : la question se repose d'un clic, et le fichier
+        // importé reste en mémoire pendant qu'on estime.
+        if (VALO.prevMode === "estimation") {
+          VALO.prevMode = "import";
+          VALO.hypOuvert = false;
+        } else if (VALO.bg) {
+          VALO.prevMode = "estimation";
+          if (!VALO.hyp) VALO.hyp = hypothesesParDefaut(VALO.bg);
+          VALO.animerBoulon = true;
+        }
+        VALO.trajActif = null;
+        VALO.animer = true;
+        renderValo();
+        VALO.animerBoulon = false;
+      } else if (a === "hypotheses") {
+        basculerHypotheses();
+      } else if (a === "hyp-defaut" && VALO.bg && VALO.hyp) {
+        VALO.hyp = hypothesesParDefaut(VALO.bg, VALO.hyp.horizon);
+        renderEtats();
       } else if (a === "poids") {
         // Refermer le cadenas revient à la moyenne arithmétique et oublie
         // les poids choisis, comme pour le gearing cible.
         VALO.poidsVerrou = !VALO.poidsVerrou;
         if (VALO.poidsVerrou) VALO.poidsDcf = 0.5;
         renderSynthese();
+      }
+      return;
+    }
+    // Horizon de l'estimation : un exercice de plus ou de moins.
+    const horizon = e.target.closest("[data-horizon]");
+    if (horizon && VALO.hyp && VALO.bg) {
+      const n = Math.max(HORIZON_MIN, Math.min(HORIZON_MAX, VALO.hyp.horizon + Number(horizon.dataset.horizon)));
+      if (n !== VALO.hyp.horizon) {
+        ajusterHorizon(VALO.hyp, VALO.bg, n);
+        VALO.trajActif = null;
+        renderEtats();
+        // Le bouton redessiné reprend le focus : on enchaîne les clics au clavier.
+        const meme = $("valoEtats").querySelector(`[data-horizon="${horizon.dataset.horizon}"]`);
+        if (meme && !meme.disabled) meme.focus({ preventScroll: true });
       }
       return;
     }
@@ -6129,10 +6496,27 @@
 
   $("panel-valorisation").addEventListener("input", (e) => {
     const cible = e.target;
+    const cleHyp = cible.dataset.hyp, cleAn = cible.dataset.hypAn;
+    if ((cleHyp || cleAn) && VALO.hyp) {
+      const v = lireMontant(String(cible.value).replace("%", ""));
+      cible.classList.toggle("is-invalide", v == null);
+      if (v == null) return;
+      if (cleHyp) VALO.hyp[cleHyp] = v / 100;
+      else if (cleAn === "croissance") VALO.hyp.croissance[Number(cible.dataset.i)] = v / 100;
+      else VALO.hyp.capex[Number(cible.dataset.i)] = v;
+      majEstimation();
+      return;
+    }
     if (cible.dataset.pas) VALO[cible.dataset.pas] = Number(cible.value) / 100;
     else if (cible.hasAttribute("data-poids")) VALO.poidsDcf = Number(cible.value) / 100;
     else return;
     majSynthese();
+  });
+
+  // Échap referme les hypothèses d'où que vienne la frappe : un redessin
+  // (l'horizon qui change) peut avoir fait perdre le focus au panneau.
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape" && VALO.hypOuvert && !$("panel-valorisation").hidden) basculerHypotheses();
   });
 
   $("panel-valorisation").addEventListener("keydown", (e) => {
