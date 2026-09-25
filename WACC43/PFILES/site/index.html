@@ -2006,7 +2006,30 @@
   .exp-boite .export-choix { justify-content: center; margin-top: 18px; }
   .exp-boite .export-annuler { display: block; margin: 0 auto; }
   #expValider:disabled { opacity: .45; cursor: default; background: var(--ink); border-color: var(--ink); }
-  .etats-barre { display: flex; justify-content: flex-end; }
+  /* Les vues et l'export sur une même ligne. */
+  .valo-ligne { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+
+  /* États historiques : en-têtes et totaux teintés, filet bleu en tête. */
+  .etats-grille .card-block { border-top: 3px solid var(--blue); }
+  .etat-table thead th { background: var(--blue-tint); color: var(--blue-ink); padding-top: 8px; padding-bottom: 8px; }
+  .etat-table thead th:first-child { padding-left: 8px; }
+  .etat-table tr.is-total td { background: var(--accent-tint); color: var(--accent); }
+  .etat-table tr.is-total td:first-child { padding-left: 8px; color: var(--ink); }
+  .etat-table tbody td:first-child { padding-left: 8px; }
+
+  /* Résultat de la valorisation (DCF et synthèse) : fond marine, valeur des
+     fonds propres en grand. */
+  .dcf-resultat { background: var(--blue-ink); border-color: var(--blue-ink); color: #fff; }
+  .dcf-resultat .dcf-resultat-label { color: rgba(255, 255, 255, .72); }
+  .dcf-resultat .dcf-resultat-valeur { font-size: 40px; color: #fff; }
+  .dcf-resultat .dcf-resultat-valeur small { color: rgba(255, 255, 255, .7); }
+  .dcf-resultat .dcf-pont > span { color: rgba(255, 255, 255, .78); border-bottom-color: rgba(255, 255, 255, .18); }
+  .dcf-resultat .dcf-pont b { color: #fff; }
+  .dcf-resultat .dcf-pont > .is-total, .dcf-resultat .dcf-pont > .is-total b { color: #fff; }
+  .dcf-resultat .dcf-compo-titre, .dcf-resultat .dcf-compo-legende, .dcf-resultat .syn-note { color: rgba(255, 255, 255, .72); }
+  .dcf-resultat .dcf-compo-flux { background: #fff; }
+  .dcf-resultat .dcf-compo-vt { background: rgba(255, 255, 255, .35); }
+  .dcf-resultat .dcf-compo-seuil { background: #facc15; }
 
   [hidden] { display: none !important; }
   .is-busy { opacity: .55; transition: opacity 160ms ease; }
@@ -2093,12 +2116,15 @@
 </main>
 
 <main class="valo" id="panel-valorisation" hidden>
+  <div class="valo-ligne">
   <div class="valo-vues" role="tablist" aria-label="Méthode de valorisation">
     <span class="valo-vues-curseur" aria-hidden="true"></span>
     <button type="button" role="tab" data-vue="etats" class="is-active">États financiers</button>
     <button type="button" role="tab" data-vue="dcf">DCF</button>
     <button type="button" role="tab" data-vue="comparables">Comparables</button>
     <button type="button" role="tab" data-vue="synthese">Synthèse</button>
+  </div>
+  <button type="button" class="valo-bouton is-plein" data-action="exporter-etats" id="valoExporter">Exporter le modèle Excel</button>
   </div>
   <div class="valo-corps" id="valoDcf" hidden></div>
   <div class="valo-corps" id="valoComparables" hidden>
@@ -5600,10 +5626,6 @@
     if (p) sources.push("Prévisionnel : " + (estimation ? "hypothèses" : "fichier importé"));
 
     racine.innerHTML = `
-      ${bg || p ? `
-        <div class="etats-barre">
-          <button type="button" class="valo-bouton is-plein" data-action="exporter-etats">Exporter le modèle Excel</button>
-        </div>` : ""}
       ${bandeau}
       ${bg ? erreursBgHtml() : ""}
       ${remarques.length ? `
@@ -6313,7 +6335,7 @@
 
   function fermerExportValo() {
     $("exportValoFond").hidden = true;
-    const bouton = $("valoEtats").querySelector('[data-action="exporter-etats"]');
+    const bouton = $("valoExporter");
     if (bouton) bouton.focus();
   }
 

@@ -165,7 +165,7 @@ def test_graphique_historique_et_previsionnel(page, tmp_path):
 
 def exporter(page, chemin, *, etats=None, methodes=None):
     """Ouvre la boîte d'export, règle les choix demandés, télécharge."""
-    page.click('#valoEtats [data-action="exporter-etats"]')
+    page.click("#valoExporter")
     page.wait_for_selector("#exportValoFond:not([hidden])")
     if etats is not None:
         page.set_checked("#expEtats", etats)
@@ -368,7 +368,7 @@ def test_revenir_a_l_import(page, tmp_path):
 
 def test_la_boite_demande_quoi_exporter(page, tmp_path):
     importer_balance(page, balance(tmp_path / "bg.xlsx"))
-    page.click('#valoEtats [data-action="exporter-etats"]')
+    page.click("#valoExporter")
     assert page.is_visible("#exportValoFond")
     assert "Que voulez-vous exporter" in page.inner_text("#exportValoFond")
     assert page.is_checked("#expEtats") and page.is_enabled("#expEtats")
