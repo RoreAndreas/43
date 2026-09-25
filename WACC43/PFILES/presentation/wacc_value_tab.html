@@ -2009,17 +2009,37 @@
   /* Les vues et l'export sur une même ligne. */
   .valo-ligne { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
 
-  /* États historiques : en-têtes et totaux teintés, filet bleu en tête. */
-  .etats-grille .card-block { border-top: 3px solid var(--blue); }
-  .etat-table thead th { background: var(--blue-tint); color: var(--blue-ink); padding-top: 8px; padding-bottom: 8px; }
-  .etat-table thead th:first-child { padding-left: 8px; }
-  .etat-table tr.is-total td { background: var(--accent-tint); color: var(--accent); }
-  .etat-table tr.is-total td:first-child { padding-left: 8px; color: var(--ink); }
+  /* États historiques : ligne d'en-tête en violet plein, comme le bloc des
+     Comparables une fois cliqué ; les agrégats se démarquent par la seule
+     couleur du texte, sans fond. */
+  .etats-grille .card-block { border-top: 3px solid var(--accent); }
+  .etat-table thead th {
+    padding-top: 8px;
+    padding-bottom: 8px;
+    border-bottom-color: var(--accent);
+    background: var(--accent);
+    color: rgba(255, 255, 255, .88);
+  }
+  .etat-table thead th:first-child { padding-left: 8px; border-radius: 6px 0 0 6px; }
+  .etat-table thead th:last-child { padding-right: 8px; border-radius: 0 6px 6px 0; }
+  .etat-table tbody td:last-child { padding-right: 8px; }
+  .etat-table tr.is-total td, .etat-table tr.is-total td:first-child { color: var(--accent); }
   .etat-table tbody td:first-child { padding-left: 8px; }
 
-  /* Résultat de la valorisation (DCF et synthèse) : fond marine, valeur des
-     fonds propres en grand. */
-  .dcf-resultat { background: var(--blue-ink); border-color: var(--blue-ink); color: #fff; }
+  /* Résultat de la valorisation (DCF et synthèse) : le violet des
+     Comparables, valeur des fonds propres en grand. */
+  .dcf-resultat { background: var(--accent); border-color: var(--accent); color: #fff; }
+  /* Dans la synthèse, la valeur des fonds propres occupe le centre du cadre. */
+  #valoSynthese .dcf-resultat-tete {
+    flex: 1 1 auto;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 10px 0;
+  }
+  #valoSynthese .dcf-resultat-valeur { justify-content: center; }
   .dcf-resultat .dcf-resultat-label { color: rgba(255, 255, 255, .72); }
   .dcf-resultat .dcf-resultat-valeur { font-size: 40px; color: #fff; }
   .dcf-resultat .dcf-resultat-valeur small { color: rgba(255, 255, 255, .7); }
