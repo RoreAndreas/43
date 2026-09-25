@@ -241,9 +241,9 @@ def test_le_graphique_suit_la_largeur_de_la_fenetre(page, tmp_path):
 # ------------------------------------------------ prévisionnel estimé par hypothèses
 
 def ve_de(f, wacc, impot):
-    """DCF de référence : flux en milieu d'année, Gordon-Shapiro."""
+    """DCF de référence : actualisation en fin d'année, Gordon-Shapiro."""
     fcff = [e - max(0, e) * impot + d - c + b for e, d, c, b in zip(f["ebit"], f["da"], f["capex"], f["bfr"])]
-    fac = [(1 + wacc) ** -(t + 0.5) for t in range(len(fcff))]
+    fac = [(1 + wacc) ** -(t + 1) for t in range(len(fcff))]
     return sum(x * y for x, y in zip(fcff, fac)) + fcff[-1] * (1 + f["g"]) / (wacc - f["g"]) * fac[-1]
 
 

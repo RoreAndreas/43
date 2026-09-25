@@ -1,7 +1,8 @@
 """Onglet Valorisation : DCF importé d'Excel et multiples réunis.
 
-Le DCF de référence est celui de la note de valorisation qui a servi de
-modèle : quatre exercices, g 2 %, flux en milieu d'année. Les classeurs sont
+Les flux de référence sont ceux de la note de valorisation qui a servi de
+modèle : quatre exercices, g 2 %. L'actualisation est en fin d'année — la
+note, elle, actualisait en milieu d'année. Les classeurs sont
 écrits par openpyxl — donc compressés comme ceux d'Excel — et importés par le
 vrai champ de fichier. Les attendus sont recalculés ici en Python, au CMPC que
 la page affiche, plutôt que recopiés.
@@ -68,7 +69,7 @@ def classeur(chemin, *, annees=ANNEES, sans=(), capex_negatif=False, g=G, impot=
 
 def ve_attendue(wacc, g=G, impot=0.25):
     fcff = [e - max(0, e) * impot + d - c + b for e, d, c, b in zip(EBIT, DA, CAPEX, BFR)]
-    facteurs = [(1 + wacc) ** -(t + 0.5) for t in range(len(fcff))]
+    facteurs = [(1 + wacc) ** -(t + 1) for t in range(len(fcff))]      # fin d'année
     somme = sum(f * a for f, a in zip(fcff, facteurs))
     return somme + fcff[-1] * (1 + g) / (wacc - g) * facteurs[-1]
 
@@ -140,13 +141,20 @@ def test_le_dcf_importe_suit_la_note(page, tmp_path):
     assert len(page.query_selector_all("#dcfVue .dcf-col")) == 4
 
 
-def test_la_note_est_retrouvee_a_son_cmpc(page, tmp_path):
-    """À 12,02 %, le CMPC de la note, on retrouve sa VE de 739 340."""
+def test_actualisation_en_fin_d_annee(page, tmp_path):
+    """Le flux de l'exercice t est actualisé sur t années pleines, et la VT
+    avec le facteur de la dernière année. À 12,02 %, le CMPC de la note, sa
+    VE (739 340, en milieu d'année) ne se retrouve donc plus : elle baisse."""
     importer(page, classeur(tmp_path / "dcf.xlsx"))
     page.evaluate("model.brut.waccLocal = 0.1202; renderDcf()")
-    assert abs(montant(carte(page, "ve")) - 739340) < 60
-    assert abs(montant(carte(page, "actualise")) - 164452) < 10
-    assert abs(montant(carte(page, "vt")) - 574888) < 60
+    ve = montant(carte(page, "ve"))
+    assert abs(ve - ve_attendue(0.1202)) < 1
+    assert ve < 739340
+    page.click("#dcfVue")
+    facteurs = [tr for tr in page.query_selector_all("#dcfVue .dcf-calc tbody tr")
+                if "Facteur" in tr.inner_text()][0]
+    lus = [td.inner_text() for td in facteurs.query_selector_all("td")[1:]]
+    assert lus == [f"{1.1202 ** -(t + 1):.2f}".replace(".", ",") for t in range(4)]
 
 
 def test_triangle_au_dela_de_65_pourcent(page, tmp_path):

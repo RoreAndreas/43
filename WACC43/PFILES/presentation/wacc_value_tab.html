@@ -4282,10 +4282,9 @@
        VE    = Σ FCFF(t) × facteur(t) + VT × facteur(N)
        VFP   = VE − dette nette
 
-     Les flux tombent au milieu de l'exercice : facteur(t) = (1 + CMPC)^−(t − 0,5).
-     La VT résume à fin N des flux reçus eux aussi en milieu d'année : elle
-     s'actualise donc avec le facteur de la dernière année, et non avec
-     (1 + CMPC)^−N.
+     Actualisation en fin d'année : le flux de l'exercice t est actualisé sur
+     t années pleines, facteur(t) = (1 + CMPC)^−t. La VT vaut à fin N : elle
+     prend le facteur de la dernière année, (1 + CMPC)^−N.
 
      Les flux, g et la dette nette viennent d'un classeur Excel importé. Il est
      lu dans le navigateur — la page reste autonome, rien n'est envoyé — et
@@ -4318,8 +4317,9 @@
   const SEUIL_VT = 0.65;
 
   // Les chiffres de la note de valorisation partagée : ils servent de jeu
-  // d'essai, sans fichier à préparer. Le taux d'IS y est fixé (25 %) pour que
-  // l'écran retrouve la note quel que soit le pays choisi dans Paramètres.
+  // d'essai, sans fichier à préparer. Le taux d'IS y est fixé (25 %), comme
+  // dans la note, pour que le résultat ne dépende pas du pays choisi. La note
+  // actualisait en milieu d'année : ses totaux ne se retrouvent donc plus.
   const FLUX_TEST = {
     annees: [2026, 2027, 2028, 2029],
     ebit: [54463, 63821, 76624, 106636],
@@ -4380,7 +4380,7 @@
     for (let t = 0; t < n; t++) {
       const imp = -Math.max(0, f.ebit[t]) * impot;
       const fcff = f.ebit[t] + imp + f.da[t] - f.capex[t] + f.bfr[t];
-      const facteur = valideTaux ? Math.pow(1 + wacc, -(t + 0.5)) : null;
+      const facteur = valideTaux ? Math.pow(1 + wacc, -(t + 1)) : null;   // fin d'année
       r.impot.push(imp);
       r.nopat.push(f.ebit[t] + imp);
       r.fcff.push(fcff);
@@ -4938,7 +4938,7 @@
       { libelle: "Marge d'EBITDA moyenne", valeur: marge == null ? "—" : frPct(marge, 1),
         aide: marge == null ? "CA absent du fichier" : horizon + (f.ebitda ? "" : ", EBIT + D&A") },
       { libelle: "Horizon", valeur: n + " exercice" + (n > 1 ? "s" : ""), aide: horizon },
-      { libelle: "Actualisation", valeur: "Mi-année" },
+      { libelle: "Actualisation", valeur: "Fin d'année" },
     ];
     const cases = [
       { cle: "somme", libelle: "FCFF actualisés", aide: "Somme " + horizon, valeur: frFlux(r.somme) },
