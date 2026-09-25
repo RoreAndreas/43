@@ -186,3 +186,41 @@ def test_la_vue_comparables_montre_les_multiples(page):
     page.click(ONGLET)
     assert page.is_hidden("#comparablesAbsents")
     assert "VE / EBITDA" in page.inner_text("#comparablesMain")
+
+
+def test_le_boulon_pose_les_donnees_de_test_puis_ramene_a_l_import(page):
+    page.click(ONGLET)
+    boulon = '#valoDcf .valo-boulon'
+    # Il dépasse bien de la case : son centre est sur le bord haut de la zone d'import.
+    cadre = page.eval_on_selector("#valoDcf .valo-depot", "e => e.getBoundingClientRect().top")
+    haut = page.eval_on_selector(boulon, "e => e.getBoundingClientRect().top")
+    bas = page.eval_on_selector(boulon, "e => e.getBoundingClientRect().bottom")
+    assert haut < cadre < bas
+    assert page.get_attribute(boulon, "aria-pressed") == "false"
+
+    page.click(boulon)
+    assert page.get_attribute(boulon, "aria-pressed") == "true"
+    assert "Données de test" in page.inner_text("#valoDcf .valo-import")
+    assert abs(montant(carte(page, "ve")) - ve_attendue(cmpc(page))) < 1
+    # Ce sont les chiffres de la note : g = 2 %, dette nette 129 455, IS 25 %.
+    lignes = page.query_selector_all("#valoDcf .pont-table tbody tr")
+    assert montant(lignes[1].query_selector_all("td")[2].inner_text()) == -DETTE_NETTE
+
+    page.click(boulon)
+    assert page.is_visible('#valoDcf [data-action="importer"]')
+    assert page.query_selector('#valoDcf [data-carte="ve"]') is None
+
+
+def test_le_boulon_ne_perd_pas_le_fichier_importe(page, tmp_path):
+    importer(page, classeur(tmp_path / "mien.xlsx", g=0.01))
+    mien = carte(page, "ve")
+    page.click("#valoDcf .valo-boulon")
+    assert carte(page, "ve") != mien
+    page.click("#valoDcf .valo-boulon")
+    assert carte(page, "ve") == mien
+    assert "mien.xlsx" in page.inner_text("#valoDcf .valo-import")
+    # Importer un fichier sort du mode test.
+    page.click("#valoDcf .valo-boulon")
+    page.set_input_files("#valoFichier", str(classeur(tmp_path / "autre.xlsx")))
+    page.wait_for_function("document.querySelector('#valoDcf .valo-import').innerText.includes('autre.xlsx')")
+    assert page.get_attribute("#valoDcf .valo-boulon", "aria-pressed") == "false"

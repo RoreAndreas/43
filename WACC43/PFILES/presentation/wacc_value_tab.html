@@ -1110,6 +1110,7 @@
   /* Import du classeur : zone d'accueil tant qu'aucun fichier n'est lu, puis
      simple bandeau qui rappelle d'où viennent les chiffres. */
   .valo-depot {
+    position: relative;
     border: 1px dashed var(--muted-2);
     border-radius: 10px;
     background: var(--surface);
@@ -1156,7 +1157,41 @@
     text-align: left;
   }
   .valo-erreurs ul { margin: 4px 0 0; padding-left: 18px; }
-  .valo-import { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .valo-import {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+    padding: 12px 16px;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    background: var(--surface);
+  }
+  /* Le boulon déborde du coin haut droit : à moitié dedans, à moitié dehors,
+     comme tombé de la machine du dessin « 404 ». */
+  .valo-boulon {
+    position: absolute;
+    top: -13px;
+    right: 22px;
+    width: 30px;
+    height: 30px;
+    display: grid;
+    place-items: center;
+    padding: 0;
+    border: 1px solid var(--line);
+    border-radius: 50%;
+    background: var(--surface);
+    color: var(--muted-2);
+    cursor: pointer;
+    transition: color 160ms ease, border-color 160ms ease, background-color 160ms ease;
+  }
+  .valo-boulon svg { transition: transform 420ms cubic-bezier(.4, 0, .2, 1); }
+  .valo-boulon:hover { color: var(--accent); border-color: var(--accent-chip); }
+  .valo-boulon:hover svg { transform: rotate(30deg); }
+  .valo-boulon.is-on { color: var(--accent); border-color: var(--accent-chip); background: var(--accent-tint); }
+  .valo-boulon.is-on svg { transform: rotate(60deg); }
+  @media (prefers-reduced-motion: reduce) { .valo-boulon svg { transition: none; } }
   .valo-fichier {
     display: inline-flex;
     align-items: center;
@@ -3779,11 +3814,27 @@
     fichier: null,     // son nom
     erreurs: [],       // ce qui manquait au dernier classeur refusé
     ouvert: null,      // carte dépliée
+    test: false,       // le boulon : chiffres de la note, sans toucher au fichier lu
     pasWacc: 0.01,
     pasG: 0.003,
   };
   // Au-delà, la valeur tient surtout à l'hypothèse de croissance à l'infini.
   const SEUIL_VT = 0.65;
+
+  // Les chiffres de la note de valorisation partagée : ils servent de jeu
+  // d'essai, sans fichier à préparer. Le taux d'IS y est fixé (25 %) pour que
+  // l'écran retrouve la note quel que soit le pays choisi dans Paramètres.
+  const FLUX_TEST = {
+    annees: [2026, 2027, 2028, 2029],
+    ebit: [54463, 63821, 76624, 106636],
+    da: [63230, 80311, 100131, 82320],
+    capex: [86641, 79152, 77427, 77427],
+    bfr: [-2723, -4404, -5212, -850],
+    g: 0.02, detteNette: 129455, impot: 0.25,
+  };
+  const NOM_TEST = "Données de test (note de valorisation)";
+  // Le fichier lu reste en mémoire pendant qu'on regarde les données de test.
+  const fluxActif = () => (VALO.test ? FLUX_TEST : VALO.flux);
 
   const frMillier = (v) =>
     Math.round(Math.abs(v)).toString().replace(/\B(?=(\d{3})+(?!\d))/g, " ");
@@ -4015,6 +4066,7 @@
     if (resultat.flux) {
       VALO.flux = resultat.flux;
       VALO.fichier = fichier.name;
+      VALO.test = false;
       VALO.erreurs = [];
       VALO.ouvert = null;
     } else {
@@ -4123,6 +4175,20 @@
   }
 
   /* ---- Affichage ---- */
+  // Le boulon du dessin « 404 » : un écrou hexagonal, qui dépasse du coin de
+  // la case d'import. Le cliquer pose les chiffres de la note, le recliquer
+  // les retire.
+  const BOULON = () => `
+    <button type="button" class="valo-boulon${VALO.test ? " is-on" : ""}" data-action="test"
+            aria-pressed="${VALO.test ? "true" : "false"}"
+            title="${VALO.test ? "Revenir à l'import" : "Afficher les données de test"}"
+            aria-label="${VALO.test ? "Revenir à l'import" : "Afficher les données de test"}">
+      <svg width="26" height="26" viewBox="0 0 26 26" fill="none" aria-hidden="true">
+        <path d="M13 2.4l9.2 5.3v10.6L13 23.6l-9.2-5.3V7.7z" fill="currentColor" fill-opacity=".1"
+              stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/>
+        <circle cx="13" cy="13" r="3.6" stroke="currentColor" stroke-width="1.7"/>
+      </svg>
+    </button>`;
   const TRIANGLE_VT = (poids) => `
     <svg class="alerte-vt" width="18" height="16" viewBox="0 0 18 16" role="img"
          aria-label="Valeur terminale au-delà de ${frPct(SEUIL_VT, 0)} de la VE">
@@ -4180,10 +4246,11 @@
 
   function renderDcf() {
     const racine = $("valoDcf");
-    const f = VALO.flux;
+    const f = fluxActif();
     if (!f) {
       racine.innerHTML = `
         <div class="valo-depot" data-depot>
+          ${BOULON()}
           <h3>Importer les flux du DCF</h3>
           <p>Chargez un classeur Excel (.xlsx) : une ligne d'exercices, puis l'EBIT, les D&amp;A, le
           CapEx et la variation du BFR, avec la croissance à l'infini et la dette nette. Le
@@ -4209,9 +4276,10 @@
     const cartes = cartesDcf(f, wacc, r, impot);
     racine.innerHTML = `
       <div class="valo-import">
+        ${BOULON()}
         <span class="valo-fichier">
           <svg width="13" height="15" viewBox="0 0 13 15" fill="none" aria-hidden="true"><path d="M2 1h6l3.5 3.5V13a1 1 0 01-1 1H2a1 1 0 01-1-1V2a1 1 0 011-1z" stroke="currentColor" stroke-width="1.2"/><path d="M8 1v3.5h3.5" stroke="currentColor" stroke-width="1.2"/></svg>
-          ${esc(VALO.fichier)}
+          ${esc(VALO.test ? NOM_TEST : VALO.fichier)}
         </span>
         <span class="chip">${debut === fin ? debut : debut + "–" + fin}</span>
         <span class="chip">M FCFA</span>
@@ -4268,7 +4336,7 @@
   // saisi reste sous le doigt.
   function majSensibilite() {
     const racine = $("valoDcf");
-    const f = VALO.flux;
+    const f = fluxActif();
     if (!f) return;
     const wacc = cmpcAuto();
     const impot = impotRetenu(f);
@@ -4355,6 +4423,12 @@
     if (action) {
       if (action.dataset.action === "importer") $("valoFichier").click();
       else if (action.dataset.action === "modele") telechargerBlob(modeleDcfXlsx(), "modele_dcf.xlsx");
+      else if (action.dataset.action === "test") {
+        VALO.test = !VALO.test;
+        VALO.ouvert = null;
+        VALO.erreurs = [];
+        renderDcf();
+      }
       return;
     }
     // Une carte dépliée à la fois, comme dans l'onglet CMPC. Les classes
