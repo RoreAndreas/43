@@ -97,7 +97,7 @@ def test_compte_de_resultat_et_actif_net(page, tmp_path):
     # Actif net = capitaux propres, exercice par exercice.
     assert ligne(page, "actif_net") == ligne(page, "cp")
     controle = page.inner_text("#valoEtats tr.is-controle")
-    assert controle.count("équilibré") == 3
+    assert controle.count("OK") == 3
     assert "Équilibrée" in page.inner_text("#valoEtats .valo-import")
 
 
@@ -219,7 +219,7 @@ def test_modele_de_balance_se_reimporte(page, tmp_path):
     wb.save(chemin)
     page.set_input_files("#valoBgFichier", str(chemin))
     page.wait_for_selector("#valoEtats .etat-table")
-    assert page.inner_text("#valoEtats tr.is-controle").count("équilibré") == 3
+    assert page.inner_text("#valoEtats tr.is-controle").count("OK") == 3
 
 
 def test_l_ebitda_des_comparables_vient_de_la_balance(page, tmp_path):
