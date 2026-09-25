@@ -1556,6 +1556,94 @@
   .sens-table td.is-cle { background: #fff; color: var(--accent); font-weight: 600; }
   .sens-table td.is-vide { color: rgba(255, 255, 255, .4); }
 
+  /* ---------- États financiers ---------- */
+  .valo-depot.is-compact { padding: 22px 24px; }
+  .chip.is-alerte { border-color: var(--warn-soft); background: var(--warn-tint); color: var(--warn); }
+  .valo-remarques {
+    padding: 10px 14px;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: var(--surface);
+    font: 400 12px/1.55 var(--sans);
+    color: var(--ink-3);
+  }
+  .valo-remarques summary { cursor: pointer; color: var(--ink-2); font-weight: 500; }
+  .valo-remarques ul { margin: 8px 0 2px; padding-left: 18px; }
+
+  /* Graphique : barres pleines pour l'historique, hachurées pour le
+     prévisionnel, sur une zone teintée ; l'exercice lu est éclairé, et la
+     pastille donne le TCAM depuis le dernier exercice historique. */
+  .traj-tete { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 10px; min-height: 30px; }
+  .traj-periode {
+    margin-right: 6px;
+    font: 400 10.5px/1 var(--mono);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+  .traj-periode b { font-weight: 600; color: var(--ink); }
+  .traj-serie {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 5px 10px;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    background: var(--surface);
+    font: 400 12px/1 var(--sans);
+    color: var(--ink-3);
+    cursor: pointer;
+    transition: opacity 200ms ease, border-color 200ms ease;
+  }
+  .traj-serie i { display: inline-block; width: 10px; height: 10px; border-radius: 2px; }
+  .traj-serie b { font: 500 12px/1 var(--mono); font-variant-numeric: tabular-nums; color: var(--ink); }
+  .traj-serie b:empty { display: none; }
+  .traj-serie:hover { border-color: var(--muted-2); }
+  .traj-serie[aria-pressed="false"] { opacity: .5; }
+  .traj-serie:disabled { opacity: .35; cursor: default; }
+  /* min-width nul : dans la grille de la carte, le cadre prendrait sinon la
+     largeur du SVG déjà dessiné, et ne rétrécirait plus avec la fenêtre. */
+  .card-block.traj > * { min-width: 0; }
+  .traj-cadre { position: relative; min-width: 0; min-height: 290px; overflow: hidden; border-radius: 8px; }
+  .traj-cadre:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; }
+  .traj-svg { display: block; overflow: visible; }
+  .traj-zone { fill: var(--accent-tint); }
+  .traj-frontiere { stroke: var(--accent-chip); stroke-dasharray: 3 3; }
+  .traj-zone-lib { font: 500 9.5px var(--mono); letter-spacing: 0.1em; fill: var(--muted); }
+  .traj-grille { stroke: var(--line); stroke-width: 1; }
+  .traj-base { stroke: var(--muted-2); stroke-width: 1; }
+  .traj-axe { font: 400 10px var(--mono); fill: var(--muted); }
+  .traj-unite { font-size: 9px; fill: var(--muted-2); }
+  .traj-actif { fill: var(--accent-soft); opacity: .5; }
+  .traj-an { font: 400 10.5px var(--mono); fill: var(--muted); }
+  .traj-an.is-actif { font-weight: 600; fill: var(--ink); }
+  .traj-lien { fill: none; stroke-width: 1.5; stroke-dasharray: 4 3; }
+  .traj-point { fill: var(--surface); stroke-width: 1.6; }
+  .traj-pastille rect { fill: var(--surface); stroke-width: 1; }
+  .traj-pastille text { font: 500 10.5px var(--mono); fill: var(--ink-2); }
+  .traj-barre.is-anime {
+    transform-box: fill-box;
+    transform-origin: 50% 100%;
+    animation: barre-monte 560ms cubic-bezier(.2, .7, .2, 1) both;
+    animation-delay: calc(var(--i, 0) * 45ms);
+  }
+  .traj-barre.is-anime.is-neg { transform-origin: 50% 0; }
+
+  .etats-grille { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; align-items: start; }
+  @media (max-width: 940px) { .etats-grille { grid-template-columns: minmax(0, 1fr); } }
+  .etats-grille .card-block { overflow-x: auto; }
+  .etat-table { width: 100%; border-collapse: collapse; font: 400 12px/1.35 var(--mono); font-variant-numeric: tabular-nums; }
+  .etat-table th, .etat-table td { padding: 7px 0 7px 12px; text-align: right; white-space: nowrap; border-bottom: 1px solid var(--line); }
+  .etat-table th:first-child, .etat-table td:first-child { padding-left: 0; text-align: left; font-family: var(--sans); white-space: normal; }
+  .etat-table thead th { font: 400 10px/1.7 var(--mono); letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); }
+  .etat-table td { color: var(--ink-3); }
+  .etat-table td:first-child { font-size: 12.5px; color: var(--ink-3); }
+  .etat-table tr.is-total td { color: var(--ink); font-weight: 600; }
+  .etat-table tr.is-pct td { font-size: 11px; font-style: italic; color: var(--muted); }
+  .etat-table tr.is-controle td { border-bottom: 0; font-size: 11px; color: var(--muted); }
+  .etat-table td.is-ok { color: var(--green); }
+  .etat-table td.is-ecart { color: var(--warn); font-weight: 600; }
+
   /* ---------- Fluidité ----------
      Le contenu entre par un léger fondu montant, les barres poussent depuis
      la ligne de base l'une après l'autre, et le bloc graphique / calcul glisse
@@ -1869,6 +1957,7 @@
     <button type="button" role="tab" data-vue="dcf" class="is-active">DCF</button>
     <button type="button" role="tab" data-vue="comparables">Comparables</button>
     <button type="button" role="tab" data-vue="synthese">Synthèse</button>
+    <button type="button" role="tab" data-vue="etats">États financiers</button>
   </div>
   <div class="valo-corps" id="valoDcf"></div>
   <div class="valo-corps" id="valoComparables" hidden>
@@ -1882,6 +1971,9 @@
     <div class="valo-corps" id="comparablesMain"></div>
   </div>
   <div class="valo-corps" id="valoSynthese" hidden></div>
+  <div class="valo-corps" id="valoEtats" hidden></div>
+  <input type="file" id="valoBgFichier" hidden
+         accept=".xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet">
   <input type="file" id="valoFichier" hidden
          accept=".xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet">
 </main>
@@ -2047,6 +2139,10 @@
           <p>La vue Synthèse fait la moyenne des VE des deux méthodes, retranche la dette
           nette et donne la valeur des fonds propres, avec sa sensibilité au CMPC et à g.
           Le cadenas des méthodes permet de leur attribuer des poids.</p>
+          <p>La vue États financiers lit la balance générale comparée : chaque compte est
+          classé selon le plan SYSCOHADA pour monter le compte de résultat et l'actif net.
+          Un graphique suit le CA, l'EBITDA et l'EBIT, de l'historique au prévisionnel, et
+          l'export Excel rend le modèle complet en formules.</p>
         </div>
       </li>
 
@@ -2477,7 +2573,10 @@
     $("tabAide").classList.toggle("is-on", tab === "aide");
     if (tab === "valorisation") {
       ajusterCadreMultiples();
-      requestAnimationFrame(placerCurseurVues);
+      requestAnimationFrame(() => {
+        placerCurseurVues();
+        if (VALO.vue === "etats") dessinerTrajectoire(true);
+      });
     }
     if (tab === "wacc" || tab === "societes") requestAnimationFrame(placeArrows);
   }
@@ -4119,6 +4218,10 @@
     poidsDcf: 0.5,     // cadenas ouvert : poids du DCF, le reste aux comparables
     pasWacc: 0.01,     // pas de la sensibilité de la synthèse
     pasG: 0.0025,
+    bg: null,          // balance générale comparée, lue et classée
+    bgErreurs: [],     // ce qui manquait à la dernière balance refusée
+    trajActif: null,   // exercice survolé dans le graphique ; null : le dernier
+    seriesEtats: { ca: true, ebitda: true, ebit: false },
   };
   // Au-delà, la valeur tient surtout à l'hypothèse de croissance à l'infini.
   const SEUIL_VT = 0.65;
@@ -4239,13 +4342,16 @@
   }
 
   // Rend la feuille en tableau de lignes : lignes[i][j], nombres ou textes.
-  async function lireFeuille(fichier) {
+  async function lireFeuille(fichier, prefere) {
     const lire = await ouvrirZip(new Uint8Array(await fichier.arrayBuffer()));
     const xml = (texte) => new DOMParser().parseFromString(texte, "application/xml");
     const classeur = await lire("xl/workbook.xml");
     if (!classeur) throw new Error("ce fichier n'est pas un classeur Excel (.xlsx).");
     const feuilles = Array.from(xml(classeur).getElementsByTagName("sheet"));
-    const choisie = feuilles.find((f) => normalize(f.getAttribute("name") || "") === "dcf") || feuilles[0];
+    // Les feuilles masquées sont des brouillons : on ne les lit qu'à défaut.
+    const visibles = feuilles.filter((f) => !/hidden/i.test(f.getAttribute("state") || ""));
+    const voulue = prefere || ((nom) => nom === "dcf");
+    const choisie = visibles.find((f) => voulue(normalize(f.getAttribute("name") || ""))) || visibles[0] || feuilles[0];
     if (!choisie) throw new Error("le classeur ne contient aucune feuille.");
     const cibles = {};
     const liens = await lire("xl/_rels/workbook.xml.rels");
@@ -4809,6 +4915,771 @@
       </div>`;
   }
 
+  /* ---- États financiers : balance générale comparée → SYSCOHADA ----
+     La balance donne, par compte, un solde signé par exercice : débit positif,
+     crédit négatif. Chaque compte rejoint la ligne de son préfixe SYSCOHADA
+     le plus long (6057 avant 605, 787 avant 78), et à défaut celle de sa
+     classe. Les lignes s'additionnent comme dans le modèle TEMPLATE de
+     WACC43 :
+
+       compte de résultat = − somme des soldes (produits positifs, charges négatives)
+       actif net          = somme des soldes des classes 2 à 5 et des comptes 16 à 19
+       capitaux propres   = − soldes des comptes 10 à 15 + résultat net
+
+     L'écart entre les deux derniers est le solde de la balance elle-même :
+     nul quand elle est équilibrée. L'écran n'en montre que les grandes
+     lignes ; l'export rend les feuilles du modèle, en formules. */
+
+  // Compte de résultat, en FCFA. `prefixes` : ligne alimentée par la balance ;
+  // `total` : somme d'autres lignes ; `ratio` : ligne rapportée au CA.
+  const PLAN_CDR = [
+    { cle: "ventes", libelle: "Ventes de marchandises", prefixes: ["701"] },
+    { cle: "production_vendue", libelle: "Production vendue et services", prefixes: ["702", "703", "704", "705", "706", "707"] },
+    { cle: "ca", libelle: "Chiffre d'affaires", total: ["ventes", "production_vendue"], principale: true },
+    { cle: "production_stockee", libelle: "Production stockée et immobilisée", prefixes: ["72", "73"] },
+    { cle: "achats", libelle: "Achats de marchandises et matières", prefixes: ["601", "602", "603", "608"] },
+    { cle: "autres_achats", libelle: "Autres achats", prefixes: ["604", "605"] },
+    { cle: "transports", libelle: "Transports", prefixes: ["61"] },
+    { cle: "sous_traitance", libelle: "Sous-traitance générale", prefixes: ["621"] },
+    { cle: "locations", libelle: "Locations et charges locatives", prefixes: ["622", "623"] },
+    { cle: "entretien", libelle: "Entretien, réparations et maintenance", prefixes: ["624"] },
+    { cle: "assurances", libelle: "Primes d'assurance", prefixes: ["625"] },
+    { cle: "etudes", libelle: "Études, recherches et documentation", prefixes: ["626"] },
+    { cle: "publicite", libelle: "Publicité et relations publiques", prefixes: ["627"] },
+    { cle: "telecom", libelle: "Frais de télécommunications", prefixes: ["628"] },
+    { cle: "frais_bancaires", libelle: "Frais bancaires", prefixes: ["631"] },
+    { cle: "honoraires", libelle: "Rémunérations d'intermédiaires et de conseils", prefixes: ["632"] },
+    { cle: "autres_services", libelle: "Autres services extérieurs", prefixes: ["62", "63"] },
+    { cle: "services_ext", libelle: "Services extérieurs",
+      total: ["sous_traitance", "locations", "entretien", "assurances", "etudes", "publicite", "telecom", "frais_bancaires", "honoraires", "autres_services"] },
+    { cle: "impots_taxes", libelle: "Impôts et taxes", prefixes: ["64"] },
+    { cle: "personnel", libelle: "Charges de personnel", prefixes: ["66"] },
+    { cle: "autres_produits", libelle: "Autres produits d'exploitation", prefixes: ["71", "75", "78"] },
+    { cle: "autres_charges", libelle: "Autres charges d'exploitation", prefixes: ["65"] },
+    { cle: "ebitda", libelle: "EBITDA", principale: true,
+      total: ["ca", "production_stockee", "achats", "autres_achats", "transports", "services_ext", "impots_taxes", "personnel", "autres_produits", "autres_charges"] },
+    { cle: "marge_ebitda", libelle: "EBITDA (% CA)", ratio: "ebitda", principale: true },
+    { cle: "dotations", libelle: "Dotations aux amortissements et provisions", prefixes: ["68", "69"] },
+    { cle: "reprises", libelle: "Reprises d'amortissements et de provisions", prefixes: ["79"] },
+    { cle: "da", libelle: "D&A", total: ["dotations", "reprises"], principale: true },
+    { cle: "ebit", libelle: "EBIT", total: ["ebitda", "da"], principale: true },
+    { cle: "marge_ebit", libelle: "EBIT (% CA)", ratio: "ebit" },
+    { cle: "produits_fin", libelle: "Produits financiers", prefixes: ["77", "787", "797"] },
+    { cle: "charges_fin", libelle: "Charges financières", prefixes: ["67", "687", "697"] },
+    { cle: "res_fin", libelle: "Résultat financier", total: ["produits_fin", "charges_fin"], principale: true },
+    { cle: "hao", libelle: "Résultat HAO", prefixes: ["81", "82", "83", "84", "85", "86", "88"] },
+    { cle: "participation", libelle: "Participation des travailleurs", prefixes: ["87"] },
+    { cle: "impot_resultat", libelle: "Impôt sur le résultat", prefixes: ["89"] },
+    { cle: "rn", libelle: "Résultat net", total: ["ebit", "res_fin", "hao", "participation", "impot_resultat"], principale: true },
+  ];
+
+  // Actif net, en M FCFA. `signe` : −1 pour les capitaux propres, lus au
+  // crédit ; `lien` : ligne reprise du compte de résultat ; `controle` :
+  // écart d'équilibre.
+  const PLAN_BILAN = [
+    { cle: "immo_incorp", libelle: "Immobilisations incorporelles", prefixes: ["20", "21", "281", "291"] },
+    { cle: "immo_corp", libelle: "Immobilisations corporelles",
+      prefixes: ["22", "23", "24", "25", "282", "283", "284", "285", "288", "292", "293", "294", "295"] },
+    { cle: "immo_fin", libelle: "Immobilisations financières", prefixes: ["26", "27", "296", "297"] },
+    { cle: "actifs_immo", libelle: "Actifs immobilisés", total: ["immo_incorp", "immo_corp", "immo_fin"], principale: true },
+    { cle: "stocks", libelle: "Stocks et en-cours", prefixes: ["3"] },
+    { cle: "clients", libelle: "Créances clients", prefixes: ["41", "491"] },
+    { cle: "clients_avances", libelle: "Avances reçues des clients", prefixes: ["419"] },
+    { cle: "fournisseurs", libelle: "Dettes fournisseurs", prefixes: ["40"] },
+    { cle: "fournisseurs_avances", libelle: "Avances versées aux fournisseurs", prefixes: ["409"] },
+    { cle: "social", libelle: "Dettes et créances sociales", prefixes: ["42", "43"] },
+    { cle: "fiscal", libelle: "Dettes et créances fiscales", prefixes: ["44"] },
+    { cle: "associes", libelle: "Associés et groupe", prefixes: ["46"] },
+    { cle: "divers", libelle: "Débiteurs et créditeurs divers", prefixes: ["45", "47", "48", "49"] },
+    { cle: "bfr", libelle: "BFR", principale: true,
+      total: ["stocks", "clients", "clients_avances", "fournisseurs", "fournisseurs_avances", "social", "fiscal", "associes", "divers"] },
+    { cle: "disponibilites", libelle: "Disponibilités", prefixes: ["50", "51", "52", "53", "54", "55", "57", "58", "59"] },
+    { cle: "credits_tresorerie", libelle: "Crédits de trésorerie", prefixes: ["56"] },
+    { cle: "tresorerie", libelle: "Trésorerie et équivalents", total: ["disponibilites", "credits_tresorerie"] },
+    { cle: "emprunts", libelle: "Emprunts et dettes financières", prefixes: ["16", "18"] },
+    { cle: "credit_bail", libelle: "Dettes de location-acquisition", prefixes: ["17"] },
+    { cle: "dettes_fin", libelle: "Dettes financières", total: ["emprunts", "credit_bail"] },
+    { cle: "provisions_rc", libelle: "Provisions pour risques et charges", prefixes: ["19"] },
+    { cle: "tresorerie_nette", libelle: "Trésorerie / (dette) nette", total: ["tresorerie", "dettes_fin", "provisions_rc"], principale: true },
+    { cle: "provisions_ct", libelle: "Provisions pour risques à court terme", prefixes: ["499", "599"], principale: true },
+    { cle: "actif_net", libelle: "Actif net", total: ["actifs_immo", "bfr", "tresorerie_nette", "provisions_ct"], principale: true },
+    { cle: "capital", libelle: "Capital", prefixes: ["10"], signe: -1 },
+    { cle: "reserves", libelle: "Réserves", prefixes: ["11"], signe: -1 },
+    { cle: "report", libelle: "Report à nouveau", prefixes: ["12"], signe: -1 },
+    { cle: "ria", libelle: "Résultat en instance d'affectation", prefixes: ["13"], signe: -1 },
+    { cle: "subventions", libelle: "Subventions d'investissement et provisions réglementées", prefixes: ["14", "15"], signe: -1 },
+    { cle: "rn_bilan", libelle: "Résultat net de l'exercice", lien: "rn" },
+    { cle: "cp", libelle: "Capitaux propres", total: ["capital", "reserves", "report", "ria", "subventions", "rn_bilan"], principale: true },
+    { cle: "ecart", libelle: "Contrôle : actif net − capitaux propres", controle: true, principale: true },
+  ];
+
+  // Préfixe → ligne ; et, à défaut, la ligne de la classe du compte.
+  const PREFIXES_SYSCOHADA = {};
+  for (const l of PLAN_CDR.concat(PLAN_BILAN)) {
+    for (const p of l.prefixes || []) PREFIXES_SYSCOHADA[p] = l.cle;
+  }
+  const LIGNE_PAR_CLASSE = { 2: "immo_corp", 3: "stocks", 4: "divers", 5: "disponibilites", 6: "autres_charges", 7: "autres_produits", 8: "hao" };
+  const LIBELLE_LIGNE = {};
+  for (const l of PLAN_CDR.concat(PLAN_BILAN)) LIBELLE_LIGNE[l.cle] = l.libelle;
+
+  function classerCompte(nc) {
+    for (let n = Math.min(nc.length, 6); n >= 1; n--) {
+      const cle = PREFIXES_SYSCOHADA[nc.slice(0, n)];
+      if (cle) return { cle: cle, defaut: false };
+    }
+    const cle = LIGNE_PAR_CLASSE[nc.charAt(0)];
+    return cle ? { cle: cle, defaut: true } : null;
+  }
+
+  // Lit la balance : en-tête avec une colonne de compte et une colonne par
+  // exercice, puis une ligne par compte. Les lignes sans numéro (titres,
+  // totaux) sont sautées ; un numéro qui en préfixe un autre est un
+  // sous-total, écarté pour ne pas compter deux fois.
+  function lireBalance(lignes) {
+    let iEntete = -1, colCompte = -1, colIntitule = -1, colonnes = [];
+    for (let i = 0; i < Math.min(lignes.length, 40) && iEntete < 0; i++) {
+      const ligne = lignes[i];
+      if (!ligne) continue;
+      let cc = -1, ci = -1;
+      const annees = [];
+      ligne.forEach((v, j) => {
+        const t = normalize(v == null ? "" : String(v)).trim();
+        if (cc < 0 && /compte|^nc$|^n°|^no$|numero|account/.test(t)) { cc = j; return; }
+        if (ci < 0 && /intitul|libell|^lb$|label|designation/.test(t)) { ci = j; return; }
+        const a = lireAnnee(v);
+        if (a) annees.push({ j: j, an: a.an });
+      });
+      if (cc >= 0 && annees.length) { iEntete = i; colCompte = cc; colIntitule = ci; colonnes = annees; }
+    }
+    if (iEntete < 0) {
+      return { erreurs: ["En-tête introuvable : il faut une colonne « N° compte » et une colonne par exercice (FY23, 2024…)."] };
+    }
+    colonnes.sort((a, b) => a.an - b.an);
+    if (colonnes.some((c, k) => k && c.an === colonnes[k - 1].an)) {
+      return { erreurs: ["Deux colonnes portent le même exercice."] };
+    }
+
+    const lus = [];
+    for (let i = iEntete + 1; i < lignes.length; i++) {
+      const ligne = lignes[i];
+      if (!ligne) continue;
+      const brut = ligne[colCompte];
+      const nc = brut == null ? "" : (typeof brut === "number" ? String(Math.round(brut)) : String(brut)).replace(/[\s.\-]/g, "");
+      if (!/^\d+$/.test(nc)) continue;
+      lus.push({
+        nc: nc,
+        lb: colIntitule >= 0 && ligne[colIntitule] != null ? String(ligne[colIntitule]).trim() : "",
+        valeurs: colonnes.map((c) => { const v = nombreCellule(ligne[c.j]); return v == null ? 0 : v; }),
+      });
+    }
+    if (!lus.length) return { erreurs: ["Aucun compte lu sous l'en-tête."] };
+
+    const remarques = [];
+    const numeros = lus.map((c) => c.nc);
+    const sousTotaux = lus.filter((c) => numeros.some((n) => n.length > c.nc.length && n.indexOf(c.nc) === 0));
+    const horsPlan = lus.filter((c) => !/^[1-8]/.test(c.nc));
+    let comptes = lus.filter((c) => sousTotaux.indexOf(c) < 0 && horsPlan.indexOf(c) < 0);
+    if (sousTotaux.length) {
+      remarques.push(sousTotaux.length + " sous-total" + (sousTotaux.length > 1 ? "s" : "") + " écarté" + (sousTotaux.length > 1 ? "s" : "")
+        + " pour ne pas compter deux fois : " + sousTotaux.slice(0, 6).map((c) => c.nc).join(", ") + (sousTotaux.length > 6 ? "…" : "") + ".");
+    }
+    if (horsPlan.length) {
+      remarques.push(horsPlan.length + " compte" + (horsPlan.length > 1 ? "s" : "") + " hors des classes 1 à 8 ignoré"
+        + (horsPlan.length > 1 ? "s" : "") + " : " + horsPlan.slice(0, 6).map((c) => c.nc).join(", ") + (horsPlan.length > 6 ? "…" : "") + ".");
+    }
+
+    // Le chiffre d'affaires est créditeur : positif dans la plupart des
+    // exercices, c'est que le fichier compte le crédit en positif.
+    const ventes = colonnes.map((_, t) => comptes.filter((c) => c.nc.indexOf("70") === 0).reduce((s, c) => s + c.valeurs[t], 0));
+    const inverse = ventes.filter((v) => v > 0).length > ventes.length / 2;
+    if (inverse) {
+      comptes = comptes.map((c) => Object.assign({}, c, { valeurs: c.valeurs.map((v) => -v) }));
+      remarques.push("Les produits étaient positifs : la balance comptait le crédit en positif, ses signes ont été inversés.");
+    }
+
+    const defauts = [];
+    for (const c of comptes) {
+      const k = classerCompte(c.nc);
+      c.cle = k ? k.cle : null;
+      if (k && k.defaut) defauts.push(c.nc);
+    }
+    if (defauts.length) {
+      remarques.push(defauts.length + " compte" + (defauts.length > 1 ? "s" : "") + " classé" + (defauts.length > 1 ? "s" : "")
+        + " par sa seule classe, faute de préfixe connu : " + defauts.slice(0, 6).join(", ") + (defauts.length > 6 ? "…" : "") + ".");
+    }
+
+    const annees = colonnes.map((c) => c.an);
+    const soldes = annees.map((_, t) => comptes.reduce((s, c) => s + c.valeurs[t], 0));
+    return { bg: { annees: annees, comptes: comptes, remarques: remarques, soldes: soldes } };
+  }
+
+  function calculerEtats(bg) {
+    const n = bg.annees.length;
+    const zero = () => new Array(n).fill(0);
+    const brut = {};
+    for (const c of bg.comptes) {
+      if (!c.cle) continue;
+      brut[c.cle] = brut[c.cle] || zero();
+      c.valeurs.forEach((v, t) => { brut[c.cle][t] += v; });
+    }
+    const somme = (etat, cles) => zero().map((_, t) => cles.reduce((s, k) => s + etat[k][t], 0));
+    const cdr = {}, bilan = {};
+    for (const l of PLAN_CDR) {
+      if (l.prefixes) cdr[l.cle] = (brut[l.cle] || zero()).map((v) => -v);
+      else if (l.total) cdr[l.cle] = somme(cdr, l.total);
+      else if (l.ratio) cdr[l.cle] = cdr[l.ratio].map((v, t) => (cdr.ca[t] ? v / cdr.ca[t] : null));
+    }
+    for (const l of PLAN_BILAN) {
+      if (l.prefixes) bilan[l.cle] = (brut[l.cle] || zero()).map((v) => (l.signe || 1) * v / 1e6);
+      else if (l.total) bilan[l.cle] = somme(bilan, l.total);
+      else if (l.lien) bilan[l.cle] = cdr[l.lien].map((v) => v / 1e6);
+      else if (l.controle) bilan[l.cle] = bilan.actif_net.map((v, t) => v - bilan.cp[t]);
+    }
+    return { cdr: cdr, bilan: bilan };
+  }
+
+  async function importerBalance(fichier) {
+    if (!fichier) return;
+    let r;
+    try {
+      r = lireBalance(await lireFeuille(fichier, (nom) => /balance|^bg/.test(nom)));
+    } catch (err) {
+      r = { erreurs: ["Lecture impossible : " + (err && err.message ? err.message : err)] };
+    }
+    if (r.bg) {
+      r.bg.fichier = fichier.name;
+      r.bg.etats = calculerEtats(r.bg);
+      VALO.bg = r.bg;
+      VALO.bgErreurs = [];
+      VALO.trajActif = null;
+      VALO.animer = true;
+    } else {
+      // Une balance refusée ne remplace pas celle qui était lue.
+      VALO.bgErreurs = r.erreurs;
+      VALO.bgRefuse = fichier.name;
+    }
+    renderValo();
+  }
+
+  /* ---- Historique et prévisionnel, sur un même axe ---- */
+  const SERIES_ETATS = [
+    { cle: "ca", libelle: "Chiffre d'affaires", court: "CA", couleur: "#5f86c4" },
+    { cle: "ebitda", libelle: "EBITDA", court: "EBITDA", couleur: "#6d4bb0" },
+    { cle: "ebit", libelle: "EBIT", court: "EBIT", couleur: "#c0703a" },
+  ];
+
+  // L'historique vient de la balance si elle est importée, sinon de la partie
+  // historique du classeur DCF ; le prévisionnel, du classeur. En M FCFA.
+  function historiqueEtats() {
+    if (VALO.bg) {
+      const e = VALO.bg.etats.cdr;
+      const m = (v) => v / 1e6;
+      return { source: "balance", annees: VALO.bg.annees, ca: e.ca.map(m), ebitda: e.ebitda.map(m), ebit: e.ebit.map(m) };
+    }
+    const f = fluxActif();
+    const h = f && f.historique;
+    if (!h) return null;
+    const vide = h.annees.map(() => null);
+    const ebitda = h.annees.map((_, t) => {
+      if (h.ebitda && h.ebitda[t] != null) return h.ebitda[t];
+      return h.ebit && h.da && h.ebit[t] != null && h.da[t] != null ? h.ebit[t] + h.da[t] : null;
+    });
+    return { source: "classeur", annees: h.annees, ca: h.ca || vide, ebitda: ebitda, ebit: h.ebit || vide };
+  }
+  function previsionEtats() {
+    const f = fluxActif();
+    if (!f) return null;
+    return {
+      annees: f.annees,
+      ca: f.ca || f.annees.map(() => null),
+      ebitda: f.ebitda || f.ebit.map((e, t) => e + f.da[t]),
+      ebit: f.ebit,
+    };
+  }
+  function pointsEtats() {
+    const h = historiqueEtats(), p = previsionEtats();
+    const points = [];
+    const ajouter = (src, type) => {
+      if (!src) return;
+      src.annees.forEach((an, t) => {
+        if (points.some((q) => q.an === an)) return;   // l'historique prime
+        points.push({ an: an, type: type, ca: src.ca[t], ebitda: src.ebitda[t], ebit: src.ebit[t] });
+      });
+    };
+    ajouter(h, "hist");
+    ajouter(p, "prev");
+    points.sort((a, b) => a.an - b.an);
+    return { points: points, h: h, p: p };
+  }
+
+  function pasRond(x) {
+    const p = Math.pow(10, Math.floor(Math.log10(x)));
+    const m = x / p;
+    return (m <= 1 ? 1 : m <= 2 ? 2 : m <= 2.5 ? 2.5 : m <= 5 ? 5 : 10) * p;
+  }
+  const frAxe = (v) => (v < 0 ? "−" : "") + frMillier(v);
+  const frM = (v) => {
+    if (v == null || !Number.isFinite(v)) return "—";
+    const a = Math.abs(v).toFixed(1).split(".");
+    const texte = a[0].replace(/\B(?=(\d{3})+(?!\d))/g, " ") + "," + a[1];
+    return v <= -0.05 ? "(" + texte + ")" : texte;
+  };
+  // Taux de croissance annuel moyen entre deux exercices, si les deux bornes
+  // sont positives : entre un négatif et un positif, il n'a pas de sens.
+  const tcamEntre = (va, vb, ecart) => (va > 0 && vb > 0 && ecart > 0 ? Math.pow(vb / va, 1 / ecart) - 1 : null);
+
+  const TRAJ = { geo: null };
+
+  // Barre ancrée sur la ligne de base, bout arrondi du côté de la valeur.
+  function cheminBarre(x, w, yBase, yVal) {
+    const h = Math.abs(yVal - yBase);
+    const r = Math.min(4, w / 2, h);
+    if (h < 0.5) return "";
+    if (yVal < yBase) {
+      return `M${x},${yBase}V${yVal + r}Q${x},${yVal} ${x + r},${yVal}H${x + w - r}Q${x + w},${yVal} ${x + w},${yVal + r}V${yBase}Z`;
+    }
+    return `M${x},${yBase}V${yVal - r}Q${x},${yVal} ${x + r},${yVal}H${x + w - r}Q${x + w},${yVal} ${x + w},${yVal - r}V${yBase}Z`;
+  }
+
+  function dessinerTrajectoire(anime) {
+    const cadre = $("valoEtats").querySelector("[data-trajectoire]");
+    if (!cadre) return;
+    const W = cadre.clientWidth;
+    if (!W) return;   // vue masquée : on redessinera à l'affichage
+    const { points } = pointsEtats();
+    const series = SERIES_ETATS.filter((s) => VALO.seriesEtats[s.cle] && points.some((q) => q[s.cle] != null));
+    const n = points.length;
+    if (!n || !series.length) { cadre.innerHTML = ""; TRAJ.geo = null; return; }
+
+    const H = 290, mG = 6, mD = 62, mH = 30, mB = 30;
+    const plotH = H - mH - mB;
+    const slot = (W - mG - mD) / n;
+    const valeurs = [];
+    points.forEach((q) => series.forEach((s) => { if (q[s.cle] != null) valeurs.push(q[s.cle]); }));
+    let vMin = Math.min(0, ...valeurs), vMax = Math.max(0, ...valeurs);
+    if (vMax === vMin) vMax = vMin + 1;
+    const pas = pasRond((vMax - vMin) / 4);
+    const bas = Math.floor(vMin / pas) * pas, haut = Math.ceil(vMax / pas) * pas;
+    const y = (v) => mH + (haut - v) / (haut - bas) * plotH;
+    const k = series.length;
+    const bw = Math.max(4, Math.min(22, (slot * 0.64 - (k - 1) * 2) / k));
+    const gw = k * bw + (k - 1) * 2;
+    const cx = (i, si) => mG + i * slot + slot / 2 - gw / 2 + si * (bw + 2) + bw / 2;
+    TRAJ.geo = { W: W, H: H, mG: mG, mD: mD, mH: mH, mB: mB, slot: slot, n: n, y: y, cx: cx, bw: bw, points: points, series: series };
+
+    const ticks = [];
+    for (let v = bas; v <= haut + pas / 2; v += pas) ticks.push(v);
+    const i0 = points.findIndex((q) => q.type === "prev");
+    const hachures = series.map((s) => `
+      <pattern id="hachure-${s.cle}" patternUnits="userSpaceOnUse" width="5" height="5" patternTransform="rotate(45)">
+        <rect width="5" height="5" fill="${s.couleur}" fill-opacity=".22"/>
+        <line x1="0" y1="0" x2="0" y2="5" stroke="${s.couleur}" stroke-width="2.4"/>
+      </pattern>`).join("");
+    const barres = points.map((q, i) => series.map((s, si) => {
+      const v = q[s.cle];
+      if (v == null) return "";
+      const x = cx(i, si) - bw / 2;
+      const d = cheminBarre(x, bw, y(0), y(v));
+      if (!d) return "";
+      return `<path class="traj-barre${anime ? " is-anime" : ""}${v < 0 ? " is-neg" : ""}${q.type === "prev" ? " is-prev" : ""}" d="${d}"
+                    style="fill:${q.type === "prev" ? `url(#hachure-${s.cle})` : s.couleur};--i:${i}"></path>`;
+    }).join("")).join("");
+
+    cadre.innerHTML = `
+      <svg class="traj-svg" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" role="img"
+           aria-label="${esc(series.map((s) => s.libelle).join(", "))} par exercice, historique puis prévisionnel">
+        <defs>${hachures}</defs>
+        ${i0 >= 0 ? `
+          <rect class="traj-zone" x="${mG + i0 * slot}" y="${mH - 22}" width="${(n - i0) * slot}" height="${plotH + 22}"></rect>
+          <line class="traj-frontiere" x1="${mG + i0 * slot}" x2="${mG + i0 * slot}" y1="${mH - 22}" y2="${mH + plotH}"></line>
+          <text class="traj-zone-lib" x="${mG + i0 * slot + 8}" y="${mH - 9}">PRÉVISIONNEL</text>` : ""}
+        <g data-traj="fond"></g>
+        ${ticks.map((v) => `
+          <line class="traj-grille" x1="${mG}" x2="${W - mD + 4}" y1="${y(v)}" y2="${y(v)}"></line>
+          <text class="traj-axe" x="${W - mD + 10}" y="${y(v) + 3.5}">${frAxe(v)}</text>`).join("")}
+        <text class="traj-axe traj-unite" x="${W - mD + 10}" y="${mH - 12}">M FCFA</text>
+        <line class="traj-base" x1="${mG}" x2="${W - mD + 4}" y1="${y(0)}" y2="${y(0)}"></line>
+        ${barres}
+        <g data-traj="avant"></g>
+      </svg>`;
+    majTrajectoireActif();
+  }
+
+  // Ce qui suit l'exercice survolé : sa colonne éclairée, ses valeurs en tête,
+  // et le TCAM tiré depuis le dernier exercice historique (ou le premier,
+  // si l'on survole l'historique).
+  function majTrajectoireActif() {
+    const g = TRAJ.geo;
+    const racine = $("valoEtats");
+    const tete = racine.querySelector('[data-html="traj-tete"]');
+    if (!g) { if (tete) tete.innerHTML = ""; return; }
+    const { points, series, slot, y, cx, mG, mH, H, mB } = g;
+    const b = VALO.trajActif == null || VALO.trajActif >= points.length ? points.length - 1 : VALO.trajActif;
+    const iHist = points.map((q, i) => (q.type === "hist" ? i : -1)).filter((i) => i >= 0);
+    const a = points[b].type === "prev"
+      ? (iHist.length ? iHist[iHist.length - 1] : points.findIndex((q) => q.type === "prev"))
+      : iHist[0];
+
+    const fond = racine.querySelector('[data-traj="fond"]');
+    const avant = racine.querySelector('[data-traj="avant"]');
+    if (fond) fond.innerHTML = `<rect class="traj-actif" x="${mG + b * slot + 1}" y="${mH - 22}" width="${slot - 2}" height="${H - mB - mH + 22}"></rect>`;
+    let liens = "";
+    if (a != null && a >= 0 && a !== b) {
+      series.forEach((s, si) => {
+        const va = points[a][s.cle], vb = points[b][s.cle];
+        if (va == null || vb == null) return;
+        const xa = cx(a, si), xb = cx(b, si), ya = y(va), yb = y(vb);
+        const t = tcamEntre(va, vb, Math.abs(points[b].an - points[a].an));
+        const xm = (xa + xb) / 2, ym = Math.min(ya, yb) - 14 - si * 20;
+        const texte = t == null ? "TCAM n.s." : (t >= 0 ? "+" : "") + frPct(t, 1) + " TCAM";
+        const lw = texte.length * 6.1 + 14;
+        liens += `
+          <g class="traj-tcam" style="--c:${s.couleur}">
+            <line class="traj-lien" x1="${xa}" y1="${ya}" x2="${xb}" y2="${yb}" style="stroke:${s.couleur}"></line>
+            <circle class="traj-point" cx="${xa}" cy="${ya}" r="3.2" style="stroke:${s.couleur}"></circle>
+            <circle class="traj-point" cx="${xb}" cy="${yb}" r="3.2" style="stroke:${s.couleur}"></circle>
+            <g class="traj-pastille" transform="translate(${Math.max(lw / 2 + 2, Math.min(g.W - g.mD - lw / 2, xm))},${Math.max(12, ym)})">
+              <rect x="${-lw / 2}" y="-10" width="${lw}" height="18" rx="5" style="stroke:${s.couleur}"></rect>
+              <text x="0" y="3" text-anchor="middle">${texte}</text>
+            </g>
+          </g>`;
+      });
+    }
+    const annees = points.map((q, i) => `
+      <text class="traj-an${i === b ? " is-actif" : ""}" x="${mG + i * slot + slot / 2}" y="${H - 10}" text-anchor="middle">${frFy(q.an)}</text>`).join("");
+    if (avant) avant.innerHTML = liens + annees;
+
+    const q = points[b];
+    if (tete) {
+      tete.innerHTML = `
+        <span class="traj-periode"><b>${frFy(q.an)}</b> · ${q.type === "prev" ? "prévisionnel" : "historique"}</span>
+        ${SERIES_ETATS.map((s) => {
+          const dispo = points.some((p) => p[s.cle] != null);
+          const on = VALO.seriesEtats[s.cle] && dispo;
+          return `<button type="button" class="traj-serie" data-serie="${s.cle}" aria-pressed="${on ? "true" : "false"}"${dispo ? "" : " disabled"}
+                    title="${dispo ? (on ? "Masquer" : "Afficher") + " " + esc(s.libelle) : esc(s.libelle) + " absent des données"}">
+                    <i style="background:${s.couleur}"></i>${esc(s.court)}<b>${on ? frM(q[s.cle]) : ""}</b></button>`;
+        }).join("")}`;
+    }
+  }
+
+  function tableauEtat(annees, plan, valeurs, options) {
+    const lignes = plan.filter((l) => l.principale && (!options.masquerVides || !l.prefixes
+      || valeurs[l.cle].some((v) => Math.abs(v) >= 0.05)));
+    const n = annees.length;
+    const tcam = options.tcam && n > 1;
+    return `
+      <table class="etat-table">
+        <thead><tr><th>M FCFA</th>${annees.map((a) => `<th>${frFy(a)}</th>`).join("")}${tcam ? `<th>TCAM</th>` : ""}</tr></thead>
+        <tbody>
+          ${lignes.map((l) => {
+            const v = valeurs[l.cle];
+            if (l.controle) {
+              return `<tr class="is-controle"><td>${esc(l.libelle)}</td>${v.map((x) => Math.abs(x) < 0.0005
+                ? '<td class="is-ok">équilibré</td>' : `<td class="is-ecart">${frM(x)}</td>`).join("")}${tcam ? "<td></td>" : ""}</tr>`;
+            }
+            if (l.ratio) {
+              return `<tr class="is-pct"><td>${esc(l.libelle)}</td>${v.map((x) => `<td>${x == null ? "—" : frPct(x, 1)}</td>`).join("")}${tcam ? "<td></td>" : ""}</tr>`;
+            }
+            const m = v.map((x) => x * (options.echelle || 1));
+            const t = tcam ? tcamEntre(m[0], m[n - 1], annees[n - 1] - annees[0]) : null;
+            const fort = ["ca", "ebitda", "ebit", "rn", "actif_net", "cp"].indexOf(l.cle) >= 0;
+            return `<tr${fort ? ' class="is-total"' : ""} data-ligne="${l.cle}"><td>${esc(l.libelle)}</td>${m.map((x) => `<td>${frM(x)}</td>`).join("")}${tcam ? `<td>${t == null ? "n.s." : frPct(t, 1)}</td>` : ""}</tr>`;
+          }).join("")}
+        </tbody>
+      </table>`;
+  }
+
+  function erreursBgHtml() {
+    if (!VALO.bgErreurs.length) return "";
+    return `
+      <div class="valo-erreurs" role="alert">
+        <strong>${esc(VALO.bgRefuse || "La balance")} n'a pas pu être importée.</strong>
+        <ul>${VALO.bgErreurs.map((e) => `<li>${esc(e)}</li>`).join("")}</ul>
+      </div>`;
+  }
+
+  function renderEtats() {
+    const racine = $("valoEtats");
+    const bg = VALO.bg;
+    const { points, h, p } = pointsEtats();
+    const equilibree = bg && bg.soldes.every((s) => Math.abs(s) < 1);
+    const bandeau = bg ? `
+      <div class="valo-import">
+        <span class="valo-fichier">
+          <svg width="13" height="15" viewBox="0 0 13 15" fill="none" aria-hidden="true"><path d="M2 1h6l3.5 3.5V13a1 1 0 01-1 1H2a1 1 0 01-1-1V2a1 1 0 011-1z" stroke="currentColor" stroke-width="1.2"/><path d="M8 1v3.5h3.5" stroke="currentColor" stroke-width="1.2"/></svg>
+          ${esc(bg.fichier)}
+        </span>
+        <span class="chip">Balance ${plageFy(bg.annees)}</span>
+        <span class="chip">${bg.comptes.length} comptes</span>
+        <span class="chip${equilibree ? " is-accent" : " is-alerte"}" data-o="equilibre">${equilibree ? "Équilibrée" : "Déséquilibrée"}</span>
+        <span class="valo-espace"></span>
+        <button type="button" class="valo-bouton" data-action="modele-bg">Modèle de balance</button>
+        <button type="button" class="valo-bouton" data-action="importer-bg">Remplacer la balance</button>
+        <button type="button" class="valo-bouton is-plein" data-action="exporter-etats">Exporter le modèle Excel</button>
+      </div>` : `
+      <div class="valo-depot${points.length ? " is-compact" : ""}" data-depot="bg">
+        <h3>Importer la balance générale comparée</h3>
+        <p>Un classeur Excel avec, par compte, son numéro, son intitulé et un solde par exercice
+        (débit positif, crédit négatif). Les comptes sont classés selon le plan SYSCOHADA pour
+        monter le compte de résultat et l'actif net ; l'export les rend en formules, au format
+        du modèle.</p>
+        <div class="valo-actions">
+          <button type="button" class="valo-bouton is-plein" data-action="importer-bg">Importer une balance</button>
+          <button type="button" class="valo-bouton" data-action="modele-bg">Modèle de balance</button>
+        </div>
+        ${erreursBgHtml()}
+      </div>`;
+    const remarques = bg ? bg.remarques.concat(equilibree ? [] : bg.annees.map((a, t) => Math.abs(bg.soldes[t]) >= 1
+      ? "Balance " + frFy(a) + " déséquilibrée de " + frMillier(bg.soldes[t]) + " FCFA : l'actif net et les capitaux propres ne se rejoignent pas." : null).filter(Boolean)) : [];
+    const sources = [];
+    if (h) sources.push("Historique : " + (h.source === "balance" ? "balance générale" : "classeur DCF"));
+    if (p) sources.push("Prévisionnel : classeur DCF");
+
+    racine.innerHTML = `
+      ${bandeau}
+      ${bg ? erreursBgHtml() : ""}
+      ${remarques.length ? `
+        <details class="valo-remarques"${equilibree ? "" : " open"}>
+          <summary>${remarques.length} remarque${remarques.length > 1 ? "s" : ""} sur la lecture de la balance</summary>
+          <ul>${remarques.map((r) => `<li>${esc(r)}</li>`).join("")}</ul>
+        </details>` : ""}
+      ${points.length ? `
+        <section class="card-block traj${VALO.animer ? " valo-anime" : ""}">
+          <div class="block-head">
+            <h2>Historique et prévisionnel</h2>
+            <div class="chips">${sources.map((s) => `<span class="chip">${esc(s)}</span>`).join("")}</div>
+          </div>
+          <div class="traj-tete" data-html="traj-tete"></div>
+          <div class="traj-cadre" data-trajectoire tabindex="0"
+               aria-label="Graphique : flèches gauche et droite pour parcourir les exercices"></div>
+          <p class="note">Barres pleines : historique${p ? " ; hachurées : prévisionnel du classeur DCF" : ""}. Survolez un
+          exercice pour lire ses valeurs ; la pastille donne le TCAM depuis le dernier exercice historique.
+          Cliquez une série pour l'afficher ou la masquer.</p>
+        </section>` : ""}
+      ${bg ? `
+        <div class="etats-grille">
+          <section class="card-block">
+            <div class="block-head"><h2>Compte de résultat</h2><div class="chips"><span class="chip">SYSCOHADA</span></div></div>
+            ${tableauEtat(bg.annees, PLAN_CDR, bg.etats.cdr, { tcam: true, echelle: 1e-6 })}
+          </section>
+          <section class="card-block">
+            <div class="block-head"><h2>Actif net</h2><div class="chips"><span class="chip">SYSCOHADA</span></div></div>
+            ${tableauEtat(bg.annees, PLAN_BILAN, bg.etats.bilan, { masquerVides: true })}
+          </section>
+        </div>` : ""}`;
+    dessinerTrajectoire(Boolean(VALO.animer));
+  }
+
+  /* ---- Export au format du modèle TEMPLATE ----
+     Quatre feuilles : BG COMP (la balance, avec sa colonne Mapping et les
+     préfixes C1 à C4), Cdr et Bilan (des SUMIF sur le mapping, comme dans le
+     modèle), et le plan SYSCOHADA appliqué. Changer un mapping dans BG COMP
+     suffit à reclasser un compte : tout se recalcule. Les valeurs sont
+     écrites en cache pour s'afficher avant le recalcul. */
+  const colXl = (j) => {
+    let s = "";
+    for (let n = j + 1; n > 0; n = Math.floor((n - 1) / 26)) s = String.fromCharCode(65 + ((n - 1) % 26)) + s;
+    return s;
+  };
+  const ST_ETATS = { titre: 1, note: 2, entete: 3, cle: 4, libelle: 5, fcfa: 6, m: 7, pct: 8, totalLib: 9, totalFcfa: 10, totalM: 11, pctLib: 12, texte: 13 };
+
+  function celluleXl(ref, c) {
+    const s = c.s ? ` s="${c.s}"` : "";
+    if (c.f != null) {
+      if (typeof c.v === "string") return `<c r="${ref}"${s} t="str"><f>${xmlEsc(c.f)}</f><v>${xmlEsc(c.v)}</v></c>`;
+      return `<c r="${ref}"${s}><f>${xmlEsc(c.f)}</f>${c.v == null || !Number.isFinite(c.v) ? "" : `<v>${xlNombre(c.v)}</v>`}</c>`;
+    }
+    if (c.v == null || c.v === "") return c.s ? `<c r="${ref}"${s}/>` : "";
+    if (typeof c.v === "number") return `<c r="${ref}"${s}><v>${xlNombre(c.v)}</v></c>`;
+    return `<c r="${ref}"${s} t="inlineStr"><is><t xml:space="preserve">${xmlEsc(c.v)}</t></is></c>`;
+  }
+  function feuilleEtatsXml(lignes, largeurs, sansQuadrillage) {
+    return '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
+      + '<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">'
+      + `<sheetViews><sheetView workbookViewId="0"${sansQuadrillage ? ' showGridLines="0"' : ""}/></sheetViews>`
+      + `<cols>${largeurs.map((w, j) => `<col min="${j + 1}" max="${j + 1}" width="${w}" customWidth="1"/>`).join("")}</cols>`
+      + "<sheetData>"
+      + lignes.map((cellules, i) => `<row r="${i + 1}">${(cellules || []).map((c, j) => (c ? celluleXl(colXl(j) + (i + 1), c) : "")).join("")}</row>`).join("")
+      + "</sheetData></worksheet>";
+  }
+  function stylesEtatsXml() {
+    return '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
+      + '<styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">'
+      + '<numFmts count="3"><numFmt numFmtId="164" formatCode="#,##0;(#,##0);&quot;–&quot;"/>'
+      + '<numFmt numFmtId="165" formatCode="#,##0.0;(#,##0.0);&quot;–&quot;"/>'
+      + '<numFmt numFmtId="166" formatCode="0.0%;-0.0%;&quot;–&quot;"/></numFmts>'
+      + '<fonts count="6"><font><sz val="10"/><name val="Calibri"/></font>'
+      + '<font><b/><sz val="10"/><name val="Calibri"/></font>'
+      + '<font><b/><sz val="10"/><color rgb="FFFFFFFF"/><name val="Calibri"/></font>'
+      + '<font><i/><sz val="9"/><color rgb="FF7F7F7F"/><name val="Calibri"/></font>'
+      + '<font><b/><sz val="12"/><name val="Calibri"/></font>'
+      + '<font><sz val="9"/><color rgb="FF8C8C8C"/><name val="Calibri"/></font></fonts>'
+      + '<fills count="4"><fill><patternFill patternType="none"/></fill><fill><patternFill patternType="gray125"/></fill>'
+      + '<fill><patternFill patternType="solid"><fgColor rgb="FF1F2A4D"/><bgColor indexed="64"/></patternFill></fill>'
+      + '<fill><patternFill patternType="solid"><fgColor rgb="FFF1EEF8"/><bgColor indexed="64"/></patternFill></fill></fills>'
+      + '<borders count="1"><border><left/><right/><top/><bottom/><diagonal/></border></borders>'
+      + '<cellStyleXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0"/></cellStyleXfs>'
+      + '<cellXfs count="14">'
+      + '<xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0"/>'
+      + '<xf numFmtId="0" fontId="4" fillId="0" borderId="0" xfId="0" applyFont="1"/>'
+      + '<xf numFmtId="0" fontId="3" fillId="0" borderId="0" xfId="0" applyFont="1"/>'
+      + '<xf numFmtId="0" fontId="2" fillId="2" borderId="0" xfId="0" applyFont="1" applyFill="1"/>'
+      + '<xf numFmtId="0" fontId="5" fillId="0" borderId="0" xfId="0" applyFont="1"/>'
+      + '<xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0"/>'
+      + '<xf numFmtId="164" fontId="0" fillId="0" borderId="0" xfId="0" applyNumberFormat="1"/>'
+      + '<xf numFmtId="165" fontId="0" fillId="0" borderId="0" xfId="0" applyNumberFormat="1"/>'
+      + '<xf numFmtId="166" fontId="3" fillId="0" borderId="0" xfId="0" applyNumberFormat="1" applyFont="1"/>'
+      + '<xf numFmtId="0" fontId="1" fillId="3" borderId="0" xfId="0" applyFont="1" applyFill="1"/>'
+      + '<xf numFmtId="164" fontId="1" fillId="3" borderId="0" xfId="0" applyNumberFormat="1" applyFont="1" applyFill="1"/>'
+      + '<xf numFmtId="165" fontId="1" fillId="3" borderId="0" xfId="0" applyNumberFormat="1" applyFont="1" applyFill="1"/>'
+      + '<xf numFmtId="0" fontId="3" fillId="0" borderId="0" xfId="0" applyFont="1"/>'
+      + '<xf numFmtId="49" fontId="0" fillId="0" borderId="0" xfId="0" applyNumberFormat="1"/>'
+      + '</cellXfs><cellStyles count="1"><cellStyle name="Normal" xfId="0" builtinId="0"/></cellStyles></styleSheet>';
+  }
+  function paquetXlsx(feuilles, actif) {
+    const ns = "http://schemas.openxmlformats.org";
+    const tete = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>';
+    const typeFeuille = "application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml";
+    return new Blob([zipStored([
+      { nom: "[Content_Types].xml", contenu: tete + `<Types xmlns="${ns}/package/2006/content-types">`
+        + '<Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/>'
+        + '<Default Extension="xml" ContentType="application/xml"/>'
+        + '<Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/>'
+        + feuilles.map((_, i) => `<Override PartName="/xl/worksheets/sheet${i + 1}.xml" ContentType="${typeFeuille}"/>`).join("")
+        + '<Override PartName="/xl/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml"/>'
+        + "</Types>" },
+      { nom: "_rels/.rels", contenu: tete + `<Relationships xmlns="${ns}/package/2006/relationships">`
+        + `<Relationship Id="rId1" Type="${ns}/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/>`
+        + "</Relationships>" },
+      { nom: "xl/workbook.xml", contenu: tete
+        + `<workbook xmlns="${ns}/spreadsheetml/2006/main" xmlns:r="${ns}/officeDocument/2006/relationships">`
+        + `<bookViews><workbookView activeTab="${actif || 0}"/></bookViews><sheets>`
+        + feuilles.map((f, i) => `<sheet name="${xmlEsc(f.nom)}" sheetId="${i + 1}" r:id="rId${i + 1}"/>`).join("")
+        + '</sheets><calcPr calcId="191029" fullCalcOnLoad="1"/></workbook>' },
+      { nom: "xl/_rels/workbook.xml.rels", contenu: tete + `<Relationships xmlns="${ns}/package/2006/relationships">`
+        + feuilles.map((_, i) => `<Relationship Id="rId${i + 1}" Type="${ns}/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet${i + 1}.xml"/>`).join("")
+        + `<Relationship Id="rId${feuilles.length + 1}" Type="${ns}/officeDocument/2006/relationships/styles" Target="styles.xml"/>`
+        + "</Relationships>" },
+      { nom: "xl/styles.xml", contenu: stylesEtatsXml() },
+    ].concat(feuilles.map((f, i) => ({ nom: `xl/worksheets/sheet${i + 1}.xml`, contenu: f.xml }))))],
+    { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });
+  }
+
+  function classeurEtatsXlsx(bg) {
+    const n = bg.annees.length;
+    const fy = bg.annees.map((a) => "FY" + String(a).slice(-2));
+    const e = bg.etats;
+    const ST = ST_ETATS;
+
+    // ---- BG COMP : la balance, avec son mapping
+    const comptes = bg.comptes.slice().sort((a, b) => (a.nc < b.nc ? -1 : a.nc > b.nc ? 1 : 0));
+    const bgLignes = [["Mapping", "C1", "C2", "C3", "C4", "NC", "LB"].concat(fy).map((t) => ({ v: t, s: ST.entete }))]
+      .concat(comptes.map((c, i) => {
+        const r = i + 2;
+        return [
+          { v: c.cle ? LIBELLE_LIGNE[c.cle] : "Hors plan" },
+          { f: `LEFT($F${r},1)`, v: c.nc.slice(0, 1) },
+          { f: `LEFT($F${r},2)`, v: c.nc.slice(0, 2) },
+          { f: `LEFT($F${r},3)`, v: c.nc.slice(0, 3) },
+          { f: `LEFT($F${r},4)`, v: c.nc.slice(0, 4) },
+          { v: c.nc, s: ST.texte },
+          { v: c.lb },
+        ].concat(c.valeurs.map((v) => ({ v: v, s: ST.fcfa })));
+      }));
+    const colBg = (t) => colXl(7 + t);
+
+    // ---- Cdr et Bilan : même gabarit — A mapping, B libellé, C… exercices, TCAM
+    const colAn = (t) => colXl(2 + t);
+    const colTcam = colXl(2 + n + 1);
+    const ecartAns = bg.annees[n - 1] - bg.annees[0];
+    function etat(plan, valeurs, options) {
+      const rang = {};
+      const lignes = [
+        [{ v: options.titre, s: ST.titre }],
+        [{ v: options.note, s: ST.note }],
+        [{ v: "Mapping", s: ST.entete }, { v: options.unite, s: ST.entete }]
+          .concat(fy.map((t) => ({ v: t, s: ST.entete })))
+          .concat(options.tcam && n > 1 ? [null, { v: "TCAM " + fy[0] + "–" + fy[n - 1], s: ST.entete }] : []),
+      ];
+      const tcamCellule = (r, vals) => {
+        if (!options.tcam || n < 2) return [];
+        const ratio = vals[n - 1] / vals[0];
+        const v = Number.isFinite(ratio) ? Math.pow(ratio, 1 / ecartAns) - 1 : NaN;
+        return [null, { f: `IFERROR((${colAn(n - 1)}${r}/${colAn(0)}${r})^(1/${ecartAns})-1,"n.a")`, v: Number.isFinite(v) ? v : "n.a", s: ST.pct }];
+      };
+      for (const l of plan) {
+        const r = lignes.length + 1;
+        rang[l.cle] = r;
+        const v = valeurs[l.cle];
+        const total = Boolean(l.total || l.controle || l.lien);
+        const sNombre = total ? options.sTotal : options.sNombre;
+        let cellules;
+        if (l.prefixes) {
+          const signe = options.echelle === 1 ? "-" : l.signe === -1 ? "-" : "";
+          const div = options.echelle === 1 ? "" : "/1000000";
+          cellules = v.map((x, t) => ({ f: `${signe}SUMIF('BG COMP'!$A:$A,$A${r},'BG COMP'!${colBg(t)}:${colBg(t)})${div}`, v: x, s: sNombre }));
+        } else if (l.total) {
+          cellules = v.map((x, t) => ({ f: l.total.map((k) => colAn(t) + rang[k]).join("+"), v: x, s: sNombre }));
+        } else if (l.ratio) {
+          cellules = v.map((x, t) => ({ f: `IFERROR(${colAn(t)}${rang[l.ratio]}/${colAn(t)}${rang.ca},"n.a")`, v: x == null ? "n.a" : x, s: ST.pct }));
+        } else if (l.lien) {
+          cellules = v.map((x, t) => ({ f: `Cdr!${colAn(t)}${options.rangCdr[l.lien]}/1000000`, v: x, s: sNombre }));
+        } else if (l.controle) {
+          cellules = v.map((x, t) => ({ f: `${colAn(t)}${rang.actif_net}-${colAn(t)}${rang.cp}`, v: x, s: sNombre }));
+        }
+        const libelle = { v: l.libelle, s: l.ratio ? ST.pctLib : total ? ST.totalLib : ST.libelle };
+        lignes.push([{ v: l.prefixes ? l.libelle : "", s: ST.cle }, libelle].concat(cellules)
+          .concat(l.ratio || l.controle ? [] : tcamCellule(r, v)));
+      }
+      lignes.push([]);
+      lignes.push([{ v: "Source : balance générale comparée, classée selon le plan SYSCOHADA (feuille Plan SYSCOHADA).", s: ST.note }]);
+      return { lignes: lignes, rang: rang };
+    }
+    const cdr = etat(PLAN_CDR, e.cdr, {
+      titre: "Compte de résultat — SYSCOHADA", note: "Montants en FCFA, construits depuis la feuille BG COMP (SUMIF sur la colonne Mapping).",
+      unite: "En FCFA", echelle: 1, sNombre: ST.fcfa, sTotal: ST.totalFcfa, tcam: true,
+    });
+    const bilan = etat(PLAN_BILAN, e.bilan, {
+      titre: "Actif net — SYSCOHADA", note: "Montants en M FCFA. Actif net et capitaux propres doivent se rejoindre : la dernière ligne contrôle l'équilibre.",
+      unite: "En M FCFA", echelle: 1e-6, sNombre: ST.m, sTotal: ST.totalM, rangCdr: cdr.rang,
+    });
+
+    // ---- Plan SYSCOHADA appliqué
+    const plan = [[{ v: "Préfixe", s: ST.entete }, { v: "Ligne (Mapping)", s: ST.entete }, { v: "État", s: ST.entete }]]
+      .concat(Object.keys(PREFIXES_SYSCOHADA).sort().map((p) => [
+        { v: p, s: ST.texte }, { v: LIBELLE_LIGNE[PREFIXES_SYSCOHADA[p]] },
+        { v: PLAN_CDR.some((l) => l.cle === PREFIXES_SYSCOHADA[p]) ? "Compte de résultat" : "Actif net" },
+      ]))
+      .concat([[], [{ v: "Un compte rejoint la ligne de son préfixe le plus long ; sans préfixe connu, celle de sa classe (2 : immobilisations corporelles, 3 : stocks, 4 : débiteurs et créditeurs divers, 5 : disponibilités, 6 : autres charges, 7 : autres produits, 8 : résultat HAO).", s: ST.note }]]);
+
+    const largeursEtat = [30, 44].concat(fy.map(() => 14)).concat([3, 16]);
+    return paquetXlsx([
+      { nom: "BG COMP", xml: feuilleEtatsXml(bgLignes, [34, 5, 5, 6, 6, 10, 46].concat(fy.map(() => 15))) },
+      { nom: "Cdr", xml: feuilleEtatsXml(cdr.lignes, largeursEtat, true) },
+      { nom: "Bilan", xml: feuilleEtatsXml(bilan.lignes, largeursEtat, true) },
+      { nom: "Plan SYSCOHADA", xml: feuilleEtatsXml(plan, [10, 50, 20]) },
+    ], 1);
+  }
+
+  function modeleBalanceXlsx() {
+    const an0 = Number(DATA.defaults.year) || new Date().getFullYear();
+    const fy = [-3, -2, -1].map((k) => "FY" + String(an0 + k).slice(-2));
+    const ST = ST_ETATS;
+    const balance = [[{ v: "N° compte", s: ST.entete }, { v: "Intitulé", s: ST.entete }].concat(fy.map((t) => ({ v: t, s: ST.entete })))];
+    const consignes = [
+      "Une ligne par compte de la balance générale : numéro, intitulé, puis le solde de chaque exercice.",
+      "Soldes signés, en FCFA : débit positif, crédit négatif. Une balance équilibrée totalise zéro chaque année.",
+      "Pas de lignes de sous-total : un numéro qui en préfixe un autre est écarté pour ne pas compter deux fois.",
+      "Les exercices se suivent en colonnes (FY23, FY24… ou 2023, 2024…) ; ajoutez-en autant que nécessaire.",
+      "Chaque compte est classé selon son préfixe SYSCOHADA : le compte de résultat et l'actif net en sont tirés.",
+    ];
+    return paquetXlsx([
+      { nom: "Balance", xml: feuilleEtatsXml(balance, [14, 50].concat(fy.map(() => 16))) },
+      { nom: "Mode d'emploi", xml: feuilleEtatsXml(consignes.map((t) => [{ v: t }]), [110]) },
+    ], 0);
+  }
+
   /* ---- Comparables et synthèse ----
      Valorisation par les comparables : EBITDA de la dernière année historique
      du classeur × médiane VE / EBITDA de l'échantillon qui alimente déjà le
@@ -4832,9 +5703,14 @@
     return med == null ? null : { med: med, an: an, n: obs.length };
   }
 
-  // EBITDA de la dernière année historique : la ligne EBITDA si elle est
-  // renseignée, EBIT + D&A sinon.
+  // EBITDA de la dernière année historique : celui de la balance générale si
+  // elle est importée — c'est la source comptable ; sinon, la partie
+  // historique du classeur, sa ligne EBITDA ou à défaut EBIT + D&A.
   function ebitdaHistorique(f) {
+    if (VALO.bg) {
+      const k = VALO.bg.annees.length - 1;
+      return { an: VALO.bg.annees[k], valeur: VALO.bg.etats.cdr.ebitda[k] / 1e6, source: "balance générale SYSCOHADA" };
+    }
     const h = f && f.historique;
     if (!h || !h.annees.length) return null;
     const k = h.annees.length - 1;
@@ -4861,11 +5737,11 @@
 
   function methodeComparables(f) {
     const mc = multipleComparables();
-    const eb = f ? ebitdaHistorique(f) : null;
+    const eb = ebitdaHistorique(f);   // la balance suffit, même sans classeur
     let indispo = null;
     if (!estComparables()) indispo = "Référentiel Comparables requis, dans l'onglet Paramètres.";
     else if (!mc) indispo = "Aucun multiple VE / EBITDA dans l'échantillon.";
-    else if (!f) indispo = "Aucun classeur importé.";
+    else if (!f && !VALO.bg) indispo = "Aucun classeur ni balance importés.";
     else if (!eb) indispo = "Pas de partie historique dans le classeur.";
     else if (eb.valeur == null) indispo = "EBITDA " + frFy(eb.an) + " absent du classeur.";
     else if (eb.valeur <= 0) indispo = "EBITDA " + frFy(eb.an) + " négatif : le multiple ne s'applique pas.";
@@ -5105,6 +5981,7 @@
     renderDcf();
     renderComparablesVe();
     renderSynthese();
+    renderEtats();
     VALO.animer = false;
   }
 
@@ -5117,7 +5994,7 @@
     curseur.style.width = actif.offsetWidth + "px";
   }
 
-  const VUES_VALO = { dcf: "valoDcf", comparables: "valoComparables", synthese: "valoSynthese" };
+  const VUES_VALO = { dcf: "valoDcf", comparables: "valoComparables", synthese: "valoSynthese", etats: "valoEtats" };
 
   function chargerValorisation(anime) {
     document.querySelectorAll(".valo-vues button").forEach((b) => {
@@ -5130,6 +6007,7 @@
     $("comparablesMain").hidden = !estComparables();
     renderValo();
     placerCurseurVues();
+    if (VALO.vue === "etats") dessinerTrajectoire(Boolean(anime));
     if (anime) {
       const el = $(VUES_VALO[VALO.vue]);
       el.classList.remove("valo-anime");
@@ -5146,7 +6024,13 @@
       ajusterCadreMultiples();
     });
   });
-  window.addEventListener("resize", placerCurseurVues);
+  // Le graphique se dessine à la largeur de son cadre : il suit la fenêtre.
+  let redessin = 0;
+  window.addEventListener("resize", () => {
+    placerCurseurVues();
+    cancelAnimationFrame(redessin);
+    redessin = requestAnimationFrame(() => dessinerTrajectoire(false));
+  });
 
   const mouvementReduit = () => window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
@@ -5189,7 +6073,11 @@
       const a = action.dataset.action;
       if (a === "importer") $("valoFichier").click();
       else if (a === "modele") telechargerBlob(modeleDcfXlsx(), "modele_dcf.xlsx");
-      else if (a === "test") {
+      else if (a === "importer-bg") $("valoBgFichier").click();
+      else if (a === "modele-bg") telechargerBlob(modeleBalanceXlsx(), "modele_balance.xlsx");
+      else if (a === "exporter-etats" && VALO.bg) {
+        telechargerBlob(classeurEtatsXlsx(VALO.bg), "etats_financiers_syscohada.xlsx");
+      } else if (a === "test") {
         VALO.test = !VALO.test;
         VALO.erreurs = [];
         VALO.animer = true;
@@ -5207,9 +6095,36 @@
       }
       return;
     }
+    // Une série du graphique s'affiche ou se masque ; la dernière reste.
+    const serie = e.target.closest("[data-serie]");
+    if (serie) {
+      const cle = serie.dataset.serie;
+      const actives = Object.keys(VALO.seriesEtats).filter((k) => VALO.seriesEtats[k]);
+      if (VALO.seriesEtats[cle] && actives.length === 1) return;
+      VALO.seriesEtats[cle] = !VALO.seriesEtats[cle];
+      dessinerTrajectoire(true);
+      return;
+    }
     // Comme dans l'onglet Comparables : tout le bloc bascule, du graphique
     // au détail du calcul et retour.
     if (e.target.closest("#dcfVue")) basculerCalculDcf();
+  });
+
+  // Survol du graphique : l'exercice sous le pointeur devient l'exercice lu.
+  // Seule la couche du dessus est redessinée, les barres restent en place.
+  $("panel-valorisation").addEventListener("mousemove", (e) => {
+    const cadre = e.target.closest && e.target.closest(".traj-cadre");
+    const g = TRAJ.geo;
+    if (!cadre || !g) return;
+    const x = e.clientX - cadre.getBoundingClientRect().left;
+    const i = Math.max(0, Math.min(g.n - 1, Math.floor((x - g.mG) / g.slot)));
+    if (i !== VALO.trajActif) { VALO.trajActif = i; majTrajectoireActif(); }
+  });
+  $("panel-valorisation").addEventListener("mouseout", (e) => {
+    const cadre = e.target.closest && e.target.closest(".traj-cadre");
+    if (!cadre || cadre.contains(e.relatedTarget) || VALO.trajActif == null) return;
+    VALO.trajActif = null;
+    majTrajectoireActif();
   });
 
   $("panel-valorisation").addEventListener("input", (e) => {
@@ -5221,6 +6136,15 @@
   });
 
   $("panel-valorisation").addEventListener("keydown", (e) => {
+    if (e.target.classList && e.target.classList.contains("traj-cadre") && TRAJ.geo
+        && (e.key === "ArrowLeft" || e.key === "ArrowRight")) {
+      e.preventDefault();
+      const n = TRAJ.geo.n;
+      const courant = VALO.trajActif == null ? n - 1 : VALO.trajActif;
+      VALO.trajActif = Math.max(0, Math.min(n - 1, courant + (e.key === "ArrowLeft" ? -1 : 1)));
+      majTrajectoireActif();
+      return;
+    }
     if (e.target.id !== "dcfVue" || (e.key !== "Enter" && e.key !== " ")) return;
     e.preventDefault();
     basculerCalculDcf();
@@ -5230,6 +6154,11 @@
     const fichier = e.target.files && e.target.files[0];
     e.target.value = "";   // réimporter le même fichier après l'avoir corrigé
     importerClasseur(fichier);
+  });
+  $("valoBgFichier").addEventListener("change", (e) => {
+    const fichier = e.target.files && e.target.files[0];
+    e.target.value = "";
+    importerBalance(fichier);
   });
 
   // Glisser-déposer, sur la zone d'accueil comme sur le DCF déjà affiché.
@@ -5248,7 +6177,9 @@
     if (!zone) return;
     e.preventDefault();
     zone.classList.remove("is-survol");
-    importerClasseur(e.dataTransfer.files && e.dataTransfer.files[0]);
+    const fichier = e.dataTransfer.files && e.dataTransfer.files[0];
+    if (zone.dataset.depot === "bg") importerBalance(fichier);
+    else importerClasseur(fichier);
   });
 
   /* ================= Classeur Excel =================
