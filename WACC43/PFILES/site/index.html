@@ -1952,6 +1952,62 @@
   }
   .export-annuler:hover { color: var(--ink); }
 
+  /* Choix de l'export des États financiers : une case, puis une liste
+     déroulante de méthodes à cocher. */
+  .exp-boite { text-align: left; width: min(460px, 100%); }
+  .exp-boite .export-titre { text-align: center; margin-bottom: 18px; }
+  .exp-choix {
+    position: relative;
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 13px 14px;
+    margin-bottom: 10px;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+  }
+  .exp-choix b { display: block; font: 500 13px/1.3 var(--sans); color: var(--ink); }
+  .exp-choix small { display: block; margin-top: 3px; font: 400 11.5px/1.45 var(--sans); color: var(--muted); }
+  .exp-choix small:empty { display: none; }
+  .exp-choix input[type="checkbox"] { margin: 2px 0 0; width: 15px; height: 15px; accent-color: var(--accent); flex: none; }
+  label.exp-choix { cursor: pointer; }
+  .exp-deroulant { align-items: center; justify-content: space-between; flex-wrap: wrap; }
+  .exp-libelle { flex: 1 1 160px; }
+  .exp-bouton {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    padding: 7px 12px;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: var(--field);
+    font: 400 12.5px/1 var(--sans);
+    color: var(--ink-2);
+    cursor: pointer;
+  }
+  .exp-bouton[aria-expanded="true"] { border-color: var(--accent); }
+  /* Dépliée dans la boîte, sous son bouton : superposée, elle masquait le
+     bouton Exporter. */
+  .exp-liste {
+    flex: 1 1 100%;
+    display: grid;
+    gap: 2px;
+    margin-top: 4px;
+    padding: 6px;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: var(--tile);
+    animation: valo-entree 200ms ease both;
+  }
+  .exp-liste label { display: flex; gap: 10px; padding: 8px 10px; border-radius: 7px; cursor: pointer; }
+  .exp-liste label:hover { background: var(--tile); }
+  .exp-liste input { margin: 2px 0 0; width: 15px; height: 15px; accent-color: var(--accent); flex: none; }
+  .exp-liste input:disabled + span { opacity: .55; }
+  .exp-boite .export-choix { justify-content: center; margin-top: 18px; }
+  .exp-boite .export-annuler { display: block; margin: 0 auto; }
+  #expValider:disabled { opacity: .45; cursor: default; background: var(--ink); border-color: var(--ink); }
+  .etats-barre { display: flex; justify-content: flex-end; }
+
   [hidden] { display: none !important; }
   .is-busy { opacity: .55; transition: opacity 160ms ease; }
   .is-locked { pointer-events: none; }
@@ -2310,6 +2366,31 @@
       <button type="button" class="export-non" id="exportNon">Non</button>
     </div>
     <button type="button" class="export-annuler" id="exportAnnuler">Annuler l'export</button>
+  </div>
+</div>
+
+<!-- L'export des États financiers demande quoi joindre : les états, et les
+     méthodes de valorisation, qui emmènent la feuille Synthèse. -->
+<div class="export-fond" id="exportValoFond" hidden>
+  <div class="export-boite exp-boite" role="dialog" aria-modal="true" aria-labelledby="expTitre">
+    <span class="export-titre" id="expTitre">Que voulez-vous exporter ?</span>
+    <label class="exp-choix">
+      <input type="checkbox" id="expEtats">
+      <span><b>États financiers</b><small id="expEtatsAide"></small></span>
+    </label>
+    <div class="exp-choix exp-deroulant">
+      <span class="exp-libelle"><b>Valorisation</b><small id="expValoNote"></small></span>
+      <button type="button" class="exp-bouton" id="expValoBouton" aria-haspopup="true" aria-expanded="false"
+              aria-controls="expValoListe"><span id="expValoResume"></span><svg width="9" height="6" viewBox="0 0 9 6" fill="none" aria-hidden="true"><path d="M1 1l3.5 3.5L8 1" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+      <div class="exp-liste" id="expValoListe" hidden>
+        <label data-libelle="DCF"><input type="checkbox" data-exp-methode="dcf"><span><b>DCF</b><small></small></span></label>
+        <label data-libelle="Comparables"><input type="checkbox" data-exp-methode="comp"><span><b>Comparables</b><small></small></span></label>
+      </div>
+    </div>
+    <div class="export-choix">
+      <button type="button" class="export-oui" id="expValider">Exporter</button>
+    </div>
+    <button type="button" class="export-annuler" id="expAnnuler">Annuler l'export</button>
   </div>
 </div>
 
@@ -5498,7 +5579,6 @@
         <span class="valo-espace"></span>
         <button type="button" class="valo-bouton" data-action="modele-bg">Modèle de balance</button>
         <button type="button" class="valo-bouton" data-action="importer-bg">Remplacer la balance</button>
-        <button type="button" class="valo-bouton is-plein" data-action="exporter-etats">Exporter le modèle Excel</button>
       </div>` : `
       <div class="valo-depot${points.length ? " is-compact" : ""}" data-depot="bg">
         <h3>Importer la balance générale comparée</h3>
@@ -5520,6 +5600,10 @@
     if (p) sources.push("Prévisionnel : " + (estimation ? "hypothèses" : "fichier importé"));
 
     racine.innerHTML = `
+      ${bg || p ? `
+        <div class="etats-barre">
+          <button type="button" class="valo-bouton is-plein" data-action="exporter-etats">Exporter le modèle Excel</button>
+        </div>` : ""}
       ${bandeau}
       ${bg ? erreursBgHtml() : ""}
       ${remarques.length ? `
@@ -5809,7 +5893,8 @@
     for (let n = j + 1; n > 0; n = Math.floor((n - 1) / 26)) s = String.fromCharCode(65 + ((n - 1) % 26)) + s;
     return s;
   };
-  const ST_ETATS = { titre: 1, note: 2, entete: 3, cle: 4, libelle: 5, fcfa: 6, m: 7, pct: 8, totalLib: 9, totalFcfa: 10, totalM: 11, pctLib: 12, texte: 13 };
+  const ST_ETATS = { titre: 1, note: 2, entete: 3, cle: 4, libelle: 5, fcfa: 6, m: 7, pct: 8, totalLib: 9, totalFcfa: 10, totalM: 11, pctLib: 12, texte: 13,
+                     saisieM: 14, saisiePct: 15, mult: 16, pctN: 17, facteur: 18 };
 
   function celluleXl(ref, c) {
     const s = c.s ? ` s="${c.s}"` : "";
@@ -5833,21 +5918,24 @@
   function stylesEtatsXml() {
     return '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
       + '<styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">'
-      + '<numFmts count="3"><numFmt numFmtId="164" formatCode="#,##0;(#,##0);&quot;–&quot;"/>'
+      + '<numFmts count="5"><numFmt numFmtId="164" formatCode="#,##0;(#,##0);&quot;–&quot;"/>'
       + '<numFmt numFmtId="165" formatCode="#,##0.0;(#,##0.0);&quot;–&quot;"/>'
-      + '<numFmt numFmtId="166" formatCode="0.0%;-0.0%;&quot;–&quot;"/></numFmts>'
-      + '<fonts count="6"><font><sz val="10"/><name val="Calibri"/></font>'
+      + '<numFmt numFmtId="166" formatCode="0.0%;-0.0%;&quot;–&quot;"/>'
+      + '<numFmt numFmtId="167" formatCode="0.0&quot;x&quot;"/>'
+      + '<numFmt numFmtId="168" formatCode="0.0000"/></numFmts>'
+      + '<fonts count="7"><font><sz val="10"/><name val="Calibri"/></font>'
       + '<font><b/><sz val="10"/><name val="Calibri"/></font>'
       + '<font><b/><sz val="10"/><color rgb="FFFFFFFF"/><name val="Calibri"/></font>'
       + '<font><i/><sz val="9"/><color rgb="FF7F7F7F"/><name val="Calibri"/></font>'
       + '<font><b/><sz val="12"/><name val="Calibri"/></font>'
-      + '<font><sz val="9"/><color rgb="FF8C8C8C"/><name val="Calibri"/></font></fonts>'
+      + '<font><sz val="9"/><color rgb="FF8C8C8C"/><name val="Calibri"/></font>'
+      + '<font><sz val="10"/><color rgb="FF1D4ED8"/><name val="Calibri"/></font></fonts>'
       + '<fills count="4"><fill><patternFill patternType="none"/></fill><fill><patternFill patternType="gray125"/></fill>'
       + '<fill><patternFill patternType="solid"><fgColor rgb="FF1F2A4D"/><bgColor indexed="64"/></patternFill></fill>'
       + '<fill><patternFill patternType="solid"><fgColor rgb="FFF1EEF8"/><bgColor indexed="64"/></patternFill></fill></fills>'
       + '<borders count="1"><border><left/><right/><top/><bottom/><diagonal/></border></borders>'
       + '<cellStyleXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0"/></cellStyleXfs>'
-      + '<cellXfs count="14">'
+      + '<cellXfs count="19">'
       + '<xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0"/>'
       + '<xf numFmtId="0" fontId="4" fillId="0" borderId="0" xfId="0" applyFont="1"/>'
       + '<xf numFmtId="0" fontId="3" fillId="0" borderId="0" xfId="0" applyFont="1"/>'
@@ -5862,6 +5950,11 @@
       + '<xf numFmtId="165" fontId="1" fillId="3" borderId="0" xfId="0" applyNumberFormat="1" applyFont="1" applyFill="1"/>'
       + '<xf numFmtId="0" fontId="3" fillId="0" borderId="0" xfId="0" applyFont="1"/>'
       + '<xf numFmtId="49" fontId="0" fillId="0" borderId="0" xfId="0" applyNumberFormat="1"/>'
+      + '<xf numFmtId="165" fontId="6" fillId="0" borderId="0" xfId="0" applyNumberFormat="1" applyFont="1"/>'
+      + '<xf numFmtId="166" fontId="6" fillId="0" borderId="0" xfId="0" applyNumberFormat="1" applyFont="1"/>'
+      + '<xf numFmtId="167" fontId="0" fillId="0" borderId="0" xfId="0" applyNumberFormat="1"/>'
+      + '<xf numFmtId="166" fontId="0" fillId="0" borderId="0" xfId="0" applyNumberFormat="1"/>'
+      + '<xf numFmtId="168" fontId="0" fillId="0" borderId="0" xfId="0" applyNumberFormat="1"/>'
       + '</cellXfs><cellStyles count="1"><cellStyle name="Normal" xfId="0" builtinId="0"/></cellStyles></styleSheet>';
   }
   function paquetXlsx(feuilles, actif) {
@@ -5893,7 +5986,7 @@
     { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });
   }
 
-  function classeurEtatsXlsx(bg) {
+  function feuillesEtats(bg) {
     const n = bg.annees.length;
     const fy = bg.annees.map((a) => "FY" + String(a).slice(-2));
     const e = bg.etats;
@@ -5981,13 +6074,282 @@
       .concat([[], [{ v: "Un compte rejoint la ligne de son préfixe le plus long ; sans préfixe connu, celle de sa classe (2 : immobilisations corporelles, 3 : stocks, 4 : débiteurs et créditeurs divers, 5 : disponibilités, 6 : autres charges, 7 : autres produits, 8 : résultat HAO).", s: ST.note }]]);
 
     const largeursEtat = [30, 44].concat(fy.map(() => 14)).concat([3, 16]);
-    return paquetXlsx([
+    return [
       { nom: "BG COMP", xml: feuilleEtatsXml(bgLignes, [34, 5, 5, 6, 6, 10, 46].concat(fy.map(() => 15))) },
       { nom: "Cdr", xml: feuilleEtatsXml(cdr.lignes, largeursEtat, true) },
       { nom: "Bilan", xml: feuilleEtatsXml(bilan.lignes, largeursEtat, true) },
       { nom: "Plan SYSCOHADA", xml: feuilleEtatsXml(plan, [10, 50, 20]) },
-    ], 1);
+    ];
   }
+  /* ---- Export de la valorisation : DCF, Comparables, Synthèse ----
+     Mêmes principes que les états financiers : les saisies en bleu, tout le
+     reste en formules, et les valeurs de l'écran en cache. Changer le CMPC ou
+     g dans la feuille DCF recalcule la VE, que la Synthèse reprend. */
+
+  // Ajoute une ligne et rend son numéro ; `cle` la retrouve pour les formules.
+  function redacteur() {
+    const lignes = [], rang = {};
+    return {
+      lignes: lignes, rang: rang,
+      suivante: () => lignes.length + 1,
+      ajoute(cle, cellules) { lignes.push(cellules); if (cle) rang[cle] = lignes.length; return lignes.length; },
+    };
+  }
+
+  function feuilleDcf(f) {
+    const ST = ST_ETATS;
+    const n = f.annees.length;
+    const wacc = cmpcAuto(), impot = impotRetenu(f);
+    const r = calculDcf(f, wacc, f.g, impot);
+    const estime = Boolean(f.estime && VALO.hyp && VALO.bg);
+    const col = (t) => colXl(2 + t);
+    const fixe = (cle) => "$C$" + w.rang[cle];
+    const w = redacteur();
+
+    w.ajoute(null, [null, { v: "DCF — flux de trésorerie disponibles", s: ST.titre }]);
+    w.ajoute(null, [null, { v: "M FCFA · actualisation en fin d'année · valeur terminale de Gordon-Shapiro"
+      + (estime ? " · prévisionnel estimé à partir d'hypothèses" : " · prévisionnel importé"), s: ST.note }]);
+    w.ajoute(null, []);
+    w.ajoute(null, [null, { v: "Hypothèses", s: ST.entete }, { v: "", s: ST.entete }]);
+    w.ajoute("cmpc", [null, { v: "CMPC, monnaie locale" }, { v: wacc, s: ST.saisiePct }]);
+    w.ajoute("g", [null, { v: "Croissance à l'infini (g)" }, { v: f.g, s: ST.saisiePct }]);
+    w.ajoute("is", [null, { v: "Taux d'IS normatif" }, { v: impot, s: ST.saisiePct }]);
+    w.ajoute("dette", [null, { v: "Dette nette (négative : trésorerie nette)" }, { v: f.detteNette, s: ST.saisieM }]);
+    if (estime) {
+      const b = baseEstimation(VALO.bg);
+      w.ajoute("base", [null, { v: "Chiffre d'affaires de base, " + frFy(b.an) }, { v: b.ca, s: ST.saisieM }]);
+      w.ajoute("marge", [null, { v: "Marge d'EBITDA" }, { v: VALO.hyp.marge, s: ST.saisiePct }]);
+      w.ajoute("tda", [null, { v: "D&A, en % du CA" }, { v: VALO.hyp.da, s: ST.saisiePct }]);
+      w.ajoute("tbfr", [null, { v: "Variation du BFR, en % de la variation du CA" }, { v: VALO.hyp.bfr, s: ST.saisiePct }]);
+    }
+    w.ajoute(null, []);
+    w.ajoute(null, [null, { v: "M FCFA", s: ST.entete }].concat(f.annees.map((a) => ({ v: frFy(a), s: ST.entete }))));
+
+    // Une ligne par exercice : saisie (valeurs) ou calcul (formule par colonne).
+    const ligne = (cle, libelle, valeurs, formule, style, styleLib) => {
+      const rr = w.suivante();
+      return w.ajoute(cle, [null, { v: libelle, s: styleLib || ST.libelle }].concat(valeurs.map((v, t) =>
+        formule ? { f: formule(t, rr), v: v, s: style } : { v: v, s: style })));
+    };
+    const c = (cle, t) => col(t) + w.rang[cle];
+    if (estime) {
+      ligne("croissance", "Croissance du CA", VALO.hyp.croissance, null, ST.saisiePct);
+      ligne("ca", "Chiffre d'affaires", f.ca,
+        (t, rr) => (t ? col(t - 1) + rr : fixe("base")) + "*(1+" + c("croissance", t) + ")", ST.m);
+      ligne("ebitda", "EBITDA", f.ebitda, (t) => c("ca", t) + "*" + fixe("marge"), ST.m);
+      ligne("da", "D&A", f.da, (t) => c("ca", t) + "*" + fixe("tda"), ST.m);
+      ligne("ebit", "EBIT", f.ebit, (t) => c("ebitda", t) + "-" + c("da", t), ST.totalM, ST.totalLib);
+      ligne("capex", "CapEx", f.capex, null, ST.saisieM);
+      ligne("bfr", "Variation du BFR (signée comme un flux)", f.bfr,
+        (t) => "-" + fixe("tbfr") + "*(" + c("ca", t) + "-" + (t ? c("ca", t - 1) : fixe("base")) + ")", ST.m);
+    } else {
+      ligne("ebit", "EBIT", f.ebit, null, ST.saisieM);
+      ligne("da", "D&A", f.da, null, ST.saisieM);
+      ligne("capex", "CapEx", f.capex, null, ST.saisieM);
+      ligne("bfr", "Variation du BFR (signée comme un flux)", f.bfr, null, ST.saisieM);
+    }
+    w.ajoute(null, []);
+    ligne("impot", "(−) Impôt normatif sur l'EBIT", r.impot, (t) => "-MAX(0," + c("ebit", t) + ")*" + fixe("is"), ST.m);
+    ligne("nopat", "NOPAT", r.nopat, (t) => c("ebit", t) + "+" + c("impot", t), ST.totalM, ST.totalLib);
+    ligne("fcff", "FCFF = NOPAT + D&A − CapEx + variation du BFR", r.fcff,
+      (t) => c("nopat", t) + "+" + c("da", t) + "-" + c("capex", t) + "+" + c("bfr", t), ST.totalM, ST.totalLib);
+    ligne("periode", "Période d'actualisation (années)", f.annees.map((_, t) => t + 1), null, ST.fcfa);
+    ligne("facteur", "Facteur d'actualisation", r.facteur, (t) => "1/(1+" + fixe("cmpc") + ")^" + c("periode", t), ST.facteur);
+    ligne("actualise", "FCFF actualisé", r.actualise, (t) => c("fcff", t) + "*" + c("facteur", t), ST.totalM, ST.totalLib);
+    w.ajoute(null, []);
+
+    const total = (cle, libelle, formule, v, style, styleLib) =>
+      w.ajoute(cle, [null, { v: libelle, s: styleLib || ST.libelle }, { f: formule(), v: v, s: style }]);
+    total("somme", "Somme des FCFF actualisés", () => `SUM(${c("actualise", 0)}:${c("actualise", n - 1)})`, r.somme, ST.m);
+    total("vt", "Valeur terminale à fin " + frFy(f.annees[n - 1]),
+      () => `${c("fcff", n - 1)}*(1+${fixe("g")})/(${fixe("cmpc")}-${fixe("g")})`, r.vt, ST.m);
+    total("vtact", "Valeur terminale actualisée", () => `C${w.rang.vt}*${c("facteur", n - 1)}`, r.vtAct, ST.m);
+    total("ve", "Valeur d'entreprise", () => `C${w.rang.somme}+C${w.rang.vtact}`, r.ve, ST.totalM, ST.totalLib);
+    total("poidsvt", "Poids de la valeur terminale", () => `IFERROR(C${w.rang.vtact}/C${w.rang.ve},"n.a")`,
+      r.poidsVt == null ? "n.a" : r.poidsVt, ST.pctN);
+    total("dette_nette", "(−) Dette nette", () => fixe("dette"), f.detteNette, ST.m);
+    total("vfp", "Valeur des fonds propres", () => `C${w.rang.ve}-C${w.rang.dette_nette}`,
+      r.ve == null ? null : r.ve - f.detteNette, ST.totalM, ST.totalLib);
+
+    return {
+      nom: "DCF", ve: r.ve, dette: f.detteNette,
+      refVe: "DCF!$C$" + w.rang.ve, refDette: "DCF!$C$" + w.rang.dette,
+      xml: feuilleEtatsXml(w.lignes, [3, 46].concat(f.annees.map(() => 13)), true),
+    };
+  }
+
+  function feuilleComparables(m) {
+    const ST = ST_ETATS;
+    const w = redacteur();
+    const societes = m.mc.societes;
+    w.ajoute(null, [null, { v: "Comparables — VE / EBITDA", s: ST.titre }]);
+    w.ajoute(null, [null, { v: "Secteur " + (params.secteur || "") + " · médiane de " + societes.length + " sociétés à EBITDA positif, exercice "
+      + m.mc.an + " · VE = capitalisation + dette", s: ST.note }]);
+    w.ajoute(null, []);
+    w.ajoute(null, [null].concat(["Société", "Capitalisation (M FCFA)", "Dette (M FCFA)", "VE (M FCFA)", "EBITDA " + m.mc.an + " (M FCFA)", "VE / EBITDA"]
+      .map((t) => ({ v: t, s: ST.entete }))));
+    const r0 = w.suivante();
+    for (const o of societes) {
+      const rr = w.suivante();
+      w.ajoute(null, [null, { v: o.nom }, { v: o.cap, s: ST.saisieM }, { v: o.dette, s: ST.saisieM },
+        { f: `C${rr}+D${rr}`, v: o.cap + o.dette, s: ST.m }, { v: o.eb, s: ST.saisieM },
+        { f: `E${rr}/F${rr}`, v: o.v, s: ST.mult }]);
+    }
+    const r1 = w.suivante() - 1;
+    w.ajoute(null, []);
+    w.ajoute("med", [null, { v: "VE / EBITDA médian", s: ST.totalLib }, { f: `MEDIAN(G${r0}:G${r1})`, v: m.mc.med, s: ST.mult }]);
+    w.ajoute("ebitda", [null, { v: "EBITDA de référence, " + frFy(m.eb.an) + " (M FCFA) — " + m.eb.source },
+      { v: m.eb.valeur, s: ST.saisieM }]);
+    w.ajoute("ve", [null, { v: "Valeur d'entreprise par les comparables (M FCFA)", s: ST.totalLib },
+      { f: `C${w.rang.ebitda}*C${w.rang.med}`, v: m.ve, s: ST.totalM }]);
+    return {
+      nom: "Comparables", ve: m.ve, refVe: "Comparables!$C$" + w.rang.ve,
+      xml: feuilleEtatsXml(w.lignes, [3, 40, 18, 14, 14, 16, 13]),
+    };
+  }
+
+  // Poids des méthodes exportées : ceux de l'écran, renormalisés sur les
+  // seules méthodes retenues ; à parts égales si rien ne reste.
+  function poidsExport(cles) {
+    const brut = VALO.poidsVerrou ? { dcf: 1, comp: 1 } : { dcf: VALO.poidsDcf, comp: 1 - VALO.poidsDcf };
+    let total = cles.reduce((t, k) => t + brut[k], 0);
+    const base = total > 0 ? brut : { dcf: 1, comp: 1 };
+    if (!(total > 0)) total = cles.length;
+    const poids = {};
+    for (const k of cles) poids[k] = base[k] / total;
+    return poids;
+  }
+
+  function feuilleSynthese(refs, dette) {
+    const ST = ST_ETATS;
+    const w = redacteur();
+    const methodes = [["dcf", "DCF"], ["comp", "Comparables"]].filter(([k]) => refs[k]);
+    const poids = poidsExport(methodes.map(([k]) => k));
+    const pondere = !VALO.poidsVerrou && methodes.length > 1;
+    w.ajoute(null, [null, { v: "Synthèse des valorisations", s: ST.titre }]);
+    w.ajoute(null, [null, { v: "M FCFA · " + (methodes.length === 1 ? "une seule méthode, qui porte tout le poids"
+      : pondere ? "moyenne pondérée des VE" : "moyenne arithmétique des VE") + " · poids modifiables en colonne D", s: ST.note }]);
+    w.ajoute(null, []);
+    w.ajoute(null, [null].concat(["Méthode", "VE", "Poids", "VE pondérée"].map((t) => ({ v: t, s: ST.entete }))));
+    const r0 = w.suivante();
+    let ve = 0;
+    for (const [k, libelle] of methodes) {
+      const rr = w.suivante();
+      const v = refs[k].ve;
+      ve += v == null ? 0 : v * poids[k];
+      w.ajoute(k, [null, { v: libelle }, { f: refs[k].refVe, v: v, s: ST.m }, { v: poids[k], s: ST.saisiePct },
+        { f: `C${rr}*D${rr}`, v: v == null ? null : v * poids[k], s: ST.m }]);
+    }
+    const r1 = w.suivante() - 1;
+    w.ajoute("somme_poids", [null, { v: "Somme des poids", s: ST.pctLib }, null, { f: `SUM(D${r0}:D${r1})`, v: 1, s: ST.pctN }]);
+    w.ajoute(null, []);
+    w.ajoute("ve", [null, { v: "Valeur d'entreprise retenue", s: ST.totalLib }, { f: `SUM(E${r0}:E${r1})`, v: ve, s: ST.totalM }]);
+    w.ajoute("dette", [null, { v: "(−) Dette nette" },
+      refs.dcf ? { f: refs.dcf.refDette, v: dette, s: ST.m } : { v: dette, s: ST.saisieM }]);
+    w.ajoute("vfp", [null, { v: "Valeur des fonds propres", s: ST.totalLib },
+      { f: `C${w.rang.ve}-C${w.rang.dette}`, v: dette == null ? null : ve - dette, s: ST.totalM }]);
+    return { nom: "Synthèse", xml: feuilleEtatsXml(w.lignes, [3, 32, 16, 12, 16], true) };
+  }
+
+  // Ce que l'export peut joindre, et pourquoi pas le reste.
+  function exportsIndisponibles() {
+    const f = fluxActif();
+    return {
+      etats: VALO.bg ? null : "Importez d'abord la balance générale.",
+      dcf: f ? null : "Pas de prévisionnel : importez-le ou estimez-le.",
+      comp: methodeComparables(f).indispo,
+    };
+  }
+
+  function classeurExport(choix) {
+    const feuilles = [];
+    let actif = 0;
+    if (choix.etats && VALO.bg) { feuilles.push(...feuillesEtats(VALO.bg)); actif = 1; }
+    const f = fluxActif();
+    const refs = {};
+    if (choix.dcf && f) { refs.dcf = feuilleDcf(f); feuilles.push(refs.dcf); }
+    if (choix.comp) {
+      const m = methodeComparables(f);
+      if (!m.indispo) { refs.comp = feuilleComparables(m); feuilles.push(refs.comp); }
+    }
+    if (refs.dcf || refs.comp) {
+      const dette = f ? f.detteNette : VALO.bg ? baseEstimation(VALO.bg).dette : null;
+      feuilles.push(feuilleSynthese(refs, dette));
+      actif = feuilles.length - 1;
+    }
+    return paquetXlsx(feuilles.map((x) => ({ nom: x.nom, xml: x.xml })), actif);
+  }
+
+  /* ---- Boîte « Que voulez-vous exporter ? » ---- */
+  function ouvrirExportValo() {
+    const raisons = exportsIndisponibles();
+    const fond = $("exportValoFond");
+    const etats = $("expEtats");
+    etats.disabled = Boolean(raisons.etats);
+    etats.checked = !raisons.etats;
+    $("expEtatsAide").textContent = raisons.etats || "Balance comparée, compte de résultat, actif net et plan SYSCOHADA, en formules.";
+    fond.querySelectorAll("[data-exp-methode]").forEach((c) => {
+      const raison = raisons[c.dataset.expMethode];
+      c.disabled = Boolean(raison);
+      c.checked = !raison;
+      c.closest("label").querySelector("small").textContent = raison
+        || (c.dataset.expMethode === "dcf" ? "Flux, actualisation et valeur terminale, en formules." : "Échantillon, médiane VE / EBITDA et VE.");
+    });
+    $("expValoListe").hidden = true;
+    $("expValoBouton").setAttribute("aria-expanded", "false");
+    majExportValo();
+    fond.hidden = false;
+    $("expValider").focus();
+  }
+
+  function majExportValo() {
+    const methodes = Array.from($("exportValoFond").querySelectorAll("[data-exp-methode]:checked"))
+      .map((c) => c.closest("label").dataset.libelle);
+    $("expValoResume").textContent = methodes.length ? methodes.join(", ") : "Aucune méthode";
+    $("expValoNote").textContent = methodes.length
+      ? "La feuille Synthèse est jointe : moyenne des VE, dette nette et valeur des fonds propres." : "";
+    $("expValider").disabled = !$("expEtats").checked && !methodes.length;
+  }
+
+  function fermerExportValo() {
+    $("exportValoFond").hidden = true;
+    const bouton = $("valoEtats").querySelector('[data-action="exporter-etats"]');
+    if (bouton) bouton.focus();
+  }
+
+  function exporterSelection() {
+    const coche = (cle) => {
+      const c = $("exportValoFond").querySelector(`[data-exp-methode="${cle}"]`);
+      return c.checked && !c.disabled;
+    };
+    const choix = { etats: $("expEtats").checked && !$("expEtats").disabled, dcf: coche("dcf"), comp: coche("comp") };
+    if (!choix.etats && !choix.dcf && !choix.comp) return;
+    const nom = choix.dcf || choix.comp ? "modele_valorisation.xlsx" : "etats_financiers_syscohada.xlsx";
+    telechargerBlob(classeurExport(choix), nom);
+    fermerExportValo();
+  }
+
+  $("expValoBouton").addEventListener("click", () => {
+    const liste = $("expValoListe");
+    liste.hidden = !liste.hidden;
+    $("expValoBouton").setAttribute("aria-expanded", liste.hidden ? "false" : "true");
+  });
+  $("exportValoFond").addEventListener("change", majExportValo);
+  $("exportValoFond").addEventListener("click", (e) => {
+    // Un clic hors de la liste déroulante la replie ; hors de la boîte, ferme.
+    if (e.target === $("exportValoFond")) { fermerExportValo(); return; }
+    if (!e.target.closest(".exp-deroulant")) {
+      $("expValoListe").hidden = true;
+      $("expValoBouton").setAttribute("aria-expanded", "false");
+    }
+  });
+  $("expValider").addEventListener("click", exporterSelection);
+  $("expAnnuler").addEventListener("click", fermerExportValo);
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape" && !$("exportValoFond").hidden) fermerExportValo();
+  });
+
+
 
   function modeleBalanceXlsx() {
     const an0 = Number(DATA.defaults.year) || new Date().getFullYear();
@@ -6022,12 +6384,13 @@
     if (!sample.length) return null;
     const an = exerciceReference(sample);
     const cle = String(an);
-    const obs = sample.map((s) => {
+    // Les sociétés elles-mêmes, pour que l'export refasse la médiane.
+    const societes = sample.map((s) => {
       const eb = (s.ebitda || {})[cle];
-      return eb > 0 ? (s.capitalisation + s.dette) / eb : null;
-    }).filter((v) => Number.isFinite(v));
-    const med = mediane(obs);
-    return med == null ? null : { med: med, an: an, n: obs.length };
+      return eb > 0 ? { nom: s.nom, cap: s.capitalisation, dette: s.dette, eb: eb, v: (s.capitalisation + s.dette) / eb } : null;
+    }).filter((o) => o && Number.isFinite(o.v));
+    const med = mediane(societes.map((o) => o.v));
+    return med == null ? null : { med: med, an: an, n: societes.length, societes: societes };
   }
 
   // EBITDA de la dernière année historique : celui de la balance générale si
@@ -6399,9 +6762,8 @@
       else if (a === "modele") telechargerBlob(modeleDcfXlsx(), "modele_dcf.xlsx");
       else if (a === "importer-bg") $("valoBgFichier").click();
       else if (a === "modele-bg") telechargerBlob(modeleBalanceXlsx(), "modele_balance.xlsx");
-      else if (a === "exporter-etats" && VALO.bg) {
-        telechargerBlob(classeurEtatsXlsx(VALO.bg), "etats_financiers_syscohada.xlsx");
-      } else if (a === "test") {
+      else if (a === "exporter-etats") ouvrirExportValo();
+      else if (a === "test") {
         VALO.test = !VALO.test;
         VALO.erreurs = [];
         VALO.animer = true;

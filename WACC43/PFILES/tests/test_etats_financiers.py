@@ -163,12 +163,27 @@ def test_graphique_historique_et_previsionnel(page, tmp_path):
     assert page.get_attribute('#valoEtats [data-serie="ca"]', "aria-pressed") == "true"
 
 
+def exporter(page, chemin, *, etats=None, methodes=None):
+    """Ouvre la boîte d'export, règle les choix demandés, télécharge."""
+    page.click('#valoEtats [data-action="exporter-etats"]')
+    page.wait_for_selector("#exportValoFond:not([hidden])")
+    if etats is not None:
+        page.set_checked("#expEtats", etats)
+    if methodes is not None:
+        page.click("#expValoBouton")
+        for cle in ("dcf", "comp"):
+            case = f'[data-exp-methode="{cle}"]'
+            if not page.is_disabled(case):
+                page.set_checked(case, cle in methodes)
+    with page.expect_download() as dl:
+        page.click("#expValider")
+    dl.value.save_as(chemin)
+    return chemin
+
+
 def test_export_au_format_du_modele(page, tmp_path):
     importer_balance(page, balance(tmp_path / "bg.xlsx"))
-    with page.expect_download() as dl:
-        page.click('#valoEtats [data-action="exporter-etats"]')
-    chemin = tmp_path / "etats.xlsx"
-    dl.value.save_as(chemin)
+    chemin = exporter(page, tmp_path / "etats.xlsx")
     wb = openpyxl.load_workbook(chemin)
     assert wb.sheetnames == ["BG COMP", "Cdr", "Bilan", "Plan SYSCOHADA"]
     bg = wb["BG COMP"]
@@ -347,3 +362,78 @@ def test_revenir_a_l_import(page, tmp_path):
     page.click('#valoEtats [data-action="mode-prev"]')
     assert "prev.xlsx" in page.inner_text("#valoEtats .prev-carte .valo-import")
     assert page.query_selector("#valoEtats .hyp-boulon") is None
+
+
+# ------------------------------------------------ export : que voulez-vous exporter ?
+
+def test_la_boite_demande_quoi_exporter(page, tmp_path):
+    importer_balance(page, balance(tmp_path / "bg.xlsx"))
+    page.click('#valoEtats [data-action="exporter-etats"]')
+    assert page.is_visible("#exportValoFond")
+    assert "Que voulez-vous exporter" in page.inner_text("#exportValoFond")
+    assert page.is_checked("#expEtats") and page.is_enabled("#expEtats")
+    # Sans prévisionnel, pas de DCF ; en Damodaran, pas de comparables : grisés, raison dite.
+    page.click("#expValoBouton")
+    assert page.is_disabled('[data-exp-methode="dcf"]')
+    assert page.is_disabled('[data-exp-methode="comp"]')
+    assert "prévisionnel" in page.inner_text('#expValoListe label[data-libelle="DCF"]')
+    assert page.inner_text("#expValoResume") == "Aucune méthode"
+    # Rien de coché : on ne peut pas exporter.
+    page.set_checked("#expEtats", False)
+    assert page.is_disabled("#expValider")
+    page.keyboard.press("Escape")
+    assert page.is_hidden("#exportValoFond")
+
+
+def test_export_avec_le_dcf_joint_la_synthese(page, tmp_path):
+    estimer(page, tmp_path)
+    ve = montant(page.text_content('#valoDcf [data-o="ve"]'))
+    chemin = exporter(page, tmp_path / "valo.xlsx", methodes={"dcf"})
+    wb = openpyxl.load_workbook(chemin)
+    assert wb.sheetnames == ["BG COMP", "Cdr", "Bilan", "Plan SYSCOHADA", "DCF", "Synthèse"]
+    dcf = wb["DCF"]
+    formules = [c.value for row in dcf.iter_rows() for c in row if isinstance(c.value, str) and c.value.startswith("=")]
+    assert any(f.startswith("=1/(1+$C$5)^") for f in formules)            # facteur, fin d'année
+    assert any("*(1+$C$6)/($C$5-$C$6)" in f for f in formules)             # Gordon-Shapiro
+    syn = wb["Synthèse"]
+    assert syn["C5"].value.startswith("=DCF!$C$")
+    wv = openpyxl.load_workbook(chemin, data_only=True)
+    lib = {wv["DCF"].cell(r, 2).value: r for r in range(1, wv["DCF"].max_row + 1)}
+    assert wv["DCF"].cell(lib["Valeur d'entreprise"], 3).value == pytest.approx(ve, abs=1)
+    assert wv["Synthèse"]["D5"].value == 1                                  # seule méthode
+    slib = {wv["Synthèse"].cell(r, 2).value: r for r in range(1, wv["Synthèse"].max_row + 1)}
+    assert wv["Synthèse"].cell(slib["Valeur d'entreprise retenue"], 3).value == pytest.approx(ve, abs=1)
+
+
+def test_la_valorisation_s_exporte_sans_les_etats(page, tmp_path):
+    estimer(page, tmp_path)
+    chemin = exporter(page, tmp_path / "valo.xlsx", etats=False, methodes={"dcf"})
+    assert openpyxl.load_workbook(chemin).sheetnames == ["DCF", "Synthèse"]
+
+
+def test_export_avec_les_comparables(page, tmp_path):
+    mode_comparables(page)
+    med = None
+    for nom in page.evaluate("(DATA.comparables.industries || []).map(i => i.nom)"):
+        page.select_option('#paramsMain select[data-param="secteur"]', nom)
+        if page.evaluate("multipleComparables()"):
+            med = page.evaluate("multipleComparables().med")
+            break
+    if med is None:
+        pytest.skip("aucun secteur avec multiple VE / EBITDA")
+    estimer(page, tmp_path)
+    chemin = exporter(page, tmp_path / "valo.xlsx", methodes={"dcf", "comp"})
+    wb = openpyxl.load_workbook(chemin)
+    assert wb.sheetnames[-3:] == ["DCF", "Comparables", "Synthèse"]
+    comp = wb["Comparables"]
+    formules = [c.value for row in comp.iter_rows() for c in row if isinstance(c.value, str) and c.value.startswith("=MEDIAN(")]
+    assert len(formules) == 1
+    wv = openpyxl.load_workbook(chemin, data_only=True)
+    clib = {wv["Comparables"].cell(r, 2).value: r for r in range(1, wv["Comparables"].max_row + 1)}
+    assert wv["Comparables"].cell(clib["VE / EBITDA médian"], 3).value == pytest.approx(med)
+    ve_comp = EBITDA[2] / 1e6 * med
+    ve_dcf = page.evaluate("methodeDcf(fluxActif()).ve")
+    dette = page.evaluate("fluxActif().detteNette")
+    slib = {wv["Synthèse"].cell(r, 2).value: r for r in range(1, wv["Synthèse"].max_row + 1)}
+    vfp = wv["Synthèse"].cell(slib["Valeur des fonds propres"], 3).value
+    assert vfp == pytest.approx((ve_dcf + ve_comp) / 2 - dette, abs=0.01)
