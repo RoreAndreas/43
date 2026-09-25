@@ -23,14 +23,29 @@ G = 0.02
 DETTE_NETTE = 129455
 
 
-def classeur(chemin, *, annees=ANNEES, sans=(), capex_negatif=False, g=G, impot=0.25, ca=None):
-    """Classeur au format de la note : libellés en A, exercices en en-tête."""
+def classeur(chemin, *, annees=ANNEES, sans=(), capex_negatif=False, g=G, impot=0.25, ca=None,
+             historique=None, marque="bandeau"):
+    """Classeur au format de la note : libellés en A, exercices en en-tête.
+
+    `historique` ajoute des colonnes réalisées avant le prévisionnel, marquées
+    par un bandeau au-dessus de l'en-tête ou par un suffixe (2025A / 2026E)."""
     wb = openpyxl.Workbook()
     ws = wb.active
     ws.title = "DCF"
-    ws.append(["M FCFA"] + [f"FY{str(a)[2:]}" for a in annees])
+    hist = historique or {}
+    h_annees = hist.get("annees", [])
+    vide = [None] * len(h_annees)
+    if h_annees and marque == "bandeau":
+        ws.append([None, "Historique"] + [None] * (len(h_annees) - 1) + ["Prévisionnel"])
+    if marque == "suffixe":
+        entetes = [f"{a}A" for a in h_annees] + [f"{a}E" for a in annees]
+    else:
+        entetes = list(h_annees) + [f"FY{str(a)[2:]}" for a in annees]
+    ws.append(["M FCFA"] + entetes)
     if ca is not None:
-        ws.append(["Chiffre d'affaires"] + ca[: len(annees)])
+        ws.append(["Chiffre d'affaires"] + vide + ca[: len(annees)])
+    if "ebitda" in hist:
+        ws.append(["EBITDA"] + hist["ebitda"] + [None] * len(annees))
     lignes = {
         "EBIT (Résultat d'exploitation)": EBIT,
         "(+) Dotations nettes (D&A)": DA,
@@ -39,9 +54,9 @@ def classeur(chemin, *, annees=ANNEES, sans=(), capex_negatif=False, g=G, impot=
     }
     for libelle, valeurs in lignes.items():
         if not any(m in libelle for m in sans):
-            ws.append([libelle] + valeurs[: len(annees)])
+            ws.append([libelle] + vide + valeurs[: len(annees)])
     # Une ligne de calcul que l'import ne doit pas prendre pour l'EBIT.
-    ws.append(["(−) Impôt normatif sur l'EBIT"] + [-e * 0.25 for e in EBIT[: len(annees)]])
+    ws.append(["(−) Impôt normatif sur l'EBIT"] + vide + [-e * 0.25 for e in EBIT[: len(annees)]])
     ws.append([])
     ws.append(["Croissance à l'infini (g)", g])
     ws.append(["Dette nette", DETTE_NETTE])
@@ -196,18 +211,25 @@ def test_le_modele_se_telecharge_et_se_reimporte(page, tmp_path):
     wb = openpyxl.load_workbook(chemin)
     ws = wb["DCF"]
     assert "Mode d'emploi" in wb.sheetnames
-    annees = [c.value for c in ws[2][1:]]
-    assert len(annees) == 5
-    assert ws["A3"].value.startswith("Chiffre d'affaires")
+    annees = [c.value for c in ws[3][1:]]
+    assert len(annees) == 8
+    # Bandeau en ligne 2, années en ligne 3 : trois d'historique (B à D),
+    # cinq de prévisionnel (E à I).
+    assert ws["B2"].value == "Historique" and ws["E2"].value == "Prévisionnel"
+    assert ws["A4"].value.startswith("Chiffre d'affaires")
+    assert ws["A5"].value.startswith("EBITDA")
+    ws["D5"] = 150000
     for i, valeurs in enumerate([EBIT, DA, CAPEX, BFR]):
         for j, v in enumerate(valeurs + [valeurs[-1]]):
-            ws.cell(row=4 + i, column=2 + j, value=v)
-    ws["B9"] = 0.02
-    ws["B10"] = DETTE_NETTE
+            ws.cell(row=6 + i, column=5 + j, value=v)
+    ws["B11"] = 0.02
+    ws["B12"] = DETTE_NETTE
     wb.save(chemin)
     importer(page, chemin)
     assert page.query_selector('#valoDcf [data-o="ve"]') is not None
-    assert "FY" + str(annees[-1])[2:] in page.inner_text("#valoDcf .valo-import")
+    bandeau = page.inner_text("#valoDcf .valo-import")
+    assert "FY" + str(annees[-1])[2:] in bandeau
+    assert "Historique FY" + str(annees[0])[2:] in bandeau
 
 
 def test_la_vue_comparables_montre_les_multiples(page):
@@ -257,3 +279,111 @@ def test_le_boulon_ne_perd_pas_le_fichier_importe(page, tmp_path):
     page.set_input_files("#valoFichier", str(classeur(tmp_path / "autre.xlsx")))
     page.wait_for_function("document.querySelector('#valoDcf .valo-import').innerText.includes('autre.xlsx')")
     assert page.get_attribute("#valoDcf .valo-boulon", "aria-pressed") == "false"
+
+
+# ------------------------------------------------ historique, comparables, synthèse
+
+HISTORIQUE = {"annees": [2023, 2024, 2025], "ebitda": [98000, 112000, 121500]}
+
+
+def vers_synthese(page):
+    page.click('.valo-vues button[data-vue="synthese"]')
+    page.wait_for_selector("#valoSynthese .syn-graphe, #valoSynthese .valo-depot")
+
+
+def synthese(page, cle):
+    return page.inner_text(f'#valoSynthese [data-o="{cle}"]')
+
+
+def test_l_historique_ne_change_pas_le_dcf(page, tmp_path):
+    """Les colonnes historiques précèdent le prévisionnel : le DCF ne lit que
+    le second, quel que soit le marquage."""
+    for marque in ("bandeau", "suffixe"):
+        importer(page, classeur(tmp_path / f"{marque}.xlsx", historique=HISTORIQUE, marque=marque))
+        assert abs(montant(carte(page, "ve")) - ve_attendue(cmpc(page))) < 1
+        bandeau = page.inner_text("#valoDcf .valo-import")
+        assert "Historique FY23–FY25" in bandeau and "Prévisionnel FY26–FY29" in bandeau
+
+
+def test_historique_apres_previsionnel_refuse(page, tmp_path):
+    chemin = tmp_path / "desordre.xlsx"
+    wb = openpyxl.Workbook()
+    ws = wb.active
+    ws.append(["M FCFA", "2026E", "2027A"])
+    wb.save(chemin)
+    importer(page, chemin)
+    assert "précéder" in page.inner_text("#valoDcf .valo-erreurs")
+
+
+def _comparables_avec_multiple(page):
+    """Référentiel Comparables sur un secteur dont l'échantillon publie un
+    EBITDA : sans multiple, il n'y a rien à appliquer."""
+    mode_comparables(page)
+    secteurs = page.evaluate("(DATA.comparables.industries || []).map(i => i.nom)")
+    for nom in secteurs:
+        page.select_option('#paramsMain select[data-param="secteur"]', nom)
+        if page.evaluate("multipleComparables()"):
+            return page.evaluate("multipleComparables().med")
+    pytest.skip("aucun secteur avec multiple VE / EBITDA")
+
+
+def test_comparables_sur_l_ebitda_de_la_derniere_annee_historique(page, tmp_path):
+    med = _comparables_avec_multiple(page)
+    importer(page, classeur(tmp_path / "hist.xlsx", historique=HISTORIQUE))
+    page.click('.valo-vues button[data-vue="comparables"]')
+    assert page.is_visible("#valoCompVe")
+    ve = montant(page.inner_text('#valoCompVe [data-o="comp-ve"]'))
+    assert abs(ve - HISTORIQUE["ebitda"][-1] * med) < 1
+    assert "EBITDA FY25" in page.inner_text("#valoCompVe")
+
+
+def test_synthese_moyenne_arithmetique_puis_dette_nette(page, tmp_path):
+    med = _comparables_avec_multiple(page)
+    importer(page, classeur(tmp_path / "hist.xlsx", historique=HISTORIQUE))
+    vers_synthese(page)
+    dcf = ve_attendue(cmpc(page))
+    comp = HISTORIQUE["ebitda"][-1] * med
+    ve = montant(synthese(page, "ve"))
+    assert abs(ve - (dcf + comp) / 2) < 1
+    assert "moyenne arithmétique" in synthese(page, "ve-lib")
+    vfp = montant(synthese(page, "vfp"))
+    assert abs(vfp - (ve - DETTE_NETTE)) <= 1
+    # Le tableau de sensibilité est revenu : son centre est la VFP retenue.
+    centre = page.inner_text("#valoSynthese .sens-table td.is-cle")
+    assert montant(centre) == vfp
+    assert len(page.query_selector_all("#valoSynthese .sens-table tbody tr")) == 5
+
+
+def test_cadenas_des_poids(page, tmp_path):
+    med = _comparables_avec_multiple(page)
+    importer(page, classeur(tmp_path / "hist.xlsx", historique=HISTORIQUE))
+    vers_synthese(page)
+    dcf = ve_attendue(cmpc(page))
+    comp = HISTORIQUE["ebitda"][-1] * med
+    assert page.query_selector("#valoSynthese input[data-poids]") is None
+    page.click('#valoSynthese [data-action="poids"]')
+    page.fill("#valoSynthese input[data-poids]", "70")
+    assert abs(montant(synthese(page, "ve")) - (0.7 * dcf + 0.3 * comp)) < 1
+    assert synthese(page, "poids-dcf").startswith("70")
+    assert "moyenne pondérée" in synthese(page, "ve-lib")
+    # Refermer le cadenas revient à parts égales.
+    page.click('#valoSynthese [data-action="poids"]')
+    assert abs(montant(synthese(page, "ve")) - (dcf + comp) / 2) < 1
+
+
+def test_synthese_sans_comparables_prend_le_dcf(page, tmp_path):
+    """En référentiel Damodaran, pas de multiple : la synthèse est le DCF seul,
+    et elle le dit."""
+    importer(page, classeur(tmp_path / "hist.xlsx", historique=HISTORIQUE))
+    vers_synthese(page)
+    assert montant(synthese(page, "ve")) == montant(carte(page, "ve"))
+    assert "Comparables écartés" in synthese(page, "note")
+    assert page.query_selector('#valoSynthese [data-methode="comp"].is-indispo') is not None
+
+
+def test_le_boulon_alimente_aussi_la_synthese(page):
+    page.click(ONGLET)
+    vers_synthese(page)
+    page.click("#valoSynthese .valo-boulon")
+    page.wait_for_selector("#valoSynthese .syn-graphe")
+    assert abs(montant(synthese(page, "ve")) - ve_attendue(cmpc(page))) < 1

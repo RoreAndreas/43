@@ -1087,6 +1087,7 @@
   }
   .valo-corps { display: grid; gap: 20px; }
   .valo-vues {
+    position: relative;
     justify-self: start;
     display: inline-flex;
     gap: 2px;
@@ -1096,6 +1097,8 @@
     background: var(--surface);
   }
   .valo-vues button {
+    position: relative;
+    z-index: 1;
     padding: 7px 16px;
     border: 0;
     border-radius: 999px;
@@ -1105,7 +1108,17 @@
     cursor: pointer;
     transition: color 160ms ease, background-color 160ms ease;
   }
-  .valo-vues button.is-active { background: var(--ink); color: #fff; font-weight: 500; }
+  .valo-vues button.is-active { color: #fff; font-weight: 500; }
+  .valo-vues-curseur {
+    position: absolute;
+    top: 3px;
+    bottom: 3px;
+    left: 3px;
+    width: 0;
+    border-radius: 999px;
+    background: var(--ink);
+    transition: left 320ms cubic-bezier(.4, 0, .2, 1), width 320ms cubic-bezier(.4, 0, .2, 1);
+  }
 
   /* Import du classeur : zone d'accueil tant qu'aucun fichier n'est lu, puis
      simple bandeau qui rappelle d'où viennent les chiffres. */
@@ -1414,6 +1427,158 @@
   .dcf-calc { width: 100%; }
   .dcf-calc tr.is-fort td { color: #fff; font-weight: 600; }
 
+  /* ---------- Synthèse ---------- */
+  .syn-rubrique { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+  .syn-methodes { display: grid; gap: 10px; }
+  .syn-methode {
+    display: grid;
+    gap: 6px;
+    padding: 14px 16px;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    background: var(--surface);
+    transition: opacity 240ms ease, border-color 240ms ease;
+  }
+  .syn-methode-tete { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+  .syn-methode-nom { font: 500 13px/1.3 var(--sans); color: var(--ink); }
+  .syn-poids {
+    padding: 3px 8px;
+    border-radius: 999px;
+    background: var(--accent-tint);
+    font: 500 11px/1.2 var(--mono);
+    color: var(--accent);
+  }
+  .syn-methode-ve {
+    display: flex;
+    align-items: baseline;
+    gap: 6px;
+    font: 500 20px/1.15 var(--mono);
+    font-variant-numeric: tabular-nums;
+    color: var(--ink);
+  }
+  .syn-methode-ve small { font: 400 10.5px/1 var(--sans); color: var(--muted); }
+  .syn-methode-detail { font: 400 11px/1.45 var(--sans); color: var(--muted); text-wrap: pretty; }
+  .syn-methode.is-indispo { border-style: dashed; }
+  .syn-methode.is-indispo .syn-methode-ve { font: 400 13px/1.3 var(--sans); color: var(--muted-2); }
+  .syn-methode.is-indispo .syn-poids { background: var(--field); color: var(--muted-2); }
+  .syn-curseur {
+    display: grid;
+    gap: 8px;
+    padding: 12px 14px;
+    border: 1px dashed var(--accent-chip);
+    border-radius: 8px;
+    background: var(--accent-tint);
+  }
+  .syn-curseur-tete { display: flex; justify-content: space-between; gap: 10px; font: 400 11.5px/1.3 var(--sans); color: var(--ink-3); }
+  .syn-curseur-tete b { font: 500 11.5px/1.3 var(--mono); color: var(--accent); }
+  .syn-curseur input[type="range"] { width: 100%; margin: 0; accent-color: var(--accent); cursor: pointer; }
+  .syn-curseur input[type="range"]:disabled { cursor: default; opacity: .5; }
+  .syn-note { font: 400 11px/1.5 var(--sans); color: var(--muted); text-wrap: pretty; }
+  .syn-note:empty { display: none; }
+
+  /* Une ligne par méthode, même échelle ; la synthèse, en violet, sous un
+     filet. Les longueurs glissent quand les poids changent. */
+  .syn-graphe {
+    display: grid;
+    gap: 14px;
+    padding: 20px 22px;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    background: var(--surface);
+  }
+  .syn-ligne { display: grid; grid-template-columns: 120px minmax(0, 1fr) 96px; align-items: center; gap: 14px; }
+  .syn-nom { font: 500 12.5px/1.3 var(--sans); color: var(--ink-2); }
+  .syn-nom small { display: block; margin-top: 2px; font: 400 10.5px/1.3 var(--sans); color: var(--muted-2); }
+  .syn-piste { position: relative; height: 20px; border-radius: 4px; background: var(--field); overflow: hidden; }
+  .syn-rempli {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    width: 0;
+    border-radius: 0 4px 4px 0;
+    background: #5f86c4;
+    transition: width 480ms cubic-bezier(.2, .7, .2, 1);
+  }
+  .syn-ligne.is-synthese { padding-top: 14px; border-top: 1px solid var(--line); }
+  .syn-ligne.is-synthese .syn-nom { color: var(--accent); }
+  .syn-ligne.is-synthese .syn-rempli { background: var(--accent); }
+  .syn-valeur { text-align: right; font: 500 13px/1 var(--mono); font-variant-numeric: tabular-nums; color: var(--ink); white-space: nowrap; }
+  .syn-ligne.is-indispo .syn-valeur { font: 400 11px/1 var(--sans); color: var(--muted-2); }
+  @media (max-width: 600px) { .syn-ligne { grid-template-columns: 88px minmax(0, 1fr) 76px; gap: 10px; } }
+
+  .valo-violet {
+    min-width: 0;
+    padding: 22px 24px;
+    border-radius: 10px;
+    background: var(--accent);
+    color: #fff;
+    display: grid;
+    gap: 16px;
+  }
+  .valo-violet h2 {
+    margin: 0;
+    font: 400 10px/1 var(--mono);
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+    color: rgba(255, 255, 255, .72);
+  }
+  .note-violet { margin: 0; font: 400 11px/1.6 var(--sans); color: rgba(255, 255, 255, .66); text-wrap: pretty; }
+  .curseurs { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; }
+  .curseur { display: grid; gap: 8px; }
+  .curseur-tete {
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+    font: 400 11.5px/1.3 var(--sans);
+    color: rgba(255, 255, 255, .82);
+  }
+  .curseur-tete output { font: 500 11.5px/1.3 var(--mono); color: #fff; }
+  .curseur input[type="range"] { width: 100%; margin: 0; accent-color: #fff; cursor: pointer; }
+  .valo-defile { overflow-x: auto; }
+  .sens-table {
+    width: 100%;
+    border-collapse: collapse;
+    font: 400 12px/1.35 var(--mono);
+    font-variant-numeric: tabular-nums;
+  }
+  .sens-table th, .sens-table td { padding: 7px 6px; text-align: right; white-space: nowrap; }
+  .sens-table th { font-weight: 400; font-size: 10.5px; color: rgba(255, 255, 255, .72); }
+  .sens-table .sens-coin { text-align: left; font-size: 10px; letter-spacing: 0.04em; }
+  .sens-table td {
+    border: 2px solid var(--accent);
+    border-radius: 6px;
+    background: rgba(255, 255, 255, .07);
+    color: rgba(255, 255, 255, .86);
+    transition: background-color 200ms ease;
+  }
+  .sens-table td.is-coeur { background: rgba(255, 255, 255, .18); color: #fff; }
+  .sens-table td.is-cle { background: #fff; color: var(--accent); font-weight: 600; }
+  .sens-table td.is-vide { color: rgba(255, 255, 255, .4); }
+
+  /* ---------- Fluidité ----------
+     Le contenu entre par un léger fondu montant, les barres poussent depuis
+     la ligne de base l'une après l'autre, et le bloc graphique / calcul glisse
+     d'une hauteur à l'autre. Rien de tout cela sous « mouvement réduit ». */
+  @keyframes valo-entree { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+  @keyframes valo-fondu { from { opacity: 0; } to { opacity: 1; } }
+  @keyframes barre-monte { from { transform: scaleY(0); } to { transform: scaleY(1); } }
+  .valo-anime { animation: valo-entree 380ms cubic-bezier(.2, .7, .2, 1) both; }
+  .dcf-tete.valo-anime > :nth-child(2) { animation: valo-entree 460ms cubic-bezier(.2, .7, .2, 1) 70ms both; }
+  .dcf-barre { animation: barre-monte 560ms cubic-bezier(.2, .7, .2, 1) both; animation-delay: calc(var(--i, 0) * 70ms); }
+  .dcf-haut .dcf-barre { transform-origin: bottom; }
+  .dcf-bas .dcf-barre { transform-origin: top; }
+  .dcf-graphe-corps { transition: height 340ms cubic-bezier(.4, 0, .2, 1); overflow: hidden; }
+  .dcf-graphe-corps.is-fondu { animation: valo-fondu 280ms ease both; }
+  .dcf-col:hover .dcf-bulle { animation: valo-fondu 140ms ease both; }
+  .dcf-compo-barre > span:not(.dcf-compo-seuil) { transition: width 480ms cubic-bezier(.2, .7, .2, 1); }
+  .dcf-case, .syn-methode, .dcf-hyp-ligne { transition: border-color 200ms ease, background-color 200ms ease; }
+  .dcf-case:hover { border-color: var(--accent); }
+  @media (prefers-reduced-motion: reduce) {
+    .valo-anime, .dcf-tete.valo-anime > *, .dcf-barre, .dcf-graphe-corps.is-fondu, .dcf-col:hover .dcf-bulle { animation: none; }
+    .valo-vues-curseur, .syn-rempli, .dcf-graphe-corps, .dcf-compo-barre > span { transition: none; }
+  }
+
   .alerte-vt { display: inline-block; vertical-align: -2px; margin-left: 8px; flex: none; }
 
   .mult-defs { display: grid; gap: 14px; }
@@ -1700,11 +1865,14 @@
 
 <main class="valo" id="panel-valorisation" hidden>
   <div class="valo-vues" role="tablist" aria-label="Méthode de valorisation">
+    <span class="valo-vues-curseur" aria-hidden="true"></span>
     <button type="button" role="tab" data-vue="dcf" class="is-active">DCF</button>
     <button type="button" role="tab" data-vue="comparables">Comparables</button>
+    <button type="button" role="tab" data-vue="synthese">Synthèse</button>
   </div>
   <div class="valo-corps" id="valoDcf"></div>
   <div class="valo-corps" id="valoComparables" hidden>
+    <div id="valoCompVe" hidden></div>
     <div class="notice" id="comparablesAbsents" hidden>
       <h3>Référentiel Comparables requis</h3>
       <p>Les multiples viennent de l'échantillon de sociétés cotées qui alimente le CMPC en
@@ -1713,6 +1881,7 @@
     </div>
     <div class="valo-corps" id="comparablesMain"></div>
   </div>
+  <div class="valo-corps" id="valoSynthese" hidden></div>
   <input type="file" id="valoFichier" hidden
          accept=".xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet">
 </main>
@@ -1871,9 +2040,13 @@
           CMPC ; un triangle signale une valeur terminale au-delà de 65 % de la VE. Le
           graphique des FCFF bascule, au clic, sur le détail du calcul ; le cadre de résultat
           mène de la VE à la valeur des fonds propres.</p>
-          <p>La vue Comparables présente les multiples des sociétés de l'échantillon :
-          VE / EBITDA, en barres ou en tableau détaillé si vous cliquez le bloc. Elle
-          demande le référentiel Comparables.</p>
+          <p>La vue Comparables applique la médiane VE / EBITDA de l'échantillon à l'EBITDA
+          de la dernière année historique du classeur, et présente les multiples des
+          sociétés, en barres ou en tableau détaillé si vous cliquez le bloc. Elle demande
+          le référentiel Comparables.</p>
+          <p>La vue Synthèse fait la moyenne des VE des deux méthodes, retranche la dette
+          nette et donne la valeur des fonds propres, avec sa sensibilité au CMPC et à g.
+          Le cadenas des méthodes permet de leur attribuer des poids.</p>
         </div>
       </li>
 
@@ -2302,7 +2475,10 @@
     // Le bouton du guide est hors de la barre : son etat actif ne suit pas la
     // boucle ci-dessus, qui ne balaie que les onglets.
     $("tabAide").classList.toggle("is-on", tab === "aide");
-    if (tab === "valorisation") ajusterCadreMultiples();
+    if (tab === "valorisation") {
+      ajusterCadreMultiples();
+      requestAnimationFrame(placerCurseurVues);
+    }
     if (tab === "wacc" || tab === "societes") requestAnimationFrame(placeArrows);
   }
   // Tout ce qui porte data-tab bascule la vue, dans la barre ou ailleurs :
@@ -3927,7 +4103,9 @@
 
      Les flux, g et la dette nette viennent d'un classeur Excel importé. Il est
      lu dans le navigateur — la page reste autonome, rien n'est envoyé — et
-     n'entre pas dans l'URL.
+     n'entre pas dans l'URL. Le classeur a deux parties : l'historique, dont
+     la dernière année donne l'EBITDA des comparables, et le prévisionnel,
+     dont les flux font le DCF.
   */
   const VALO = {
     vue: "dcf",
@@ -3936,6 +4114,11 @@
     erreurs: [],       // ce qui manquait au dernier classeur refusé
     calc: false,       // graphique (false) ou détail du calcul (true)
     test: false,       // le boulon : chiffres de la note, sans toucher au fichier lu
+    animer: false,     // rejoue l'entrée du contenu après un import
+    poidsVerrou: true, // fermé : moyenne arithmétique des méthodes
+    poidsDcf: 0.5,     // cadenas ouvert : poids du DCF, le reste aux comparables
+    pasWacc: 0.01,     // pas de la sensibilité de la synthèse
+    pasG: 0.0025,
   };
   // Au-delà, la valeur tient surtout à l'hypothèse de croissance à l'infini.
   const SEUIL_VT = 0.65;
@@ -3950,6 +4133,7 @@
     capex: [86641, 79152, 77427, 77427],
     bfr: [-2723, -4404, -5212, -850],
     g: 0.02, detteNette: 129455, impot: 0.25,
+    historique: null,  // la note ne donne pas d'historique : pas de comparables
   };
   const NOM_TEST = "Données de test (note de valorisation)";
   // Le fichier lu reste en mémoire pendant qu'on regarde les données de test.
@@ -4109,8 +4293,8 @@
       motif: /chiffre d.?affaires|\bca\b|revenue|ventes/, sauf: /marge|croissance|%/ },
     { cle: "ebitda", libelle: "EBITDA", facultatif: true,
       motif: /\bebitda\b|\bebe\b|excedent brut/, sauf: /marge|%/ },
-    { cle: "ebit", libelle: "EBIT", motif: /\bebit\b|resultat d.?exploitation/, sauf: /impot|nopat|apres/ },
-    { cle: "da", libelle: "D&A", motif: /d ?& ?a\b|dotation|amortissement/ },
+    { cle: "ebit", libelle: "EBIT", motif: /\bebit\b|resultat d.?exploitation/, sauf: /impot|nopat|apres|ebitda/ },
+    { cle: "da", libelle: "D&A", motif: /d ?& ?a\b|dotation|amortissement/, sauf: /ebitda/ },
     { cle: "capex", libelle: "CapEx", motif: /capex|investissement/ },
     { cle: "bfr", libelle: "Variation du BFR", motif: /\bbfr\b|besoin en fonds de roulement/ },
   ];
@@ -4127,23 +4311,57 @@
     if (n == null) return null;
     return typeof v === "string" && v.indexOf("%") >= 0 ? n / 100 : Math.abs(n) >= 1 ? n / 100 : n;
   }
-  function anneeCellule(v) {
-    if (typeof v === "number") return Number.isInteger(v) && v >= 1990 && v <= 2100 ? v : null;
-    const m = /^\s*(?:fy|ex\.?|exercice)?\s*'?(\d{4}|\d{2})\s*[ebpa]?\s*$/i.exec(String(v == null ? "" : v));
+  // Année d'en-tête et son suffixe éventuel : 2025A (réalisé), 2026E (estimé).
+  function lireAnnee(v) {
+    if (typeof v === "number") return Number.isInteger(v) && v >= 1990 && v <= 2100 ? { an: v, suffixe: null } : null;
+    const m = /^\s*(?:fy|ex\.?|exercice)?\s*'?(\d{4}|\d{2})\s*([aerhpbf])?\s*$/i.exec(String(v == null ? "" : v));
     if (!m) return null;
     const an = m[1].length === 2 ? 2000 + Number(m[1]) : Number(m[1]);
-    return an >= 1990 && an <= 2100 ? an : null;
+    return an >= 1990 && an <= 2100 ? { an: an, suffixe: m[2] ? m[2].toLowerCase() : null } : null;
+  }
+
+  // Historique ou prévisionnel ? Deux écritures reconnues : un suffixe sur
+  // l'année (2025A réalisé, 2026E estimé), ou un bandeau au-dessus de
+  // l'en-tête (« Historique » … « Prévisionnel »). Sans l'une ni l'autre, tout
+  // est prévisionnel : c'est l'ancien format, qui reste lisible.
+  function partagerExercices(lignes, iEntete, colonnes) {
+    if (colonnes.some((c) => c.suffixe)) {
+      colonnes.forEach((c) => { c.hist = c.suffixe != null && "arh".indexOf(c.suffixe) >= 0; });
+      return;
+    }
+    for (let i = iEntete - 1; i >= 0; i--) {
+      const ligne = lignes[i];
+      if (!ligne) continue;
+      let jHist = null, jPrev = null;
+      ligne.forEach((v, j) => {
+        const t = normalize(v == null ? "" : String(v));
+        if (jHist == null && /histor|realise|reel/.test(t)) jHist = j;
+        if (jPrev == null && /previs|projection|prevu|forecast|budget/.test(t)) jPrev = j;
+      });
+      if (jPrev != null || jHist != null) {
+        colonnes.forEach((c) => { c.hist = jPrev != null ? c.j < jPrev : c.j >= jHist; });
+        return;
+      }
+    }
+    colonnes.forEach((c) => { c.hist = false; });
   }
 
   // Traduit la feuille en flux du DCF, ou dresse la liste de ce qui manque.
+  // Le prévisionnel doit être complet ; l'historique peut être lacunaire, seule
+  // sa dernière année servant aux comparables.
   function interpreterFeuille(lignes) {
     const erreurs = [];
-    let colonnes = null;
-    for (const ligne of lignes) {
+    let colonnes = null, iEntete = -1;
+    for (let i = 0; i < lignes.length; i++) {
+      const ligne = lignes[i];
       if (!ligne) continue;
       const trouvees = [];
-      ligne.forEach((v, j) => { if (j > 0) { const an = anneeCellule(v); if (an) trouvees.push({ j: j, an: an }); } });
-      if (trouvees.length) { colonnes = trouvees; break; }
+      ligne.forEach((v, j) => {
+        if (j === 0) return;
+        const a = lireAnnee(v);
+        if (a) trouvees.push({ j: j, an: a.an, suffixe: a.suffixe });
+      });
+      if (trouvees.length) { colonnes = trouvees; iEntete = i; break; }
     }
     if (!colonnes) {
       return { erreurs: ["Aucune ligne d'exercices : il faut une ligne d'en-tête avec les années (2026, FY26…)."] };
@@ -4153,25 +4371,40 @@
         return { erreurs: ["Les exercices de l'en-tête doivent se suivre, sans trou : " + colonnes.map((c) => c.an).join(", ") + "."] };
       }
     }
+    partagerExercices(lignes, iEntete, colonnes);
+    const prev = colonnes.filter((c) => !c.hist);
+    const hist = colonnes.filter((c) => c.hist);
+    if (!prev.length) return { erreurs: ["Aucun exercice prévisionnel : le DCF en demande au moins un."] };
+    if (hist.some((c) => c.j > prev[0].j)) {
+      return { erreurs: ["Les exercices historiques doivent précéder les exercices prévisionnels."] };
+    }
 
-    const f = { annees: colonnes.map((c) => c.an) };
+    const f = { annees: prev.map((c) => c.an), historique: hist.length ? { annees: hist.map((c) => c.an) } : null };
     const libelle = (ligne) => normalize(ligne && ligne[0] != null ? String(ligne[0]) : "");
     for (const def of LIGNES_DCF) {
       const ligne = lignes.find((l) => l && def.motif.test(libelle(l)) && !(def.sauf && def.sauf.test(libelle(l))));
+      // D&A et CapEx se lisent en montants, quel que soit leur signe dans le
+      // fichier ; le BFR garde le sien, qui dit s'il consomme ou libère.
+      const lire = (cols) => cols.map((c) => {
+        const v = nombreCellule(ligne[c.j]);
+        return v != null && (def.cle === "da" || def.cle === "capex") ? Math.abs(v) : v;
+      });
+      if (f.historique) f.historique[def.cle] = ligne ? lire(hist) : null;
       if (!ligne) {
         if (def.facultatif) { f[def.cle] = null; continue; }
         erreurs.push("Ligne « " + def.libelle + " » introuvable en colonne A.");
         continue;
       }
-      const valeurs = colonnes.map((c) => nombreCellule(ligne[c.j]));
-      const manquants = colonnes.filter((c, k) => valeurs[k] == null).map((c) => frFy(c.an));
+      const valeurs = lire(prev);
+      const manquants = prev.filter((c, k) => valeurs[k] == null).map((c) => frFy(c.an));
       // Une ligne facultative laissée vide, comme celle du modèle, est
       // ignorée ; remplie à moitié, elle est signalée.
-      if (def.facultatif && manquants.length === colonnes.length) { f[def.cle] = null; continue; }
-      if (manquants.length) { erreurs.push("« " + def.libelle + " » : valeur manquante ou illisible en " + manquants.join(", ") + "."); continue; }
-      // D&A et CapEx se lisent en montants, quel que soit leur signe dans le
-      // fichier ; le BFR garde le sien, qui dit s'il consomme ou libère.
-      f[def.cle] = def.cle === "da" || def.cle === "capex" ? valeurs.map(Math.abs) : valeurs;
+      if (def.facultatif && manquants.length === prev.length) { f[def.cle] = null; continue; }
+      if (manquants.length) {
+        erreurs.push("« " + def.libelle + " » : valeur manquante ou illisible en " + manquants.join(", ") + ".");
+        continue;
+      }
+      f[def.cle] = valeurs;
     }
     for (const def of PARAMETRES_DCF) {
       const ligne = lignes.find((l) => l && def.motif.test(libelle(l)));
@@ -4200,18 +4433,20 @@
       VALO.fichier = fichier.name;
       VALO.test = false;
       VALO.erreurs = [];
+      VALO.animer = true;
     } else {
       // Un classeur refusé ne remplace pas celui qui était lu.
       VALO.erreurs = resultat.erreurs;
       VALO.fichierRefuse = fichier.name;
     }
-    renderDcf();
+    renderValo();
   }
 
   /* ---- Modèle à remplir ---- */
   function modeleDcfXlsx() {
+    // Trois exercices d'historique, cinq de prévisionnel.
     const an0 = Number(DATA.defaults.year) || new Date().getFullYear();
-    const annees = [0, 1, 2, 3, 4].map((k) => an0 + k);
+    const annees = [-3, -2, -1, 0, 1, 2, 3, 4].map((k) => an0 + k);
     const col = (j) => String.fromCharCode(65 + j);
     const texte = (ref, t, s) => `<c r="${ref}" t="inlineStr"${s ? ` s="${s}"` : ""}><is><t>${xmlEsc(t)}</t></is></c>`;
     const vide = (ref, s) => `<c r="${ref}" s="${s}"/>`;
@@ -4224,20 +4459,25 @@
 
     const dcf = feuille([
       ligne(1, [texte("A1", "Flux du DCF, en M FCFA", 1)]),
-      ligne(2, [texte("A2", "Exercice", 1)].concat(annees.map((a, k) => `<c r="${col(k + 1)}2" s="1"><v>${a}</v></c>`))),
-      ligne(3, [texte("A3", "Chiffre d'affaires (facultatif)")].concat(saisies(3, 2))),
-      ligne(4, [texte("A4", "EBIT (résultat d'exploitation)")].concat(saisies(4, 2))),
-      ligne(5, [texte("A5", "Dotations aux amortissements (D&A)")].concat(saisies(5, 2))),
-      ligne(6, [texte("A6", "Investissements (CapEx)")].concat(saisies(6, 2))),
-      ligne(7, [texte("A7", "Variation du BFR")].concat(saisies(7, 2))),
-      ligne(9, [texte("A9", "Croissance à l'infini (g)"), vide("B9", 3)]),
-      ligne(10, [texte("A10", "Dette nette"), vide("B10", 2)]),
-      ligne(11, [texte("A11", "Taux d'IS (facultatif)"), vide("B11", 3)]),
-    ], '<col min="1" max="1" width="38" customWidth="1"/><col min="2" max="6" width="13" customWidth="1"/>');
+      ligne(2, [texte("B2", "Historique", 1), texte("E2", "Prévisionnel", 1)]),
+      ligne(3, [texte("A3", "Exercice", 1)].concat(annees.map((a, k) => `<c r="${col(k + 1)}3" s="1"><v>${a}</v></c>`))),
+      ligne(4, [texte("A4", "Chiffre d'affaires (facultatif)")].concat(saisies(4, 2))),
+      ligne(5, [texte("A5", "EBITDA (facultatif)")].concat(saisies(5, 2))),
+      ligne(6, [texte("A6", "EBIT (résultat d'exploitation)")].concat(saisies(6, 2))),
+      ligne(7, [texte("A7", "Dotations aux amortissements (D&A)")].concat(saisies(7, 2))),
+      ligne(8, [texte("A8", "Investissements (CapEx)")].concat(saisies(8, 2))),
+      ligne(9, [texte("A9", "Variation du BFR")].concat(saisies(9, 2))),
+      ligne(11, [texte("A11", "Croissance à l'infini (g)"), vide("B11", 3)]),
+      ligne(12, [texte("A12", "Dette nette"), vide("B12", 2)]),
+      ligne(13, [texte("A13", "Taux d'IS (facultatif)"), vide("B13", 3)]),
+    ], '<col min="1" max="1" width="40" customWidth="1"/><col min="2" max="9" width="12" customWidth="1"/>');
 
     const consignes = [
       "Remplissez la feuille DCF puis importez le classeur dans l'onglet Valorisation.",
       "Montants en millions de FCFA. Les exercices se suivent ; ajoutez ou retirez des colonnes à volonté.",
+      "Historique (colonnes B à D) : seule la dernière année sert, pour l'EBITDA de la valorisation par les comparables.",
+      "Prévisionnel (à partir de la colonne E, sous le bandeau « Prévisionnel ») : les flux du DCF, tous obligatoires.",
+      "Au lieu du bandeau, vous pouvez marquer les années : 2025A pour le réalisé, 2026E pour le prévisionnel.",
       "D&A et CapEx : montants, sans signe. Le CapEx est retranché, les D&A ajoutées.",
       "Variation du BFR : signée comme un flux de trésorerie, négative quand le BFR augmente.",
       "g et taux d'IS en %. Sans taux d'IS, celui du pays de valorisation est retenu.",
@@ -4331,6 +4571,30 @@
       <circle cx="9" cy="12.3" r="0.95" fill="#dc2626"/>
     </svg>`;
 
+  const plageFy = (annees) => {
+    const d = frFy(annees[0]), fin = frFy(annees[annees.length - 1]);
+    return d === fin ? d : d + "–" + fin;
+  };
+
+  // Le bandeau du fichier lu, commun au DCF et à la synthèse.
+  function bandeauImport(f) {
+    const hist = f.historique ? plageFy(f.historique.annees) : null;
+    return `
+      <div class="valo-import">
+        ${BOULON()}
+        <span class="valo-fichier">
+          <svg width="13" height="15" viewBox="0 0 13 15" fill="none" aria-hidden="true"><path d="M2 1h6l3.5 3.5V13a1 1 0 01-1 1H2a1 1 0 01-1-1V2a1 1 0 011-1z" stroke="currentColor" stroke-width="1.2"/><path d="M8 1v3.5h3.5" stroke="currentColor" stroke-width="1.2"/></svg>
+          ${esc(VALO.test ? NOM_TEST : VALO.fichier)}
+        </span>
+        ${hist ? `<span class="chip">Historique ${hist}</span>` : ""}
+        <span class="chip${hist ? " is-accent" : ""}">${hist ? "Prévisionnel " : ""}${plageFy(f.annees)}</span>
+        <span class="chip">M FCFA</span>
+        <span class="valo-espace"></span>
+        <button type="button" class="valo-bouton" data-action="modele">Télécharger le modèle</button>
+        <button type="button" class="valo-bouton" data-action="importer">Remplacer le fichier</button>
+      </div>`;
+  }
+
   function erreursHtml() {
     if (!VALO.erreurs.length) return "";
     return `
@@ -4367,7 +4631,7 @@
       <div class="dcf-plot" role="img"
            aria-label="FCFF et FCFF actualisés de ${frFy(f.annees[0])} à ${frFy(f.annees[f.annees.length - 1])}">
         ${f.annees.map((an, t) => `
-          <div class="dcf-col">
+          <div class="dcf-col" style="--i:${t}">
             <div class="dcf-haut" style="flex-basis:${(partHaut * 100).toFixed(2)}%">${barres(t, 1)}</div>
             <div class="dcf-bas" style="flex-basis:${(partBas * 100).toFixed(2)}%">${barres(t, -1)}</div>
             <span class="dcf-bulle">
@@ -4438,9 +4702,10 @@
         <div class="valo-depot" data-depot>
           ${BOULON()}
           <h3>Importer les flux du DCF</h3>
-          <p>Chargez un classeur Excel (.xlsx) : une ligne d'exercices, puis l'EBIT, les D&amp;A, le
-          CapEx et la variation du BFR, avec la croissance à l'infini et la dette nette. Le
-          fichier est lu dans votre navigateur : rien n'est envoyé.</p>
+          <p>Chargez un classeur Excel (.xlsx) en deux parties : l'historique, dont la dernière
+          année donne l'EBITDA des comparables, et le prévisionnel — EBIT, D&amp;A, CapEx et
+          variation du BFR — qui fait le DCF, avec la croissance à l'infini et la dette nette.
+          Le fichier est lu dans votre navigateur : rien n'est envoyé.</p>
           <div class="valo-actions">
             <button type="button" class="valo-bouton is-plein" data-action="importer">Importer un fichier Excel</button>
             <button type="button" class="valo-bouton" data-action="modele">Télécharger le modèle</button>
@@ -4487,22 +4752,11 @@
     const vu = Boolean(VALO.calc);
 
     racine.innerHTML = `
-      <div class="valo-import">
-        ${BOULON()}
-        <span class="valo-fichier">
-          <svg width="13" height="15" viewBox="0 0 13 15" fill="none" aria-hidden="true"><path d="M2 1h6l3.5 3.5V13a1 1 0 01-1 1H2a1 1 0 01-1-1V2a1 1 0 011-1z" stroke="currentColor" stroke-width="1.2"/><path d="M8 1v3.5h3.5" stroke="currentColor" stroke-width="1.2"/></svg>
-          ${esc(VALO.test ? NOM_TEST : VALO.fichier)}
-        </span>
-        <span class="chip">${horizon}</span>
-        <span class="chip">M FCFA</span>
-        <span class="valo-espace"></span>
-        <button type="button" class="valo-bouton" data-action="modele">Télécharger le modèle</button>
-        <button type="button" class="valo-bouton" data-action="importer">Remplacer le fichier</button>
-      </div>
+      ${bandeauImport(f)}
       ${erreursHtml()}
       ${avis ? `<p class="dcf-avis" role="alert">${esc(avis)}</p>` : ""}
 
-      <div class="dcf-tete" data-depot>
+      <div class="dcf-tete${VALO.animer ? " valo-anime" : ""}" data-depot>
         <aside class="dcf-gauche">
           <h2 class="dcf-rubrique">Hypothèses du DCF</h2>
           <div class="dcf-hyp">
@@ -4543,7 +4797,7 @@
             <div class="mult-view-head">
               <h2 class="mult-view-title">${vu ? "Détail du calcul · FCFF actualisés" : "FCFF prévisionnels par exercice"}</h2>
               <span class="mult-view-aside">
-                ${vu ? "" : `<span class="dcf-legende">${SERIES_DCF.map((s) => `<span><i style="background:${s.couleur}"></i>${s.libelle}</span>`).join("")}</span>`}
+                <span class="dcf-legende"${vu ? " hidden" : ""}>${SERIES_DCF.map((s) => `<span><i style="background:${s.couleur}"></i>${s.libelle}</span>`).join("")}</span>
                 <span class="mult-view-toggle">${vu ? "voir le graphique" : "voir le calcul"}</span>
               </span>
             </div>
@@ -4555,38 +4809,401 @@
       </div>`;
   }
 
-  function chargerValorisation() {
+  /* ---- Comparables et synthèse ----
+     Valorisation par les comparables : EBITDA de la dernière année historique
+     du classeur × médiane VE / EBITDA de l'échantillon qui alimente déjà le
+     CMPC. La synthèse moyenne les VE disponibles — à parts égales cadenas
+     fermé, selon les poids choisis cadenas ouvert — puis retranche la dette
+     nette. */
+
+  // Même médiane que l'onglet Comparables : mêmes sociétés, même exercice de
+  // référence, même filtre sur l'EBITDA positif.
+  function multipleComparables() {
+    if (!estComparables()) return null;
+    const sample = societesRetenues().ids.map((id) => COMPARABLES[id]).filter(Boolean);
+    if (!sample.length) return null;
+    const an = exerciceReference(sample);
+    const cle = String(an);
+    const obs = sample.map((s) => {
+      const eb = (s.ebitda || {})[cle];
+      return eb > 0 ? (s.capitalisation + s.dette) / eb : null;
+    }).filter((v) => Number.isFinite(v));
+    const med = mediane(obs);
+    return med == null ? null : { med: med, an: an, n: obs.length };
+  }
+
+  // EBITDA de la dernière année historique : la ligne EBITDA si elle est
+  // renseignée, EBIT + D&A sinon.
+  function ebitdaHistorique(f) {
+    const h = f && f.historique;
+    if (!h || !h.annees.length) return null;
+    const k = h.annees.length - 1;
+    const direct = h.ebitda ? h.ebitda[k] : null;
+    const deduit = h.ebit && h.da && h.ebit[k] != null && h.da[k] != null ? h.ebit[k] + h.da[k] : null;
+    return {
+      an: h.annees[k],
+      valeur: direct != null ? direct : deduit,
+      source: direct != null ? "ligne EBITDA" : "EBIT + D&A",
+    };
+  }
+
+  function methodeDcf(f) {
+    const wacc = cmpcAuto();
+    const impot = impotRetenu(f);
+    const r = calculDcf(f, wacc, f.g, impot);
+    const indispo = wacc == null ? "CMPC indisponible pour ces paramètres."
+      : r.ve == null ? "Le CMPC doit dépasser la croissance à l'infini." : null;
+    return {
+      cle: "dcf", libelle: "DCF", ve: r.ve, wacc: wacc, impot: impot, indispo: indispo,
+      detail: wacc == null ? "" : "FCFF actualisés au CMPC de " + frPct(wacc) + ", g " + frPct(f.g),
+    };
+  }
+
+  function methodeComparables(f) {
+    const mc = multipleComparables();
+    const eb = f ? ebitdaHistorique(f) : null;
+    let indispo = null;
+    if (!estComparables()) indispo = "Référentiel Comparables requis, dans l'onglet Paramètres.";
+    else if (!mc) indispo = "Aucun multiple VE / EBITDA dans l'échantillon.";
+    else if (!f) indispo = "Aucun classeur importé.";
+    else if (!eb) indispo = "Pas de partie historique dans le classeur.";
+    else if (eb.valeur == null) indispo = "EBITDA " + frFy(eb.an) + " absent du classeur.";
+    else if (eb.valeur <= 0) indispo = "EBITDA " + frFy(eb.an) + " négatif : le multiple ne s'applique pas.";
+    return {
+      cle: "comp", libelle: "Comparables", mc: mc, eb: eb, indispo: indispo,
+      ve: indispo ? null : eb.valeur * mc.med,
+      detail: indispo ? "" : "EBITDA " + frFy(eb.an) + " × VE / EBITDA médian " + frMult(mc.med),
+    };
+  }
+
+  // Poids effectifs : égaux cadenas fermé, choisis cadenas ouvert, et
+  // renormalisés sur les seules méthodes disponibles.
+  function poidsEffectifs(methodes) {
+    const brut = VALO.poidsVerrou ? { dcf: 1, comp: 1 } : { dcf: VALO.poidsDcf, comp: 1 - VALO.poidsDcf };
+    const total = methodes.reduce((t, m) => t + (m.ve != null ? brut[m.cle] : 0), 0);
+    if (!(total > 0)) return null;
+    const poids = {};
+    for (const m of methodes) poids[m.cle] = m.ve != null ? brut[m.cle] / total : 0;
+    return poids;
+  }
+
+  function renderComparablesVe() {
+    const el = $("valoCompVe");
+    if (!estComparables()) { el.hidden = true; el.innerHTML = ""; return; }
+    el.hidden = false;
+    const f = fluxActif();
+    const m = methodeComparables(f);
+    const cases = [
+      { libelle: m.eb ? "EBITDA " + frFy(m.eb.an) : "EBITDA historique",
+        valeur: m.eb && m.eb.valeur != null ? frFlux(m.eb.valeur) : "—" },
+      { libelle: "× VE / EBITDA médian", valeur: m.mc ? frMult(m.mc.med) : "—" },
+      { libelle: "= VE comparables", valeur: frFlux(m.ve), accent: true },
+    ];
+    el.innerHTML = `
+      <section class="card-block">
+        <div class="block-head">
+          <h2>Valorisation par les comparables</h2>
+          <div class="chips">
+            ${m.mc ? `<span class="chip">médiane de ${m.mc.n} société${m.mc.n > 1 ? "s" : ""}, exercice ${m.mc.an}</span>` : ""}
+            <span class="chip">M FCFA</span>
+          </div>
+        </div>
+        <div class="mult-cases">
+          ${cases.map((c) => `
+            <div class="mult-case${c.accent ? " is-accent" : ""}">
+              <span class="mult-case-label">${esc(c.libelle)}</span>
+              <span class="mult-case-value" data-o="comp-${c.accent ? "ve" : c.libelle.indexOf("VE /") >= 0 ? "multiple" : "ebitda"}">${esc(c.valeur)}</span>
+            </div>`).join("")}
+        </div>
+        <p class="note">${m.indispo ? esc(m.indispo)
+          : "EBITDA de la dernière année historique du classeur importé (" + esc(m.eb.source)
+            + "), multiplié par la médiane VE / EBITDA de l'échantillon présenté ci-dessous."}</p>
+      </section>`;
+  }
+
+  function renderSynthese() {
+    const racine = $("valoSynthese");
+    const f = fluxActif();
+    if (!f) {
+      racine.innerHTML = `
+        <div class="valo-depot">
+          ${BOULON()}
+          <h3>Synthèse des valorisations</h3>
+          <p>La synthèse réunit le DCF et les comparables. Elle part du classeur importé dans la vue
+          DCF : les flux prévisionnels pour le DCF, l'EBITDA de la dernière année historique pour
+          les comparables.</p>
+          <div class="valo-actions">
+            <button type="button" class="valo-bouton is-plein" data-action="aller-dcf">Importer un fichier Excel</button>
+            <button type="button" class="valo-bouton" data-action="modele">Télécharger le modèle</button>
+          </div>
+        </div>`;
+      return;
+    }
+    const methodes = [methodeDcf(f), methodeComparables(f)];
+    const deux = methodes.every((m) => m.ve != null);
+    const ouvert = !VALO.poidsVerrou;
+    racine.innerHTML = `
+      ${bandeauImport(f)}
+      <div class="dcf-tete${VALO.animer ? " valo-anime" : ""}">
+        <aside class="dcf-gauche">
+          <div class="syn-rubrique">
+            <h2 class="dcf-rubrique">Méthodes de valorisation</h2>
+            <button type="button" class="verrou${ouvert ? " is-open" : ""}" data-action="poids"
+                    aria-pressed="${ouvert ? "true" : "false"}"
+                    title="${ouvert ? "Revenir à la moyenne arithmétique" : "Attribuer des poids aux méthodes"}">
+              ${ouvert ? CADENAS.ouvert : CADENAS.ferme}<span>${ouvert ? "Pondérées" : "Égales"}</span>
+            </button>
+          </div>
+          <div class="syn-methodes">
+            ${methodes.map((m) => `
+              <div class="syn-methode${m.ve == null ? " is-indispo" : ""}" data-methode="${m.cle}">
+                <span class="syn-methode-tete">
+                  <span class="syn-methode-nom">${esc(m.libelle)}</span>
+                  <span class="syn-poids" data-o="poids-${m.cle}"></span>
+                </span>
+                <span class="syn-methode-ve">${m.ve == null ? "Indisponible" : frFlux(m.ve) + "<small>M FCFA</small>"}</span>
+                <span class="syn-methode-detail">${esc(m.indispo || m.detail)}</span>
+              </div>`).join("")}
+          </div>
+          ${ouvert ? `
+            <label class="syn-curseur">
+              <span class="syn-curseur-tete">
+                <span>DCF <b data-o="curseur-dcf"></b></span>
+                <span>Comparables <b data-o="curseur-comp"></b></span>
+              </span>
+              <input type="range" min="0" max="100" step="5" value="${Math.round(VALO.poidsDcf * 100)}"
+                     data-poids aria-label="Poids du DCF, en %"${deux ? "" : " disabled"}>
+              ${deux ? "" : '<span class="syn-note">Une seule méthode est disponible : elle porte tout le poids.</span>'}
+            </label>` : ""}
+          <h2 class="dcf-rubrique">Résultat de la synthèse</h2>
+          <div class="dcf-resultat">
+            <div class="dcf-resultat-tete">
+              <span class="dcf-resultat-label">Valeur des fonds propres</span>
+              <span class="dcf-resultat-valeur"><span data-o="vfp">—</span><small>M FCFA</small></span>
+            </div>
+            <div class="dcf-pont">
+              <span><span data-o="ve-lib"></span><b data-o="ve">—</b></span>
+              <span><span>${f.detteNette < 0 ? "(+) Trésorerie nette" : "(−) Dette nette"}</span><b>${frFlux(-f.detteNette)}</b></span>
+              <span class="is-total"><span>Valeur des fonds propres</span><b data-o="vfp-total">—</b></span>
+            </div>
+            <span class="syn-note" data-o="note"></span>
+          </div>
+        </aside>
+
+        <div class="dcf-principal">
+          <h2 class="dcf-rubrique">Valeur d'entreprise par méthode</h2>
+          <section class="syn-graphe" role="img" aria-label="Valeur d'entreprise par méthode et synthèse">
+            ${methodes.concat([{ cle: "syn", libelle: "Synthèse" }]).map((m) => `
+              <div class="syn-ligne${m.cle === "syn" ? " is-synthese" : ""}${m.ve === null ? " is-indispo" : ""}" data-ligne="${m.cle}">
+                <span class="syn-nom">${esc(m.libelle)}<small data-o="aide-${m.cle}"></small></span>
+                <span class="syn-piste"><span class="syn-rempli" data-o="barre-${m.cle}"></span></span>
+                <span class="syn-valeur" data-o="val-${m.cle}"></span>
+              </div>`).join("")}
+          </section>
+          <section class="valo-violet">
+            <h2>Sensibilité de la valeur des fonds propres</h2>
+            <div class="curseurs">
+              <label class="curseur">
+                <span class="curseur-tete"><span>Pas du CMPC</span><output data-o="pasWacc"></output></span>
+                <input type="range" min="0.25" max="2" step="0.25" value="${VALO.pasWacc * 100}" data-pas="pasWacc" aria-label="Pas du CMPC, en points">
+              </label>
+              <label class="curseur">
+                <span class="curseur-tete"><span>Pas de g</span><output data-o="pasG"></output></span>
+                <input type="range" min="0.1" max="1" step="0.05" value="${VALO.pasG * 100}" data-pas="pasG" aria-label="Pas de g, en points">
+              </label>
+            </div>
+            <div class="valo-defile" data-html="sens"></div>
+            <p class="note-violet" data-o="sens-note"></p>
+          </section>
+        </div>
+      </div>`;
+    majSynthese();
+  }
+
+  // Met à jour les chiffres sans redessiner : les curseurs restent sous le
+  // doigt et les barres glissent vers leur nouvelle longueur.
+  function majSynthese() {
+    const racine = $("valoSynthese");
+    const f = fluxActif();
+    if (!f || !racine.querySelector(".syn-graphe")) return;
+    const ecrire = (cle, texte) => {
+      const el = racine.querySelector(`[data-o="${cle}"]`);
+      if (el) el.textContent = texte;
+    };
+    const dcf = methodeDcf(f), comp = methodeComparables(f);
+    const methodes = [dcf, comp];
+    const poids = poidsEffectifs(methodes);
+    const ve = poids ? methodes.reduce((t, m) => t + (m.ve != null ? poids[m.cle] * m.ve : 0), 0) : null;
+    const vfp = ve == null ? null : ve - f.detteNette;
+    const pts = (v) => "± " + frNum(v * 100, 2) + (Math.abs(v * 100) < 2 ? " pt" : " pts");
+
+    for (const m of methodes) {
+      ecrire("poids-" + m.cle, poids && m.ve != null ? frPct(poids[m.cle], 0) : "—");
+      ecrire("aide-" + m.cle, poids && m.ve != null ? "poids " + frPct(poids[m.cle], 0) : "indisponible");
+    }
+    ecrire("curseur-dcf", frPct(VALO.poidsDcf, 0));
+    ecrire("curseur-comp", frPct(1 - VALO.poidsDcf, 0));
+    const seule = methodes.filter((m) => m.ve != null);
+    ecrire("ve-lib", seule.length === 1 ? "VE " + (seule[0].cle === "dcf" ? "du DCF" : "des comparables") + ", seule disponible"
+      : VALO.poidsVerrou ? "VE, moyenne arithmétique" : "VE, moyenne pondérée");
+    ecrire("ve", frFlux(ve));
+    ecrire("vfp", frFlux(vfp));
+    ecrire("vfp-total", frFlux(vfp));
+    const absente = methodes.find((m) => m.ve == null);
+    ecrire("note", absente && seule.length ? absente.libelle + " écartés : " + absente.indispo.charAt(0).toLowerCase() + absente.indispo.slice(1)
+      : !seule.length ? "Aucune méthode disponible." : "");
+
+    // Barres : même échelle pour les trois, la synthèse en violet.
+    const valeurs = { dcf: dcf.ve, comp: comp.ve, syn: ve };
+    const max = Math.max(1, ...Object.values(valeurs).filter((v) => v != null && v > 0));
+    for (const cle of Object.keys(valeurs)) {
+      const v = valeurs[cle];
+      const barre = racine.querySelector(`[data-o="barre-${cle}"]`);
+      if (barre) barre.style.width = (v != null && v > 0 ? (100 * v / max).toFixed(2) : 0) + "%";
+      ecrire("val-" + cle, v == null ? "indisponible" : frFlux(v));
+    }
+    ecrire("aide-syn", VALO.poidsVerrou ? "moyenne arithmétique" : "moyenne pondérée");
+
+    ecrire("pasWacc", pts(VALO.pasWacc));
+    ecrire("pasG", pts(VALO.pasG));
+    racine.querySelector('[data-html="sens"]').innerHTML = grilleSynthese(f, dcf, comp, poids);
+    ecrire("sens-note", poids && poids.dcf === 0
+      ? "Le DCF ne pèse rien : la valeur ne dépend ni du CMPC ni de g."
+      : "CMPC et g ne jouent que sur le DCF ; la VE des comparables reste fixe. Au centre, la valeur retenue.");
+  }
+
+  // Cinq CMPC × cinq g autour des valeurs retenues : la VFP de la synthèse,
+  // la part du DCF recalculée à chaque case.
+  function grilleSynthese(f, dcf, comp, poids) {
+    if (!poids) return '<p class="note-violet">Aucune méthode disponible.</p>';
+    if (poids.dcf > 0 && dcf.wacc == null) return '<p class="note-violet">Sans CMPC, pas de sensibilité.</p>';
+    const k = [-2, -1, 0, 1, 2];
+    const w0 = dcf.wacc == null ? 0 : dcf.wacc;
+    const ws = k.map((i) => w0 + i * VALO.pasWacc);
+    const gs = k.map((j) => f.g + j * VALO.pasG);
+    const vfp = (w, g) => {
+      const veDcf = poids.dcf > 0 ? calculDcf(f, w, g, dcf.impot).ve : 0;
+      if (veDcf == null) return null;
+      return poids.dcf * veDcf + poids.comp * (comp.ve || 0) - f.detteNette;
+    };
+    return `
+      <table class="sens-table">
+        <thead><tr><th class="sens-coin">CMPC ↓ g →</th>${gs.map((g) => `<th>${frPct(g, 2)}</th>`).join("")}</tr></thead>
+        <tbody>
+          ${ws.map((w, i) => `
+            <tr><th>${frPct(w, 2)}</th>${gs.map((g, j) => {
+              const v = vfp(w, g);
+              const classe = v == null ? "is-vide" : i === 2 && j === 2 ? "is-cle"
+                : Math.abs(i - 2) <= 1 && Math.abs(j - 2) <= 1 ? "is-coeur" : "";
+              return `<td class="${classe}">${frFlux(v)}</td>`;
+            }).join("")}</tr>`).join("")}
+        </tbody>
+      </table>`;
+  }
+
+  function renderValo() {
+    renderDcf();
+    renderComparablesVe();
+    renderSynthese();
+    VALO.animer = false;
+  }
+
+  // Le fond noir des vues glisse d'un bouton à l'autre au lieu de sauter.
+  function placerCurseurVues() {
+    const actif = document.querySelector(".valo-vues button.is-active");
+    const curseur = document.querySelector(".valo-vues-curseur");
+    if (!actif || !curseur || !actif.offsetWidth) return;
+    curseur.style.left = actif.offsetLeft + "px";
+    curseur.style.width = actif.offsetWidth + "px";
+  }
+
+  const VUES_VALO = { dcf: "valoDcf", comparables: "valoComparables", synthese: "valoSynthese" };
+
+  function chargerValorisation(anime) {
     document.querySelectorAll(".valo-vues button").forEach((b) => {
       const actif = b.dataset.vue === VALO.vue;
       b.classList.toggle("is-active", actif);
       b.setAttribute("aria-selected", actif ? "true" : "false");
     });
-    $("valoDcf").hidden = VALO.vue !== "dcf";
-    $("valoComparables").hidden = VALO.vue !== "comparables";
+    for (const vue of Object.keys(VUES_VALO)) $(VUES_VALO[vue]).hidden = VALO.vue !== vue;
     $("comparablesAbsents").hidden = estComparables();
     $("comparablesMain").hidden = !estComparables();
-    renderDcf();
+    renderValo();
+    placerCurseurVues();
+    if (anime) {
+      const el = $(VUES_VALO[VALO.vue]);
+      el.classList.remove("valo-anime");
+      void el.offsetWidth;   // relance l'animation d'entrée
+      el.classList.add("valo-anime");
+    }
   }
 
   document.querySelectorAll(".valo-vues button").forEach((b) => {
     b.addEventListener("click", () => {
+      if (VALO.vue === b.dataset.vue) return;
       VALO.vue = b.dataset.vue;
-      chargerValorisation();
+      chargerValorisation(true);
       ajusterCadreMultiples();
     });
   });
+  window.addEventListener("resize", placerCurseurVues);
+
+  const mouvementReduit = () => window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  // Le graphique et le détail s'échangent sur place : le fond du bloc passe au
+  // violet par transition, et sa hauteur glisse de l'un à l'autre.
+  function basculerCalculDcf() {
+    const vue = $("dcfVue");
+    const f = fluxActif();
+    if (!vue || !f) return;
+    VALO.calc = !VALO.calc;
+    const vu = VALO.calc;
+    const r = calculDcf(f, cmpcAuto(), f.g, impotRetenu(f));
+    vue.classList.toggle("is-open", vu);
+    vue.setAttribute("aria-pressed", vu ? "true" : "false");
+    vue.querySelector(".mult-view-title").textContent = vu ? "Détail du calcul · FCFF actualisés" : "FCFF prévisionnels par exercice";
+    vue.querySelector(".dcf-legende").hidden = vu;
+    vue.querySelector(".mult-view-toggle").textContent = vu ? "voir le graphique" : "voir le calcul";
+    const corps = vue.querySelector(".dcf-graphe-corps");
+    const avant = corps.offsetHeight;
+    corps.style.height = "";
+    corps.innerHTML = vu ? detailDcf(f, r) : graphiqueDcf(f, r);
+    corps.classList.remove("is-fondu");
+    void corps.offsetWidth;
+    corps.classList.add("is-fondu");
+    if (!mouvementReduit()) {
+      const apres = corps.offsetHeight;
+      corps.style.height = avant + "px";
+      void corps.offsetWidth;
+      corps.style.height = apres + "px";
+      const fin = () => { corps.style.height = ""; corps.removeEventListener("transitionend", fin); };
+      corps.addEventListener("transitionend", fin);
+    }
+  }
 
   // Le contenu est redessiné à chaque changement de paramètres : on écoute
-  // donc le conteneur, qui, lui, ne change pas.
-  $("valoDcf").addEventListener("click", (e) => {
+  // donc le panneau, qui, lui, ne change pas.
+  $("panel-valorisation").addEventListener("click", (e) => {
     const action = e.target.closest("[data-action]");
     if (action) {
-      if (action.dataset.action === "importer") $("valoFichier").click();
-      else if (action.dataset.action === "modele") telechargerBlob(modeleDcfXlsx(), "modele_dcf.xlsx");
-      else if (action.dataset.action === "test") {
+      const a = action.dataset.action;
+      if (a === "importer") $("valoFichier").click();
+      else if (a === "modele") telechargerBlob(modeleDcfXlsx(), "modele_dcf.xlsx");
+      else if (a === "test") {
         VALO.test = !VALO.test;
         VALO.erreurs = [];
-        renderDcf();
+        VALO.animer = true;
+        renderValo();
+      } else if (a === "aller-dcf") {
+        VALO.vue = "dcf";
+        chargerValorisation(true);
+        $("valoFichier").click();
+      } else if (a === "poids") {
+        // Refermer le cadenas revient à la moyenne arithmétique et oublie
+        // les poids choisis, comme pour le gearing cible.
+        VALO.poidsVerrou = !VALO.poidsVerrou;
+        if (VALO.poidsVerrou) VALO.poidsDcf = 0.5;
+        renderSynthese();
       }
       return;
     }
@@ -4595,14 +5212,15 @@
     if (e.target.closest("#dcfVue")) basculerCalculDcf();
   });
 
-  function basculerCalculDcf() {
-    VALO.calc = !VALO.calc;
-    renderDcf();
-    const vue = $("dcfVue");
-    if (vue) vue.focus({ preventScroll: true });
-  }
+  $("panel-valorisation").addEventListener("input", (e) => {
+    const cible = e.target;
+    if (cible.dataset.pas) VALO[cible.dataset.pas] = Number(cible.value) / 100;
+    else if (cible.hasAttribute("data-poids")) VALO.poidsDcf = Number(cible.value) / 100;
+    else return;
+    majSynthese();
+  });
 
-  $("valoDcf").addEventListener("keydown", (e) => {
+  $("panel-valorisation").addEventListener("keydown", (e) => {
     if (e.target.id !== "dcfVue" || (e.key !== "Enter" && e.key !== " ")) return;
     e.preventDefault();
     basculerCalculDcf();
@@ -4615,17 +5233,17 @@
   });
 
   // Glisser-déposer, sur la zone d'accueil comme sur le DCF déjà affiché.
-  $("valoDcf").addEventListener("dragover", (e) => {
+  $("panel-valorisation").addEventListener("dragover", (e) => {
     const zone = e.target.closest("[data-depot]");
     if (!zone) return;
     e.preventDefault();
     zone.classList.add("is-survol");
   });
-  $("valoDcf").addEventListener("dragleave", (e) => {
+  $("panel-valorisation").addEventListener("dragleave", (e) => {
     const zone = e.target.closest("[data-depot]");
     if (zone && !zone.contains(e.relatedTarget)) zone.classList.remove("is-survol");
   });
-  $("valoDcf").addEventListener("drop", (e) => {
+  $("panel-valorisation").addEventListener("drop", (e) => {
     const zone = e.target.closest("[data-depot]");
     if (!zone) return;
     e.preventDefault();
