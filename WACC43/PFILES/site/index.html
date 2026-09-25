@@ -1656,6 +1656,12 @@
     border-left: 10px solid var(--surface);   /* colonne décollée du tableau */
   }
   .etat-table thead th:has(+ .is-tcam) { border-radius: 0 6px 6px 0; }
+  /* Valeurs centrées ; un TCAM non significatif est un tiret discret, une
+     moyenne porte sa mention en petit dessous ; bas de colonne arrondi. */
+  .etat-table td.is-tcam { text-align: center; padding-left: 10px; }
+  .etat-table td.is-tcam small { display: block; font: 400 9px/1.2 var(--sans); color: rgba(255, 255, 255, .72); }
+  .etat-table td.is-tcam .is-ns { color: rgba(255, 255, 255, .6); }
+  .etat-table tbody tr:last-child td.is-tcam { border-radius: 0 0 6px 6px; }
   .etat-table thead th.is-tcam {
     border-radius: 6px 6px 0 0;
     border-bottom: 0;
@@ -5615,12 +5621,12 @@
               // Dans la colonne TCAM, un ratio n'a pas de croissance : on y lit sa moyenne.
               const lus = v.filter((x) => x != null);
               const moy = lus.length ? lus.reduce((a, b) => a + b, 0) / lus.length : null;
-              return `<tr class="is-pct"><td>${esc(l.libelle)}</td>${v.map((x) => `<td>${x == null ? "—" : frPct(x, 1)}</td>`).join("")}${tcam ? `<td class="is-tcam" title="Moyenne des exercices">${moy == null ? "" : "moy. " + frPct(moy, 1)}</td>` : ""}</tr>`;
+              return `<tr class="is-pct"><td>${esc(l.libelle)}</td>${v.map((x) => `<td>${x == null ? "—" : frPct(x, 1)}</td>`).join("")}${tcam ? `<td class="is-tcam" title="Moyenne des exercices">${moy == null ? "" : `${frPct(moy, 1)}<small>moyenne</small>`}</td>` : ""}</tr>`;
             }
             const m = v.map((x) => x * (options.echelle || 1));
             const t = tcam ? tcamEntre(m[0], m[n - 1], annees[n - 1] - annees[0]) : null;
             const fort = ["ca", "ebitda", "ebit", "rn", "actif_net", "cp"].indexOf(l.cle) >= 0;
-            return `<tr${fort ? ' class="is-total"' : ""} data-ligne="${l.cle}"><td>${esc(l.libelle)}</td>${m.map((x) => `<td>${frM(x)}</td>`).join("")}${tcam ? `<td class="is-tcam">${t == null ? "n.s." : frPct(t, 1)}</td>` : ""}</tr>`;
+            return `<tr${fort ? ' class="is-total"' : ""} data-ligne="${l.cle}"><td>${esc(l.libelle)}</td>${m.map((x) => `<td>${frM(x)}</td>`).join("")}${tcam ? `<td class="is-tcam">${t == null ? '<span class="is-ns" title="Non significatif : bornes nulles ou de signes opposés">—</span>' : frPct(t, 1)}</td>` : ""}</tr>`;
           }).join("")}
         </tbody>
       </table>`;
