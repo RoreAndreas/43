@@ -1650,11 +1650,19 @@
     padding-right: 10px;
     background: #9479cf;
     color: #fff;
-    font-weight: 600;
+    font-weight: 400;
     font-style: normal;
     border-bottom-color: rgba(255, 255, 255, .25);
+    border-left: 10px solid var(--surface);   /* colonne décollée du tableau */
   }
-  .etat-table thead th.is-tcam { padding-right: 10px; }
+  .etat-table thead th:has(+ .is-tcam) { border-radius: 0 6px 6px 0; }
+  .etat-table thead th.is-tcam {
+    border-radius: 6px 6px 0 0;
+    padding-right: 10px;
+    background: #9479cf;
+    color: #fff;
+    border-left: 10px solid var(--surface);
+  }
   .etat-table td.is-ecart { color: var(--warn); font-weight: 600; }
 
   /* ---------- Prévisionnel : importer ou estimer ---------- */
