@@ -1652,12 +1652,14 @@
     color: #fff;
     font-weight: 400;
     font-style: normal;
-    border-bottom-color: rgba(255, 255, 255, .25);
+    border-bottom: 0;                          /* pas de filet dans la colonne */
     border-left: 10px solid var(--surface);   /* colonne décollée du tableau */
   }
   .etat-table thead th:has(+ .is-tcam) { border-radius: 0 6px 6px 0; }
   .etat-table thead th.is-tcam {
     border-radius: 6px 6px 0 0;
+    border-bottom: 0;
+    text-align: center;
     padding-right: 10px;
     background: #9479cf;
     color: #fff;
@@ -5610,7 +5612,10 @@
                 ? '<td class="is-ok">OK</td>' : `<td class="is-ecart">${frM(x)}</td>`).join("")}${tcam ? '<td class="is-tcam"></td>' : ""}</tr>`;
             }
             if (l.ratio) {
-              return `<tr class="is-pct"><td>${esc(l.libelle)}</td>${v.map((x) => `<td>${x == null ? "—" : frPct(x, 1)}</td>`).join("")}${tcam ? '<td class="is-tcam"></td>' : ""}</tr>`;
+              // Dans la colonne TCAM, un ratio n'a pas de croissance : on y lit sa moyenne.
+              const lus = v.filter((x) => x != null);
+              const moy = lus.length ? lus.reduce((a, b) => a + b, 0) / lus.length : null;
+              return `<tr class="is-pct"><td>${esc(l.libelle)}</td>${v.map((x) => `<td>${x == null ? "—" : frPct(x, 1)}</td>`).join("")}${tcam ? `<td class="is-tcam" title="Moyenne des exercices">${moy == null ? "" : "moy. " + frPct(moy, 1)}</td>` : ""}</tr>`;
             }
             const m = v.map((x) => x * (options.echelle || 1));
             const t = tcam ? tcamEntre(m[0], m[n - 1], annees[n - 1] - annees[0]) : null;
