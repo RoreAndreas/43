@@ -1,147 +1,188 @@
-"""Onglet Valorisation : DCF et multiples réunis.
+"""Onglet Valorisation : DCF importé d'Excel et multiples réunis.
 
 Le DCF de référence est celui de la note de valorisation qui a servi de
-modèle : quatre exercices, CMPC 12,02 %, g 2 %, flux en milieu d'année. Ses
-totaux — 164 452 de flux actualisés, 574 888 de valeur terminale actualisée,
-739 340 de VE — sont recalculés ici en Python plutôt que recopiés, et comparés
-à l'écran.
+modèle : quatre exercices, g 2 %, flux en milieu d'année. Les classeurs sont
+écrits par openpyxl — donc compressés comme ceux d'Excel — et importés par le
+vrai champ de fichier. Les attendus sont recalculés ici en Python, au CMPC que
+la page affiche, plutôt que recopiés.
 """
+
+import openpyxl
+import pytest
 
 from conftest import mode_comparables
 
 ONGLET = '.tabs button[data-tab="valorisation"]'
 
+ANNEES = [2026, 2027, 2028, 2029]
 EBIT = [54463, 63821, 76624, 106636]
 DA = [63230, 80311, 100131, 82320]
 CAPEX = [86641, 79152, 77427, 77427]
 BFR = [-2723, -4404, -5212, -850]
+G = 0.02
 DETTE_NETTE = 129455
 
 
-def ve_attendue(wacc: float, g: float, impot: float = 0.25) -> float:
+def classeur(chemin, *, annees=ANNEES, sans=(), capex_negatif=False, g=G, impot=0.25):
+    """Classeur au format de la note : libellés en A, exercices en en-tête."""
+    wb = openpyxl.Workbook()
+    ws = wb.active
+    ws.title = "DCF"
+    ws.append(["M FCFA"] + [f"FY{str(a)[2:]}" for a in annees])
+    lignes = {
+        "EBIT (Résultat d'exploitation)": EBIT,
+        "(+) Dotations nettes (D&A)": DA,
+        "(−) Investissements (CapEx)": [-c for c in CAPEX] if capex_negatif else CAPEX,
+        "(−) Variation du BFR": BFR,
+    }
+    for libelle, valeurs in lignes.items():
+        if not any(m in libelle for m in sans):
+            ws.append([libelle] + valeurs[: len(annees)])
+    # Une ligne de calcul que l'import ne doit pas prendre pour l'EBIT.
+    ws.append(["(−) Impôt normatif sur l'EBIT"] + [-e * 0.25 for e in EBIT[: len(annees)]])
+    ws.append([])
+    ws.append(["Croissance à l'infini (g)", g])
+    ws.append(["Dette nette", DETTE_NETTE])
+    if impot is not None:
+        ws.append(["Taux d'IS", impot])
+    wb.save(chemin)
+    return chemin
+
+
+def ve_attendue(wacc, g=G, impot=0.25):
     fcff = [e - max(0, e) * impot + d - c + b for e, d, c, b in zip(EBIT, DA, CAPEX, BFR)]
     facteurs = [(1 + wacc) ** -(t + 0.5) for t in range(len(fcff))]
     somme = sum(f * a for f, a in zip(fcff, facteurs))
-    vt = fcff[-1] * (1 + g) / (wacc - g)
-    return somme + vt * facteurs[-1]
+    return somme + fcff[-1] * (1 + g) / (wacc - g) * facteurs[-1]
 
 
-def montant(texte: str) -> float:
+def montant(texte):
     t = texte.strip().replace(" ", "").replace(" ", "")
     signe = -1 if t.startswith("(") else 1
     return signe * float(t.strip("()"))
 
 
-def cellule(page, cle: str) -> str:
-    return page.inner_text(f'#valoDcf [data-o="{cle}"]')
+def carte(page, cle):
+    return page.inner_text(f'#valoDcf [data-carte="{cle}"] .comp-value')
 
 
-def poser_cmpc(page, valeur: str) -> None:
-    page.click('#valoDcf [data-verrou="wacc"]')
-    champ = page.locator('#valoDcf input[data-pct="wacc"]')
-    champ.fill(valeur)
+def importer(page, chemin):
+    page.click(ONGLET)
+    page.set_input_files("#valoFichier", str(chemin))
+    page.wait_for_selector('#valoDcf [data-carte="ve"], #valoDcf .valo-erreurs')
 
 
-def poser_impot(page, valeur: str) -> None:
-    page.click('#valoDcf [data-verrou="impot"]')
-    page.locator('#valoDcf input[data-pct="impot"]').fill(valeur)
+def cmpc(page):
+    return page.evaluate("cmpcAuto()")
 
 
-def test_l_onglet_existe_sans_referentiel_comparables(page):
-    """Le DCF ne dépend pas de l'échantillon : l'onglet reste visible en
-    Damodaran, et la vue Comparables y explique ce qui lui manque."""
-    assert page.is_visible(ONGLET)
+def test_sans_fichier_la_vue_invite_a_importer(page):
+    page.click(ONGLET)
+    assert page.is_visible('#valoDcf [data-action="importer"]')
+    assert page.is_visible('#valoDcf [data-action="modele"]')
+    assert page.query_selector("#valoDcf .dcf-hyp") is None
     assert page.query_selector('.tabs button[data-tab="comparables"]') is None
-    page.click(ONGLET)
-    assert page.is_visible("#valoDcf .dcf-table")
-    page.click('.valo-vues button[data-vue="comparables"]')
-    assert page.is_visible("#comparablesAbsents")
-    assert page.is_hidden("#valoDcf")
 
 
-def test_le_dcf_retrouve_la_note_de_reference(page):
-    page.click(ONGLET)
-    poser_cmpc(page, "12,02")
-    poser_impot(page, "25")
-    ve = montant(cellule(page, "ve"))
-    assert abs(ve - ve_attendue(0.1202, 0.02)) < 1
-    # Les totaux de la note, à l'arrondi de ses propres entrées près.
-    assert abs(ve - 739340) < 60
-    assert abs(montant(cellule(page, "somme")) - 164452) < 10
-    assert abs(montant(cellule(page, "vtact")) - 574888) < 60
-    # 14 713,25 : la note affiche 14 714 parce que ses lignes sont arrondies
-    # avant d'être additionnées.
-    assert cellule(page, "fcff-0") == "14 713"
-    assert cellule(page, "impot-0") == "(13 616)"
-    assert cellule(page, "tcam").replace(" ", " ") == "25,1 %"
+def test_le_dcf_importe_suit_la_note(page, tmp_path):
+    importer(page, classeur(tmp_path / "dcf.xlsx"))
+    ve = montant(carte(page, "ve"))
+    assert abs(ve - ve_attendue(cmpc(page))) < 1
+    assert [c.get_attribute("data-carte") for c in page.query_selector_all("#stackDcf .comp")] == [
+        "nopat", "fcff", "facteur", "actualise", "vt", "ve"]
+    # Cumul des NOPAT de la note : 40 848 + 47 865 + 57 468 + 79 977.
+    assert abs(montant(carte(page, "nopat")) - 226157) < 2
+    # La carte se déplie sur le détail par exercice.
+    page.click('#valoDcf [data-carte="fcff"] .comp-head')
+    detail = page.inner_text('#valoDcf [data-carte="fcff"] .sub-rows')
+    assert "FY26" in detail and "FY29" in detail
 
 
-def test_sensibilite_et_passage_a_la_vfp_concordent(page):
-    """Le centre de la grille est la VE du tableau ; les trois colonnes du
-    passage à la VFP sont les trois cases marquées de la grille."""
-    page.click(ONGLET)
-    poser_cmpc(page, "12,02")
-    poser_impot(page, "25")
-    ve = cellule(page, "ve")
-    cles = [c.inner_text() for c in page.query_selector_all("#valoDcf .sens-table td.is-cle")]
-    assert len(cles) == 3 and ve in cles
+def test_la_note_est_retrouvee_a_son_cmpc(page, tmp_path):
+    """À 12,02 %, le CMPC de la note, on retrouve sa VE de 739 340."""
+    importer(page, classeur(tmp_path / "dcf.xlsx"))
+    page.evaluate("model.brut.waccLocal = 0.1202; renderDcf()")
+    assert abs(montant(carte(page, "ve")) - 739340) < 60
+    assert abs(montant(carte(page, "actualise")) - 164452) < 10
+    assert abs(montant(carte(page, "vt")) - 574888) < 60
+
+
+def test_triangle_au_dela_de_65_pourcent(page, tmp_path):
+    importer(page, classeur(tmp_path / "haut.xlsx"))
+    assert page.query_selector('#valoDcf [data-carte="vt"] .alerte-vt') is not None
+    # À g très bas, la valeur terminale pèse moins.
+    importer(page, classeur(tmp_path / "bas.xlsx", g=-0.30))
+    assert page.query_selector('#valoDcf [data-carte="vt"] .alerte-vt') is None
+
+
+def test_curseurs_et_passage_a_la_vfp(page, tmp_path):
+    importer(page, classeur(tmp_path / "dcf.xlsx"))
+    w = cmpc(page)
+    cles = [montant(c.inner_text()) for c in page.query_selector_all("#valoDcf .sens-table td.is-cle")]
     lignes = page.query_selector_all("#valoDcf .pont-table tbody tr")
     ves = [montant(td.inner_text()) for td in lignes[0].query_selector_all("td")[1:]]
     vfps = [montant(td.inner_text()) for td in lignes[2].query_selector_all("td")[1:]]
-    assert ves[1] == montant(ve)
-    assert sorted(ves) == ves, "Min ≤ Méd ≤ Max"
-    assert sorted(montant(c) for c in cles) == ves
+    assert ves[1] == montant(carte(page, "ve"))
+    assert sorted(cles) == ves
     for v, f in zip(ves, vfps):
         assert abs(v - DETTE_NETTE - f) <= 1
-    assert abs(ves[0] - ve_attendue(0.1302, 0.017)) < 1
-    assert abs(ves[2] - ve_attendue(0.1102, 0.023)) < 1
+    assert abs(ves[0] - ve_attendue(w + 0.01, G - 0.003)) < 1
+
+    # Le curseur du CMPC élargit l'écart entre Min et Max.
+    page.fill('#valoDcf input[data-pas="pasWacc"]', "2")
+    assert "2,00" in page.inner_text('#valoDcf [data-o="pasWacc"]')
+    ves2 = [montant(td.inner_text())
+            for td in page.query_selector_all("#valoDcf .pont-table tbody tr")[0].query_selector_all("td")[1:]]
+    assert abs(ves2[0] - ve_attendue(w + 0.02, G - 0.003)) < 1
+    assert ves2[2] - ves2[0] > ves[2] - ves[0]
+    page.fill('#valoDcf input[data-pas="pasG"]', "0.5")
+    assert abs(montant(page.query_selector_all("#valoDcf .pont-table tbody tr")[0]
+                       .query_selector_all("td")[3].inner_text()) - ve_attendue(w - 0.02, G + 0.005)) < 1
 
 
-def test_une_saisie_recalcule_sans_perdre_le_champ(page):
+def test_capex_negatif_et_taux_d_is_du_pays(page, tmp_path):
+    """Le CapEx se lit en montant, quel que soit son signe ; sans taux d'IS,
+    celui du pays — 25 % par repli — est retenu."""
+    importer(page, classeur(tmp_path / "dcf.xlsx", capex_negatif=True, impot=None))
+    impot = page.evaluate("impotAuto()")
+    assert abs(montant(carte(page, "ve")) - ve_attendue(cmpc(page), impot=impot)) < 1
+
+
+def test_un_classeur_incomplet_est_refuse(page, tmp_path):
+    importer(page, classeur(tmp_path / "trou.xlsx", sans=("CapEx",)))
+    erreurs = page.inner_text("#valoDcf .valo-erreurs")
+    assert "CapEx" in erreurs
+    assert page.query_selector('#valoDcf [data-carte="ve"]') is None
+
+
+def test_le_modele_se_telecharge_et_se_reimporte(page, tmp_path):
     page.click(ONGLET)
-    poser_cmpc(page, "12")
-    avant = cellule(page, "ve")
-    champ = page.locator('#valoDcf input[data-ligne="ebit"][data-i="3"]')
-    champ.fill("120000")
-    assert cellule(page, "ve") != avant
-    assert page.evaluate("document.activeElement.dataset.i") == "3"
-    assert page.is_hidden('#valoDcf [data-o="exemple"]')
-    # À la sortie, la saisie reprend le format du tableau.
-    champ.press("Tab")
-    assert champ.input_value() == "120 000"
-
-
-def test_le_cmpc_auto_suit_l_onglet_cmpc(page):
-    """Cadenas fermé, le DCF prend le CMPC en monnaie locale affiché dans
-    l'onglet Paramètres ; l'ouvrir puis le refermer y revient."""
-    mode_comparables(page)
-    attendu = page.inner_text("#paramsResult .result-hero-value")
-    page.click(ONGLET)
-    assert cellule(page, "wacc-auto") == attendu
-    poser_cmpc(page, "15")
-    assert page.query_selector('#valoDcf [data-o="wacc-auto"]') is None
-    page.click('#valoDcf [data-verrou="wacc"]')
-    assert cellule(page, "wacc-auto") == attendu
-
-
-def test_cmpc_inferieur_a_g_est_signale(page):
-    page.click(ONGLET)
-    poser_cmpc(page, "1,5")
-    assert page.is_visible('#valoDcf [data-o="alerte"]')
-    assert cellule(page, "ve") == "—"
-
-
-def test_ajouter_un_exercice(page):
-    page.click(ONGLET)
-    page.click('#valoDcf [data-annees="1"]')
-    entetes = [th.inner_text() for th in page.query_selector_all("#valoDcf .dcf-table thead th")]
-    assert entetes[1:6] == ["FY26", "FY27", "FY28", "FY29", "FY30"]
-    assert entetes[6] == "TCAM 26-30"
+    with page.expect_download() as dl:
+        page.click('#valoDcf [data-action="modele"]')
+    chemin = tmp_path / "modele.xlsx"
+    dl.value.save_as(chemin)
+    wb = openpyxl.load_workbook(chemin)
+    ws = wb["DCF"]
+    assert "Mode d'emploi" in wb.sheetnames
+    annees = [c.value for c in ws[2][1:]]
+    assert len(annees) == 5
+    for i, valeurs in enumerate([EBIT, DA, CAPEX, BFR]):
+        for j, v in enumerate(valeurs + [valeurs[-1]]):
+            ws.cell(row=3 + i, column=2 + j, value=v)
+    ws["B8"] = 0.02
+    ws["B9"] = DETTE_NETTE
+    wb.save(chemin)
+    importer(page, chemin)
+    assert page.query_selector('#valoDcf [data-carte="ve"]') is not None
+    assert "FY" + str(annees[-1])[2:] in page.inner_text("#valoDcf .valo-import")
 
 
 def test_la_vue_comparables_montre_les_multiples(page):
-    mode_comparables(page)
     page.click(ONGLET)
     page.click('.valo-vues button[data-vue="comparables"]')
+    assert page.is_visible("#comparablesAbsents")
+    page.click('.tabs button[data-tab="params"]')
+    mode_comparables(page)
+    page.click(ONGLET)
     assert page.is_hidden("#comparablesAbsents")
     assert "VE / EBITDA" in page.inner_text("#comparablesMain")

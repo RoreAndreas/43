@@ -1078,16 +1078,13 @@
   /* ---------- Onglet Valorisation ---------- */
   /* Deux vues sous un même onglet : le DCF, toujours disponible, et les
      multiples de l'échantillon, qui n'existent qu'en référentiel Comparables. */
-  /* Plus large que les autres onglets : le calcul et la sensibilité tiennent
-     côte à côte sans replier leurs libellés. L'en-tête suit (body.is-large). */
   .valo {
-    max-width: 1344px;
+    max-width: 1060px;
     margin: 0 auto;
     padding: 30px 32px 120px;
     display: grid;
     gap: 20px;
   }
-  body.is-large .top-inner { max-width: 1344px; }
   .valo-corps { display: grid; gap: 20px; }
   .valo-vues {
     justify-self: start;
@@ -1110,133 +1107,159 @@
   }
   .valo-vues button.is-active { background: var(--ink); color: #fff; font-weight: 500; }
 
-  /* Hypothèses : une ligne de champs au-dessus des deux colonnes de calcul. */
-  .dcf-hyp {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-    gap: 16px 18px;
-  }
-  .dcf-champ { display: grid; gap: 7px; align-content: start; }
-  .dcf-champ-tete { display: flex; align-items: center; justify-content: space-between; gap: 8px; min-height: 22px; }
-  .dcf-champ .mini-input { width: 100%; padding: 7px 10px; font-size: 13px; }
-  .dcf-champ .field-hint { min-height: 14px; }
-  .dcf-auto {
-    padding: 8px 10px;
-    border: 1px solid var(--line);
-    border-radius: 6px;
-    background: var(--tile);
-    font: 500 13px/1.2 var(--mono);
-    font-variant-numeric: tabular-nums;
-    color: var(--ink);
-  }
-  .dcf-annees { display: flex; align-items: center; gap: 6px; }
-  .dcf-annees .mini-input { flex: 1 1 auto; min-width: 0; }
-  .dcf-annees button, .dcf-conv button {
-    flex: none;
-    height: 30px;
-    min-width: 30px;
-    padding: 0 9px;
-    border: 1px solid var(--line);
-    border-radius: 6px;
+  /* Import du classeur : zone d'accueil tant qu'aucun fichier n'est lu, puis
+     simple bandeau qui rappelle d'où viennent les chiffres. */
+  .valo-depot {
+    border: 1px dashed var(--muted-2);
+    border-radius: 10px;
     background: var(--surface);
-    font: 400 12px/1 var(--mono);
+    padding: 36px 28px;
+    display: grid;
+    justify-items: center;
+    gap: 12px;
+    text-align: center;
+    transition: border-color 160ms ease, background-color 160ms ease;
+  }
+  .valo-depot.is-survol { border-color: var(--accent); background: var(--accent-tint); }
+  .dcf-vue.is-survol { outline: 2px dashed var(--accent); outline-offset: 6px; border-radius: 10px; }
+  .valo-depot h3 {
+    margin: 0;
+    font: 400 10px/1 var(--mono);
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+  .valo-depot p { margin: 0; max-width: 560px; font: 400 13px/1.65 var(--sans); color: var(--ink-3); text-wrap: pretty; }
+  .valo-depot .valo-glisser { font-size: 11px; color: var(--muted-2); }
+  .valo-actions { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; margin-top: 6px; }
+  .valo-bouton {
+    padding: 8px 14px;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    background: var(--surface);
+    font: 400 12px/1 var(--sans);
     color: var(--ink-3);
     cursor: pointer;
+    transition: border-color 160ms ease, color 160ms ease, background-color 160ms ease;
   }
-  .dcf-annees button:disabled { color: var(--muted-2); cursor: default; }
-  .dcf-conv { display: flex; gap: 4px; }
-  .dcf-conv button { flex: 1 1 0; font-family: var(--sans); }
-  .dcf-conv button.is-active { border-color: var(--ink); background: var(--ink); color: #fff; }
+  .valo-bouton:hover { border-color: var(--muted-2); color: var(--ink); }
+  .valo-bouton.is-plein { background: var(--accent); border-color: var(--accent); color: #fff; }
+  .valo-bouton.is-plein:hover { background: #5c3d99; border-color: #5c3d99; color: #fff; }
+  .valo-erreurs {
+    justify-self: stretch;
+    padding: 12px 16px;
+    border: 1px solid var(--warn-soft);
+    border-radius: 8px;
+    background: var(--warn-tint);
+    font: 400 12px/1.6 var(--sans);
+    color: var(--warn);
+    text-align: left;
+  }
+  .valo-erreurs ul { margin: 4px 0 0; padding-left: 18px; }
+  .valo-import { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .valo-fichier {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    margin-right: 4px;
+    font: 500 12.5px/1.3 var(--sans);
+    color: var(--ink-2);
+    overflow-wrap: anywhere;
+  }
+  .valo-espace { flex: 1 1 auto; }
+  .dcf-avis { margin: 0; font: 400 12px/1.55 var(--sans); color: var(--warn); }
 
-  /* À gauche le calcul, à droite la sensibilité et le passage à la VFP. */
-  .dcf-grille {
+  /* Même cascade que l'onglet CMPC : cartes dépliables à gauche ; à droite,
+     les deux cadres violets de la sensibilité et du passage à la VFP. */
+  .dcf-vue {
     display: grid;
-    grid-template-columns: minmax(0, 1fr) 468px;
-    gap: 20px;
+    grid-template-columns: 430px minmax(0, 1fr);
+    gap: 32px;
     align-items: start;
   }
-  .dcf-droite { display: grid; gap: 20px; }
-  @media (max-width: 1180px) { .dcf-grille { grid-template-columns: minmax(0, 1fr); } }
-  /* Sans min-width nul, la grille de sensibilité impose sa largeur à la
-     carte au lieu de défiler dans son cadre. */
-  .dcf-grille > *, .dcf-droite > *, .card-block > .dcf-defile { min-width: 0; }
-  .dcf-defile { overflow-x: auto; }
+  .dcf-droite { display: grid; gap: 16px; min-width: 0; }
+  @media (max-width: 940px) { .dcf-vue { grid-template-columns: minmax(0, 1fr); } }
+  .comp-sous { display: block; margin-top: 3px; font: 400 11px/1.4 var(--sans); color: var(--muted); }
+  .comp.tone-green .comp-sous { color: var(--green); opacity: .75; }
+  .comp.is-open .comp-sous { color: rgba(255, 255, 255, .72); opacity: 1; }
+  .alerte-vt { display: inline-block; vertical-align: -2px; margin-left: 8px; }
 
-  /* Tableaux au format de la note de valorisation : bandeaux marine, saisies
-     en bleu, montants négatifs entre parenthèses. */
-  .dcf-table, .pont-table, .sens-table {
+  .valo-violet {
+    min-width: 0;
+    padding: 22px 24px;
+    border-radius: 10px;
+    background: var(--accent);
+    color: #fff;
+    display: grid;
+    gap: 16px;
+  }
+  .valo-violet h2 {
+    margin: 0;
+    font: 400 10px/1 var(--mono);
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+    color: rgba(255, 255, 255, .72);
+  }
+  .note-violet { margin: 0; font: 400 11px/1.6 var(--sans); color: rgba(255, 255, 255, .66); text-wrap: pretty; }
+  .curseurs { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; }
+  .curseur { display: grid; gap: 8px; }
+  .curseur-tete {
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+    font: 400 11.5px/1.3 var(--sans);
+    color: rgba(255, 255, 255, .82);
+  }
+  .curseur-tete output { font: 500 11.5px/1.3 var(--mono); color: #fff; }
+  .curseur input[type="range"] { width: 100%; margin: 0; accent-color: #fff; cursor: pointer; }
+  .valo-defile { overflow-x: auto; }
+
+  .sens-table, .pont-table {
     width: 100%;
     border-collapse: collapse;
-    font: 400 12.5px/1.35 var(--mono);
+    font: 400 12px/1.35 var(--mono);
     font-variant-numeric: tabular-nums;
-    color: var(--ink-2);
   }
-  .dcf-table th, .dcf-table td, .pont-table th, .pont-table td {
-    padding: 5px 8px;
+  .sens-table th, .sens-table td { padding: 7px 6px; text-align: right; white-space: nowrap; }
+  .sens-table th { font-weight: 400; font-size: 10.5px; color: rgba(255, 255, 255, .72); }
+  .sens-table .sens-coin { text-align: left; font-size: 10px; letter-spacing: 0.04em; }
+  .sens-table td {
+    border: 2px solid var(--accent);
+    border-radius: 6px;
+    background: rgba(255, 255, 255, .07);
+    color: rgba(255, 255, 255, .86);
+  }
+  .sens-table td.is-coeur { background: rgba(255, 255, 255, .18); color: #fff; }
+  .sens-table td.is-cle { background: #fff; color: var(--accent); font-weight: 600; }
+  .sens-table td.is-vide { color: rgba(255, 255, 255, .4); }
+  .pont-table th, .pont-table td {
+    padding: 8px 0 8px 12px;
     text-align: right;
     white-space: nowrap;
+    border-bottom: 1px solid rgba(255, 255, 255, .18);
   }
-  .dcf-table th:first-child, .dcf-table td:first-child,
   .pont-table th:first-child, .pont-table td:first-child {
+    padding-left: 0;
     text-align: left;
     font-family: var(--sans);
     white-space: normal;
   }
-  .dcf-table td:first-child { padding-left: 16px; white-space: nowrap; }
-  .dcf-table .is-bandeau th, .dcf-table .is-bandeau td,
-  .pont-table .is-bandeau th, .pont-table .is-bandeau td {
-    background: var(--blue-ink);
-    color: #fff;
-    font-weight: 600;
-    padding-top: 7px;
-    padding-bottom: 7px;
-  }
-  .dcf-table .is-bandeau td:first-child { padding-left: 8px; }
-  .dcf-table .is-fort td { font-weight: 600; color: var(--ink); }
-  .dcf-table .is-fcff td { background: var(--blue-tint); }
-  .dcf-table .is-vt td { background: var(--green-tint); }
-  .dcf-table .is-discret td { font-style: italic; color: var(--blue-ink); }
-  .dcf-table .dcf-tcam { color: var(--muted); }
-  .dcf-table .is-bandeau .dcf-tcam { color: rgba(255, 255, 255, .78); }
-  .dcf-saisie {
-    width: 100%;
-    min-width: 76px;
-    padding: 3px 5px;
-    border: 1px solid transparent;
-    border-radius: 4px;
-    background: var(--blue-tint);
-    font: 400 12.5px/1.35 var(--mono);
-    font-variant-numeric: tabular-nums;
-    color: var(--blue);
-    text-align: right;
-  }
-  .dcf-saisie:hover { border-color: var(--blue-soft); }
-  .dcf-saisie:focus { outline: none; border-color: var(--blue); background: var(--surface); }
-  .dcf-saisie.is-invalide { border-color: var(--warn); background: var(--warn-tint); color: var(--warn); }
-  .pont-table td:first-child { padding-left: 0; }
-  .pont-table .is-bandeau td:first-child { padding-left: 8px; }
-  .pont-table thead th {
-    font: 400 10px/1.7 var(--mono);
+  .pont-table th {
+    font-weight: 400;
+    font-size: 10px;
     letter-spacing: 0.06em;
     text-transform: uppercase;
-    color: var(--muted);
-    border-bottom: 1px solid var(--line);
+    color: rgba(255, 255, 255, .72);
   }
-
-  /* Sensibilité : le coeur de grille (± un pas) en bleu moyen, les trois
-     valeurs reprises dans le passage à la VFP en marine. */
-  .sens-table th, .sens-table td { padding: 6px 5px; text-align: right; white-space: nowrap; }
-  .sens-table thead th { font-size: 11px; color: var(--muted); font-weight: 400; }
-  .sens-table tbody th { font-size: 11px; color: var(--muted); font-weight: 400; padding-right: 8px; }
-  .sens-table .sens-coin { text-align: left; font: 400 10px/1.3 var(--mono); letter-spacing: 0.04em; }
-  .sens-table td { background: var(--blue-tint); border: 1px solid var(--surface); color: var(--ink-2); }
-  .sens-table td.is-coeur { background: var(--blue-soft); }
-  .sens-table td.is-cle { background: var(--blue-ink); color: #fff; font-weight: 600; }
-  .sens-table td.is-vide { color: var(--muted-2); }
-  .sens-pas { display: flex; gap: 14px; flex-wrap: wrap; align-items: center; }
-  .sens-pas label { display: inline-flex; align-items: center; gap: 6px; font: 400 11px/1 var(--sans); color: var(--ink-4); }
-  .sens-pas .mini-input { width: 64px; }
-  .dcf-alerte { margin: 0; font: 400 11.5px/1.55 var(--sans); color: var(--warn); }
+  .pont-table td { color: rgba(255, 255, 255, .88); }
+  .pont-table td:first-child { font-size: 12.5px; color: rgba(255, 255, 255, .82); }
+  .pont-table tr.is-total td {
+    border-top: 1px solid rgba(255, 255, 255, .55);
+    border-bottom: 0;
+    font-size: 13px;
+    font-weight: 600;
+    color: #fff;
+  }
   .mult-defs { display: grid; gap: 14px; }
   .mult-def { display: grid; gap: 10px; }
   .mult-def-head { display: grid; gap: 3px; }
@@ -1534,6 +1557,8 @@
     </div>
     <div class="valo-corps" id="comparablesMain"></div>
   </div>
+  <input type="file" id="valoFichier" hidden
+         accept=".xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet">
 </main>
 
 <main class="aide" id="panel-aide" hidden>
@@ -1685,9 +1710,11 @@
         <div>
           <h2>L'onglet Valorisation</h2>
           <span class="aide-ou">Onglet Valorisation — vues DCF et Comparables</span>
-          <p>Le DCF actualise les flux de trésorerie saisis au CMPC de l'onglet CMPC, que
-          le cadenas permet de remplacer. À droite, la sensibilité de la VE au CMPC et à g,
-          puis le passage de la VE à la valeur des fonds propres.</p>
+          <p>Le DCF part d'un classeur Excel que vous importez : le bouton « Télécharger le
+          modèle » en donne un prêt à remplir. Les flux sont actualisés au CMPC de l'onglet
+          CMPC ; un triangle signale une valeur terminale au-delà de 65 % de la VE. À droite,
+          la sensibilité de la VE au CMPC et à g, dont les curseurs règlent le pas, puis le
+          passage de la VE à la valeur des fonds propres.</p>
           <p>La vue Comparables présente les multiples des sociétés de l'échantillon :
           VE / EBITDA, en barres ou en tableau détaillé si vous cliquez le bloc. Elle
           demande le référentiel Comparables.</p>
@@ -2119,7 +2146,6 @@
     // Le bouton du guide est hors de la barre : son etat actif ne suit pas la
     // boucle ci-dessus, qui ne balaie que les onglets.
     $("tabAide").classList.toggle("is-on", tab === "aide");
-    document.body.classList.toggle("is-large", tab === "valorisation");
     if (tab === "valorisation") ajusterCadreMultiples();
     if (tab === "wacc" || tab === "societes") requestAnimationFrame(placeArrows);
   }
@@ -3730,7 +3756,7 @@
 
   /* ================= Onglet Valorisation : DCF =================
      Flux de trésorerie disponibles pour l'entreprise, actualisés au CMPC en
-     monnaie locale, valeur terminale de Gordon-Shapiro :
+     monnaie locale de l'onglet CMPC, valeur terminale de Gordon-Shapiro :
 
        NOPAT = EBIT − impôt normatif (taux d'IS × EBIT, nul si l'EBIT est négatif)
        FCFF  = NOPAT + D&A − CapEx + variation du BFR (signée comme un flux)
@@ -3738,52 +3764,26 @@
        VE    = Σ FCFF(t) × facteur(t) + VT × facteur(N)
        VFP   = VE − dette nette
 
-     En convention mi-année, les flux tombent au milieu de l'exercice :
-     facteur(t) = (1 + CMPC)^−(t − 0,5). La VT résume à fin N des flux reçus eux
-     aussi en milieu d'année : elle s'actualise donc avec le facteur de la
-     dernière année, et non avec (1 + CMPC)^−N.
+     Les flux tombent au milieu de l'exercice : facteur(t) = (1 + CMPC)^−(t − 0,5).
+     La VT résume à fin N des flux reçus eux aussi en milieu d'année : elle
+     s'actualise donc avec le facteur de la dernière année, et non avec
+     (1 + CMPC)^−N.
 
-     Les états financiers ne sont pas encore importés : les flux se saisissent
-     dans le tableau. Ils partent d'un exemple, signalé comme tel tant que rien
-     n'a été modifié. Cet état reste hors de l'URL : cinq lignes de montants par
-     exercice n'ont rien à faire dans un lien partagé.
+     Les flux, g et la dette nette viennent d'un classeur Excel importé. Il est
+     lu dans le navigateur — la page reste autonome, rien n'est envoyé — et
+     n'entre pas dans l'URL.
   */
   const VALO = {
     vue: "dcf",
-    exemple: true,
-    premiere: 2026,
-    ebit: [54463, 63821, 76624, 106636],
-    da: [63230, 80311, 100131, 82320],       // positif, ajouté au NOPAT
-    capex: [86641, 79152, 77427, 77427],     // positif, retranché
-    bfr: [-2723, -4404, -5212, -850],        // signé comme un flux : négatif si le BFR croît
-    detteNette: 129455,                      // négative pour une trésorerie nette
-    g: 0.02,
-    waccVerrou: true, waccSaisie: null,      // fermé : CMPC de l'onglet CMPC
-    impotVerrou: true, impotSaisie: null,    // fermé : taux d'IS du pays
-    miAnnee: true,
+    flux: null,        // classeur lu et validé
+    fichier: null,     // son nom
+    erreurs: [],       // ce qui manquait au dernier classeur refusé
+    ouvert: null,      // carte dépliée
     pasWacc: 0.01,
     pasG: 0.003,
   };
-  const DCF_ANNEES_MAX = 10;
-
-  // « (86 641) », « −86641 », « 86 641,5 » : la saisie suit les conventions
-  // d'affichage du tableau. Vide vaut zéro ; un texte illisible rend null.
-  function lireMontant(texte) {
-    let s = String(texte == null ? "" : texte).trim();
-    if (!s) return 0;
-    let signe = 1;
-    if (/^\(.*\)$/.test(s)) { signe = -1; s = s.slice(1, -1).trim(); }
-    if (/^[-−]/.test(s)) { signe = -signe; s = s.slice(1); }
-    s = s.replace(/[\s  ]/g, "").replace(",", ".");
-    if (!/^(\d+\.?\d*|\.\d+)$/.test(s)) return null;
-    return signe * Number(s);
-  }
-  function lirePct(texte) {
-    const s = String(texte == null ? "" : texte).replace("%", "").trim();
-    if (!s) return null;
-    const v = lireMontant(s);
-    return v == null ? null : v / 100;
-  }
+  // Au-delà, la valeur tient surtout à l'hypothèse de croissance à l'infini.
+  const SEUIL_VT = 0.65;
 
   const frMillier = (v) =>
     Math.round(Math.abs(v)).toString().replace(/\B(?=(\d{3})+(?!\d))/g, " ");
@@ -3791,6 +3791,19 @@
   const frFlux = (v) => (v == null || !Number.isFinite(v)) ? "—"
     : (Math.round(v) < 0 ? "(" + frMillier(v) + ")" : frMillier(v));
   const frFy = (an) => "FY" + String(an).slice(-2);
+
+  // « (86 641) », « −86641 », « 86 641,5 » : les conventions d'une note de
+  // valorisation. Vide ou illisible rend null.
+  function lireMontant(texte) {
+    let s = String(texte == null ? "" : texte).trim();
+    if (!s) return null;
+    let signe = 1;
+    if (/^\(.*\)$/.test(s)) { signe = -1; s = s.slice(1, -1).trim(); }
+    if (/^[-−]/.test(s)) { signe = -signe; s = s.slice(1); }
+    s = s.replace(/[\s  ]/g, "").replace(",", ".");
+    if (!/^(\d+\.?\d*|\.\d+)$/.test(s)) return null;
+    return signe * Number(s);
+  }
 
   function cmpcAuto() {
     if (estComparables()) {
@@ -3805,253 +3818,485 @@
   function impotAuto() {
     return impotNonPublie() ? 0.25 : DATA.pays[params.country].tax;
   }
-  function hypothesesDcf() {
-    const impot = VALO.impotVerrou ? impotAuto() : VALO.impotSaisie;
-    return {
-      wacc: VALO.waccVerrou ? cmpcAuto() : VALO.waccSaisie,
-      impot: impot == null ? 0 : impot,
-    };
-  }
+  const impotRetenu = (f) => (f.impot != null ? f.impot : impotAuto());
 
   // Fonction pure : la sensibilité la rappelle vingt-cinq fois avec d'autres
-  // couples (CMPC, g), sans rien toucher à l'état.
-  function calculDcf(wacc, g, impot) {
-    const n = VALO.ebit.length;
-    const r = { impot: [], nopat: [], fcff: [], periode: [], facteur: [], actualise: [], somme: 0 };
+  // couples (CMPC, g).
+  function calculDcf(f, wacc, g, impot) {
+    const n = f.ebit.length;
+    const r = { impot: [], nopat: [], fcff: [], facteur: [], actualise: [], somme: null };
+    const valideTaux = Number.isFinite(wacc) && wacc > -1;
     for (let t = 0; t < n; t++) {
-      const ebit = VALO.ebit[t];
-      const imp = -Math.max(0, ebit) * impot;
-      const fcff = ebit + imp + VALO.da[t] - VALO.capex[t] + VALO.bfr[t];
-      const periode = t + 1;
-      const facteur = Number.isFinite(wacc) && wacc > -1
-        ? Math.pow(1 + wacc, -(VALO.miAnnee ? periode - 0.5 : periode)) : null;
+      const imp = -Math.max(0, f.ebit[t]) * impot;
+      const fcff = f.ebit[t] + imp + f.da[t] - f.capex[t] + f.bfr[t];
+      const facteur = valideTaux ? Math.pow(1 + wacc, -(t + 0.5)) : null;
       r.impot.push(imp);
-      r.nopat.push(ebit + imp);
+      r.nopat.push(f.ebit[t] + imp);
       r.fcff.push(fcff);
-      r.periode.push(periode);
       r.facteur.push(facteur);
       r.actualise.push(facteur == null ? null : fcff * facteur);
-      r.somme += facteur == null ? 0 : fcff * facteur;
     }
-    const valide = n > 0 && r.facteur[n - 1] != null && wacc > g;
+    if (valideTaux) r.somme = r.actualise.reduce((a, b) => a + b, 0);
+    const valide = valideTaux && n > 0 && wacc > g;
     r.vt = valide ? r.fcff[n - 1] * (1 + g) / (wacc - g) : null;
     r.vtAct = valide ? r.vt * r.facteur[n - 1] : null;
     r.ve = valide ? r.somme + r.vtAct : null;
-    if (!valide) r.somme = r.facteur[n - 1] == null ? null : r.somme;
+    r.poidsVt = valide && r.ve > 0 ? r.vtAct / r.ve : null;
     return r;
   }
 
-  function champVerrouDcf(cle, libelle, ouvert, valeur, aide) {
+  /* ---- Lecture d'un classeur .xlsx ----
+     Un .xlsx est une archive zip de fichiers XML : on lit son répertoire
+     central, on décompresse les entrées utiles avec DecompressionStream, et on
+     relit la feuille « DCF », ou la première à défaut. Aucune bibliothèque :
+     la page doit rester un fichier autonome. */
+  async function ouvrirZip(octets) {
+    const dv = new DataView(octets.buffer, octets.byteOffset, octets.byteLength);
+    let fin = -1;
+    for (let i = octets.length - 22; i >= Math.max(0, octets.length - 65557); i--) {
+      if (dv.getUint32(i, true) === 0x06054b50) { fin = i; break; }
+    }
+    if (fin < 0) throw new Error("ce fichier n'est pas un classeur Excel (.xlsx).");
+    const decodeur = new TextDecoder();
+    const entrees = {};
+    let p = dv.getUint32(fin + 16, true);
+    for (let k = dv.getUint16(fin + 10, true); k > 0; k--) {
+      if (dv.getUint32(p, true) !== 0x02014b50) break;
+      const lnom = dv.getUint16(p + 28, true);
+      // Tailles lues dans le répertoire central : l'en-tête local peut les
+      // laisser à zéro quand Excel écrit un descripteur après les données.
+      entrees[decodeur.decode(octets.subarray(p + 46, p + 46 + lnom))] = {
+        methode: dv.getUint16(p + 10, true),
+        taille: dv.getUint32(p + 20, true),
+        local: dv.getUint32(p + 42, true),
+      };
+      p += 46 + lnom + dv.getUint16(p + 30, true) + dv.getUint16(p + 32, true);
+    }
+    return async (nom) => {
+      const e = entrees[nom];
+      if (!e) return null;
+      const debut = e.local + 30 + dv.getUint16(e.local + 26, true) + dv.getUint16(e.local + 28, true);
+      const brut = octets.subarray(debut, debut + e.taille);
+      if (e.methode === 0) return decodeur.decode(brut);
+      if (e.methode !== 8) throw new Error("compression du classeur non prise en charge.");
+      const flux = new Blob([brut]).stream().pipeThrough(new DecompressionStream("deflate-raw"));
+      return decodeur.decode(await new Response(flux).arrayBuffer());
+    };
+  }
+
+  // Rend la feuille en tableau de lignes : lignes[i][j], nombres ou textes.
+  async function lireFeuille(fichier) {
+    const lire = await ouvrirZip(new Uint8Array(await fichier.arrayBuffer()));
+    const xml = (texte) => new DOMParser().parseFromString(texte, "application/xml");
+    const classeur = await lire("xl/workbook.xml");
+    if (!classeur) throw new Error("ce fichier n'est pas un classeur Excel (.xlsx).");
+    const feuilles = Array.from(xml(classeur).getElementsByTagName("sheet"));
+    const choisie = feuilles.find((f) => normalize(f.getAttribute("name") || "") === "dcf") || feuilles[0];
+    if (!choisie) throw new Error("le classeur ne contient aucune feuille.");
+    const cibles = {};
+    const liens = await lire("xl/_rels/workbook.xml.rels");
+    if (liens) {
+      for (const r of xml(liens).getElementsByTagName("Relationship")) cibles[r.getAttribute("Id")] = r.getAttribute("Target");
+    }
+    let cible = cibles[choisie.getAttribute("r:id")] || "worksheets/sheet1.xml";
+    cible = cible.charAt(0) === "/" ? cible.slice(1) : "xl/" + cible;
+
+    const partages = [];
+    const ss = await lire("xl/sharedStrings.xml");
+    if (ss) {
+      for (const si of xml(ss).getElementsByTagName("si")) {
+        partages.push(Array.from(si.getElementsByTagName("t")).map((t) => t.textContent).join(""));
+      }
+    }
+    const feuille = await lire(cible);
+    if (!feuille) throw new Error("feuille introuvable dans le classeur.");
+    const lignes = [];
+    for (const c of xml(feuille).getElementsByTagName("c")) {
+      const m = /^([A-Z]+)(\d+)$/.exec(c.getAttribute("r") || "");
+      if (!m) continue;
+      const col = Array.from(m[1]).reduce((n, ch) => n * 26 + ch.charCodeAt(0) - 64, 0) - 1;
+      const v = c.getElementsByTagName("v")[0];
+      const type = c.getAttribute("t");
+      let valeur = null;
+      if (type === "s") valeur = v ? partages[Number(v.textContent)] : null;
+      else if (type === "inlineStr") valeur = Array.from(c.getElementsByTagName("t")).map((t) => t.textContent).join("");
+      else if (type === "str" || type === "e") valeur = v ? v.textContent : null;
+      else if (type === "b") valeur = v ? v.textContent === "1" : null;
+      else if (v) valeur = Number(v.textContent);
+      const i = Number(m[2]) - 1;
+      (lignes[i] = lignes[i] || [])[col] = valeur;
+    }
+    return lignes;
+  }
+
+  // Libellés reconnus en colonne A, sans accents ni casse. La première ligne
+  // qui correspond l'emporte : une ligne de calcul plus bas (« Impôt normatif
+  // sur l'EBIT ») ne remplace pas l'EBIT saisi.
+  const LIGNES_DCF = [
+    { cle: "ebit", libelle: "EBIT", motif: /\bebit\b|resultat d.?exploitation/, sauf: /impot|nopat|apres/ },
+    { cle: "da", libelle: "D&A", motif: /d ?& ?a\b|dotation|amortissement/ },
+    { cle: "capex", libelle: "CapEx", motif: /capex|investissement/ },
+    { cle: "bfr", libelle: "Variation du BFR", motif: /\bbfr\b|besoin en fonds de roulement/ },
+  ];
+  const PARAMETRES_DCF = [
+    { cle: "g", libelle: "Croissance à l'infini (g)", motif: /croissance|^g\b|perpetu/, pct: true },
+    { cle: "detteNette", libelle: "Dette nette", motif: /dette nette|tresorerie nette/ },
+    { cle: "impot", libelle: "Taux d'IS", motif: /taux d.?(is|impot|imposition)\b|tax rate/, pct: true, facultatif: true },
+  ];
+
+  const nombreCellule = (v) => (typeof v === "number" ? v : typeof v === "string" ? lireMontant(v) : null);
+  // 2 %, « 2 % », 2 ou 0,02 : au-delà de 1, la valeur est lue en points.
+  function pctCellule(v) {
+    const n = typeof v === "string" ? lireMontant(v.replace("%", "")) : nombreCellule(v);
+    if (n == null) return null;
+    return typeof v === "string" && v.indexOf("%") >= 0 ? n / 100 : Math.abs(n) >= 1 ? n / 100 : n;
+  }
+  function anneeCellule(v) {
+    if (typeof v === "number") return Number.isInteger(v) && v >= 1990 && v <= 2100 ? v : null;
+    const m = /^\s*(?:fy|ex\.?|exercice)?\s*'?(\d{4}|\d{2})\s*[ebpa]?\s*$/i.exec(String(v == null ? "" : v));
+    if (!m) return null;
+    const an = m[1].length === 2 ? 2000 + Number(m[1]) : Number(m[1]);
+    return an >= 1990 && an <= 2100 ? an : null;
+  }
+
+  // Traduit la feuille en flux du DCF, ou dresse la liste de ce qui manque.
+  function interpreterFeuille(lignes) {
+    const erreurs = [];
+    let colonnes = null;
+    for (const ligne of lignes) {
+      if (!ligne) continue;
+      const trouvees = [];
+      ligne.forEach((v, j) => { if (j > 0) { const an = anneeCellule(v); if (an) trouvees.push({ j: j, an: an }); } });
+      if (trouvees.length) { colonnes = trouvees; break; }
+    }
+    if (!colonnes) {
+      return { erreurs: ["Aucune ligne d'exercices : il faut une ligne d'en-tête avec les années (2026, FY26…)."] };
+    }
+    for (let k = 1; k < colonnes.length; k++) {
+      if (colonnes[k].an !== colonnes[k - 1].an + 1) {
+        return { erreurs: ["Les exercices de l'en-tête doivent se suivre, sans trou : " + colonnes.map((c) => c.an).join(", ") + "."] };
+      }
+    }
+
+    const f = { annees: colonnes.map((c) => c.an) };
+    const libelle = (ligne) => normalize(ligne && ligne[0] != null ? String(ligne[0]) : "");
+    for (const def of LIGNES_DCF) {
+      const ligne = lignes.find((l) => l && def.motif.test(libelle(l)) && !(def.sauf && def.sauf.test(libelle(l))));
+      if (!ligne) { erreurs.push("Ligne « " + def.libelle + " » introuvable en colonne A."); continue; }
+      const valeurs = colonnes.map((c) => nombreCellule(ligne[c.j]));
+      const manquants = colonnes.filter((c, k) => valeurs[k] == null).map((c) => frFy(c.an));
+      if (manquants.length) { erreurs.push("« " + def.libelle + " » : valeur manquante ou illisible en " + manquants.join(", ") + "."); continue; }
+      // D&A et CapEx se lisent en montants, quel que soit leur signe dans le
+      // fichier ; le BFR garde le sien, qui dit s'il consomme ou libère.
+      f[def.cle] = def.cle === "da" || def.cle === "capex" ? valeurs.map(Math.abs) : valeurs;
+    }
+    for (const def of PARAMETRES_DCF) {
+      const ligne = lignes.find((l) => l && def.motif.test(libelle(l)));
+      const brut = ligne ? ligne.slice(1).find((v) => v != null && v !== "") : null;
+      const valeur = brut == null ? null : def.pct ? pctCellule(brut) : nombreCellule(brut);
+      if (valeur == null) {
+        if (def.facultatif) { f[def.cle] = null; continue; }
+        erreurs.push(ligne ? "« " + def.libelle + " » : valeur illisible." : "Ligne « " + def.libelle + " » introuvable en colonne A.");
+        continue;
+      }
+      f[def.cle] = valeur;
+    }
+    return erreurs.length ? { erreurs: erreurs } : { flux: f };
+  }
+
+  async function importerClasseur(fichier) {
+    if (!fichier) return;
+    let resultat;
+    try {
+      resultat = interpreterFeuille(await lireFeuille(fichier));
+    } catch (err) {
+      resultat = { erreurs: ["Lecture impossible : " + (err && err.message ? err.message : err)] };
+    }
+    if (resultat.flux) {
+      VALO.flux = resultat.flux;
+      VALO.fichier = fichier.name;
+      VALO.erreurs = [];
+      VALO.ouvert = null;
+    } else {
+      // Un classeur refusé ne remplace pas celui qui était lu.
+      VALO.erreurs = resultat.erreurs;
+      VALO.fichierRefuse = fichier.name;
+    }
+    renderDcf();
+  }
+
+  /* ---- Modèle à remplir ---- */
+  function modeleDcfXlsx() {
+    const an0 = Number(DATA.defaults.year) || new Date().getFullYear();
+    const annees = [0, 1, 2, 3, 4].map((k) => an0 + k);
+    const col = (j) => String.fromCharCode(65 + j);
+    const texte = (ref, t, s) => `<c r="${ref}" t="inlineStr"${s ? ` s="${s}"` : ""}><is><t>${xmlEsc(t)}</t></is></c>`;
+    const vide = (ref, s) => `<c r="${ref}" s="${s}"/>`;
+    const ligne = (r, cellules) => `<row r="${r}">${cellules.join("")}</row>`;
+    const saisies = (r, s) => annees.map((_, k) => vide(col(k + 1) + r, s));
+    const feuille = (lignesXml, colonnes) =>
+      '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>' +
+      '<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">' +
+      `<cols>${colonnes}</cols><sheetData>${lignesXml.join("")}</sheetData></worksheet>`;
+
+    const dcf = feuille([
+      ligne(1, [texte("A1", "Flux du DCF, en M FCFA", 1)]),
+      ligne(2, [texte("A2", "Exercice", 1)].concat(annees.map((a, k) => `<c r="${col(k + 1)}2" s="1"><v>${a}</v></c>`))),
+      ligne(3, [texte("A3", "EBIT (résultat d'exploitation)")].concat(saisies(3, 2))),
+      ligne(4, [texte("A4", "Dotations aux amortissements (D&A)")].concat(saisies(4, 2))),
+      ligne(5, [texte("A5", "Investissements (CapEx)")].concat(saisies(5, 2))),
+      ligne(6, [texte("A6", "Variation du BFR")].concat(saisies(6, 2))),
+      ligne(8, [texte("A8", "Croissance à l'infini (g)"), vide("B8", 3)]),
+      ligne(9, [texte("A9", "Dette nette"), vide("B9", 2)]),
+      ligne(10, [texte("A10", "Taux d'IS (facultatif)"), vide("B10", 3)]),
+    ], '<col min="1" max="1" width="38" customWidth="1"/><col min="2" max="6" width="13" customWidth="1"/>');
+
+    const consignes = [
+      "Remplissez la feuille DCF puis importez le classeur dans l'onglet Valorisation.",
+      "Montants en millions de FCFA. Les exercices se suivent ; ajoutez ou retirez des colonnes à volonté.",
+      "D&A et CapEx : montants, sans signe. Le CapEx est retranché, les D&A ajoutées.",
+      "Variation du BFR : signée comme un flux de trésorerie, négative quand le BFR augmente.",
+      "g et taux d'IS en %. Sans taux d'IS, celui du pays de valorisation est retenu.",
+      "Dette nette : négative pour une trésorerie nette.",
+      "Les libellés de la colonne A peuvent être reformulés : EBIT, D&A, CapEx, BFR, croissance et dette nette y sont reconnus.",
+    ];
+    const aide = feuille(consignes.map((t, i) => ligne(i + 1, [texte("A" + (i + 1), t)])),
+      '<col min="1" max="1" width="110" customWidth="1"/>');
+
+    const ns = "http://schemas.openxmlformats.org";
+    const tete = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>';
+    const typeFeuille = "application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml";
+    return new Blob([zipStored([
+      { nom: "[Content_Types].xml", contenu: tete +
+        `<Types xmlns="${ns}/package/2006/content-types">` +
+        '<Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/>' +
+        '<Default Extension="xml" ContentType="application/xml"/>' +
+        '<Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/>' +
+        `<Override PartName="/xl/worksheets/sheet1.xml" ContentType="${typeFeuille}"/>` +
+        `<Override PartName="/xl/worksheets/sheet2.xml" ContentType="${typeFeuille}"/>` +
+        '<Override PartName="/xl/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml"/>' +
+        "</Types>" },
+      { nom: "_rels/.rels", contenu: tete +
+        `<Relationships xmlns="${ns}/package/2006/relationships">` +
+        `<Relationship Id="rId1" Type="${ns}/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/>` +
+        "</Relationships>" },
+      { nom: "xl/workbook.xml", contenu: tete +
+        `<workbook xmlns="${ns}/spreadsheetml/2006/main" xmlns:r="${ns}/officeDocument/2006/relationships">` +
+        '<sheets><sheet name="DCF" sheetId="1" r:id="rId1"/><sheet name="Mode d\'emploi" sheetId="2" r:id="rId2"/></sheets>' +
+        "</workbook>" },
+      { nom: "xl/_rels/workbook.xml.rels", contenu: tete +
+        `<Relationships xmlns="${ns}/package/2006/relationships">` +
+        `<Relationship Id="rId1" Type="${ns}/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet1.xml"/>` +
+        `<Relationship Id="rId2" Type="${ns}/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet2.xml"/>` +
+        `<Relationship Id="rId3" Type="${ns}/officeDocument/2006/relationships/styles" Target="styles.xml"/>` +
+        "</Relationships>" },
+      // Saisies en bleu, négatifs entre parenthèses : les conventions de la page.
+      { nom: "xl/styles.xml", contenu: tete +
+        `<styleSheet xmlns="${ns}/spreadsheetml/2006/main">` +
+        '<numFmts count="1"><numFmt numFmtId="164" formatCode="#,##0;(#,##0)"/></numFmts>' +
+        '<fonts count="3"><font><sz val="11"/><name val="Calibri"/></font>' +
+        '<font><b/><sz val="11"/><name val="Calibri"/></font>' +
+        '<font><sz val="11"/><color rgb="FF1D4ED8"/><name val="Calibri"/></font></fonts>' +
+        '<fills count="2"><fill><patternFill patternType="none"/></fill><fill><patternFill patternType="gray125"/></fill></fills>' +
+        '<borders count="1"><border><left/><right/><top/><bottom/><diagonal/></border></borders>' +
+        '<cellStyleXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0"/></cellStyleXfs>' +
+        '<cellXfs count="4"><xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0"/>' +
+        '<xf numFmtId="0" fontId="1" fillId="0" borderId="0" xfId="0" applyFont="1"/>' +
+        '<xf numFmtId="164" fontId="2" fillId="0" borderId="0" xfId="0" applyNumberFormat="1" applyFont="1"/>' +
+        '<xf numFmtId="10" fontId="2" fillId="0" borderId="0" xfId="0" applyNumberFormat="1" applyFont="1"/></cellXfs>' +
+        '<cellStyles count="1"><cellStyle name="Normal" xfId="0" builtinId="0"/></cellStyles>' +
+        "</styleSheet>" },
+      { nom: "xl/worksheets/sheet1.xml", contenu: dcf },
+      { nom: "xl/worksheets/sheet2.xml", contenu: aide },
+    ])], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });
+  }
+
+  function telechargerBlob(blob, nom) {
+    const url = URL.createObjectURL(blob);
+    const lien = document.createElement("a");
+    lien.href = url;
+    lien.download = nom;
+    document.body.appendChild(lien);
+    lien.click();
+    lien.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  }
+
+  /* ---- Affichage ---- */
+  const TRIANGLE_VT = (poids) => `
+    <svg class="alerte-vt" width="18" height="16" viewBox="0 0 18 16" role="img"
+         aria-label="Valeur terminale au-delà de ${frPct(SEUIL_VT, 0)} de la VE">
+      <title>La valeur terminale pèse ${frPct(poids, 0)} de la VE, au-delà du seuil de ${frPct(SEUIL_VT, 0)}.</title>
+      <path d="M9 1.6L16.8 14.6H1.2Z" fill="#facc15" stroke="#dc2626" stroke-width="1.4" stroke-linejoin="round"/>
+      <path d="M9 6.2v4" stroke="#dc2626" stroke-width="1.6" stroke-linecap="round"/>
+      <circle cx="9" cy="12.3" r="0.95" fill="#dc2626"/>
+    </svg>`;
+
+  function erreursHtml() {
+    if (!VALO.erreurs.length) return "";
     return `
-      <div class="dcf-champ">
-        <span class="dcf-champ-tete">
-          <span class="field-label">${libelle}</span>
-          <button type="button" class="verrou${ouvert ? " is-open" : ""}" data-verrou="${cle}"
-                  aria-pressed="${ouvert ? "true" : "false"}"
-                  title="${ouvert ? "Revenir à la valeur calculée" : "Saisir une autre valeur"}">
-            ${ouvert ? CADENAS.ouvert : CADENAS.ferme}<span>${ouvert ? "Saisi" : "Auto"}</span>
-          </button>
-        </span>
-        ${ouvert
-          ? `<input class="mini-input" data-pct="${cle}" inputmode="decimal" aria-label="${esc(libelle)}"
-                    value="${valeur == null ? "" : frNum(valeur * 100, 2)}" placeholder="en %">`
-          : `<span class="dcf-auto" data-o="${cle}-auto">${valeur == null ? "—" : frPct(valeur)}</span>`}
-        <span class="field-hint">${aide}</span>
+      <div class="valo-erreurs" role="alert">
+        <strong>${esc(VALO.fichierRefuse || "Le classeur")} n'a pas pu être importé.</strong>
+        <ul>${VALO.erreurs.map((e) => `<li>${esc(e)}</li>`).join("")}</ul>
       </div>`;
   }
 
+  function cartesDcf(f, wacc, r, impot) {
+    const debut = frFy(f.annees[0]), fin = frFy(f.annees[f.annees.length - 1]);
+    const horizon = debut === fin ? debut : debut + " à " + fin;
+    const parAnnee = (valeurs, format) => f.annees.map((an, t) => ({ label: frFy(an), value: format(valeurs[t]) }));
+    const cumul = (valeurs) => valeurs.reduce((a, b) => a + b, 0);
+    const alerte = r.poidsVt != null && r.poidsVt > SEUIL_VT;
+    return [
+      { id: "nopat", titre: "NOPAT", sous: "Cumul " + horizon, valeur: frFlux(cumul(r.nopat)),
+        rows: [{ label: "Taux d'IS normatif" + (f.impot == null && impotNonPublie() ? " (non publié, 25 % retenu)" : ""), value: frPct(impot, 1) }]
+          .concat(parAnnee(r.nopat, frFlux)) },
+      { id: "fcff", titre: "FCFF", sous: "Cumul " + horizon, valeur: frFlux(cumul(r.fcff)),
+        rows: parAnnee(r.fcff, frFlux) },
+      { id: "facteur", titre: "Facteur d'actualisation", sous: "CMPC en monnaie locale, flux en milieu d'année",
+        valeur: frPct(wacc), rows: parAnnee(r.facteur, (v) => frNum(v, 4)) },
+      { id: "actualise", titre: "FCFF actualisés", sous: "Somme " + horizon, valeur: frFlux(r.somme),
+        rows: parAnnee(r.actualise, frFlux).concat([{ label: "Somme des FCFF actualisés", value: frFlux(r.somme), strong: true }]) },
+      { id: "vt", titre: "Valeur terminale", alerte: alerte,
+        sous: "Gordon-Shapiro, actualisée" + (r.poidsVt != null ? " · " + frPct(r.poidsVt, 0) + " de la VE" : ""),
+        valeur: frFlux(r.vtAct),
+        rows: [
+          { label: "FCFF " + fin, value: frFlux(r.fcff[r.fcff.length - 1]) },
+          { label: "Croissance à l'infini (g)", value: frPct(f.g) },
+          { label: "CMPC", value: frPct(wacc) },
+          { label: "Valeur terminale à fin " + fin, value: frFlux(r.vt) },
+          { label: "Facteur " + fin, value: frNum(r.facteur[r.facteur.length - 1], 4) },
+          { label: "Valeur terminale actualisée", value: frFlux(r.vtAct), strong: true },
+          { label: "Poids dans la VE", value: r.poidsVt == null ? "—" : frPct(r.poidsVt, 1) },
+        ] },
+      { id: "ve", titre: "Valeur d'entreprise", sous: "M FCFA", valeur: frFlux(r.ve), tone: "green", final: true,
+        rows: [
+          { label: "Somme des FCFF actualisés", value: frFlux(r.somme) },
+          { label: "Valeur terminale actualisée", value: frFlux(r.vtAct) },
+          { label: "Valeur d'entreprise", value: frFlux(r.ve), strong: true },
+        ] },
+    ];
+  }
+
   function renderDcf() {
-    const n = VALO.ebit.length;
-    const h = hypothesesDcf();
-    const nomsLignes = { ebit: "EBIT", da: "D&A", capex: "CapEx", bfr: "Variation du BFR" };
-    const saisies = (ligne, signe) => VALO[ligne].map((v, t) => `
-      <td><input class="dcf-saisie" data-ligne="${ligne}" data-i="${t}" inputmode="decimal"
-                 aria-label="${nomsLignes[ligne]} ${frFy(VALO.premiere + t)}"
-                 value="${frFlux(signe * v)}"></td>`).join("");
-    const calcul = (cle) => VALO.ebit.map((_, t) => `<td data-o="${cle}-${t}"></td>`).join("");
-    const total = (cle, libelle, classe) => `
-      <tr class="${classe}"><td data-o="${cle}-lib">${libelle}</td>${"<td></td>".repeat(n - 1)}<td data-o="${cle}"></td><td></td></tr>`;
+    const racine = $("valoDcf");
+    const f = VALO.flux;
+    if (!f) {
+      racine.innerHTML = `
+        <div class="valo-depot" data-depot>
+          <h3>Importer les flux du DCF</h3>
+          <p>Chargez un classeur Excel (.xlsx) : une ligne d'exercices, puis l'EBIT, les D&amp;A, le
+          CapEx et la variation du BFR, avec la croissance à l'infini et la dette nette. Le
+          fichier est lu dans votre navigateur : rien n'est envoyé.</p>
+          <div class="valo-actions">
+            <button type="button" class="valo-bouton is-plein" data-action="importer">Importer un fichier Excel</button>
+            <button type="button" class="valo-bouton" data-action="modele">Télécharger le modèle</button>
+          </div>
+          <p class="valo-glisser">ou déposez le fichier ici</p>
+          ${erreursHtml()}
+        </div>`;
+      return;
+    }
 
-    $("valoDcf").innerHTML = `
-      <section class="card-block">
-        <div class="block-head">
-          <h2>Hypothèses du DCF</h2>
-          <div class="chips">
-            <span class="chip is-accent" data-o="exemple"${VALO.exemple ? "" : " hidden"}>Chiffres d'exemple, à remplacer</span>
-            <span class="chip">M FCFA</span>
-          </div>
-        </div>
-        <div class="dcf-hyp">
-          ${champVerrouDcf("wacc", "CMPC, monnaie locale", !VALO.waccVerrou,
-            VALO.waccVerrou ? h.wacc : VALO.waccSaisie,
-            VALO.waccVerrou ? "Repris de l'onglet CMPC" : "Saisi dans cet onglet")}
-          <div class="dcf-champ">
-            <span class="dcf-champ-tete"><span class="field-label">Croissance à l'infini (g)</span></span>
-            <input class="mini-input" data-pct="g" inputmode="decimal" aria-label="Croissance à l'infini"
-                   value="${frNum(VALO.g * 100, 2)}">
-            <span class="field-hint">En %, Gordon-Shapiro</span>
-          </div>
-          ${champVerrouDcf("impot", "Taux d'IS normatif", !VALO.impotVerrou,
-            VALO.impotVerrou ? impotAuto() : VALO.impotSaisie,
-            !VALO.impotVerrou ? "Saisi dans cet onglet"
-              : esc(params.country) + (impotNonPublie() ? " : non publié, 25 % retenu" : ""))}
-          <div class="dcf-champ">
-            <span class="dcf-champ-tete"><span class="field-label">Dette nette</span></span>
-            <input class="mini-input" data-montant="detteNette" inputmode="decimal" aria-label="Dette nette"
-                   value="${frFlux(VALO.detteNette)}">
-            <span class="field-hint">Négative si trésorerie nette</span>
-          </div>
-          <div class="dcf-champ">
-            <span class="dcf-champ-tete"><span class="field-label">Premier exercice</span></span>
-            <span class="dcf-annees">
-              <input class="mini-input" data-annee="premiere" inputmode="numeric" aria-label="Premier exercice"
-                     value="${VALO.premiere}">
-              <button type="button" data-annees="-1" aria-label="Retirer un exercice"${n <= 1 ? " disabled" : ""}>−</button>
-              <button type="button" data-annees="1" aria-label="Ajouter un exercice"${n >= DCF_ANNEES_MAX ? " disabled" : ""}>+</button>
-            </span>
-            <span class="field-hint">${n} exercice${n > 1 ? "s" : ""} projeté${n > 1 ? "s" : ""}</span>
-          </div>
-          <div class="dcf-champ">
-            <span class="dcf-champ-tete"><span class="field-label">Actualisation</span></span>
-            <span class="dcf-conv">
-              <button type="button" data-conv="mi" class="${VALO.miAnnee ? "is-active" : ""}">Mi-année</button>
-              <button type="button" data-conv="fin" class="${VALO.miAnnee ? "" : "is-active"}">Fin d'année</button>
-            </span>
-            <span class="field-hint">Date des flux dans l'exercice</span>
-          </div>
-        </div>
-        <p class="dcf-alerte" data-o="alerte" hidden></p>
-      </section>
+    const wacc = cmpcAuto();
+    const impot = impotRetenu(f);
+    const r = calculDcf(f, wacc, f.g, impot);
+    const debut = frFy(f.annees[0]), fin = frFy(f.annees[f.annees.length - 1]);
+    let avis = "";
+    if (wacc == null) avis = "Aucun CMPC n'est calculé pour les paramètres actuels : réglez-les dans l'onglet Paramètres.";
+    else if (wacc <= f.g) avis = "Le CMPC (" + frPct(wacc) + ") doit dépasser la croissance à l'infini (" + frPct(f.g) + ") : sans cela, la valeur terminale n'a pas de sens.";
 
-      <div class="dcf-grille">
-        <section class="card-block">
-          <div class="block-head"><h2>Flux de trésorerie actualisés</h2></div>
-          <div class="dcf-defile">
-            <table class="dcf-table">
-              <thead>
-                <tr class="is-bandeau">
-                  <th>DCF</th>
-                  ${VALO.ebit.map((_, t) => `<th data-o="an-${t}"></th>`).join("")}
-                  <th class="dcf-tcam" data-o="tcam-tete"></th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr><td>EBIT (résultat d'exploitation)</td>${saisies("ebit", 1)}<td class="dcf-tcam" data-o="tcam"></td></tr>
-                <tr><td>(−) Impôt normatif sur l'EBIT</td>${calcul("impot")}<td></td></tr>
-                <tr class="is-fort"><td>NOPAT (résultat d'exploitation après impôt)</td>${calcul("nopat")}<td></td></tr>
-                <tr><td>(+) Dotations nettes (D&amp;A)</td>${saisies("da", 1)}<td></td></tr>
-                <tr><td>(−) Investissements (CapEx)</td>${saisies("capex", -1)}<td></td></tr>
-                <tr><td title="Signée comme un flux : négative quand le BFR augmente">(−) Variation du BFR</td>${saisies("bfr", 1)}<td></td></tr>
-                <tr class="is-fort is-fcff"><td>FCFF (flux disponible pour l'entreprise)</td>${calcul("fcff")}<td></td></tr>
-                <tr class="is-discret"><td>Période d'actualisation (n)</td>${calcul("periode")}<td></td></tr>
-                <tr class="is-discret"><td>Facteur d'actualisation</td>${calcul("facteur")}<td></td></tr>
-                <tr class="is-fort"><td>FCFF actualisé</td>${calcul("actualise")}<td></td></tr>
-                ${total("somme", "", "")}
-                ${total("vt", "", "is-discret")}
-                ${total("vtact", "Valeur terminale actualisée", "is-fort is-vt")}
-                ${total("ve", "Valeur d'entreprise (VE)", "is-bandeau")}
-              </tbody>
-            </table>
-          </div>
-          <p class="note" data-o="note-vt"></p>
+    const cartes = cartesDcf(f, wacc, r, impot);
+    racine.innerHTML = `
+      <div class="valo-import">
+        <span class="valo-fichier">
+          <svg width="13" height="15" viewBox="0 0 13 15" fill="none" aria-hidden="true"><path d="M2 1h6l3.5 3.5V13a1 1 0 01-1 1H2a1 1 0 01-1-1V2a1 1 0 011-1z" stroke="currentColor" stroke-width="1.2"/><path d="M8 1v3.5h3.5" stroke="currentColor" stroke-width="1.2"/></svg>
+          ${esc(VALO.fichier)}
+        </span>
+        <span class="chip">${debut === fin ? debut : debut + "–" + fin}</span>
+        <span class="chip">M FCFA</span>
+        <span class="valo-espace"></span>
+        <button type="button" class="valo-bouton" data-action="modele">Télécharger le modèle</button>
+        <button type="button" class="valo-bouton" data-action="importer">Remplacer le fichier</button>
+      </div>
+      ${erreursHtml()}
+      ${avis ? `<p class="dcf-avis" role="alert">${esc(avis)}</p>` : ""}
+      <div class="dcf-vue" data-depot>
+        <section class="stack" id="stackDcf">
+          ${cartes.map((c) => `
+            <div class="comp${c.tone ? " tone-" + c.tone : ""}${c.final ? " is-final" : ""}${VALO.ouvert === c.id ? " is-open" : ""}" data-carte="${c.id}">
+              <button type="button" class="comp-head" aria-expanded="${VALO.ouvert === c.id ? "true" : "false"}">
+                <span class="comp-title">${esc(c.titre)}${c.alerte ? TRIANGLE_VT(r.poidsVt) : ""}<span class="comp-sous">${esc(c.sous)}</span></span>
+                <span class="comp-value">${esc(c.valeur)}</span>
+              </button>
+              <div class="comp-wrap"><div class="comp-clip"><div class="comp-body">
+                <span class="sub-rows">
+                  ${c.rows.map((row) => `
+                    <span class="sub-row${row.strong ? " is-strong" : ""}">
+                      <span>${esc(row.label)}</span><span>${esc(row.value)}</span>
+                    </span>`).join("")}
+                </span>
+              </div></div></div>
+            </div>`).join("")}
         </section>
 
         <div class="dcf-droite">
-          <section class="card-block">
-            <div class="block-head"><h2>Sensibilité de la VE</h2></div>
-            <div class="sens-pas">
-              <label>Pas CMPC <input class="mini-input" data-pct="pasWacc" inputmode="decimal"
-                     aria-label="Pas du CMPC" value="${frNum(VALO.pasWacc * 100, 2)}"> %</label>
-              <label>Pas g <input class="mini-input" data-pct="pasG" inputmode="decimal"
-                     aria-label="Pas de g" value="${frNum(VALO.pasG * 100, 2)}"> %</label>
+          <section class="valo-violet">
+            <h2>Sensibilité de la VE</h2>
+            <div class="curseurs">
+              <label class="curseur">
+                <span class="curseur-tete"><span>Pas du CMPC</span><output data-o="pasWacc"></output></span>
+                <input type="range" min="0.25" max="2" step="0.25" value="${VALO.pasWacc * 100}" data-pas="pasWacc" aria-label="Pas du CMPC, en points">
+              </label>
+              <label class="curseur">
+                <span class="curseur-tete"><span>Pas de g</span><output data-o="pasG"></output></span>
+                <input type="range" min="0.1" max="1" step="0.1" value="${VALO.pasG * 100}" data-pas="pasG" aria-label="Pas de g, en points">
+              </label>
             </div>
-            <div class="dcf-defile" data-html="sens"></div>
+            <div class="valo-defile" data-html="sens"></div>
           </section>
-          <section class="card-block">
-            <div class="block-head"><h2>De la VE à la valeur des fonds propres</h2></div>
+          <section class="valo-violet">
+            <h2>De la VE à la valeur des fonds propres</h2>
             <div data-html="pont"></div>
           </section>
         </div>
       </div>`;
-    majDcf();
+    majSensibilite();
   }
 
-  // Remplit les cellules calculées sans redessiner les champs : la saisie en
-  // cours garde son curseur, et chaque frappe met le résultat à jour.
-  function majDcf() {
+  // Les curseurs ne redessinent que les deux cadres violets : le curseur
+  // saisi reste sous le doigt.
+  function majSensibilite() {
     const racine = $("valoDcf");
-    const ecrire = (cle, texte) => {
-      const el = racine.querySelector(`[data-o="${cle}"]`);
-      if (el) el.textContent = texte;
-    };
-    const remplir = (cle, html) => {
-      const el = racine.querySelector(`[data-html="${cle}"]`);
-      if (el) el.innerHTML = html;
-    };
-    const n = VALO.ebit.length;
-    const h = hypothesesDcf();
-    const r = calculDcf(h.wacc, VALO.g, h.impot);
-    const debut = frFy(VALO.premiere), fin = frFy(VALO.premiere + n - 1);
-
-    for (let t = 0; t < n; t++) {
-      ecrire("an-" + t, frFy(VALO.premiere + t));
-      ecrire("impot-" + t, frFlux(r.impot[t]));
-      ecrire("nopat-" + t, frFlux(r.nopat[t]));
-      ecrire("fcff-" + t, frFlux(r.fcff[t]));
-      ecrire("periode-" + t, String(r.periode[t]));
-      ecrire("facteur-" + t, r.facteur[t] == null ? "—" : frNum(r.facteur[t], 2));
-      ecrire("actualise-" + t, frFlux(r.actualise[t]));
-    }
-    // TCAM de l'EBIT : seulement entre deux exercices positifs.
-    const e0 = VALO.ebit[0], eN = VALO.ebit[n - 1];
-    const tcam = n > 1 && e0 > 0 && eN > 0 ? Math.pow(eN / e0, 1 / (n - 1)) - 1 : null;
-    ecrire("tcam-tete", n > 1 ? "TCAM " + debut.slice(2) + "-" + fin.slice(2) : "");
-    ecrire("tcam", tcam == null ? "" : frPct(tcam, 1));
-    ecrire("somme-lib", "Somme des FCFF actualisés, " + debut + " à " + fin);
-    ecrire("somme", frFlux(r.somme));
-    ecrire("vt-lib", "Valeur terminale à fin " + fin + " (Gordon-Shapiro)");
-    ecrire("vt", frFlux(r.vt));
-    ecrire("vtact", frFlux(r.vtAct));
-    ecrire("ve", frFlux(r.ve));
-    ecrire("wacc-auto", h.wacc == null ? "—" : frPct(h.wacc));
-    ecrire("impot-auto", frPct(impotAuto()));
-    const chip = racine.querySelector('[data-o="exemple"]');
-    if (chip) chip.hidden = !VALO.exemple;
-
-    let alerte = "";
-    if (h.wacc == null) alerte = "Aucun CMPC n'est calculé pour ces paramètres : ouvrez le cadenas du CMPC pour en saisir un.";
-    else if (h.wacc <= VALO.g) alerte = "Le CMPC doit dépasser la croissance à l'infini : sans cela, la valeur terminale n'a pas de sens.";
-    const alerteEl = racine.querySelector('[data-o="alerte"]');
-    if (alerteEl) { alerteEl.textContent = alerte; alerteEl.hidden = !alerte; }
-
-    ecrire("note-vt", r.ve > 0
-      ? "La valeur terminale représente " + frPct(r.vtAct / r.ve, 0) + " de la VE"
-        + (r.vtAct / r.ve > 0.75 ? " : l'essentiel de la valeur tient à l'hypothèse de g." : ".")
-        + " Actualisation au CMPC de " + frPct(h.wacc) + (VALO.miAnnee ? ", flux en milieu d'année." : ", flux en fin d'année.")
-      : "");
-
-    remplir("sens", grilleSensibilite(h));
-    remplir("pont", pontVfp(h));
+    const f = VALO.flux;
+    if (!f) return;
+    const wacc = cmpcAuto();
+    const impot = impotRetenu(f);
+    const pts = (v) => "± " + frNum(v * 100, 2) + (Math.abs(v * 100) < 2 ? " pt" : " pts");
+    racine.querySelector('[data-o="pasWacc"]').textContent = pts(VALO.pasWacc);
+    racine.querySelector('[data-o="pasG"]').textContent = pts(VALO.pasG);
+    racine.querySelector('[data-html="sens"]').innerHTML = grilleSensibilite(f, wacc, impot);
+    racine.querySelector('[data-html="pont"]').innerHTML = pontVfp(f, wacc, impot);
   }
 
   // Cinq CMPC × cinq g autour des valeurs retenues. Le coeur (± un pas) est
-  // teinté ; le centre et les deux coins opposés sont les trois VE reprises
+  // éclairci ; le centre et les deux coins opposés sont les trois VE reprises
   // dans le passage à la VFP.
-  function grilleSensibilite(h) {
-    if (h.wacc == null) return '<p class="note">Sans CMPC, pas de sensibilité.</p>';
+  function grilleSensibilite(f, wacc, impot) {
+    if (wacc == null) return '<p class="note-violet">Sans CMPC, pas de sensibilité.</p>';
     const k = [-2, -1, 0, 1, 2];
-    const ws = k.map((i) => h.wacc + i * VALO.pasWacc);
-    const gs = k.map((j) => VALO.g + j * VALO.pasG);
+    const ws = k.map((i) => wacc + i * VALO.pasWacc);
+    const gs = k.map((j) => f.g + j * VALO.pasG);
     const cles = ["2,2", "3,1", "1,3"];
     return `
       <table class="sens-table">
-        <thead><tr><th class="sens-coin">CMPC ↓ g →</th>${gs.map((g) => `<th>${frPct(g, 1)}</th>`).join("")}</tr></thead>
+        <thead><tr><th class="sens-coin">CMPC ↓ g →</th>${gs.map((g) => `<th>${frPct(g, 2)}</th>`).join("")}</tr></thead>
         <tbody>
           ${ws.map((w, i) => `
-            <tr><th>${frPct(w, 1)}</th>${gs.map((g, j) => {
-              const ve = calculDcf(w, g, h.impot).ve;
+            <tr><th>${frPct(w, 2)}</th>${gs.map((g, j) => {
+              const ve = calculDcf(f, w, g, impot).ve;
               const classe = ve == null ? "is-vide"
-                : cles.includes(i + "," + j) ? "is-cle"
+                : cles.indexOf(i + "," + j) >= 0 ? "is-cle"
                 : Math.abs(i - 2) <= 1 && Math.abs(j - 2) <= 1 ? "is-coeur" : "";
               return `<td class="${classe}">${frFlux(ve)}</td>`;
             }).join("")}</tr>`).join("")}
@@ -4059,26 +4304,26 @@
       </table>`;
   }
 
-  // Min : CMPC un pas au-dessus, g un pas au-dessous — et l'inverse pour Max.
-  function pontVfp(h) {
+  // Min : CMPC un pas au-dessus, g un pas au-dessous ; l'inverse pour Max.
+  function pontVfp(f, wacc, impot) {
     const scenarios = [
-      { libelle: "Min", w: h.wacc + VALO.pasWacc, g: VALO.g - VALO.pasG },
-      { libelle: "Méd", w: h.wacc, g: VALO.g },
-      { libelle: "Max", w: h.wacc - VALO.pasWacc, g: VALO.g + VALO.pasG },
+      { libelle: "Min", w: wacc + VALO.pasWacc, g: f.g - VALO.pasG },
+      { libelle: "Méd", w: wacc, g: f.g },
+      { libelle: "Max", w: wacc - VALO.pasWacc, g: f.g + VALO.pasG },
     ].map((s) => {
-      const ve = h.wacc == null ? null : calculDcf(s.w, s.g, h.impot).ve;
-      return Object.assign(s, { ve: ve, vfp: ve == null ? null : ve - VALO.detteNette });
+      const ve = wacc == null ? null : calculDcf(f, s.w, s.g, impot).ve;
+      return Object.assign(s, { ve: ve, vfp: ve == null ? null : ve - f.detteNette });
     });
     return `
       <table class="pont-table">
         <thead><tr><th>En M FCFA</th>${scenarios.map((s) => `<th>${s.libelle}</th>`).join("")}</tr></thead>
         <tbody>
           <tr><td>Valeur d'entreprise</td>${scenarios.map((s) => `<td>${frFlux(s.ve)}</td>`).join("")}</tr>
-          <tr><td>Dette nette / trésorerie nette</td>${scenarios.map(() => `<td>${frFlux(-VALO.detteNette)}</td>`).join("")}</tr>
-          <tr class="is-bandeau"><td>Valeur des fonds propres</td>${scenarios.map((s) => `<td>${frFlux(s.vfp)}</td>`).join("")}</tr>
+          <tr><td>${f.detteNette < 0 ? "Trésorerie nette" : "Dette nette"}</td>${scenarios.map(() => `<td>${frFlux(-f.detteNette)}</td>`).join("")}</tr>
+          <tr class="is-total"><td>Valeur des fonds propres</td>${scenarios.map((s) => `<td>${frFlux(s.vfp)}</td>`).join("")}</tr>
         </tbody>
       </table>
-      ${h.wacc == null ? "" : `<p class="note">Min : CMPC ${frPct(scenarios[0].w)} et g ${frPct(scenarios[0].g)}.
+      ${wacc == null ? "" : `<p class="note-violet">Min : CMPC ${frPct(scenarios[0].w)} et g ${frPct(scenarios[0].g)}.
       Max : CMPC ${frPct(scenarios[2].w)} et g ${frPct(scenarios[2].g)}.</p>`}`;
   }
 
@@ -4103,83 +4348,58 @@
     });
   });
 
-  // Les champs sont redessinés à chaque changement de paramètres : on écoute
+  // Le contenu est redessiné à chaque changement de paramètres : on écoute
   // donc le conteneur, qui, lui, ne change pas.
-  $("valoDcf").addEventListener("input", (e) => {
-    const el = e.target;
-    let valide = true;
-    if (el.dataset.ligne) {
-      const v = lireMontant(el.value);
-      valide = v != null;
-      if (valide) {
-        const ligne = el.dataset.ligne;
-        VALO[ligne][Number(el.dataset.i)] = ligne === "da" || ligne === "capex" ? Math.abs(v) : v;
-      }
-    } else if (el.dataset.montant) {
-      const v = lireMontant(el.value);
-      valide = v != null;
-      if (valide) VALO.detteNette = v;
-    } else if (el.dataset.pct) {
-      const v = lirePct(el.value);
-      const cle = el.dataset.pct;
-      valide = v != null && ((cle !== "pasWacc" && cle !== "pasG") || v > 0);
-      if (valide) {
-        if (cle === "wacc") VALO.waccSaisie = v;
-        else if (cle === "impot") VALO.impotSaisie = v;
-        else VALO[cle] = v;
-      }
-    } else if (el.dataset.annee) {
-      const v = Number(el.value);
-      valide = Number.isInteger(v) && v >= 1900 && v <= 2200;
-      if (valide) VALO.premiere = v;
-    } else {
-      return;
-    }
-    el.classList.toggle("is-invalide", !valide);
-    if (!valide) return;
-    if (el.dataset.ligne || el.dataset.montant) VALO.exemple = false;
-    majDcf();
-  });
-
-  // À la sortie du champ, la saisie reprend le format du tableau.
-  $("valoDcf").addEventListener("change", (e) => {
-    const el = e.target;
-    if (el.classList.contains("is-invalide")) return;
-    if (el.dataset.ligne) {
-      const ligne = el.dataset.ligne;
-      el.value = frFlux((ligne === "capex" ? -1 : 1) * VALO[ligne][Number(el.dataset.i)]);
-    } else if (el.dataset.montant) {
-      el.value = frFlux(VALO.detteNette);
-    } else if (el.dataset.pct) {
-      const cle = el.dataset.pct;
-      const v = cle === "wacc" ? VALO.waccSaisie : cle === "impot" ? VALO.impotSaisie : VALO[cle];
-      if (v != null) el.value = frNum(v * 100, 2);
-    }
-  });
-
   $("valoDcf").addEventListener("click", (e) => {
-    const bouton = e.target.closest("button");
-    if (!bouton) return;
-    if (bouton.dataset.verrou) {
-      // Ouvrir part de la valeur affichée ; refermer oublie la saisie, comme
-      // pour le gearing cible.
-      const cle = bouton.dataset.verrou;
-      const verrou = cle + "Verrou", saisie = cle + "Saisie";
-      VALO[verrou] = !VALO[verrou];
-      VALO[saisie] = VALO[verrou] ? null : (cle === "wacc" ? cmpcAuto() : impotAuto());
-    } else if (bouton.dataset.annees) {
-      if (bouton.dataset.annees === "1" && VALO.ebit.length < DCF_ANNEES_MAX) {
-        // Le nouvel exercice reprend le précédent : un point de départ à ajuster.
-        for (const ligne of ["ebit", "da", "capex", "bfr"]) VALO[ligne].push(VALO[ligne][VALO[ligne].length - 1]);
-      } else if (bouton.dataset.annees === "-1" && VALO.ebit.length > 1) {
-        for (const ligne of ["ebit", "da", "capex", "bfr"]) VALO[ligne].pop();
-      }
-    } else if (bouton.dataset.conv) {
-      VALO.miAnnee = bouton.dataset.conv === "mi";
-    } else {
+    const action = e.target.closest("[data-action]");
+    if (action) {
+      if (action.dataset.action === "importer") $("valoFichier").click();
+      else if (action.dataset.action === "modele") telechargerBlob(modeleDcfXlsx(), "modele_dcf.xlsx");
       return;
     }
-    renderDcf();
+    // Une carte dépliée à la fois, comme dans l'onglet CMPC. Les classes
+    // basculent sans redessin, pour que la transition se joue.
+    const tete = e.target.closest(".comp-head");
+    if (!tete) return;
+    const id = tete.parentElement.dataset.carte;
+    VALO.ouvert = VALO.ouvert === id ? null : id;
+    $("valoDcf").querySelectorAll("[data-carte]").forEach((el) => {
+      const on = el.dataset.carte === VALO.ouvert;
+      el.classList.toggle("is-open", on);
+      el.querySelector(".comp-head").setAttribute("aria-expanded", on ? "true" : "false");
+    });
+  });
+
+  $("valoDcf").addEventListener("input", (e) => {
+    const pas = e.target.dataset.pas;
+    if (!pas) return;
+    VALO[pas] = Number(e.target.value) / 100;
+    majSensibilite();
+  });
+
+  $("valoFichier").addEventListener("change", (e) => {
+    const fichier = e.target.files && e.target.files[0];
+    e.target.value = "";   // réimporter le même fichier après l'avoir corrigé
+    importerClasseur(fichier);
+  });
+
+  // Glisser-déposer, sur la zone d'accueil comme sur le DCF déjà affiché.
+  $("valoDcf").addEventListener("dragover", (e) => {
+    const zone = e.target.closest("[data-depot]");
+    if (!zone) return;
+    e.preventDefault();
+    zone.classList.add("is-survol");
+  });
+  $("valoDcf").addEventListener("dragleave", (e) => {
+    const zone = e.target.closest("[data-depot]");
+    if (zone && !zone.contains(e.relatedTarget)) zone.classList.remove("is-survol");
+  });
+  $("valoDcf").addEventListener("drop", (e) => {
+    const zone = e.target.closest("[data-depot]");
+    if (!zone) return;
+    e.preventDefault();
+    zone.classList.remove("is-survol");
+    importerClasseur(e.dataTransfer.files && e.dataTransfer.files[0]);
   });
 
   /* ================= Classeur Excel =================
