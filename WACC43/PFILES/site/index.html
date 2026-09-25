@@ -1647,12 +1647,12 @@
     width: 100%;
     border-collapse: separate;
     border-spacing: 0;
-    font: 400 12px/1.35 var(--mono);
+    font: 400 11.5px/1.35 var(--mono);
     font-variant-numeric: tabular-nums;
   }
   .etat-table th, .etat-table td {
-    padding: 8px 0 8px 14px;
-    text-align: right;
+    padding: 7px 5px;
+    text-align: center;
     white-space: nowrap;
     transition: background-color 140ms ease;
   }
@@ -1660,9 +1660,12 @@
     position: sticky;
     left: 0;
     z-index: 1;
-    padding: 8px 16px 8px 8px;
+    min-width: 120px;
+    max-width: 170px;
+    padding: 7px 12px 7px 8px;
     text-align: left;
     font-family: var(--sans);
+    white-space: normal;       /* un libellé long passe sur deux lignes */
     background: var(--surface);
   }
   .etat-table thead th {
@@ -1686,8 +1689,8 @@
     color: rgba(255, 255, 255, .75);
   }
   .etat-table td { color: var(--ink-3); }
-  .etat-table td:first-child { font-size: 12.5px; }
-  .etat-table tr.is-detail td:first-child { padding-left: 28px; color: var(--ink-4); }
+  .etat-table td:first-child { font-size: 12px; line-height: 1.25; }
+  .etat-table tr.is-detail td:first-child { padding-left: 22px; color: var(--ink-4); }
   .etat-table tr.is-total td { color: var(--accent); font-weight: 600; }
   .etat-table tr.is-sous-total td { border-top: 1px solid var(--muted-2); }
   .etat-table tr.is-pct td { font-size: 11px; font-style: italic; color: var(--muted); }
@@ -1696,32 +1699,34 @@
   .etat-table tr.is-controle td.is-ok { color: var(--green); font-size: 12px; font-weight: 700; letter-spacing: 0.04em; }
   .etat-table td.is-ecart { color: var(--warn); font-weight: 600; }
   /* FY25, dernier réel : tireté à droite, comme la bascule du graphique. */
-  .etat-table td.is-dernier { padding-right: 14px; border-right: 2px dashed var(--accent-chip); }
-  .etat-table thead th.is-dernier { padding-right: 14px; border-right: 2px dashed rgba(255, 255, 255, .55); }
+  .etat-table td.is-dernier { border-right: 2px dashed var(--accent-chip); }
+  .etat-table thead th.is-dernier { border-right: 2px dashed rgba(255, 255, 255, .55); }
   /* Colonne de l'exercice survolé, ici ou dans le graphique. */
   .etat-table td.is-survol { background: var(--accent-tint); }
   .etat-table thead th.is-survol { background: #5a3b98; }
   /* Colonne TCAM : mauve léger, chiffres en blanc, décollée du tableau.
      #9479cf est le plus clair des mauves où le blanc reste lisible (3,6:1). */
   .etat-table td.is-tcam, .etat-table tr.is-total td.is-tcam, .etat-table tr.is-pct td.is-tcam {
-    padding: 8px 10px;
+    width: 1%;
+    padding: 8px 6px;
     text-align: center;
     background: #9479cf;
     color: #fff;
     font-weight: 400;
     font-style: normal;
     border-top: 0;
-    border-left: 10px solid var(--surface);
+    border-left: 6px solid var(--surface);
   }
   .etat-table td.is-tcam small { display: block; font: 400 9px/1.2 var(--sans); color: rgba(255, 255, 255, .72); }
   .etat-table td.is-tcam .is-ns { color: rgba(255, 255, 255, .6); }
   .etat-table tbody tr:last-child td.is-tcam { border-radius: 0 0 6px 6px; }
   .etat-table thead th.is-tcam {
-    padding-right: 10px;
+    width: 1%;
+    padding: 9px 6px;
     text-align: center;
     background: #9479cf;
     color: #fff;
-    border-left: 10px solid var(--surface);
+    border-left: 6px solid var(--surface);
     border-radius: 6px 6px 0 0;
   }
 
@@ -5646,8 +5651,10 @@
   const TOTAUX_ETATS = ["ca", "ebitda", "ebit", "rn", "actif_net", "cp"];
 
   function tableauEtat(annees, plan, valeurs, options) {
-    const lignes = plan.filter((l) => l.principale && (!options.masquerVides || !l.prefixes
-      || valeurs[l.cle].some((v) => Math.abs(v) >= 0.05)));
+    // La ligne de contrôle reste dans l'export ; à l'écran, la pastille
+    // « Bilan équilibré » en tête de carte la résume.
+    const lignes = plan.filter((l) => l.principale && !l.controle && (!options.masquerVides || !l.prefixes
+      || valeurs[l.cle].some((v) => Math.abs(v) >= 0.5)));
     const n = annees.length;
     const tcam = options.tcam && n > 1;
     // Chaque cellule porte son exercice : c'est par lui que le graphique et
@@ -5685,8 +5692,10 @@
               SOUS_TOTAUX_ETATS.indexOf(l.cle) >= 0 ? "is-sous-total" : "",
               DETAIL_ETATS.indexOf(l.cle) >= 0 ? "is-detail" : "",
             ].filter(Boolean).join(" ");
+            // Sans décimale : en M FCFA, elle n'apporte rien et élargit chaque
+            // colonne de deux caractères — dix exercices doivent tenir à l'écran.
             return `<tr${classes ? ` class="${classes}"` : ""} data-ligne="${l.cle}"><td>${esc(l.libelle)}</td>${m.map((x, k) =>
-              cellule(k, frM(x), x <= -0.05 ? "is-neg" : "")).join("")}${tcam ? `<td class="is-tcam">${t == null
+              cellule(k, frFlux(x), Math.round(x) < 0 ? "is-neg" : "")).join("")}${tcam ? `<td class="is-tcam">${t == null
               ? '<span class="is-ns" title="Non significatif : bornes nulles ou de signes opposés">—</span>' : frPct(t, 1)}</td>` : ""}</tr>`;
           }).join("")}
         </tbody>
@@ -5784,7 +5793,7 @@
             <div class="block-head"><h2 class="etat-titre">Actif net</h2><div class="chips">${desequilibres
               ? `<span class="chip is-alerte">Déséquilibré sur ${desequilibres} exercice${desequilibres > 1 ? "s" : ""}</span>`
               : `<span class="chip is-accent">Bilan équilibré sur les ${bg.annees.length} exercices</span>`}<span class="chip">SYSCOHADA</span></div></div>
-            ${tableauEtat(bg.annees, PLAN_BILAN, bg.etats.bilan, { masquerVides: true, tcam: true })}
+            ${tableauEtat(bg.annees, PLAN_BILAN, bg.etats.bilan, { masquerVides: true })}
           </section>
         </div>` : ""}`;
     racine.classList.toggle("is-hypotheses", estimation && VALO.hypOuvert);

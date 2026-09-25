@@ -89,15 +89,16 @@ def test_la_vue_invite_a_importer_une_balance(page):
 def test_compte_de_resultat_et_actif_net(page, tmp_path):
     importer_balance(page, balance(tmp_path / "bg.xlsx"))
     ca = ligne(page, "ca")
-    assert [montant(x) for x in ca[:3]] == [round(v / 1e6, 1) for v in CA]
+    assert [montant(x) for x in ca[:3]] == [round(v / 1e6) for v in CA]
     assert ca[3].replace(" ", " ") == "10,0 %"            # TCAM FY23–FY25
-    assert [montant(x) for x in ligne(page, "ebitda")[:3]] == [round(v / 1e6, 1) for v in EBITDA]
-    assert [montant(x) for x in ligne(page, "ebit")[:3]] == [round(v / 1e6, 1) for v in EBIT]
-    assert [montant(x) for x in ligne(page, "rn")[:3]] == [round(v / 1e6, 1) for v in RN]
+    assert [montant(x) for x in ligne(page, "ebitda")[:3]] == [round(v / 1e6) for v in EBITDA]
+    assert [montant(x) for x in ligne(page, "ebit")[:3]] == [round(v / 1e6) for v in EBIT]
+    assert [montant(x) for x in ligne(page, "rn")[:3]] == [round(v / 1e6) for v in RN]
     # Actif net = capitaux propres, exercice par exercice.
     assert ligne(page, "actif_net") == ligne(page, "cp")
-    controle = page.inner_text("#valoEtats tr.is-controle")
-    assert controle.count("OK") == 3
+    # La ligne de contrôle n'est plus à l'écran : la pastille la résume.
+    assert page.query_selector("#valoEtats tr.is-controle") is None
+    assert "Bilan équilibré sur les 3 exercices" in page.inner_text("#valoEtats .etats-grille")
     assert "Équilibrée" in page.inner_text("#valoEtats .valo-import")
 
 
@@ -122,7 +123,7 @@ def test_balance_desequilibree_signalee(page, tmp_path):
     importer_balance(page, balance(tmp_path / "bancale.xlsx", equilibrer=False))
     assert "Déséquilibrée" in page.inner_text("#valoEtats .valo-import")
     assert "déséquilibrée" in page.inner_text("#valoEtats .valo-remarques")
-    assert page.query_selector("#valoEtats td.is-ecart") is not None
+    assert "Déséquilibré sur 3 exercices" in page.inner_text("#valoEtats .etats-grille")
 
 
 def test_sous_total_ecarte_et_signes_inverses(page, tmp_path):
@@ -130,7 +131,7 @@ def test_sous_total_ecarte_et_signes_inverses(page, tmp_path):
     remarques = page.text_content("#valoEtats .valo-remarques")   # repliées : balance équilibrée
     assert "sous-total" in remarques and "70" in remarques
     assert "inversés" in remarques
-    assert [montant(x) for x in ligne(page, "ca")[:3]] == [round(v / 1e6, 1) for v in CA]
+    assert [montant(x) for x in ligne(page, "ca")[:3]] == [round(v / 1e6) for v in CA]
 
 
 def test_graphique_historique_et_previsionnel(page, tmp_path):
@@ -219,7 +220,7 @@ def test_modele_de_balance_se_reimporte(page, tmp_path):
     wb.save(chemin)
     page.set_input_files("#valoBgFichier", str(chemin))
     page.wait_for_selector("#valoEtats .etat-table")
-    assert page.inner_text("#valoEtats tr.is-controle").count("OK") == 3
+    assert "Bilan équilibré sur les 3 exercices" in page.inner_text("#valoEtats .etats-grille")
 
 
 def test_l_ebitda_des_comparables_vient_de_la_balance(page, tmp_path):
@@ -332,7 +333,7 @@ def test_le_previsionnel_estime_alimente_le_dcf(page, tmp_path):
     assert f["bfr"][0] == pytest.approx(-0.15 * (ca0 - CA[2] / 1e6))            # signé comme un flux
     # La dette nette vient de la balance : ici une trésorerie nette.
     treso = montant(ligne(page, "tresorerie_nette")[2])
-    assert f["detteNette"] == pytest.approx(-treso, abs=0.05)
+    assert f["detteNette"] == pytest.approx(-treso, abs=0.5)   # le tableau arrondit au M FCFA
     page.keyboard.press("Escape")
     page.click('.valo-vues button[data-vue="dcf"]')
     assert "Estimé à partir d'hypothèses" in page.inner_text("#valoDcf .valo-import")
@@ -443,7 +444,7 @@ def test_export_avec_les_comparables(page, tmp_path):
 
 def test_la_lecture_des_tableaux(page, tmp_path):
     """Détails en retrait, filet au-dessus des sous-totaux, négatifs marqués,
-    dernier réel séparé, libellés figés, TCAM aussi pour l'actif net."""
+    dernier réel séparé, libellés figés, TCAM pour le seul compte de résultat."""
     importer_balance(page, balance(tmp_path / "bg.xlsx"))
     classes = lambda cle: page.get_attribute(f'#valoEtats tr[data-ligne="{cle}"]', "class") or ""
     assert "is-detail" in classes("da") and "is-detail" in classes("res_fin")
@@ -455,7 +456,9 @@ def test_la_lecture_des_tableaux(page, tmp_path):
     assert len(derniers) == 2 and all("dernier réel" in d.inner_text() for d in derniers)
     assert all(d.get_attribute("data-an") == "2025" for d in derniers)
     assert page.eval_on_selector("#valoEtats .etat-table td", "e => getComputedStyle(e).position") == "sticky"
-    assert len(page.query_selector_all("#valoEtats .etat-table")[1].query_selector_all("thead th.is-tcam")) == 1
+    tables = page.query_selector_all("#valoEtats .etat-table")
+    assert len(tables[0].query_selector_all("thead th.is-tcam")) == 1          # compte de résultat
+    assert len(tables[1].query_selector_all("thead th.is-tcam")) == 0          # pas pour l'actif net
     assert "Bilan équilibré sur les 3 exercices" in page.inner_text("#valoEtats .etats-grille")
 
 
@@ -480,3 +483,27 @@ def test_survol_graphique_et_tableaux(page, tmp_path):
     assert all(c.get_attribute("data-an") == "2024" for c in page.query_selector_all("#valoEtats .is-survol"))
     page.mouse.move(5, 5)
     assert page.query_selector("#valoEtats .etat-table .is-survol") is None
+
+
+def test_dix_exercices_tiennent_sans_defilement(page, tmp_path):
+    """Une balance de dix exercices, aux montants de plusieurs milliers de M
+    FCFA : les deux tableaux tiennent dans la largeur, sans barre de
+    défilement, grâce aux montants sans décimale et aux colonnes resserrées."""
+    annees = list(range(2016, 2026))
+    k = [1 + 0.25 * i for i in range(10)]
+    comptes = [("101000", "Capital", [-5000e6] * 10), ("244100", "Matériel", [14000e6 * c for c in k]),
+               ("411100", "Clients", [6000e6 * c for c in k]), ("401100", "Fournisseurs", [-9000e6 * c for c in k]),
+               ("701100", "Ventes", [-4000e6 * c for c in k]), ("601100", "Achats", [2200e6 * c for c in k]),
+               ("681300", "Dotations", [650e6 * c for c in k])]
+    wb = openpyxl.Workbook()
+    ws = wb.active
+    ws.append(["N° compte", "Intitulé"] + [f"FY{str(a)[2:]}" for a in annees])
+    for nc, lb, v in comptes:
+        ws.append([nc, lb] + v)
+    ws.append(["521000", "Banque"] + [-sum(c[2][t] for c in comptes) for t in range(10)])
+    chemin = tmp_path / "bg10.xlsx"
+    wb.save(chemin)
+    importer_balance(page, chemin)
+    largeurs = page.eval_on_selector_all("#valoEtats .etats-grille .card-block", "es => es.map(e => e.scrollWidth - e.clientWidth)")
+    assert largeurs == [0, 0]
+    assert "10 000" in page.inner_text('#valoEtats tr[data-ligne="ca"]').replace(" ", " ")
