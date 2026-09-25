@@ -62,14 +62,20 @@ def montant(texte):
     return signe * float(t.strip("()"))
 
 
+# Les quatre cases au-dessus du graphique, et les montants du résultat.
+CASES = {"actualise": "somme", "vt": "vt", "cmpc": "cmpc", "tcam": "tcam"}
+
+
 def carte(page, cle):
-    return page.inner_text(f'#valoDcf [data-carte="{cle}"] .comp-value')
+    if cle in ("ve", "vfp"):
+        return page.inner_text(f'#valoDcf [data-o="{cle}"]')
+    return page.inner_text(f'#valoDcf [data-case="{CASES[cle]}"] .dcf-case-valeur')
 
 
 def importer(page, chemin):
     page.click(ONGLET)
     page.set_input_files("#valoFichier", str(chemin))
-    page.wait_for_selector('#valoDcf [data-carte="ve"], #valoDcf .valo-erreurs')
+    page.wait_for_selector('#valoDcf [data-o="ve"], #valoDcf .valo-erreurs')
 
 
 def cmpc(page):
@@ -88,14 +94,22 @@ def test_le_dcf_importe_suit_la_note(page, tmp_path):
     importer(page, classeur(tmp_path / "dcf.xlsx"))
     ve = montant(carte(page, "ve"))
     assert abs(ve - ve_attendue(cmpc(page))) < 1
-    assert [c.get_attribute("data-carte") for c in page.query_selector_all("#stackDcf .comp")] == [
-        "nopat", "fcff", "facteur", "actualise", "vt", "ve"]
-    # Cumul des NOPAT de la note : 40 848 + 47 865 + 57 468 + 79 977.
-    assert abs(montant(carte(page, "nopat")) - 226157) < 2
-    # La carte se déplie sur le détail par exercice.
-    page.click('#valoDcf [data-carte="fcff"] .comp-head')
-    detail = page.inner_text('#valoDcf [data-carte="fcff"] .sub-rows')
-    assert "FY26" in detail and "FY29" in detail
+    assert [c.get_attribute("data-case") for c in page.query_selector_all("#valoDcf .dcf-case")] == [
+        "somme", "vt", "cmpc", "tcam"]
+    assert carte(page, "tcam").replace(" ", " ") == "25,1 %"
+    assert abs(montant(carte(page, "vfp")) - (montant(carte(page, "ve")) - DETTE_NETTE)) <= 1
+    # Le graphique : une colonne par exercice, deux barres chacune.
+    colonnes = page.query_selector_all("#dcfVue .dcf-col")
+    assert len(colonnes) == 4
+    assert [a.inner_text() for a in page.query_selector_all("#dcfVue .dcf-axe-an")] == ["FY26", "FY27", "FY28", "FY29"]
+    # Un clic bascule sur les lignes du calcul, un second revient au graphique.
+    page.click("#dcfVue")
+    detail = page.inner_text("#dcfVue .dcf-calc")
+    assert "NOPAT" in detail and "40 847" in detail and "Facteur" in detail
+    assert page.get_attribute("#dcfVue", "aria-pressed") == "true"
+    page.click("#dcfVue")
+    assert page.query_selector("#dcfVue .dcf-calc") is None
+    assert len(page.query_selector_all("#dcfVue .dcf-col")) == 4
 
 
 def test_la_note_est_retrouvee_a_son_cmpc(page, tmp_path):
@@ -109,10 +123,11 @@ def test_la_note_est_retrouvee_a_son_cmpc(page, tmp_path):
 
 def test_triangle_au_dela_de_65_pourcent(page, tmp_path):
     importer(page, classeur(tmp_path / "haut.xlsx"))
-    assert page.query_selector('#valoDcf [data-carte="vt"] .alerte-vt') is not None
+    assert page.query_selector('#valoDcf [data-case="vt"] .alerte-vt') is not None
+    assert page.query_selector('#valoDcf .dcf-badge.is-alerte') is not None
     # À g très bas, la valeur terminale pèse moins.
     importer(page, classeur(tmp_path / "bas.xlsx", g=-0.30))
-    assert page.query_selector('#valoDcf [data-carte="vt"] .alerte-vt') is None
+    assert page.query_selector('#valoDcf [data-case="vt"] .alerte-vt') is None
 
 
 def test_curseurs_et_passage_a_la_vfp(page, tmp_path):
@@ -152,7 +167,7 @@ def test_un_classeur_incomplet_est_refuse(page, tmp_path):
     importer(page, classeur(tmp_path / "trou.xlsx", sans=("CapEx",)))
     erreurs = page.inner_text("#valoDcf .valo-erreurs")
     assert "CapEx" in erreurs
-    assert page.query_selector('#valoDcf [data-carte="ve"]') is None
+    assert page.query_selector('#valoDcf [data-o="ve"]') is None
 
 
 def test_le_modele_se_telecharge_et_se_reimporte(page, tmp_path):
@@ -173,7 +188,7 @@ def test_le_modele_se_telecharge_et_se_reimporte(page, tmp_path):
     ws["B9"] = DETTE_NETTE
     wb.save(chemin)
     importer(page, chemin)
-    assert page.query_selector('#valoDcf [data-carte="ve"]') is not None
+    assert page.query_selector('#valoDcf [data-o="ve"]') is not None
     assert "FY" + str(annees[-1])[2:] in page.inner_text("#valoDcf .valo-import")
 
 
@@ -208,7 +223,7 @@ def test_le_boulon_pose_les_donnees_de_test_puis_ramene_a_l_import(page):
 
     page.click(boulon)
     assert page.is_visible('#valoDcf [data-action="importer"]')
-    assert page.query_selector('#valoDcf [data-carte="ve"]') is None
+    assert page.query_selector('#valoDcf [data-o="ve"]') is None
 
 
 def test_le_boulon_ne_perd_pas_le_fichier_importe(page, tmp_path):
