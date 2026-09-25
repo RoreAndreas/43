@@ -23,12 +23,14 @@ G = 0.02
 DETTE_NETTE = 129455
 
 
-def classeur(chemin, *, annees=ANNEES, sans=(), capex_negatif=False, g=G, impot=0.25):
+def classeur(chemin, *, annees=ANNEES, sans=(), capex_negatif=False, g=G, impot=0.25, ca=None):
     """Classeur au format de la note : libellés en A, exercices en en-tête."""
     wb = openpyxl.Workbook()
     ws = wb.active
     ws.title = "DCF"
     ws.append(["M FCFA"] + [f"FY{str(a)[2:]}" for a in annees])
+    if ca is not None:
+        ws.append(["Chiffre d'affaires"] + ca[: len(annees)])
     lignes = {
         "EBIT (Résultat d'exploitation)": EBIT,
         "(+) Dotations nettes (D&A)": DA,
@@ -130,29 +132,44 @@ def test_triangle_au_dela_de_65_pourcent(page, tmp_path):
     assert page.query_selector('#valoDcf [data-case="vt"] .alerte-vt') is None
 
 
-def test_curseurs_et_passage_a_la_vfp(page, tmp_path):
+def test_le_resultat_mene_de_la_ve_a_la_vfp(page, tmp_path):
+    """La sensibilité est retirée : le cadre de résultat porte seul le passage
+    de la VE à la valeur des fonds propres, et la composition de la VE."""
     importer(page, classeur(tmp_path / "dcf.xlsx"))
-    w = cmpc(page)
-    cles = [montant(c.inner_text()) for c in page.query_selector_all("#valoDcf .sens-table td.is-cle")]
-    lignes = page.query_selector_all("#valoDcf .pont-table tbody tr")
-    ves = [montant(td.inner_text()) for td in lignes[0].query_selector_all("td")[1:]]
-    vfps = [montant(td.inner_text()) for td in lignes[2].query_selector_all("td")[1:]]
-    assert ves[1] == montant(carte(page, "ve"))
-    assert sorted(cles) == ves
-    for v, f in zip(ves, vfps):
-        assert abs(v - DETTE_NETTE - f) <= 1
-    assert abs(ves[0] - ve_attendue(w + 0.01, G - 0.003)) < 1
+    assert page.query_selector("#valoDcf .sens-table") is None
+    assert page.query_selector("#valoDcf .pont-table") is None
+    pont = [s.inner_text() for s in page.query_selector_all("#valoDcf .dcf-pont > span b")]
+    ve, dette, vfp = (montant(x) for x in pont)
+    assert ve == montant(carte(page, "ve"))
+    assert dette == -DETTE_NETTE
+    assert abs(ve + dette - vfp) <= 1
+    assert vfp == montant(carte(page, "vfp"))
+    # Le cadre de résultat descend jusqu'au bas du graphique.
+    bas_resultat = page.eval_on_selector("#valoDcf .dcf-resultat", "e => e.getBoundingClientRect().bottom")
+    bas_graphe = page.eval_on_selector("#dcfVue", "e => e.getBoundingClientRect().bottom")
+    assert abs(bas_resultat - bas_graphe) <= 1
 
-    # Le curseur du CMPC élargit l'écart entre Min et Max.
-    page.fill('#valoDcf input[data-pas="pasWacc"]', "2")
-    assert "2,00" in page.inner_text('#valoDcf [data-o="pasWacc"]')
-    ves2 = [montant(td.inner_text())
-            for td in page.query_selector_all("#valoDcf .pont-table tbody tr")[0].query_selector_all("td")[1:]]
-    assert abs(ves2[0] - ve_attendue(w + 0.02, G - 0.003)) < 1
-    assert ves2[2] - ves2[0] > ves[2] - ves[0]
-    page.fill('#valoDcf input[data-pas="pasG"]', "0.5")
-    assert abs(montant(page.query_selector_all("#valoDcf .pont-table tbody tr")[0]
-                       .query_selector_all("td")[3].inner_text()) - ve_attendue(w - 0.02, G + 0.005)) < 1
+
+def test_facteur_a_deux_decimales(page, tmp_path):
+    importer(page, classeur(tmp_path / "dcf.xlsx"))
+    page.click("#dcfVue")
+    ligne = [tr for tr in page.query_selector_all("#dcfVue .dcf-calc tbody tr")
+             if "Facteur" in tr.inner_text()][0]
+    for td in ligne.query_selector_all("td")[1:]:
+        assert len(td.inner_text().split(",")[1]) == 2
+
+
+def test_marge_d_ebitda_moyenne(page, tmp_path):
+    """Moyenne des marges annuelles (EBIT + D&A) / CA ; sans CA, un tiret."""
+    ca = [400000, 450000, 500000, 560000]
+    importer(page, classeur(tmp_path / "ca.xlsx", ca=ca))
+    attendu = sum((e + d) / c for e, d, c in zip(EBIT, DA, ca)) / len(ca)
+    texte = page.inner_text("#valoDcf .dcf-hyp")
+    assert "Dette nette" not in texte
+    assert "Marge d'EBITDA moyenne" in texte
+    assert f"{attendu * 100:.1f}".replace(".", ",") in texte
+    importer(page, classeur(tmp_path / "sans.xlsx"))
+    assert "CA absent du fichier" in page.inner_text("#valoDcf .dcf-hyp")
 
 
 def test_capex_negatif_et_taux_d_is_du_pays(page, tmp_path):
@@ -181,11 +198,12 @@ def test_le_modele_se_telecharge_et_se_reimporte(page, tmp_path):
     assert "Mode d'emploi" in wb.sheetnames
     annees = [c.value for c in ws[2][1:]]
     assert len(annees) == 5
+    assert ws["A3"].value.startswith("Chiffre d'affaires")
     for i, valeurs in enumerate([EBIT, DA, CAPEX, BFR]):
         for j, v in enumerate(valeurs + [valeurs[-1]]):
-            ws.cell(row=3 + i, column=2 + j, value=v)
-    ws["B8"] = 0.02
-    ws["B9"] = DETTE_NETTE
+            ws.cell(row=4 + i, column=2 + j, value=v)
+    ws["B9"] = 0.02
+    ws["B10"] = DETTE_NETTE
     wb.save(chemin)
     importer(page, chemin)
     assert page.query_selector('#valoDcf [data-o="ve"]') is not None
@@ -218,8 +236,8 @@ def test_le_boulon_pose_les_donnees_de_test_puis_ramene_a_l_import(page):
     assert "Données de test" in page.inner_text("#valoDcf .valo-import")
     assert abs(montant(carte(page, "ve")) - ve_attendue(cmpc(page))) < 1
     # Ce sont les chiffres de la note : g = 2 %, dette nette 129 455, IS 25 %.
-    lignes = page.query_selector_all("#valoDcf .pont-table tbody tr")
-    assert montant(lignes[1].query_selector_all("td")[2].inner_text()) == -DETTE_NETTE
+    pont = page.query_selector_all("#valoDcf .dcf-pont > span b")
+    assert montant(pont[1].inner_text()) == -DETTE_NETTE
 
     page.click(boulon)
     assert page.is_visible('#valoDcf [data-action="importer"]')
