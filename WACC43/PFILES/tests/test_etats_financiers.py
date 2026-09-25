@@ -437,3 +437,46 @@ def test_export_avec_les_comparables(page, tmp_path):
     slib = {wv["Synthèse"].cell(r, 2).value: r for r in range(1, wv["Synthèse"].max_row + 1)}
     vfp = wv["Synthèse"].cell(slib["Valeur des fonds propres"], 3).value
     assert vfp == pytest.approx((ve_dcf + ve_comp) / 2 - dette, abs=0.01)
+
+
+# ------------------------------------------------ lecture des tableaux
+
+def test_la_lecture_des_tableaux(page, tmp_path):
+    """Détails en retrait, filet au-dessus des sous-totaux, négatifs marqués,
+    dernier réel séparé, libellés figés, TCAM aussi pour l'actif net."""
+    importer_balance(page, balance(tmp_path / "bg.xlsx"))
+    classes = lambda cle: page.get_attribute(f'#valoEtats tr[data-ligne="{cle}"]', "class") or ""
+    assert "is-detail" in classes("da") and "is-detail" in classes("res_fin")
+    for cle in ("ebitda", "ebit", "rn", "actif_net"):
+        assert "is-sous-total" in classes(cle), cle
+    assert all("is-neg" in (c.get_attribute("class") or "")
+               for c in page.query_selector_all('#valoEtats tr[data-ligne="da"] td[data-an]'))
+    derniers = page.query_selector_all("#valoEtats thead th.is-dernier")
+    assert len(derniers) == 2 and all("dernier réel" in d.inner_text() for d in derniers)
+    assert all(d.get_attribute("data-an") == "2025" for d in derniers)
+    assert page.eval_on_selector("#valoEtats .etat-table td", "e => getComputedStyle(e).position") == "sticky"
+    assert len(page.query_selector_all("#valoEtats .etat-table")[1].query_selector_all("thead th.is-tcam")) == 1
+    assert "Bilan équilibré sur les 3 exercices" in page.inner_text("#valoEtats .etats-grille")
+
+
+def test_le_graphique_marque_l_historique(page, tmp_path):
+    importer_balance(page, balance(tmp_path / "bg.xlsx"))
+    etiquettes = [t.inner_html() for t in page.query_selector_all("#valoEtats .traj-zone-lib")]
+    assert "HISTORIQUE" in etiquettes
+
+
+def test_survol_graphique_et_tableaux(page, tmp_path):
+    """Survoler un exercice du graphique éclaire sa colonne dans les deux
+    tableaux ; survoler une colonne des tableaux le lit dans le graphique."""
+    importer_balance(page, balance(tmp_path / "bg.xlsx"))
+    cadre = page.query_selector("#valoEtats .traj-cadre").bounding_box()
+    page.mouse.move(cadre["x"] + 30, cadre["y"] + 150)                   # premier exercice : FY23
+    eclairees = page.query_selector_all("#valoEtats .etat-table .is-survol")
+    assert eclairees and all(c.get_attribute("data-an") == "2023" for c in eclairees)
+    assert len({c.evaluate("e => e.closest('table') === document.querySelectorAll('#valoEtats .etat-table')[0]")
+                for c in eclairees}) == 2                                 # dans les deux tableaux
+    page.hover('#valoEtats tr[data-ligne="ebit"] td[data-an="2024"]')
+    assert "FY24" in page.inner_text("#valoEtats .traj-periode")
+    assert all(c.get_attribute("data-an") == "2024" for c in page.query_selector_all("#valoEtats .is-survol"))
+    page.mouse.move(5, 5)
+    assert page.query_selector("#valoEtats .etat-table .is-survol") is None
