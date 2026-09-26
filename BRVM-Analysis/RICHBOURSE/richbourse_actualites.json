@@ -1,14 +1,19 @@
 {
-    "last_update": "2026-09-24 18:58:44",
+    "last_update": "2026-09-26 14:18:27",
     "count": 20,
     "weeks": [
         {
             "semaine": "Semaine du 21 Septembre au 27 Septembre 2026",
             "publications": [
                 {
-                    "date": "24/09/2026",
-                    "titre": "TOTALENERGIES MARKETING SN : Changement important dans la Direction",
-                    "url": "https://www.richbourse.com/common/actualite/afficher-fichier/24-09-2026-totalenergies-marketing-sn-changement-important-dans-la-direction"
+                    "date": "25/09/2026",
+                    "titre": "BOA NIGER : Rapport d'activités - 1er semestre 2026",
+                    "url": "https://www.richbourse.com/common/actualite/afficher-fichier/25-09-2026-boa-niger-rapport-dactivites-1er-semestre-2026"
+                },
+                {
+                    "date": "25/09/2026",
+                    "titre": "BOA NIGER : Attestation des Commissaires Aux Comptes et Rapport d'activités - 1er semestre 2026",
+                    "url": "https://www.richbourse.com/common/actualite/afficher-fichier/25-09-2026-boa-niger-attestation-des-commissaires-aux-comptes-et-rapport-d-activites-1er-semestre-2026"
                 },
                 {
                     "date": "24/09/2026",
@@ -24,6 +29,11 @@
                     "date": "24/09/2026",
                     "titre": "BRIDGE BANK GROUP CI : Rapport des Commissaires Aux Comptes - 1er semestre 2026",
                     "url": "https://www.richbourse.com/common/actualite/afficher-fichier/24-09-2026-bridge-bank-group-ci-rapport-des-commissaires-aux-comptes-1er-semestre-2026"
+                },
+                {
+                    "date": "24/09/2026",
+                    "titre": "TOTALENERGIES MARKETING SN : Changement important dans la Direction",
+                    "url": "https://www.richbourse.com/common/actualite/afficher-fichier/24-09-2026-totalenergies-marketing-sn-changement-important-dans-la-direction"
                 },
                 {
                     "date": "23/09/2026",
@@ -77,13 +87,13 @@
                 },
                 {
                     "date": "17/09/2026",
-                    "titre": "SONATEL SN : Avis de convocation - Assemblée Générale Extraordinaire",
-                    "url": "https://www.richbourse.com/common/actualite/afficher-fichier/17-09-2026-sonatel-sn-avis-de-convocation-assemblee-generale-extraordinaire"
+                    "titre": "AFRICA GLOBAL LOGISTICS CI : Rapport des Commissaires Aux Comptes sur les Etats Financiers",
+                    "url": "https://www.richbourse.com/common/actualite/afficher-fichier/17-09-2026-africa-global-logistics-ci-rapport-des-commissaires-aux-comptes-sur-les-etats-financiers"
                 },
                 {
                     "date": "17/09/2026",
-                    "titre": "AFRICA GLOBAL LOGISTICS CI : Rapport des Commissaires Aux Comptes sur les Etats Financiers",
-                    "url": "https://www.richbourse.com/common/actualite/afficher-fichier/17-09-2026-africa-global-logistics-ci-rapport-des-commissaires-aux-comptes-sur-les-etats-financiers"
+                    "titre": "SONATEL SN : Avis de convocation - Assemblée Générale Extraordinaire",
+                    "url": "https://www.richbourse.com/common/actualite/afficher-fichier/17-09-2026-sonatel-sn-avis-de-convocation-assemblee-generale-extraordinaire"
                 },
                 {
                     "date": "17/09/2026",
@@ -99,16 +109,6 @@
                     "date": "16/09/2026",
                     "titre": "SONOCO METAL PACKAGING SIEM CI : Suspension de la cotation",
                     "url": "https://www.richbourse.com/common/actualite/afficher-fichier/16-09-2026-brvm-suspension-de-la-cotation-de-sonoco-metal-packaging-siem-ci"
-                },
-                {
-                    "date": "16/09/2026",
-                    "titre": "SICOR S.A : Suspension de la cotation",
-                    "url": "https://www.richbourse.com/common/actualite/afficher-fichier/16-09-2026-sicor-s-a-suspension-de-la-cotation-de-sicor-s-a"
-                },
-                {
-                    "date": "14/09/2026",
-                    "titre": "AMF-UMOA : Homologation des tarifs de la SGI SA2IF",
-                    "url": "https://www.richbourse.com/common/actualite/afficher-fichier/14-09-2026-amf-umoa-homologation-des-tarifs-de-la-sgi-sa2if"
                 }
             ]
         }
