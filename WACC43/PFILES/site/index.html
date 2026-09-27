@@ -1730,6 +1730,22 @@
     border-radius: 6px 6px 0 0;
   }
 
+  /* ---------- Repères du prévisionnel ---------- */
+  .hyp-repere { font: 400 10.5px/1.4 var(--sans); color: var(--accent); text-wrap: pretty; }
+  .hyp-reperes { margin: 0; font: 400 11.5px/1.5 var(--sans); color: var(--accent); }
+  .dcf-hyp-bascule {
+    padding: 4px 9px;
+    border: 1px solid var(--accent-chip);
+    border-radius: 999px;
+    background: var(--accent-tint);
+    font: 500 12px/1 var(--mono);
+    color: var(--accent);
+    white-space: nowrap;
+    cursor: pointer;
+  }
+  .dcf-hyp-bascule:hover { border-color: var(--accent); }
+  .dcf-calc .is-normatif { background: rgba(255, 255, 255, .12); font-style: italic; }
+
   /* ---------- Prévisionnel : importer ou estimer ---------- */
   .prev-carte { display: grid; gap: 10px; }
   .prev-question {
@@ -2387,8 +2403,9 @@
           <p>Tout commence dans la vue États financiers : on y importe la balance générale,
           puis le prévisionnel — un fichier, ou une estimation à partir d'hypothèses. En mode
           estimation, un boulon sort de derrière le graphique : il ouvre les hypothèses.</p>
-          <p>Le DCF actualise les flux prévisionnels au CMPC de l'onglet CMPC ; un triangle
-          signale une valeur terminale au-delà de 65 % de la VE. Le
+          <p>Le DCF actualise les flux prévisionnels au CMPC de l'onglet CMPC. La valeur
+          terminale part d'un exercice normatif : CapEx égaux aux D&amp;A × (1 + g), BFR
+          proportionné à g. Un triangle signale une valeur terminale au-delà de 65 % de la VE. Le
           graphique des FCFF bascule, au clic, sur le détail du calcul ; le cadre de résultat
           mène de la VE à la valeur des fonds propres.</p>
           <p>La vue Comparables applique la médiane VE / EBITDA de l'échantillon à l'EBITDA
@@ -4495,6 +4512,7 @@
     bgErreurs: [],     // ce qui manquait à la dernière balance refusée
     trajActif: null,   // exercice survolé dans le graphique ; null : le dernier
     seriesEtats: { ca: true, ebitda: true, ebit: false },
+    vtNormatif: true,   // valeur terminale sur un exercice N+1 normatif
     prevMode: "import", // prévisionnel importé, ou "estimation" à partir d'hypothèses
     hyp: null,          // hypothèses d'estimation, posées à la première bascule
     hypOuvert: false,   // panneau des hypothèses déplié
@@ -4558,6 +4576,79 @@
   }
   const impotRetenu = (f) => (f.impot != null ? f.impot : impotAuto());
 
+  /* ---- Repères du prévisionnel ----
+     Chaque hypothèse se lit à côté de ce que disent l'historique de la
+     balance et, en référentiel Comparables, le secteur. */
+  const statistiques = (xs) => {
+    const v = xs.filter((x) => Number.isFinite(x));
+    return v.length ? { moy: v.reduce((a, b) => a + b, 0) / v.length, min: Math.min(...v), max: Math.max(...v), n: v.length } : null;
+  };
+
+  function reperesHistoriques(bg) {
+    const e = bg.etats, n = bg.annees.length;
+    const ca = e.cdr.ca.map((v) => v / 1e6);
+    const rapport = (num) => num.map((v, t) => (ca[t] > 0 ? v / ca[t] : NaN));
+    // Investissements : variation des immobilisations brutes (comptes 2, hors
+    // amortissements 28 et dépréciations 29), cessions non retraitées.
+    const brut = bg.annees.map((_, t) => bg.comptes
+      .filter((c) => c.nc.charAt(0) === "2" && !/^2[89]/.test(c.nc))
+      .reduce((s, c) => s + c.valeurs[t], 0) / 1e6);
+    return {
+      marge: statistiques(rapport(e.cdr.ebitda.map((v) => v / 1e6))),
+      da: statistiques(rapport(e.cdr.da.map((v) => -v / 1e6))),
+      bfr: statistiques(rapport(e.bilan.bfr)),
+      capex: statistiques(brut.slice(1).map((b, i) => (ca[i + 1] > 0 ? (b - brut[i]) / ca[i + 1] : NaN))),
+      tcam: n > 1 ? tcamEntre(ca[0], ca[n - 1], bg.annees[n - 1] - bg.annees[0]) : null,
+    };
+  }
+
+  // Marge d'EBITDA de l'échantillon de comparables, à l'exercice de référence.
+  function margeSecteur() {
+    if (!estComparables()) return null;
+    const sample = societesRetenues().ids.map((id) => COMPARABLES[id]).filter(Boolean);
+    if (!sample.length) return null;
+    const cle = String(exerciceReference(sample));
+    const m = sample.map((s) => {
+      const ca = (s.ca || {})[cle], eb = (s.ebitda || {})[cle];
+      return ca > 0 && Number.isFinite(eb) ? eb / ca : NaN;
+    }).filter(Number.isFinite).sort((a, b) => a - b);
+    if (!m.length) return null;
+    const quantile = (p) => {
+      const x = p * (m.length - 1), i = Math.floor(x);
+      return m[i] + (m[Math.min(i + 1, m.length - 1)] - m[i]) * (x - i);
+    };
+    return { med: quantile(0.5), p75: quantile(0.75), n: m.length };
+  }
+
+  const plageHistorique = (s, suffixe) => !s ? ""
+    : (s.min === s.max ? "Historique : " + frPct(s.moy, 1) : "Historique : " + frPct(s.min, 1) + " à " + frPct(s.max, 1)
+      + ", moy. " + frPct(s.moy, 1)) + (suffixe || "");
+
+  /* ---- Exercice normatif de la valeur terminale ----
+     La VT capitalise un flux à l'infini : elle ne doit pas hériter d'un
+     dernier exercice encore en croissance forte ou sous-investi. L'exercice
+     N+1 normatif fait croître l'EBIT et les D&A de g, pose des CapEx égaux
+     aux D&A × (1 + g) — renouveler l'outil et financer la croissance — et
+     une variation du BFR proportionnée à g. */
+  function exerciceNormatif(f, g, impot) {
+    const k = f.ebit.length - 1;
+    const ebit = f.ebit[k] * (1 + g);
+    const imp = -Math.max(0, ebit) * impot;
+    const da = f.da[k] * (1 + g);
+    const capex = da * (1 + g);
+    let bfr, bfrExtrapole = false;
+    if (f.tauxBfr != null && f.ca && f.ca[k] != null) {
+      bfr = -f.tauxBfr * f.ca[k] * g;                         // BFR en % du CA
+    } else if (f.ca && k > 0 && f.ca[k] != null && f.ca[k - 1] != null && f.ca[k] !== f.ca[k - 1]) {
+      bfr = f.bfr[k] / (f.ca[k] - f.ca[k - 1]) * f.ca[k] * g;  // même intensité par franc de CA supplémentaire
+    } else {
+      bfr = f.bfr[k] * (1 + g);                               // sans CA : dernier flux prolongé
+      bfrExtrapole = true;
+    }
+    return { ebit: ebit, impot: imp, nopat: ebit + imp, da: da, capex: capex, bfr: bfr,
+             fcff: ebit + imp + da - capex + bfr, bfrExtrapole: bfrExtrapole };
+  }
+
   // Fonction pure : la sensibilité la rappelle vingt-cinq fois avec d'autres
   // couples (CMPC, g).
   function calculDcf(f, wacc, g, impot) {
@@ -4576,7 +4667,10 @@
     }
     if (valideTaux) r.somme = r.actualise.reduce((a, b) => a + b, 0);
     const valide = valideTaux && n > 0 && wacc > g;
-    r.vt = valide ? r.fcff[n - 1] * (1 + g) / (wacc - g) : null;
+    // Exercice normatif (par défaut) ou dernier flux prolongé de g.
+    r.normatif = n > 0 && VALO.vtNormatif ? exerciceNormatif(f, g, impot) : null;
+    const fcffVt = r.normatif ? r.normatif.fcff : r.fcff[n - 1] * (1 + g);
+    r.vt = valide ? fcffVt / (wacc - g) : null;
     r.vtAct = valide ? r.vt * r.facteur[n - 1] : null;
     r.ve = valide ? r.somme + r.vtAct : null;
     r.poidsVt = valide && r.ve > 0 ? r.vtAct / r.ve : null;
@@ -5041,22 +5135,26 @@
   // Les lignes du calcul, par exercice : la vue que le clic substitue au
   // graphique, comme dans l'onglet Comparables.
   function detailDcf(f, r) {
-    const ligne = (libelle, valeurs, format, fort) => `
-      <tr${fort ? ' class="is-fort"' : ""}><td>${libelle}</td>${valeurs.map((v) => `<td>${esc(format(v))}</td>`).join("")}</tr>`;
+    // La colonne N+1 porte l'exercice normatif de la valeur terminale ; il
+    // n'est pas actualisé, la VT l'est.
+    const N = r.normatif;
+    const ligne = (libelle, valeurs, format, fort, normatif) => `
+      <tr${fort ? ' class="is-fort"' : ""}><td>${libelle}</td>${valeurs.map((v) => `<td>${esc(format(v))}</td>`).join("")}${N
+        ? `<td class="is-normatif">${normatif === undefined ? "" : esc(normatif == null ? "—" : format(normatif))}</td>` : ""}</tr>`;
     return `
       <div class="dcf-detail">
         <table class="mult-calc-table dcf-calc">
-          <thead><tr><th>M FCFA</th>${f.annees.map((an) => `<th>${frFy(an)}</th>`).join("")}</tr></thead>
+          <thead><tr><th>M FCFA</th>${f.annees.map((an) => `<th>${frFy(an)}</th>`).join("")}${N ? `<th class="is-normatif">N+1 normatif</th>` : ""}</tr></thead>
           <tbody>
-            ${ligne("EBIT", f.ebit, frFlux)}
-            ${ligne("(−) Impôt normatif sur l'EBIT", r.impot, frFlux)}
-            ${ligne("NOPAT", r.nopat, frFlux, true)}
-            ${ligne("(+) Dotations nettes (D&amp;A)", f.da, frFlux)}
-            ${ligne("(−) Investissements (CapEx)", f.capex.map((v) => -v), frFlux)}
-            ${ligne("(−) Variation du BFR", f.bfr, frFlux)}
-            ${ligne("FCFF", r.fcff, frFlux, true)}
-            ${ligne("Facteur d'actualisation", r.facteur, (v) => (v == null ? "—" : frNum(v, 2)))}
-            ${ligne("FCFF actualisé", r.actualise, frFlux, true)}
+            ${ligne("EBIT", f.ebit, frFlux, false, N && N.ebit)}
+            ${ligne("(−) Impôt normatif sur l'EBIT", r.impot, frFlux, false, N && N.impot)}
+            ${ligne("NOPAT", r.nopat, frFlux, true, N && N.nopat)}
+            ${ligne("(+) Dotations nettes (D&amp;A)", f.da, frFlux, false, N && N.da)}
+            ${ligne("(−) Investissements (CapEx)", f.capex.map((v) => -v), frFlux, false, N && -N.capex)}
+            ${ligne("(−) Variation du BFR", f.bfr, frFlux, false, N && N.bfr)}
+            ${ligne("FCFF", r.fcff, frFlux, true, N && N.fcff)}
+            ${ligne("Facteur d'actualisation", r.facteur, (v) => (v == null ? "—" : frNum(v, 2)), false, null)}
+            ${ligne("FCFF actualisé", r.actualise, frFlux, true, null)}
           </tbody>
         </table>
       </div>`;
@@ -5126,10 +5224,14 @@
         aide: marge == null ? "CA absent du fichier" : horizon + (f.ebitda ? "" : ", EBIT + D&A") },
       { libelle: "Horizon", valeur: n + " exercice" + (n > 1 ? "s" : ""), aide: horizon },
       { libelle: "Actualisation", valeur: "Fin d'année" },
+      { libelle: "Valeur terminale", valeur: VALO.vtNormatif ? "Exercice normatif" : "Dernier exercice", action: "vt-normatif",
+        aide: r.normatif ? "FCFF N+1 " + frFlux(r.normatif.fcff) + " · " + fin + " " + frFlux(r.fcff[n - 1])
+          + (r.normatif.bfrExtrapole ? " · BFR prolongé" : "") : "FCFF " + fin + " × (1 + g)" },
     ];
     const cases = [
       { cle: "somme", libelle: "FCFF actualisés", aide: "Somme " + horizon, valeur: frFlux(r.somme) },
-      { cle: "vt", libelle: "VT actualisée", aide: "Gordon-Shapiro", valeur: frFlux(r.vtAct), alerte: alerte },
+      { cle: "vt", libelle: "VT actualisée", aide: VALO.vtNormatif ? "Gordon-Shapiro, normatif" : "Gordon-Shapiro",
+        valeur: frFlux(r.vtAct), alerte: alerte },
       { cle: "cmpc", libelle: "CMPC", aide: "Monnaie locale", valeur: wacc == null ? "—" : frPct(wacc) },
       { cle: "tcam", libelle: "TCAM de l'EBIT", aide: horizon, valeur: tcam == null ? "—" : frPct(tcam, 1) },
     ];
@@ -5147,7 +5249,9 @@
             ${hypotheses.map((h) => `
               <div class="dcf-hyp-ligne">
                 <span>${esc(h.libelle)}${h.aide ? `<small>${esc(h.aide)}</small>` : ""}</span>
-                <strong>${esc(h.valeur)}</strong>
+                ${h.action ? `<button type="button" class="dcf-hyp-bascule" data-action="${h.action}"
+                  title="${VALO.vtNormatif ? "Revenir au dernier exercice prolongé de g" : "Utiliser l'exercice normatif"}">${esc(h.valeur)}</button>`
+                  : `<strong>${esc(h.valeur)}</strong>`}
               </div>`).join("")}
           </div>
           <h2 class="dcf-rubrique">Résultat de la valorisation</h2>
@@ -5870,6 +5974,7 @@
     const f = {
       annees: [], ca: [], ebitda: [], da: [], ebit: [], capex: [], bfr: [],
       g: h.g, detteNette: b.dette, impot: null, historique: null, estime: true,
+      tauxBfr: h.bfr,   // l'exercice normatif en tire la variation du BFR
     };
     let prec = b.ca;
     for (let t = 0; t < h.horizon; t++) {
@@ -5924,13 +6029,20 @@
 
   function panneauHypotheses() {
     const h = VALO.hyp, f = estimerPrevisionnel(), b = baseEstimation(VALO.bg);
-    const champ = (cle, libelle, aide) => `
+    const rep = reperesHistoriques(VALO.bg);
+    const secteur = margeSecteur();
+    const champ = (cle, libelle, aide, repere) => `
       <label class="hyp-champ">
         <span class="field-label">${libelle}</span>
         <span class="hyp-saisie"><input class="mini-input" data-hyp="${cle}" inputmode="decimal"
                value="${frNum(h[cle] * 100, 1)}" aria-label="${esc(libelle)}, en %"><span>%</span></span>
         <span class="field-hint">${aide}</span>
+        ${repere ? `<span class="hyp-repere">${esc(repere)}</span>` : ""}
       </label>`;
+    const reperesTable = [
+      rep.tcam != null ? "TCAM historique du CA : " + frPct(rep.tcam, 1) : "",
+      rep.capex ? "CapEx historiques : moy. " + frPct(rep.capex.moy, 1) + " du CA (variation des immobilisations brutes)" : "",
+    ].filter(Boolean);
     const calcul = (cle, valeurs) => valeurs.map((v, t) => `<td data-o="hyp-${cle}-${t}">${frM(v)}</td>`).join("");
     return `
       <div class="hyp-panneau" id="hypPanneau">
@@ -5945,10 +6057,12 @@
               </div>
             </div>
             <div class="hyp-globales">
-              ${champ("marge", "Marge d'EBITDA", "% du chiffre d'affaires")}
-              ${champ("da", "Dotations aux amortissements", "% du chiffre d'affaires")}
-              ${champ("bfr", "Variation du BFR", "% de la variation du CA")}
-              ${champ("g", "Croissance à l'infini (g)", "Valeur terminale, Gordon-Shapiro")}
+              ${champ("marge", "Marge d'EBITDA", "% du chiffre d'affaires", plageHistorique(rep.marge,
+                secteur ? " · Secteur : méd. " + frPct(secteur.med, 1) + ", 3e quartile " + frPct(secteur.p75, 1) : ""))}
+              ${champ("da", "Dotations aux amortissements", "% du chiffre d'affaires", plageHistorique(rep.da))}
+              ${champ("bfr", "Variation du BFR", "% de la variation du CA", rep.bfr ? plageHistorique(rep.bfr, " (BFR / CA)") : "")}
+              ${champ("g", "Croissance à l'infini (g)", "Valeur terminale, Gordon-Shapiro",
+                "Inflation locale : " + frPct(Number(params.inflation_local), 1))}
               <div class="hyp-champ">
                 <span class="field-label">Horizon</span>
                 <span class="hyp-horizon">
@@ -5959,6 +6073,7 @@
                 <span class="field-hint">${plageFy(f.annees)}</span>
               </div>
             </div>
+            ${reperesTable.length ? `<p class="hyp-reperes">Repères · ${esc(reperesTable.join(" · "))}</p>` : ""}
             <div class="hyp-defile">
               <table class="hyp-table">
                 <thead><tr><th>M FCFA</th>${f.annees.map((an) => `<th>${frFy(an)}</th>`).join("")}</tr></thead>
@@ -6313,12 +6428,29 @@
     ligne("facteur", "Facteur d'actualisation", r.facteur, (t) => "1/(1+" + fixe("cmpc") + ")^" + c("periode", t), ST.facteur);
     ligne("actualise", "FCFF actualisé", r.actualise, (t) => c("fcff", t) + "*" + c("facteur", t), ST.totalM, ST.totalLib);
     w.ajoute(null, []);
+    if (r.normatif) {
+      const N = r.normatif, der = n - 1;
+      w.ajoute(null, [null, { v: "Exercice normatif (N+1), base de la valeur terminale", s: ST.entete }, { v: "N+1", s: ST.entete }]);
+      const norm = (cle, libelle, formule, v, style, styleLib) => w.ajoute(cle, [null, { v: libelle, s: styleLib || ST.libelle },
+        formule ? { f: formule(), v: v, s: style } : { v: v, s: ST.saisieM }]);
+      norm("n_ebit", "EBIT, en croissance de g", () => `${c("ebit", der)}*(1+${fixe("g")})`, N.ebit, ST.m);
+      norm("n_impot", "(−) Impôt normatif", () => `-MAX(0,C${w.rang.n_ebit})*${fixe("is")}`, N.impot, ST.m);
+      norm("n_nopat", "NOPAT", () => `C${w.rang.n_ebit}+C${w.rang.n_impot}`, N.nopat, ST.totalM, ST.totalLib);
+      norm("n_da", "D&A, en croissance de g", () => `${c("da", der)}*(1+${fixe("g")})`, N.da, ST.m);
+      norm("n_capex", "CapEx = D&A × (1 + g)", () => `C${w.rang.n_da}*(1+${fixe("g")})`, N.capex, ST.m);
+      norm("n_bfr", "Variation du BFR, proportionnée à g" + (estime ? "" : " (calculée à l'écran)"),
+        estime ? () => `-${fixe("tbfr")}*${c("ca", der)}*${fixe("g")}` : null, N.bfr, ST.m);
+      norm("n_fcff", "FCFF normatif", () => `C${w.rang.n_nopat}+C${w.rang.n_da}-C${w.rang.n_capex}+C${w.rang.n_bfr}`,
+        N.fcff, ST.totalM, ST.totalLib);
+      w.ajoute(null, []);
+    }
 
     const total = (cle, libelle, formule, v, style, styleLib) =>
       w.ajoute(cle, [null, { v: libelle, s: styleLib || ST.libelle }, { f: formule(), v: v, s: style }]);
     total("somme", "Somme des FCFF actualisés", () => `SUM(${c("actualise", 0)}:${c("actualise", n - 1)})`, r.somme, ST.m);
     total("vt", "Valeur terminale à fin " + frFy(f.annees[n - 1]),
-      () => `${c("fcff", n - 1)}*(1+${fixe("g")})/(${fixe("cmpc")}-${fixe("g")})`, r.vt, ST.m);
+      () => r.normatif ? `C${w.rang.n_fcff}/(${fixe("cmpc")}-${fixe("g")})`
+        : `${c("fcff", n - 1)}*(1+${fixe("g")})/(${fixe("cmpc")}-${fixe("g")})`, r.vt, ST.m);
     total("vtact", "Valeur terminale actualisée", () => `C${w.rang.vt}*${c("facteur", n - 1)}`, r.vtAct, ST.m);
     total("ve", "Valeur d'entreprise", () => `C${w.rang.somme}+C${w.rang.vtact}`, r.ve, ST.totalM, ST.totalLib);
     total("poidsvt", "Poids de la valeur terminale", () => `IFERROR(C${w.rang.vtact}/C${w.rang.ve},"n.a")`,
@@ -6942,6 +7074,9 @@
         VALO.animer = true;
         renderValo();
         VALO.animerBoulon = false;
+      } else if (a === "vt-normatif") {
+        VALO.vtNormatif = !VALO.vtNormatif;
+        renderValo();
       } else if (a === "hypotheses") {
         basculerHypotheses();
       } else if (a === "hyp-defaut" && VALO.bg && VALO.hyp) {

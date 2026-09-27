@@ -67,11 +67,18 @@ def classeur(chemin, *, annees=ANNEES, sans=(), capex_negatif=False, g=G, impot=
     return chemin
 
 
-def ve_attendue(wacc, g=G, impot=0.25):
+def ve_attendue(wacc, g=G, impot=0.25, normatif=True):
     fcff = [e - max(0, e) * impot + d - c + b for e, d, c, b in zip(EBIT, DA, CAPEX, BFR)]
     facteurs = [(1 + wacc) ** -(t + 1) for t in range(len(fcff))]      # fin d'année
     somme = sum(f * a for f, a in zip(fcff, facteurs))
-    return somme + fcff[-1] * (1 + g) / (wacc - g) * facteurs[-1]
+    if not normatif:
+        return somme + fcff[-1] * (1 + g) / (wacc - g) * facteurs[-1]
+    # Exercice N+1 normatif : EBIT et D&A croissent de g, CapEx = D&A × (1 + g),
+    # et, sans CA dans le classeur, le dernier flux de BFR prolongé de g.
+    ebit = EBIT[-1] * (1 + g)
+    da = DA[-1] * (1 + g)
+    fcff_n = ebit - max(0, ebit) * impot + da - da * (1 + g) + BFR[-1] * (1 + g)
+    return somme + fcff_n / (wacc - g) * facteurs[-1]
 
 
 def montant(texte):
@@ -153,7 +160,7 @@ def test_actualisation_en_fin_d_annee(page, tmp_path):
     page.click("#dcfVue")
     facteurs = [tr for tr in page.query_selector_all("#dcfVue .dcf-calc tbody tr")
                 if "Facteur" in tr.inner_text()][0]
-    lus = [td.inner_text() for td in facteurs.query_selector_all("td")[1:]]
+    lus = [td.inner_text() for td in facteurs.query_selector_all("td:not(.is-normatif)")[1:]]
     assert lus == [f"{1.1202 ** -(t + 1):.2f}".replace(".", ",") for t in range(4)]
 
 
@@ -189,7 +196,7 @@ def test_facteur_a_deux_decimales(page, tmp_path):
     page.click("#dcfVue")
     ligne = [tr for tr in page.query_selector_all("#dcfVue .dcf-calc tbody tr")
              if "Facteur" in tr.inner_text()][0]
-    for td in ligne.query_selector_all("td")[1:]:
+    for td in ligne.query_selector_all("td:not(.is-normatif)")[1:]:
         assert len(td.inner_text().split(",")[1]) == 2
 
 
@@ -411,3 +418,19 @@ def test_le_boulon_alimente_aussi_la_synthese(page):
     vers_synthese(page)
     page.wait_for_selector("#valoSynthese .syn-graphe")
     assert abs(montant(synthese(page, "ve")) - ve_attendue(cmpc(page))) < 1
+
+
+# ------------------------------------------------ valeur terminale normative
+
+def test_la_vt_part_d_un_exercice_normatif(page, tmp_path):
+    """Par défaut, la VT capitalise un exercice N+1 normatif ; la bascule des
+    hypothèses du DCF revient au dernier flux prolongé de g."""
+    importer(page, classeur(tmp_path / "dcf.xlsx"))
+    w = cmpc(page)
+    assert abs(montant(carte(page, "ve")) - ve_attendue(w)) < 1
+    assert "Exercice normatif" in page.inner_text('#valoDcf [data-action="vt-normatif"]')
+    page.click("#dcfVue")
+    assert "N+1 normatif" in page.text_content("#dcfVue .dcf-calc thead")
+    page.click('#valoDcf [data-action="vt-normatif"]')
+    assert "Dernier exercice" in page.inner_text('#valoDcf [data-action="vt-normatif"]')
+    assert abs(montant(carte(page, "ve")) - ve_attendue(w, normatif=False)) < 1

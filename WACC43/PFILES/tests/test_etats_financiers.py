@@ -7,6 +7,8 @@ L'export est relu par openpyxl : formules présentes, valeurs en cache
 cohérentes avec l'écran.
 """
 
+import re
+
 import openpyxl
 import pytest
 
@@ -257,10 +259,16 @@ def test_le_graphique_suit_la_largeur_de_la_fenetre(page, tmp_path):
 # ------------------------------------------------ prévisionnel estimé par hypothèses
 
 def ve_de(f, wacc, impot):
-    """DCF de référence : actualisation en fin d'année, Gordon-Shapiro."""
+    """DCF de référence : actualisation en fin d'année, Gordon-Shapiro sur un
+    exercice N+1 normatif (EBIT et D&A + g, CapEx = D&A × (1 + g), BFR en %
+    de la variation du CA)."""
     fcff = [e - max(0, e) * impot + d - c + b for e, d, c, b in zip(f["ebit"], f["da"], f["capex"], f["bfr"])]
     fac = [(1 + wacc) ** -(t + 1) for t in range(len(fcff))]
-    return sum(x * y for x, y in zip(fcff, fac)) + fcff[-1] * (1 + f["g"]) / (wacc - f["g"]) * fac[-1]
+    g = f["g"]
+    ebit = f["ebit"][-1] * (1 + g)
+    da = f["da"][-1] * (1 + g)
+    fcff_n = ebit - max(0, ebit) * impot + da - da * (1 + g) - f["tauxBfr"] * f["ca"][-1] * g
+    return sum(x * y for x, y in zip(fcff, fac)) + fcff_n / (wacc - g) * fac[-1]
 
 
 def estimer(page, tmp_path):
@@ -395,7 +403,8 @@ def test_export_avec_le_dcf_joint_la_synthese(page, tmp_path):
     dcf = wb["DCF"]
     formules = [c.value for row in dcf.iter_rows() for c in row if isinstance(c.value, str) and c.value.startswith("=")]
     assert any(f.startswith("=1/(1+$C$5)^") for f in formules)            # facteur, fin d'année
-    assert any("*(1+$C$6)/($C$5-$C$6)" in f for f in formules)             # Gordon-Shapiro
+    assert any(re.fullmatch(r"=C\d+/\(\$C\$5-\$C\$6\)", f) for f in formules)   # VT sur le FCFF normatif
+    assert any((c.value or "") == "FCFF normatif" for row in dcf.iter_rows() for c in row)
     syn = wb["Synthèse"]
     assert syn["C5"].value.startswith("=DCF!$C$")
     wv = openpyxl.load_workbook(chemin, data_only=True)
@@ -507,3 +516,15 @@ def test_dix_exercices_tiennent_sans_defilement(page, tmp_path):
     largeurs = page.eval_on_selector_all("#valoEtats .etats-grille .card-block", "es => es.map(e => e.scrollWidth - e.clientWidth)")
     assert largeurs == [0, 0]
     assert "10 000" in page.inner_text('#valoEtats tr[data-ligne="ca"]').replace(" ", " ")
+
+
+# ------------------------------------------------ repères des hypothèses
+
+def test_repères_historiques_sous_les_hypotheses(page, tmp_path):
+    estimer(page, tmp_path)
+    page.click("#valoEtats .traj-enveloppe .hyp-boulon")
+    texte = page.inner_text("#valoEtats .hyp-globales")
+    marges = [e / c * 100 for e, c in zip(EBITDA, CA)]
+    assert f"Historique : {min(marges):.1f} % à {max(marges):.1f} %".replace(".", ",") in texte.replace("\u00a0", " ")
+    assert "Inflation locale" in texte
+    assert "TCAM historique du CA : 10,0 %" in page.inner_text("#valoEtats .hyp-reperes").replace("\u00a0", " ")
