@@ -1730,9 +1730,7 @@
     border-radius: 6px 6px 0 0;
   }
 
-  /* ---------- Repères du prévisionnel ---------- */
-  .hyp-repere { font: 400 10.5px/1.4 var(--sans); color: var(--accent); text-wrap: pretty; }
-  .hyp-reperes { margin: 0; font: 400 11.5px/1.5 var(--sans); color: var(--accent); }
+  /* ---------- Bascule de la valeur terminale ---------- */
   .dcf-hyp-bascule {
     padding: 4px 9px;
     border: 1px solid var(--accent-chip);
@@ -4576,54 +4574,6 @@
   }
   const impotRetenu = (f) => (f.impot != null ? f.impot : impotAuto());
 
-  /* ---- Repères du prévisionnel ----
-     Chaque hypothèse se lit à côté de ce que disent l'historique de la
-     balance et, en référentiel Comparables, le secteur. */
-  const statistiques = (xs) => {
-    const v = xs.filter((x) => Number.isFinite(x));
-    return v.length ? { moy: v.reduce((a, b) => a + b, 0) / v.length, min: Math.min(...v), max: Math.max(...v), n: v.length } : null;
-  };
-
-  function reperesHistoriques(bg) {
-    const e = bg.etats, n = bg.annees.length;
-    const ca = e.cdr.ca.map((v) => v / 1e6);
-    const rapport = (num) => num.map((v, t) => (ca[t] > 0 ? v / ca[t] : NaN));
-    // Investissements : variation des immobilisations brutes (comptes 2, hors
-    // amortissements 28 et dépréciations 29), cessions non retraitées.
-    const brut = bg.annees.map((_, t) => bg.comptes
-      .filter((c) => c.nc.charAt(0) === "2" && !/^2[89]/.test(c.nc))
-      .reduce((s, c) => s + c.valeurs[t], 0) / 1e6);
-    return {
-      marge: statistiques(rapport(e.cdr.ebitda.map((v) => v / 1e6))),
-      da: statistiques(rapport(e.cdr.da.map((v) => -v / 1e6))),
-      bfr: statistiques(rapport(e.bilan.bfr)),
-      capex: statistiques(brut.slice(1).map((b, i) => (ca[i + 1] > 0 ? (b - brut[i]) / ca[i + 1] : NaN))),
-      tcam: n > 1 ? tcamEntre(ca[0], ca[n - 1], bg.annees[n - 1] - bg.annees[0]) : null,
-    };
-  }
-
-  // Marge d'EBITDA de l'échantillon de comparables, à l'exercice de référence.
-  function margeSecteur() {
-    if (!estComparables()) return null;
-    const sample = societesRetenues().ids.map((id) => COMPARABLES[id]).filter(Boolean);
-    if (!sample.length) return null;
-    const cle = String(exerciceReference(sample));
-    const m = sample.map((s) => {
-      const ca = (s.ca || {})[cle], eb = (s.ebitda || {})[cle];
-      return ca > 0 && Number.isFinite(eb) ? eb / ca : NaN;
-    }).filter(Number.isFinite).sort((a, b) => a - b);
-    if (!m.length) return null;
-    const quantile = (p) => {
-      const x = p * (m.length - 1), i = Math.floor(x);
-      return m[i] + (m[Math.min(i + 1, m.length - 1)] - m[i]) * (x - i);
-    };
-    return { med: quantile(0.5), p75: quantile(0.75), n: m.length };
-  }
-
-  const plageHistorique = (s, suffixe) => !s ? ""
-    : (s.min === s.max ? "Historique : " + frPct(s.moy, 1) : "Historique : " + frPct(s.min, 1) + " à " + frPct(s.max, 1)
-      + ", moy. " + frPct(s.moy, 1)) + (suffixe || "");
-
   /* ---- Exercice normatif de la valeur terminale ----
      La VT capitalise un flux à l'infini : elle ne doit pas hériter d'un
      dernier exercice encore en croissance forte ou sous-investi. L'exercice
@@ -6029,20 +5979,13 @@
 
   function panneauHypotheses() {
     const h = VALO.hyp, f = estimerPrevisionnel(), b = baseEstimation(VALO.bg);
-    const rep = reperesHistoriques(VALO.bg);
-    const secteur = margeSecteur();
-    const champ = (cle, libelle, aide, repere) => `
+    const champ = (cle, libelle, aide) => `
       <label class="hyp-champ">
         <span class="field-label">${libelle}</span>
         <span class="hyp-saisie"><input class="mini-input" data-hyp="${cle}" inputmode="decimal"
                value="${frNum(h[cle] * 100, 1)}" aria-label="${esc(libelle)}, en %"><span>%</span></span>
         <span class="field-hint">${aide}</span>
-        ${repere ? `<span class="hyp-repere">${esc(repere)}</span>` : ""}
       </label>`;
-    const reperesTable = [
-      rep.tcam != null ? "TCAM historique du CA : " + frPct(rep.tcam, 1) : "",
-      rep.capex ? "CapEx historiques : moy. " + frPct(rep.capex.moy, 1) + " du CA (variation des immobilisations brutes)" : "",
-    ].filter(Boolean);
     const calcul = (cle, valeurs) => valeurs.map((v, t) => `<td data-o="hyp-${cle}-${t}">${frM(v)}</td>`).join("");
     return `
       <div class="hyp-panneau" id="hypPanneau">
@@ -6057,12 +6000,10 @@
               </div>
             </div>
             <div class="hyp-globales">
-              ${champ("marge", "Marge d'EBITDA", "% du chiffre d'affaires", plageHistorique(rep.marge,
-                secteur ? " · Secteur : méd. " + frPct(secteur.med, 1) + ", 3e quartile " + frPct(secteur.p75, 1) : ""))}
-              ${champ("da", "Dotations aux amortissements", "% du chiffre d'affaires", plageHistorique(rep.da))}
-              ${champ("bfr", "Variation du BFR", "% de la variation du CA", rep.bfr ? plageHistorique(rep.bfr, " (BFR / CA)") : "")}
-              ${champ("g", "Croissance à l'infini (g)", "Valeur terminale, Gordon-Shapiro",
-                "Inflation locale : " + frPct(Number(params.inflation_local), 1))}
+              ${champ("marge", "Marge d'EBITDA", "% du chiffre d'affaires")}
+              ${champ("da", "Dotations aux amortissements", "% du chiffre d'affaires")}
+              ${champ("bfr", "Variation du BFR", "% de la variation du CA")}
+              ${champ("g", "Croissance à l'infini (g)", "Valeur terminale, Gordon-Shapiro")}
               <div class="hyp-champ">
                 <span class="field-label">Horizon</span>
                 <span class="hyp-horizon">
@@ -6073,7 +6014,6 @@
                 <span class="field-hint">${plageFy(f.annees)}</span>
               </div>
             </div>
-            ${reperesTable.length ? `<p class="hyp-reperes">Repères · ${esc(reperesTable.join(" · "))}</p>` : ""}
             <div class="hyp-defile">
               <table class="hyp-table">
                 <thead><tr><th>M FCFA</th>${f.annees.map((an) => `<th>${frFy(an)}</th>`).join("")}</tr></thead>

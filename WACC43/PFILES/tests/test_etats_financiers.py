@@ -516,15 +516,3 @@ def test_dix_exercices_tiennent_sans_defilement(page, tmp_path):
     largeurs = page.eval_on_selector_all("#valoEtats .etats-grille .card-block", "es => es.map(e => e.scrollWidth - e.clientWidth)")
     assert largeurs == [0, 0]
     assert "10 000" in page.inner_text('#valoEtats tr[data-ligne="ca"]').replace(" ", " ")
-
-
-# ------------------------------------------------ repères des hypothèses
-
-def test_repères_historiques_sous_les_hypotheses(page, tmp_path):
-    estimer(page, tmp_path)
-    page.click("#valoEtats .traj-enveloppe .hyp-boulon")
-    texte = page.inner_text("#valoEtats .hyp-globales")
-    marges = [e / c * 100 for e, c in zip(EBITDA, CA)]
-    assert f"Historique : {min(marges):.1f} % à {max(marges):.1f} %".replace(".", ",") in texte.replace("\u00a0", " ")
-    assert "Inflation locale" in texte
-    assert "TCAM historique du CA : 10,0 %" in page.inner_text("#valoEtats .hyp-reperes").replace("\u00a0", " ")
