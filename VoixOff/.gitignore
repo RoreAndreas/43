@@ -1,0 +1,3 @@
+# Caches Python : serve.py importe inventaire.py
+__pycache__/
+*.pyc

@@ -1,0 +1,74 @@
+{
+  "rubriques": {
+    "Corporate": [
+      {
+        "titre": "Tears of Steel - Blender VFX Open Movie",
+        "type": "youtube",
+        "youtube": "R6MlUcmOul8",
+        "titreYoutube": "Tears of Steel - Blender VFX Open Movie",
+        "auteur": "Blender"
+      },
+      {
+        "titre": "Agent 327: Operation Barbershop",
+        "type": "youtube",
+        "youtube": "mN0zPOpADL4",
+        "titreYoutube": "Agent 327: Operation Barbershop",
+        "auteur": "Blender Studio"
+      },
+      {
+        "titre": "Caminandes 3: Llamigos",
+        "type": "youtube",
+        "youtube": "SkVqJ1SGeL0",
+        "titreYoutube": "Caminandes 3: Llamigos",
+        "auteur": "Blender"
+      }
+    ],
+    "Documentaire": [
+      {
+        "titre": "Big Buck Bunny 60fps 4K - Official Blender Foundation Short Film",
+        "type": "youtube",
+        "youtube": "aqz-KE-bpKQ",
+        "titreYoutube": "Big Buck Bunny 60fps 4K - Official Blender Foundation Short Film",
+        "auteur": "Blender"
+      },
+      {
+        "titre": "Sintel - Open Movie by Blender Foundation",
+        "type": "youtube",
+        "youtube": "eRsGyueVLvQ",
+        "titreYoutube": "Sintel - Open Movie by Blender Foundation",
+        "auteur": "Blender"
+      },
+      {
+        "titre": "Elephants Dream",
+        "type": "youtube",
+        "youtube": "TLkA0RELQ1g",
+        "titreYoutube": "Elephants Dream",
+        "auteur": "Blender"
+      },
+      {
+        "titre": "Cosmos Laundromat - First Cycle. Official Blender Foundation release.",
+        "type": "youtube",
+        "youtube": "Y-rmzh0PI3c",
+        "titreYoutube": "Cosmos Laundromat - First Cycle. Official Blender Foundation release.",
+        "auteur": "Blender"
+      }
+    ],
+    "Piste audio": [
+      {
+        "titre": "Livre audio (exemple)",
+        "type": "audio",
+        "fichier": "realisations/Piste%20audio/01%20-%20Livre%20audio%20%28exemple%29.wav"
+      },
+      {
+        "titre": "Spot radio (exemple)",
+        "type": "audio",
+        "fichier": "realisations/Piste%20audio/02%20-%20Spot%20radio%20%28exemple%29.wav"
+      },
+      {
+        "titre": "Message d'accueil (exemple)",
+        "type": "audio",
+        "fichier": "realisations/Piste%20audio/03%20-%20Message%20d%27accueil%20%28exemple%29.wav"
+      }
+    ]
+  }
+}

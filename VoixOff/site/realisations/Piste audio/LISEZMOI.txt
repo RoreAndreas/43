@@ -1,0 +1,11 @@
+Déposez ici les audios (et, au besoin, les vidéos) de la rubrique Piste audio.
+
+  - Le nom du fichier devient le titre affiché : « Spot radio.mp3 »
+    s'affiche « Spot radio ».
+  - Pour fixer l'ordre, commencez le nom par un numéro : « 01 - … »,
+    « 02 - … ». Le numéro ne s'affiche pas.
+  - Formats : audio .mp3 (conseillé), .wav, .m4a ; vidéo .mp4, .webm, .mov.
+  - 25 Mo au plus par fichier, limite de l'hébergeur.
+
+Les trois fichiers « (exemple) » sont des murmures de synthèse, là pour
+montrer le lecteur : supprimez-les quand vous déposerez les vôtres.

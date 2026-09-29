@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Anne-Katy MILIDJI — Voix off professionnel</title>
+  <!-- Texte repris par les moteurs de recherche et lors du partage d'un lien. -->
+  <meta name="description" content="Anne-Katy MILIDJI, voix off professionnel : corporate, documentaire, pistes audio.">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="Anne-Katy MILIDJI — Voix off professionnel">
+  <meta property="og:description" content="Corporate, documentaire, pistes audio : regardez et écoutez mes réalisations.">
+  <meta name="theme-color" content="#000000">
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@300..500&family=Geist+Mono:wght@400..500&display=swap">
+  <link rel="stylesheet" href="style.css">
+  <script src="contenu.js"></script>
+  <script src="app.js" defer></script>
+</head>
+<body>
+  <header class="barre">
+    <div class="barre-gauche">
+      <a class="marque" href="#/">Portfolio</a>
+      <!-- N'apparaît que dans une rubrique : ramène aux trois photos. -->
+      <button type="button" class="retour" aria-label="Retour aux rubriques">
+        <svg class="retour-fleche" viewBox="0 0 24 24" aria-hidden="true"><path d="M19 12H5M11 5l-7 7 7 7"/></svg>
+        <span class="retour-texte">Retour</span>
+      </button>
+    </div>
+    <a class="barre-nom" href="#/">
+      <span class="barre-nom-texte"></span>
+      <span class="barre-metier"></span>
+    </a>
+    <div class="barre-droite"></div>
+  </header>
+
+  <main>
+    <!-- Accueil : une photo par rubrique. -->
+    <section class="accueil" aria-label="Rubriques">
+      <div class="bande"></div>
+    </section>
+
+    <!-- Rubrique ouverte : le cadre de la liste et le lecteur, sur une même ligne. -->
+    <section class="focus" aria-labelledby="focus-titre" hidden inert>
+      <div class="carte">
+        <div class="carte-tete">
+          <span class="etiquette">Réalisations</span>
+          <span class="carte-compte"></span>
+        </div>
+        <h1 class="carte-titre" id="focus-titre"></h1>
+        <p class="carte-intro"></p>
+        <ol class="liste"></ol>
+        <p class="etiquette carte-vide" hidden>Aucune réalisation pour l'instant</p>
+      </div>
+
+      <div class="cadre">
+        <div class="cadre-image"></div>
+        <div class="audio-ui">
+          <button type="button" class="audio-bouton" aria-label="Écouter">
+            <span class="bascule" aria-hidden="true">
+              <svg class="i-lecture" viewBox="0 0 24 24"><path d="M8.5 5.6v12.8a.9.9 0 0 0 1.37.77l10.2-6.4a.9.9 0 0 0 0-1.54l-10.2-6.4A.9.9 0 0 0 8.5 5.6z"/></svg>
+              <svg class="i-pause" viewBox="0 0 24 24"><rect x="6.5" y="5" width="3.8" height="14" rx="1.1"/><rect x="13.7" y="5" width="3.8" height="14" rx="1.1"/></svg>
+            </span>
+          </button>
+          <div class="onde" role="slider" tabindex="0" aria-label="Position dans l'extrait" aria-valuemin="0" aria-valuemax="0" aria-valuenow="0">
+            <div class="onde-couche onde-fond"></div>
+            <div class="onde-couche onde-lue"></div>
+          </div>
+          <span class="audio-temps"></span>
+        </div>
+        <div class="scene"></div>
+        <div class="chargeur" aria-hidden="true"></div>
+      </div>
+
+      <div class="cartel vide" aria-live="polite">
+        <p class="etiquette cartel-invite">Sélectionnez une réalisation</p>
+        <h2 class="cartel-titre"></h2>
+        <p class="cartel-meta"></p>
+        <p class="cartel-texte"></p>
+      </div>
+    </section>
+  </main>
+
+  <noscript>
+    <p style="padding: 120px 40px">Ce portfolio a besoin de JavaScript pour afficher les vidéos et les extraits audio.</p>
+  </noscript>
+</body>
+</html>

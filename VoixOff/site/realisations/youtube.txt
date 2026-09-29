@@ -1,0 +1,28 @@
+# Liens YouTube du portfolio
+#
+# Une vidéo par ligne, sous le nom de sa rubrique entre crochets.
+# Le titre affiché est celui de la vidéo sur YouTube. Pour en choisir un
+# autre, écrivez-le avant le lien, séparé par une barre verticale :
+#
+#     Mon titre | https://www.youtube.com/watch?v=XXXXXXXXXXX
+#
+# Les vidéos s'affichent dans l'ordre de ce fichier, après celles déposées
+# dans le dossier de la rubrique. Les lignes qui commencent par # sont
+# ignorées. La vidéo doit autoriser l'intégration (réglage par défaut) :
+# une vidéo « non répertoriée » fonctionne, une vidéo « privée » non.
+#
+# Les liens ci-dessous sont des exemples (films libres de la Blender
+# Foundation) : remplacez-les par les vôtres.
+
+[Corporate]
+https://www.youtube.com/watch?v=R6MlUcmOul8
+https://www.youtube.com/watch?v=mN0zPOpADL4
+https://www.youtube.com/watch?v=SkVqJ1SGeL0
+
+[Documentaire]
+https://www.youtube.com/watch?v=aqz-KE-bpKQ
+https://youtu.be/eRsGyueVLvQ
+https://www.youtube.com/watch?v=TLkA0RELQ1g
+https://www.youtube.com/watch?v=Y-rmzh0PI3c
+
+[Piste audio]
