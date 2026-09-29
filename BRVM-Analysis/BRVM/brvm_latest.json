@@ -1,5 +1,5 @@
 {
-    "last_update": "2026-09-29 14:34:44",
+    "last_update": "2026-09-29 19:37:04",
     "count": 48,
     "data": [
         {
@@ -19,8 +19,8 @@
         },
         {
             "symbole": "BICC",
-            "prix": "32 500",
-            "variation": "-1,85%"
+            "prix": "34 895",
+            "variation": "7,37%"
         },
         {
             "symbole": "BNBC",
@@ -94,18 +94,18 @@
         },
         {
             "symbole": "LNBB",
-            "prix": "3 800",
-            "variation": "-2,44%"
+            "prix": "3 900",
+            "variation": "0,13%"
         },
         {
             "symbole": "NEIC",
-            "prix": "2 250",
-            "variation": "-6,05%"
+            "prix": "2 300",
+            "variation": "-3,97%"
         },
         {
             "symbole": "NSBC",
-            "prix": "22 505",
-            "variation": "0,42%"
+            "prix": "21 500",
+            "variation": "-4,06%"
         },
         {
             "symbole": "NTLC",
@@ -139,8 +139,8 @@
         },
         {
             "symbole": "SAFC",
-            "prix": "4 700",
-            "variation": "1,73%"
+            "prix": "4 800",
+            "variation": "3,90%"
         },
         {
             "symbole": "SCRC",
@@ -224,8 +224,8 @@
         },
         {
             "symbole": "TTLC",
-            "prix": "3 260",
-            "variation": "3,49%"
+            "prix": "3 175",
+            "variation": "0,79%"
         },
         {
             "symbole": "TTLS",
