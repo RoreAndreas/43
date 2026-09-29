@@ -1,0 +1,116 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Voix off — Portfolio</title>
+  <!-- Texte repris par les moteurs de recherche et lors du partage d'un lien : à personnaliser. -->
+  <meta name="description" content="Portfolio voix off : publicité, documentaire, narration. Regardez et écoutez mes travaux.">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="Voix off — Portfolio">
+  <meta property="og:description" content="Publicité, documentaire, narration : regardez et écoutez mes travaux.">
+  <meta name="theme-color" content="#f4f2ee" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#0e0e0d" media="(prefers-color-scheme: dark)">
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="preconnect" href="https://i.ytimg.com">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@300..600&family=Instrument+Serif:ital@0;1&display=swap">
+  <link rel="stylesheet" href="style.css">
+  <script src="contenu.js"></script>
+  <script>
+    /* Thème imposé par contenu.js, posé avant le premier affichage. */
+    (function () {
+      var t = (window.PORTFOLIO || {}).theme;
+      if (t === "clair" || t === "sombre") document.documentElement.setAttribute("data-theme", t);
+    })();
+  </script>
+  <script src="app.js" defer></script>
+</head>
+<body>
+  <header class="barre">
+    <a class="barre-nom" href="#haut"></a>
+    <nav class="barre-liens" aria-label="Navigation">
+      <a href="#travaux">Travaux</a>
+      <a href="#contact">Contact</a>
+    </nav>
+  </header>
+
+  <main id="haut">
+    <section class="intro contenu">
+      <p class="surtitre entree"></p>
+      <h1 class="nom"></h1>
+      <p class="accroche entree" style="--d: 420ms"></p>
+    </section>
+
+    <section class="vedette contenu a-reveler" aria-label="À la une" hidden></section>
+
+    <section class="travaux contenu" id="travaux" aria-labelledby="titre-travaux" hidden>
+      <div class="travaux-tete a-reveler">
+        <h2 class="travaux-titre" id="titre-travaux">Travaux</h2>
+        <nav class="filtres" aria-label="Filtrer par catégorie" hidden></nav>
+      </div>
+      <ul class="grille"></ul>
+    </section>
+
+    <section class="apropos contenu a-reveler" aria-labelledby="titre-apropos" hidden>
+      <h2 class="etiquette" id="titre-apropos">À propos</h2>
+      <div class="apropos-texte"></div>
+    </section>
+  </main>
+
+  <footer class="contact" id="contact">
+    <div class="contenu a-reveler">
+      <p class="etiquette contact-invite"></p>
+      <a class="contact-email"></a>
+      <ul class="contact-lignes"></ul>
+      <div class="pied">
+        <span class="pied-mention"></span>
+        <a href="#haut">Haut de page ↑</a>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Lecteur flottant : apparaît quand l'audio en cours sort de l'écran. -->
+  <div class="mini" role="region" aria-label="Lecture en cours" inert>
+    <button type="button" class="mini-bouton" aria-label="Lecture ou pause">
+      <svg class="mini-anneau" viewBox="0 0 40 40" aria-hidden="true">
+        <circle class="mini-rail" cx="20" cy="20" r="19"/>
+        <circle class="mini-progres" cx="20" cy="20" r="19" pathLength="1"/>
+      </svg>
+      <span class="bascule" aria-hidden="true">
+        <svg class="i-lecture" viewBox="0 0 24 24"><path d="M8.5 5.6v12.8a.9.9 0 0 0 1.37.77l10.2-6.4a.9.9 0 0 0 0-1.54l-10.2-6.4A.9.9 0 0 0 8.5 5.6z"/></svg>
+        <svg class="i-pause" viewBox="0 0 24 24"><rect x="6.5" y="5" width="3.8" height="14" rx="1.1"/><rect x="13.7" y="5" width="3.8" height="14" rx="1.1"/></svg>
+      </span>
+    </button>
+    <button type="button" class="mini-titre" title="Revenir à l'extrait"></button>
+    <span class="egaliseur" aria-hidden="true"><i></i><i></i><i></i></span>
+    <span class="mini-temps"></span>
+  </div>
+
+  <!-- Théâtre : la vignette cliquée s'agrandit en lecteur plein écran. -->
+  <div class="theatre" role="dialog" aria-modal="true" aria-labelledby="legende-titre" hidden>
+    <div class="theatre-fond"></div>
+    <div class="scene"></div>
+    <div class="legende">
+      <h2 class="legende-titre" id="legende-titre"></h2>
+      <span class="legende-compteur"></span>
+      <p class="legende-meta"></p>
+      <p class="legende-texte"></p>
+    </div>
+    <button type="button" class="theatre-bouton theatre-fermer" aria-label="Fermer">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg>
+    </button>
+    <button type="button" class="theatre-bouton theatre-nav theatre-prec" aria-label="Vidéo précédente">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14.5 5.5 8 12l6.5 6.5"/></svg>
+    </button>
+    <button type="button" class="theatre-bouton theatre-nav theatre-suiv" aria-label="Vidéo suivante">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9.5 5.5 16 12l-6.5 6.5"/></svg>
+    </button>
+  </div>
+
+  <noscript>
+    <p class="contenu" style="padding-top: 120px">Ce portfolio a besoin de JavaScript pour afficher les vidéos et les extraits audio.</p>
+  </noscript>
+</body>
+</html>
