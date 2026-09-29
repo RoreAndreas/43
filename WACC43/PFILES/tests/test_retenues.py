@@ -20,6 +20,7 @@ import statistics
 import pytest
 
 from conftest import choisir, mode_comparables
+from conftest import ouvrir as ouvrir_vue
 
 MARQUEE = "#stackSoc .comp.is-retenue"
 
@@ -29,7 +30,7 @@ def ouvrir(page, continent, zone, secteur):
     page.evaluate("""a => { params.continent = a[0]; params.zone = a[1];
                            params.secteur = a[2]; apply(); }""",
                   [continent, zone, secteur])
-    page.click('.tabs button[data-tab="societes"]')
+    ouvrir_vue(page, "societes")
     page.wait_for_timeout(200)
 
 

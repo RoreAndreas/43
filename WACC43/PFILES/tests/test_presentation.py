@@ -11,7 +11,7 @@ import re
 
 import pytest
 
-from conftest import choisir, mode_comparables
+from conftest import choisir, mode_comparables, ouvrir
 
 
 @pytest.fixture(scope="session")
@@ -68,7 +68,7 @@ def test_la_presentation_s_affiche_dans_le_detail(page, donnees):
     mode_comparables(page)
     choisir(page, "continent", "Afrique")
     choisir(page, "secteur", "Banks")
-    page.click('.tabs button[data-tab="societes"]')
+    ouvrir(page, "societes")
     page.click("#stackSoc .comp:first-of-type .comp-head")
     page.wait_for_timeout(400)
 
@@ -87,7 +87,7 @@ def test_le_tableau_financier_defile_au_lieu_de_se_tasser(page):
     page.evaluate("""() => { params.continent = 'Amériques';
                              params.zone = 'Amérique du Nord';
                              params.secteur = 'Banks'; apply(); }""")
-    page.click('.tabs button[data-tab="societes"]')
+    ouvrir(page, "societes")
     page.click("#stackSoc .comp:first-of-type .comp-head")
     page.wait_for_timeout(400)
 

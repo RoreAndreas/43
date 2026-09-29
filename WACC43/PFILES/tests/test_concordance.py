@@ -11,7 +11,7 @@ divergence — un pays classé d'un côté et pas de l'autre, un filtre appliqu�
 l'un des deux affichages seulement — le fait tomber.
 """
 
-from conftest import choisir, mode_comparables
+from conftest import choisir, mode_comparables, ouvrir
 
 
 def test_aucun_ecart_sur_toutes_les_combinaisons(page):
@@ -65,7 +65,7 @@ def test_le_cas_signale_consumer_finance(page, donnees):
 
     assert "2 sociétés" in page.inner_text("#paramsMain .block-head .chip")
 
-    page.click('.tabs button[data-tab="societes"]')
+    ouvrir(page, "societes")
     assert page.query_selector("#stackSoc .vide404") is None
     cartes = page.query_selector_all("#stackSoc .comp")
     assert len(cartes) == 2
@@ -82,7 +82,7 @@ def test_les_societes_listees_appartiennent_a_la_zone(page, donnees):
     choisir(page, "secteur", "Banks")
     page.click('#paramsMain .zone[data-zone="Afrique australe"]')
 
-    page.click('.tabs button[data-tab="societes"]')
+    ouvrir(page, "societes")
     cartes = page.query_selector_all("#stackSoc .comp")
     assert cartes
 

@@ -7,7 +7,7 @@ zone vide laissait croire qu'un résultat s'y trouvait.
 
 import pytest
 
-from conftest import choisir, mode_comparables
+from conftest import choisir, mode_comparables, ouvrir
 
 ZONES = "#paramsMain .zone"
 
@@ -91,7 +91,7 @@ def test_la_surbrillance_tombe_quand_l_industrie_vide_la_zone(page, donnees):
     assert "aucune société" in page.inner_text("#paramsMain .block-head .chip")
 
     # Et l'onglet Sociétés est vide au même instant, sans surbrillance résiduelle.
-    page.click('.tabs button[data-tab="societes"]')
+    ouvrir(page, "societes")
     assert page.query_selector("#stackSoc .vide404") is not None
     assert "is-on" not in (page.get_attribute("#frameColSoc", "class") or "")
 

@@ -7,7 +7,7 @@ n'avaient ni le même horizon, ni la même population, ni la même statistique �
 rien à l'écran ne le disait.
 """
 
-from conftest import choisir, ligne_resultat, mode_comparables, nombre_fr, secteur
+from conftest import choisir, ligne_resultat, mode_comparables, nombre_fr, secteur, ouvrir
 
 
 def test_encadre_affiche_la_mediane_trois_ans(page, donnees):
@@ -32,7 +32,7 @@ def test_le_calcul_du_cout_des_fonds_propres_reprend_ce_beta(page, donnees):
     mode_comparables(page)
     choisir(page, "secteur", "Banks")
 
-    page.click('.tabs button[data-tab="wacc"]')
+    ouvrir(page, "wacc")
     page.click('#stack .comp[data-comp="ke"] .comp-head')
     detail = page.inner_text('#frame .detail[data-detail="ke"]')
 

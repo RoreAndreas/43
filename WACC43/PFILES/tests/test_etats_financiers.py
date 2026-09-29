@@ -14,7 +14,7 @@ import pytest
 
 from conftest import mode_comparables
 
-ONGLET = '.tabs button[data-tab="valorisation"]'
+ONGLET = '.tabs button[data-groupe="valorisation"]'
 ANNEES = [2023, 2024, 2025]
 CROISSANCE = [1.0, 1.1, 1.21]
 
@@ -188,23 +188,30 @@ def test_export_au_format_du_modele(page, tmp_path):
     importer_balance(page, balance(tmp_path / "bg.xlsx"))
     chemin = exporter(page, tmp_path / "etats.xlsx")
     wb = openpyxl.load_workbook(chemin)
-    assert wb.sheetnames == ["BG COMP", "Cdr", "Bilan", "Plan SYSCOHADA"]
+    assert wb.sheetnames == ["Paramètres >", "Plan SYSCOHADA", "BG COMP", "EFS >", "P&L", "Balance sheet"]
+    assert wb["EFS >"].sheet_properties.tabColor.rgb == "FF0070C0"
+    assert not wb["P&L"].sheet_view.showGridLines
     bg = wb["BG COMP"]
     assert [c.value for c in bg[1][:7]] == ["Mapping", "C1", "C2", "C3", "C4", "NC", "LB"]
     assert bg["B2"].value == "=LEFT($F2,1)"
-    cdr = wb["Cdr"]
+    cdr = wb["P&L"]
     formules = [c.value for row in cdr.iter_rows() for c in row
                 if isinstance(c.value, str) and c.value.startswith("=") and "SUMIF" in c.value]
     assert formules and all("'BG COMP'!$A:$A" in f for f in formules)
     # Valeurs en cache : les mêmes que l'écran.
     wv = openpyxl.load_workbook(chemin, data_only=True)
-    lib = {wv["Cdr"].cell(r, 2).value: r for r in range(1, wv["Cdr"].max_row + 1)}
-    assert [wv["Cdr"].cell(lib["Chiffre d'affaires"], c).value for c in (3, 4, 5)] == pytest.approx(CA)
-    assert [wv["Cdr"].cell(lib["Résultat net"], c).value for c in (3, 4, 5)] == pytest.approx(RN)
-    blib = {wv["Bilan"].cell(r, 2).value: r for r in range(1, wv["Bilan"].max_row + 1)}
+    lib = {wv["P&L"].cell(r, 2).value: r for r in range(1, wv["P&L"].max_row + 1)}
+    assert [wv["P&L"].cell(lib["Chiffre d'affaires"], c).value for c in (3, 4, 5)] == pytest.approx(CA)
+    assert [wv["P&L"].cell(lib["Résultat net"], c).value for c in (3, 4, 5)] == pytest.approx(RN)
+    # Couleurs du modèle : grands agrégats en bandeau, CA en bleu, détail en indigo.
+    assert cdr.cell(lib["EBITDA"], 2).fill.fgColor.rgb == "FF265173"
+    assert cdr.cell(lib["Chiffre d'affaires"], 2).font.color.rgb == "FF0072CE"
+    assert cdr.cell(lib["Transports"], 3).font.color.rgb == "FF171C8F"
+    # Balance sheet : une colonne de marge, libellés en C, exercices dès D.
+    blib = {wv["Balance sheet"].cell(r, 3).value: r for r in range(1, wv["Balance sheet"].max_row + 1)}
     controle = blib["Contrôle : actif net − capitaux propres"]
-    assert [wv["Bilan"].cell(controle, c).value for c in (3, 4, 5)] == pytest.approx([0, 0, 0], abs=1e-9)
-    assert wb["Bilan"].cell(blib["Résultat net de l'exercice"], 3).value.startswith("=Cdr!")
+    assert [wv["Balance sheet"].cell(controle, c).value for c in (4, 5, 6)] == pytest.approx([0, 0, 0], abs=1e-9)
+    assert wb["Balance sheet"].cell(blib["Résultat net de l'exercice"], 4).value.startswith("='P&L'!")
 
 
 def test_modele_de_balance_se_reimporte(page, tmp_path):
@@ -399,17 +406,27 @@ def test_export_avec_le_dcf_joint_la_synthese(page, tmp_path):
     ve = montant(page.text_content('#valoDcf [data-o="ve"]'))
     chemin = exporter(page, tmp_path / "valo.xlsx", methodes={"dcf"})
     wb = openpyxl.load_workbook(chemin)
-    assert wb.sheetnames == ["BG COMP", "Cdr", "Bilan", "Plan SYSCOHADA", "DCF", "Synthèse"]
+    assert wb.sheetnames == ["Paramètres >", "Plan SYSCOHADA", "BG COMP", "EFS >", "P&L", "Balance sheet",
+                             "Valorisation >", "DCF", "Synthèse"]
     dcf = wb["DCF"]
     formules = [c.value for row in dcf.iter_rows() for c in row if isinstance(c.value, str) and c.value.startswith("=")]
     assert any(f.startswith("=1/(1+$C$5)^") for f in formules)            # facteur, fin d'année
     assert any(re.fullmatch(r"=C\d+/\(\$C\$5-\$C\$6\)", f) for f in formules)   # VT sur le FCFF normatif
     assert any((c.value or "") == "FCFF normatif" for row in dcf.iter_rows() for c in row)
     syn = wb["Synthèse"]
-    assert syn["C5"].value.startswith("=DCF!$C$")
+    assert syn["C5"].value.startswith("=DCF!$")
     wv = openpyxl.load_workbook(chemin, data_only=True)
     lib = {wv["DCF"].cell(r, 2).value: r for r in range(1, wv["DCF"].max_row + 1)}
-    assert wv["DCF"].cell(lib["Valeur d'entreprise"], 3).value == pytest.approx(ve, abs=1)
+    # Comme dans le modèle : la VE sous le dernier exercice, en bandeau.
+    ligne_ve = [c.value for c in wv["DCF"][lib["Valeur d'entreprise"]] if isinstance(c.value, (int, float))]
+    assert ligne_ve == [pytest.approx(ve, abs=1)]
+    assert dcf.cell(lib["Valeur d'entreprise"], 2).fill.fgColor.rgb == "FF265173"
+    # Sensibilité en formules ; au centre, les fonds propres de la feuille.
+    sens = [c.value for row in dcf.iter_rows() for c in row if isinstance(c.value, str) and "SUMPRODUCT" in c.value]
+    assert len(sens) == 25
+    vfp = wv["DCF"].cell(lib["Valeur des fonds propres"], 3).value
+    centre = next(r for r in range(1, dcf.max_row + 1) if dcf.cell(r, 4).value == "=$C$5")
+    assert wv["DCF"].cell(centre, 7).value == pytest.approx(vfp, abs=1)
     assert wv["Synthèse"]["D5"].value == 1                                  # seule méthode
     slib = {wv["Synthèse"].cell(r, 2).value: r for r in range(1, wv["Synthèse"].max_row + 1)}
     assert wv["Synthèse"].cell(slib["Valeur d'entreprise retenue"], 3).value == pytest.approx(ve, abs=1)
@@ -418,7 +435,7 @@ def test_export_avec_le_dcf_joint_la_synthese(page, tmp_path):
 def test_la_valorisation_s_exporte_sans_les_etats(page, tmp_path):
     estimer(page, tmp_path)
     chemin = exporter(page, tmp_path / "valo.xlsx", etats=False, methodes={"dcf"})
-    assert openpyxl.load_workbook(chemin).sheetnames == ["DCF", "Synthèse"]
+    assert openpyxl.load_workbook(chemin).sheetnames == ["Valorisation >", "DCF", "Synthèse"]
 
 
 def test_export_avec_les_comparables(page, tmp_path):
@@ -440,7 +457,11 @@ def test_export_avec_les_comparables(page, tmp_path):
     assert len(formules) == 1
     wv = openpyxl.load_workbook(chemin, data_only=True)
     clib = {wv["Comparables"].cell(r, 2).value: r for r in range(1, wv["Comparables"].max_row + 1)}
-    assert wv["Comparables"].cell(clib["VE / EBITDA médian"], 3).value == pytest.approx(med)
+    # Fourchette min / médiane / max, des multiples aux fonds propres.
+    mult = [wv["Comparables"].cell(clib["Multiple d'EBITDA"], c).value for c in (3, 4, 5)]
+    assert mult[1] == pytest.approx(med) and mult[0] <= mult[1] <= mult[2]
+    fp = [wv["Comparables"].cell(clib["Valeur des fonds propres"], c).value for c in (3, 4, 5)]
+    assert fp[1] == pytest.approx(EBITDA[2] / 1e6 * med - page.evaluate("fluxActif().detteNette"), abs=0.01)
     ve_comp = EBITDA[2] / 1e6 * med
     ve_dcf = page.evaluate("methodeDcf(fluxActif()).ve")
     dette = page.evaluate("fluxActif().detteNette")

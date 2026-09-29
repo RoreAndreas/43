@@ -7,7 +7,7 @@ décomposition. Le résultat était donné, jamais vérifiable.
 
 import pytest
 
-from conftest import choisir, mode_comparables
+from conftest import choisir, mode_comparables, ouvrir
 
 # Ce que l'utilisateur doit pouvoir lire sans rouvrir le classeur.
 PALIERS = [
@@ -26,7 +26,7 @@ PALIERS = [
 def cmpc_comparable(page):
     mode_comparables(page)
     choisir(page, "secteur", "Banks")
-    page.click('.tabs button[data-tab="wacc"]')
+    ouvrir(page, "wacc")
     return page
 
 

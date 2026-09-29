@@ -161,3 +161,16 @@ def secteur(donnees: dict, nom: str, perimetre: str = "univers") -> dict:
         if perimetre in bloc.get(echelle, {}):
             return bloc[echelle][perimetre]
     raise AssertionError(f"secteur « {nom} » absent du périmètre « {perimetre} »")
+
+
+# Onglets : CMPC (Paramètres, Calcul), Comparables (Sociétés, Insight),
+# Valorisation. Chaque vue s'atteint par son onglet puis son sous-onglet.
+GROUPES = {"params": "cmpc", "wacc": "cmpc", "societes": "comparables", "insight": "comparables",
+           "valorisation": "valorisation"}
+
+
+def ouvrir(page, vue: str) -> None:
+    """Ouvre une vue par la barre d'onglets, puis le sous-onglet s'il y en a un."""
+    page.click(f'.tabs button[data-groupe="{GROUPES[vue]}"]')
+    if GROUPES[vue] != vue:
+        page.click(f'.sous-vues button[data-tab="{vue}"]')

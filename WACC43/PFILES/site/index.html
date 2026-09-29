@@ -1086,7 +1086,7 @@
     gap: 20px;
   }
   .valo-corps { display: grid; gap: 20px; }
-  .valo-vues {
+  .valo-vues, .sous-vues {
     position: relative;
     justify-self: start;
     display: inline-flex;
@@ -1096,7 +1096,7 @@
     border-radius: 999px;
     background: var(--surface);
   }
-  .valo-vues button {
+  .valo-vues button, .sous-vues button {
     position: relative;
     z-index: 1;
     padding: 7px 16px;
@@ -1108,8 +1108,8 @@
     cursor: pointer;
     transition: color 160ms ease, background-color 160ms ease;
   }
-  .valo-vues button.is-active { color: #fff; font-weight: 500; }
-  .valo-vues-curseur {
+  .valo-vues button.is-active, .sous-vues button.is-active { color: #fff; font-weight: 500; }
+  .valo-vues-curseur, .sous-vues-curseur {
     position: absolute;
     top: 3px;
     bottom: 3px;
@@ -1849,7 +1849,7 @@
   .dcf-case:hover { border-color: var(--accent); }
   @media (prefers-reduced-motion: reduce) {
     .valo-anime, .dcf-tete.valo-anime > *, .dcf-barre, .dcf-graphe-corps.is-fondu, .dcf-col:hover .dcf-bulle { animation: none; }
-    .valo-vues-curseur, .syn-rempli, .dcf-graphe-corps, .dcf-compo-barre > span { transition: none; }
+    .valo-vues-curseur, .sous-vues-curseur, .syn-rempli, .dcf-graphe-corps, .dcf-compo-barre > span { transition: none; }
   }
 
   .alerte-vt { display: inline-block; vertical-align: -2px; margin-left: 8px; flex: none; }
@@ -1889,7 +1889,7 @@
 
   /* Le bloc graphique/calcul bascule en entier au clic — pas ligne par ligne —
      pour rester lisible avec un échantillon de vingt sociétés ; même mécanique
-     de couleur que les cartes dépliées de l'onglet Sociétés. */
+     de couleur que les cartes dépliées de Comparables › Sociétés. */
   .mult-view {
     background: var(--surface);
     border: 1px solid var(--line);
@@ -2135,6 +2135,105 @@
   .dcf-resultat .dcf-compo-vt { background: rgba(255, 255, 255, .35); }
   .dcf-resultat .dcf-compo-seuil { background: #facc15; }
 
+  /* ---------- Sous-onglets ---------- */
+  /* CMPC et Comparables ouvrent chacun sur deux vues : le même sélecteur que
+     celui de la Valorisation, posé au même endroit, au-dessus du panneau. */
+  .sous-barre {
+    max-width: 1060px;
+    margin: 0 auto;
+    padding: 30px 32px 0;
+  }
+  .sous-barre:not([hidden]) ~ main { padding-top: 20px; }
+
+  /* ---------- Comparables › Insight ---------- */
+  .ins {
+    max-width: 1060px;
+    margin: 0 auto;
+    padding: 30px 32px 120px;
+  }
+  .ins-corps { display: grid; gap: 20px; min-width: 0; }
+  .ins-tete { display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+  .ins-titre { margin: 0; font: 500 19px/1.2 var(--sans); color: var(--ink); }
+  .ins-sous-titre { margin: 5px 0 0; font: 400 12.5px/1.4 var(--sans); color: var(--muted); }
+  .ins-portee, .ins-choix { display: inline-flex; gap: 2px; padding: 3px; border: 1px solid var(--line); border-radius: 8px; background: var(--surface); }
+  .ins-portee button, .ins-choix button {
+    padding: 6px 12px;
+    border: 0;
+    border-radius: 6px;
+    background: transparent;
+    font: 400 12px/1 var(--sans);
+    color: var(--muted);
+    cursor: pointer;
+    transition: color 160ms ease, background-color 160ms ease;
+  }
+  .ins-portee button.is-active, .ins-choix button.is-active { background: var(--accent-soft); color: var(--accent); font-weight: 500; }
+  .ins-bloc {
+    min-width: 0;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 20px 22px 22px;
+  }
+  .ins-bloc .dcf-rubrique { margin-top: 0; }
+  .ins-bloc-tete { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-bottom: 8px; }
+  .ins-bloc-tete .dcf-rubrique { margin: 0; }
+  .ins-graphe { min-width: 0; }
+  .ins-graphe svg { display: block; max-width: 100%; }
+  .ins-grille { stroke: var(--line); stroke-width: 1; }
+  .ins-zero { stroke: var(--muted-2); stroke-width: 1; }
+  .ins-axe { font: 400 10.5px var(--mono); fill: var(--muted); }
+  .ins-bande { fill: var(--accent-soft); opacity: .75; }
+  .ins-moustache { stroke: var(--accent-chip); stroke-width: 1; }
+  .ins-med { fill: none; stroke: var(--accent); stroke-width: 2; stroke-linejoin: round; }
+  .ins-med-point { fill: var(--surface); stroke: var(--accent); stroke-width: 2; }
+  .ins-cible { fill: none; stroke: var(--green); stroke-width: 2; stroke-dasharray: 5 4; }
+  .ins-cible-point { fill: var(--green); stroke: var(--surface); stroke-width: 1.5; }
+  .ins-etiquette { font: 500 10.5px var(--mono); fill: var(--accent); paint-order: stroke; stroke: var(--surface); stroke-width: 3px; }
+  .ins-etiquette.is-cible { fill: var(--green); }
+  .ins-vide { margin: 20px 0; font: 400 12.5px var(--sans); color: var(--muted); }
+  .ins-legende { display: flex; gap: 18px; flex-wrap: wrap; margin-top: 6px; font: 400 11.5px var(--sans); color: var(--muted); }
+  .ins-legende span { display: inline-flex; align-items: center; gap: 6px; }
+  .ins-legende i { display: inline-block; width: 16px; height: 10px; border-radius: 2px; }
+  .ins-l-bande { background: var(--accent-soft); }
+  .ins-l-med { height: 2px !important; background: var(--accent); }
+  .ins-l-cible { height: 0 !important; border-top: 2px dashed var(--green); border-radius: 0 !important; }
+
+  .ins-invite { display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+  .ins-invite p { margin: 0; max-width: 620px; font: 400 12.5px/1.55 var(--sans); color: var(--muted); }
+  .ins-reglettes { display: grid; gap: 18px; margin-top: 6px; }
+  .ins-reglette-tete { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; flex-wrap: wrap; }
+  .ins-reglette-tete strong { font: 500 13px var(--sans); color: var(--ink-2); }
+  .ins-verdict { font: 400 12px var(--sans); color: var(--muted); }
+  .ins-verdict b { font: 500 12.5px var(--mono); color: var(--green); margin-right: 4px; }
+  .ins-piste { position: relative; height: 22px; margin: 8px 0 6px; }
+  .ins-piste > span { position: absolute; top: 50%; }
+  .ins-piste-ligne { height: 2px; margin-top: -1px; background: var(--line); }
+  .ins-piste-boite { height: 12px; margin-top: -6px; border-radius: 3px; background: var(--accent-soft); }
+  .ins-piste-med { width: 2px; height: 16px; margin: -8px 0 0 -1px; background: var(--accent); }
+  .ins-piste-cible { width: 12px; height: 12px; margin: -6px 0 0 -6px; border-radius: 50%; background: var(--green); box-shadow: 0 0 0 2px var(--surface); }
+  .ins-reglette-pied { display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; font: 400 11px var(--sans); color: var(--muted-2); }
+
+  .ins-compo { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px 32px; margin-bottom: 18px; }
+  .ins-sous-rubrique { margin: 6px 0 10px; font: 500 12px var(--sans); color: var(--ink-3); }
+  .ins-barre { display: grid; grid-template-columns: minmax(0, 1fr) 90px 24px 92px; align-items: center; gap: 10px; padding: 4px 0; font: 400 12px var(--sans); color: var(--ink-3); }
+  .ins-barre-nom { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .ins-barre-piste { height: 8px; border-radius: 4px; background: var(--field); overflow: hidden; }
+  .ins-barre-piste > span { display: block; height: 100%; border-radius: 4px; background: var(--accent); opacity: .75; }
+  .ins-barre-n { font: 500 12px var(--mono); text-align: right; color: var(--ink-2); }
+  .ins-barre-part { font: 400 11px var(--sans); color: var(--muted-2); text-align: right; }
+  .ins-reste { margin: 4px 0 0; font: 400 11px var(--sans); color: var(--muted-2); }
+  .ins-table { width: 100%; border-collapse: collapse; font: 400 12px var(--sans); }
+  .ins-table th { padding: 8px 10px; text-align: right; font: 500 10.5px var(--sans); color: var(--muted); border-bottom: 1px solid var(--line); }
+  .ins-table td { padding: 8px 10px; text-align: right; font-family: var(--mono); font-variant-numeric: tabular-nums; color: var(--ink-2); border-bottom: 1px solid var(--field); }
+  .ins-table th:first-child, .ins-table td:first-child { text-align: left; font-family: var(--sans); }
+  .ins-table td small { display: block; margin-top: 2px; font: 400 10.5px var(--sans); color: var(--muted-2); }
+  @media (max-width: 760px) {
+    .ins-compo { grid-template-columns: 1fr; }
+    .ins-cases { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .ins-barre { grid-template-columns: minmax(0, 1fr) 60px 22px; }
+    .ins-barre-part { display: none; }
+    .ins-table th:nth-child(3), .ins-table td:nth-child(3) { display: none; }
+  }
   [hidden] { display: none !important; }
   .is-busy { opacity: .55; transition: opacity 160ms ease; }
   .is-locked { pointer-events: none; }
@@ -2189,14 +2288,26 @@
       </div>
     </div>
     <nav class="tabs">
-      <button type="button" data-tab="params" class="is-active">Paramètres</button>
-      <button type="button" data-tab="wacc">CMPC</button>
-      <!-- N'apparaissent qu'avec le référentiel Comparables -->
-      <button type="button" data-tab="societes" id="tabSocietes" hidden>Sociétés</button>
-      <button type="button" data-tab="valorisation">Valorisation</button>
+      <button type="button" data-groupe="cmpc" class="is-active">CMPC</button>
+      <!-- N'apparaît qu'avec le référentiel Comparables -->
+      <button type="button" data-groupe="comparables" id="tabComparables" hidden>Comparables</button>
+      <button type="button" data-groupe="valorisation">Valorisation</button>
     </nav>
   </div>
 </header>
+
+<div class="sous-barre" id="sousBarre">
+  <div class="sous-vues" role="tablist" aria-label="CMPC" data-groupe="cmpc">
+    <span class="sous-vues-curseur" aria-hidden="true"></span>
+    <button type="button" role="tab" data-tab="params" class="is-active" aria-selected="true">Paramètres</button>
+    <button type="button" role="tab" data-tab="wacc" aria-selected="false">Calcul</button>
+  </div>
+  <div class="sous-vues" role="tablist" aria-label="Comparables" data-groupe="comparables" hidden>
+    <span class="sous-vues-curseur" aria-hidden="true"></span>
+    <button type="button" role="tab" data-tab="societes" id="tabSocietes" aria-selected="false">Sociétés</button>
+    <button type="button" role="tab" data-tab="insight" aria-selected="false">Insight</button>
+  </div>
+</div>
 
 <main class="params" id="panel-params">
   <div class="params-main" id="paramsMain"></div>
@@ -2219,6 +2330,10 @@
   </div>
 </main>
 
+<main class="ins" id="panel-insight" hidden>
+  <div class="ins-corps" id="insightCorps"></div>
+</main>
+
 <main class="valo" id="panel-valorisation" hidden>
   <div class="valo-ligne">
   <div class="valo-vues" role="tablist" aria-label="Méthode de valorisation">
@@ -2236,7 +2351,7 @@
     <div class="notice" id="comparablesAbsents" hidden>
       <h3>Référentiel Comparables requis</h3>
       <p>Les multiples viennent de l'échantillon de sociétés cotées qui alimente le CMPC en
-      référentiel Comparables. Choisissez ce référentiel dans l'onglet Paramètres pour les
+      référentiel Comparables. Choisissez ce référentiel dans CMPC › Paramètres pour les
       afficher ici.</p>
     </div>
     <div class="valo-corps" id="comparablesMain"></div>
@@ -2291,12 +2406,13 @@
         </svg></span>
         <div>
           <h2>Choisir un référentiel et un pays</h2>
-          <span class="aide-ou">Paramètres › Contexte de marché, puis Cadrage</span>
+          <span class="aide-ou">CMPC › Paramètres › Contexte de marché, puis Cadrage</span>
           <p>Deux façons d'obtenir le bêta, c'est-à-dire le risque du secteur.</p>
           <ul>
             <li><strong>Damodaran</strong> : des moyennes de secteur publiées une fois par an.</li>
             <li><strong>Comparables</strong> : le bêta calculé sur de vraies sociétés cotées. Ce
-            choix fait apparaître deux onglets de plus, Sociétés et Comparables.</li>
+            choix fait apparaître l'onglet Comparables — Sociétés et Insight — et la vue
+            Comparables de la Valorisation.</li>
           </ul>
           <p>Le menu <strong>Pays de valorisation</strong>, à côté de la carte, sert à
           fixer la prime de risque du pays, le taux d'impôt, et la devise du résultat.</p>
@@ -2313,7 +2429,7 @@
         </svg></span>
         <div>
           <h2>Choisir où chercher les comparables</h2>
-          <span class="aide-ou">Paramètres › Contexte de marché, puis Cadrage</span>
+          <span class="aide-ou">CMPC › Paramètres › Contexte de marché, puis Cadrage</span>
           <p>Trois réglages, du plus large au plus précis :</p>
           <ul>
             <li><strong>Continent et Zone</strong> : les comparables sont segmentés par
@@ -2360,8 +2476,8 @@
           <circle cx="26" cy="21" r="1.6" class="v4-accent-point"/>
         </svg></span>
         <div>
-          <h2>L'onglet CMPC</h2>
-          <span class="aide-ou">Onglet CMPC</span>
+          <h2>Le calcul du CMPC</h2>
+          <span class="aide-ou">CMPC › Calcul</span>
           <p>Le calcul détaillé, en quatre cartes : coût des fonds propres, coût de la
           dette, pondération entre les deux, puis le taux final. Chaque carte s'ouvre au
           clic sur ses chiffres intermédiaires et ses sources.</p>
@@ -2378,11 +2494,15 @@
           <circle cx="30.5" cy="25.6" r="2" class="v4-accent-point"/>
         </svg></span>
         <div>
-          <h2>L'onglet Sociétés</h2>
-          <span class="aide-ou">Onglet Sociétés — référentiel Comparables</span>
-          <p>La liste des sociétés qui servent au calcul, de la plus grosse à la plus
-          petite. Une carte par société : pays, bourse, bêta, capitalisation, dette, et les
-          comptes des quatre derniers exercices.</p>
+          <h2>L'onglet Comparables</h2>
+          <span class="aide-ou">Comparables › Sociétés et Insight — référentiel Comparables</span>
+          <p>Sociétés : la liste des sociétés qui servent au calcul, de la plus grosse à la
+          plus petite. Une carte par société : pays, bourse, bêta, capitalisation, dette, et
+          les comptes des quatre derniers exercices.</p>
+          <p>Insight : le secteur en ensemble — croissance du CA, marge d'EBITDA et marge
+          nette par exercice, en médiane et quartiles, et la composition de l'échantillon par
+          zone et par place. Dès que la balance générale est importée, la société évaluée
+          se place dans ces quartiles.</p>
         </div>
       </li>
 
@@ -2397,11 +2517,11 @@
         </svg></span>
         <div>
           <h2>L'onglet Valorisation</h2>
-          <span class="aide-ou">Onglet Valorisation — vues États financiers, DCF, Comparables et Synthèse</span>
+          <span class="aide-ou">Valorisation — vues États financiers, DCF, Comparables et Synthèse</span>
           <p>Tout commence dans la vue États financiers : on y importe la balance générale,
           puis le prévisionnel — un fichier, ou une estimation à partir d'hypothèses. En mode
           estimation, un boulon sort de derrière le graphique : il ouvre les hypothèses.</p>
-          <p>Le DCF actualise les flux prévisionnels au CMPC de l'onglet CMPC. La valeur
+          <p>Le DCF actualise les flux prévisionnels au CMPC de CMPC › Calcul. La valeur
           terminale part d'un exercice normatif : CapEx égaux aux D&amp;A × (1 + g), BFR
           proportionné à g. Un triangle signale une valeur terminale au-delà de 65 % de la VE. Le
           graphique des FCFF bascule, au clic, sur le détail du calcul ; le cadre de résultat
@@ -2806,7 +2926,7 @@
           { label: "CMPC en monnaie locale", value: frPct(local), strong: true }
         ],
         methodology: "Conversion du CMPC exprimé dans la monnaie du taux sans risque vers la monnaie locale par le différentiel d'inflation attendu, selon la parité des pouvoirs d'achat.",
-        source: "Prévisions d'inflation des deux zones monétaires, saisies dans l'onglet Paramètres.",
+        source: "Prévisions d'inflation des deux zones monétaires, saisies dans CMPC › Paramètres.",
         hypothesis: "Différentiel d'inflation constant sur l'horizon ; les flux actualisés doivent être exprimés dans la même monnaie que ce taux.",
         formula: [
           "CMPC loc. = (1 + CMPC) × (1 + infl. loc.) / (1 + infl. réf.) − 1",
@@ -2842,24 +2962,55 @@
     };
   }
 
-  /* ================= Onglets ================= */
+  /* ================= Onglets =================
+     Trois onglets, dont deux à sous-onglets : CMPC (Paramètres, Calcul),
+     Comparables (Sociétés, Insight) et Valorisation. `tab` retient la vue
+     affichée ; l'onglet du haut s'en déduit, et se rouvre sur la dernière
+     vue visitée. */
+  const GROUPE_ONGLET = { params: "cmpc", wacc: "cmpc", societes: "comparables", insight: "comparables", valorisation: "valorisation" };
+  const DERNIER_ONGLET = { cmpc: "params", comparables: "societes", valorisation: "valorisation" };
+
+  // Le fond noir des sous-onglets glisse, comme celui des vues de la Valorisation.
+  function placerCurseursOnglets() {
+    document.querySelectorAll(".sous-vues").forEach((nav) => {
+      const actif = nav.querySelector("button.is-active");
+      const curseur = nav.querySelector(".sous-vues-curseur");
+      if (!actif || !curseur || !actif.offsetWidth) return;
+      curseur.style.left = actif.offsetLeft + "px";
+      curseur.style.width = actif.offsetWidth + "px";
+    });
+  }
+
   function renderTabs() {
-    // L'onglet Sociétés n'existe que sous référentiel Comparables. L'onglet
-    // Valorisation reste toujours là : son DCF ne dépend pas du référentiel.
-    if (!estComparables() && tab === "societes") tab = "params";
-    $("tabSocietes").hidden = !estComparables();
+    // Comparables n'existe que sous référentiel Comparables. Valorisation reste
+    // toujours là : son DCF ne dépend pas du référentiel.
+    if (!estComparables() && GROUPE_ONGLET[tab] === "comparables") tab = "params";
+    $("tabComparables").hidden = !estComparables();
+    const groupe = GROUPE_ONGLET[tab] || null;
+    if (groupe) DERNIER_ONGLET[groupe] = tab;
 
     document.querySelectorAll(".tabs button").forEach((b) => {
-      b.classList.toggle("is-active", b.dataset.tab === tab);
+      b.classList.toggle("is-active", b.dataset.groupe === groupe);
     });
+    document.querySelectorAll(".sous-vues").forEach((nav) => {
+      nav.hidden = nav.dataset.groupe !== groupe;
+      nav.querySelectorAll("button").forEach((b) => {
+        const actif = b.dataset.tab === tab;
+        b.classList.toggle("is-active", actif);
+        b.setAttribute("aria-selected", actif ? "true" : "false");
+      });
+    });
+    $("sousBarre").hidden = groupe !== "cmpc" && groupe !== "comparables";
     $("panel-params").hidden = tab !== "params";
     $("panel-wacc").hidden = tab !== "wacc";
     $("panel-societes").hidden = tab !== "societes";
+    $("panel-insight").hidden = tab !== "insight";
     $("panel-valorisation").hidden = tab !== "valorisation";
     $("panel-aide").hidden = tab !== "aide";
     // Le bouton du guide est hors de la barre : son etat actif ne suit pas la
     // boucle ci-dessus, qui ne balaie que les onglets.
     $("tabAide").classList.toggle("is-on", tab === "aide");
+    requestAnimationFrame(placerCurseursOnglets);
     if (tab === "valorisation") {
       ajusterCadreMultiples();
       requestAnimationFrame(() => {
@@ -2867,13 +3018,19 @@
         if (VALO.vue === "etats") dessinerTrajectoire(true);
       });
     }
+    // La balance a pu être importée depuis : Insight se relit à chaque ouverture.
+    if (tab === "insight") renderInsight();
     if (tab === "wacc" || tab === "societes") requestAnimationFrame(placeArrows);
   }
-  // Tout ce qui porte data-tab bascule la vue, dans la barre ou ailleurs :
-  // le bouton du guide vit dans l'en-tete et passe par le meme chemin.
+  // Tout ce qui porte data-tab bascule la vue, dans les sous-onglets ou
+  // ailleurs : le bouton du guide vit dans l'en-tete et passe par le meme chemin.
   document.querySelectorAll("[data-tab]").forEach((b) => {
     b.addEventListener("click", () => { tab = b.dataset.tab; renderTabs(); });
   });
+  document.querySelectorAll(".tabs button[data-groupe]").forEach((b) => {
+    b.addEventListener("click", () => { tab = DERNIER_ONGLET[b.dataset.groupe]; renderTabs(); });
+  });
+  window.addEventListener("resize", placerCurseursOnglets);
 
   /* ================= Onglet Paramètres ================= */
   function optionsHtml(key, options) {
@@ -3007,7 +3164,7 @@
 
   // Ce que le périmètre courant contient réellement : zone retenue si elle
   // l'est, sinon toutes les zones du continent, filtrées sur l'industrie. Une
-  // seule lecture partagée par le résumé, la carte et l'onglet Sociétés — trois
+  // seule lecture partagée par le résumé, la carte et Comparables › Sociétés — trois
   // affichages qui divergeaient tant qu'ils comptaient chacun de leur côté.
   function perimetreCourant() {
     const ind = industrieCourante();
@@ -3375,7 +3532,7 @@
     };
   }
 
-  // Cascade affichée dans l'onglet CMPC sous le référentiel Comparables.
+  // Cascade affichée dans CMPC › Calcul sous le référentiel Comparables.
   // Chaque carte porte le même niveau de détail que sous Damodaran : les valeurs
   // intermédiaires en clair, et non le seul résultat. Un CMPC dont on ne voit
   // pas les paliers ne se vérifie pas, il se croit.
@@ -3521,7 +3678,7 @@
         { label: "CMPC en monnaie locale", value: frPct(cc.waccLocal), strong: true },
       ],
       methodology: "Conversion du CMPC exprimé dans la devise du socle souverain vers la monnaie du pays valorisé, par le différentiel d'inflation attendu, selon la parité des pouvoirs d'achat.",
-      source: "Prévisions d'inflation des deux zones monétaires, saisies dans l'onglet Paramètres — aucune source ne les fournit pour les 157 pays du référentiel.",
+      source: "Prévisions d'inflation des deux zones monétaires, saisies dans CMPC › Paramètres — aucune source ne les fournit pour les 157 pays du référentiel.",
       hypothesis: "Différentiel d'inflation constant, parité des pouvoirs d'achat vérifiée à terme. Les deux curseurs sont des hypothèses de l'utilisateur, pas des données : par défaut, ils imposent un écart de 0,5 point sans rapport avec le pays retenu.",
       retained: frPct(cc.wacc) + " en " + cc.rf.monnaie + ", " + frPct(cc.waccLocal) + " en monnaie locale.",
       formula: [
@@ -4107,10 +4264,10 @@
           <h3>Gearing sectoriel à renseigner</h3>
           <p>Aucun gearing n'est disponible pour ce secteur : sans lui, la répartition entre
           fonds propres et dette est inconnue et le CMPC ne peut pas être calculé. Ouvrez le
-          cadenas de l'encadré « Secteur comparable », dans l'onglet Paramètres, pour poser
+          cadenas de l'encadré « Secteur comparable », dans CMPC › Paramètres, pour poser
           un gearing cible.</p>
           <p>Les bêtas cotés, les capitalisations et les états financiers des sociétés du
-          secteur restent consultables dans l'onglet Sociétés.</p>
+          secteur restent consultables dans Comparables › Sociétés.</p>
         </div>`;
       $(pan.frame).innerHTML = "";
       $(pan.col).classList.remove("is-on");
@@ -4336,7 +4493,7 @@
           <h3>Comparables indisponibles</h3>
           <p>Aucune société n'est disponible pour « ${esc(params.secteur || "ce secteur")} » : sans
           échantillon, il n'y a pas de multiple à calculer. Ce sont les mêmes sociétés qui alimentent
-          l'onglet Sociétés et la médiane du CMPC — élargissez le cadrage dans l'onglet Paramètres si
+          Comparables › Sociétés et la médiane du CMPC — élargissez le cadrage dans CMPC › Paramètres si
           le secteur en compte ailleurs.</p>
         </div>`;
       return;
@@ -4476,7 +4633,7 @@
 
   /* ================= Onglet Valorisation : DCF =================
      Flux de trésorerie disponibles pour l'entreprise, actualisés au CMPC en
-     monnaie locale de l'onglet CMPC, valeur terminale de Gordon-Shapiro :
+     monnaie locale de CMPC › Calcul, valeur terminale de Gordon-Shapiro :
 
        NOPAT = EBIT − impôt normatif (taux d'IS × EBIT, nul si l'EBIT est négatif)
        FCFF  = NOPAT + D&A − CapEx + variation du BFR (signée comme un flux)
@@ -5163,7 +5320,7 @@
     const marge = marges.length ? marges.reduce((a, b) => a + b, 0) / marges.length : null;
     const tcam = n > 1 && f.ebit[0] > 0 && f.ebit[n - 1] > 0 ? Math.pow(f.ebit[n - 1] / f.ebit[0], 1 / (n - 1)) - 1 : null;
     let avis = "";
-    if (wacc == null) avis = "Aucun CMPC n'est calculé pour les paramètres actuels : réglez-les dans l'onglet Paramètres.";
+    if (wacc == null) avis = "Aucun CMPC n'est calculé pour les paramètres actuels : réglez-les dans CMPC › Paramètres.";
     else if (wacc <= f.g) avis = "Le CMPC (" + frPct(wacc) + ") doit dépasser la croissance à l'infini (" + frPct(f.g) + ") : sans cela, la valeur terminale n'a pas de sens.";
 
     const hypotheses = [
@@ -6104,8 +6261,54 @@
     for (let n = j + 1; n > 0; n = Math.floor((n - 1) / 26)) s = String.fromCharCode(65 + ((n - 1) % 26)) + s;
     return s;
   };
-  const ST_ETATS = { titre: 1, note: 2, entete: 3, cle: 4, libelle: 5, fcfa: 6, m: 7, pct: 8, totalLib: 9, totalFcfa: 10, totalM: 11, pctLib: 12, texte: 13,
-                     saisieM: 14, saisiePct: 15, mult: 16, pctN: 17, facteur: 18 };
+  /* ---- Styles du classeur, d'après modele_valorisation.xlsx ----
+     Un ton (police et fond) croisé avec un format de nombre : « grisM » est
+     un montant en M FCFA, gris ; « bandeau » un libellé blanc sur bleu nuit.
+     Les index des styles se déduisent de l'ordre de la liste. */
+  const POLICES_XL = {
+    base: '<sz val="10"/>',
+    titre: '<b/><sz val="12"/>',
+    note: '<i/><sz val="9"/><color rgb="FF7F7F7F"/>',
+    cle: '<sz val="9"/><color rgb="FF8C8C8C"/>',
+    blancGras: '<b/><sz val="9"/><color rgb="FFFFFFFF"/>',
+    blanc: '<sz val="9"/><color rgb="FFFFFFFF"/>',
+    gris: '<sz val="9"/><color rgb="FF464B4B"/>',
+    grisGras: '<b/><sz val="9"/><color rgb="FF464B4B"/>',
+    discret: '<sz val="9"/><color rgb="FF7F7F7F"/>',
+    indigo: '<sz val="9"/><color rgb="FF171C8F"/>',
+    accent: '<b/><sz val="9"/><color rgb="FF0072CE"/>',
+    rouge: '<sz val="9"/><color rgb="FFD73A2F"/>',
+    noir: '<sz val="10"/>',
+    noirGras: '<b/><sz val="10"/>',
+    noirGras9: '<b/><sz val="9"/><color rgb="FF000000"/>',
+    compact: '<sz val="8"/><color rgb="FF464B4B"/>',
+    compactGras: '<b/><sz val="8"/><color rgb="FF464B4B"/>',
+    compactAccent: '<b/><sz val="8"/><color rgb="FF0072CE"/>',
+    source: '<sz val="6"/><color rgb="FF727578"/>',
+  };
+  const FONDS_XL = { bleuNuit: "FF265173", lavande: "FFF1EEF8", menthe: "FFCFF4EC" };
+  const DROITE_XL = '<alignment horizontal="right"/>';
+  const FORMATS_XL = { "": 0, Fcfa: 164, M: 165, Pct: 166, Mult: 167, Facteur: 168 };
+  const TONS_XL = {
+    gris: ["gris"], grisGras: ["grisGras"], discret: ["discret"], indigo: ["indigo"], accent: ["accent"], rouge: ["rouge"],
+    bandeau: ["blancGras", "bleuNuit"], bandeauFin: ["blanc", "bleuNuit"],
+    noir: ["noir"], noirGras: ["noirGras"], lavande: ["noirGras", "lavande"], menthe: ["noirGras9", "menthe"],
+    compact: ["compact"], compactGras: ["compactGras"], compactAccent: ["compactAccent"],
+  };
+  const STYLES_XL = [
+    ["titre", "titre"], ["note", "note"], ["entete", "blancGras", "bleuNuit"], ["cle", "cle"],
+    ["texte", "base", null, 49], ["fcfa", "base", null, 164], ["source", "source"],
+    ["fusion", "compactGras", null, 0, '<alignment horizontal="center" vertical="center" textRotation="90"/>'],
+    ["enteteNombre", "blancGras", "bleuNuit", 0, DROITE_XL], ["compactGrasNombre", "compactGras", null, 0, DROITE_XL],
+  ];
+  // Les nombres, et les « n.a » qui les remplacent, se calent à droite.
+  for (const ton in TONS_XL) {
+    for (const suffixe in FORMATS_XL) {
+      STYLES_XL.push([ton + suffixe, TONS_XL[ton][0], TONS_XL[ton][1] || null, FORMATS_XL[suffixe], suffixe ? DROITE_XL : null]);
+    }
+  }
+  const ST_ETATS = {};
+  STYLES_XL.forEach((d, i) => { ST_ETATS[d[0]] = i + 1; });
 
   function celluleXl(ref, c) {
     const s = c.s ? ` s="${c.s}"` : "";
@@ -6117,16 +6320,25 @@
     if (typeof c.v === "number") return `<c r="${ref}"${s}><v>${xlNombre(c.v)}</v></c>`;
     return `<c r="${ref}"${s} t="inlineStr"><is><t xml:space="preserve">${xmlEsc(c.v)}</t></is></c>`;
   }
-  function feuilleEtatsXml(lignes, largeurs, sansQuadrillage) {
+  // options : true (sans quadrillage), ou { sansQuadrillage, onglet (couleur), fusions: ["B41:C45"] }.
+  function feuilleEtatsXml(lignes, largeurs, options) {
+    const o = options === true ? { sansQuadrillage: true } : options || {};
     return '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
       + '<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">'
-      + `<sheetViews><sheetView workbookViewId="0"${sansQuadrillage ? ' showGridLines="0"' : ""}/></sheetViews>`
-      + `<cols>${largeurs.map((w, j) => `<col min="${j + 1}" max="${j + 1}" width="${w}" customWidth="1"/>`).join("")}</cols>`
+      + (o.onglet ? `<sheetPr><tabColor rgb="${o.onglet}"/></sheetPr>` : "")
+      + `<sheetViews><sheetView workbookViewId="0"${o.sansQuadrillage ? ' showGridLines="0"' : ""}/></sheetViews>`
+      + (largeurs.length ? `<cols>${largeurs.map((w, j) => `<col min="${j + 1}" max="${j + 1}" width="${w}" customWidth="1"/>`).join("")}</cols>` : "")
       + "<sheetData>"
       + lignes.map((cellules, i) => `<row r="${i + 1}">${(cellules || []).map((c, j) => (c ? celluleXl(colXl(j) + (i + 1), c) : "")).join("")}</row>`).join("")
-      + "</sheetData></worksheet>";
+      + "</sheetData>"
+      + (o.fusions && o.fusions.length ? `<mergeCells count="${o.fusions.length}">${o.fusions.map((r) => `<mergeCell ref="${r}"/>`).join("")}</mergeCells>` : "")
+      + "</worksheet>";
   }
+  // Onglet vide, bleu, qui annonce une partie du classeur : « EFS > ».
+  const feuilleIntercalaire = (nom) => ({ nom: nom, xml: feuilleEtatsXml([], [], { sansQuadrillage: true, onglet: "FF0070C0" }) });
+
   function stylesEtatsXml() {
+    const polices = Object.keys(POLICES_XL), fonds = Object.keys(FONDS_XL);
     return '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
       + '<styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">'
       + '<numFmts count="5"><numFmt numFmtId="164" formatCode="#,##0;(#,##0);&quot;–&quot;"/>'
@@ -6134,38 +6346,20 @@
       + '<numFmt numFmtId="166" formatCode="0.0%;-0.0%;&quot;–&quot;"/>'
       + '<numFmt numFmtId="167" formatCode="0.0&quot;x&quot;"/>'
       + '<numFmt numFmtId="168" formatCode="0.0000"/></numFmts>'
-      + '<fonts count="7"><font><sz val="10"/><name val="Calibri"/></font>'
-      + '<font><b/><sz val="10"/><name val="Calibri"/></font>'
-      + '<font><b/><sz val="10"/><color rgb="FFFFFFFF"/><name val="Calibri"/></font>'
-      + '<font><i/><sz val="9"/><color rgb="FF7F7F7F"/><name val="Calibri"/></font>'
-      + '<font><b/><sz val="12"/><name val="Calibri"/></font>'
-      + '<font><sz val="9"/><color rgb="FF8C8C8C"/><name val="Calibri"/></font>'
-      + '<font><sz val="10"/><color rgb="FF1D4ED8"/><name val="Calibri"/></font></fonts>'
-      + '<fills count="4"><fill><patternFill patternType="none"/></fill><fill><patternFill patternType="gray125"/></fill>'
-      + '<fill><patternFill patternType="solid"><fgColor rgb="FF1F2A4D"/><bgColor indexed="64"/></patternFill></fill>'
-      + '<fill><patternFill patternType="solid"><fgColor rgb="FFF1EEF8"/><bgColor indexed="64"/></patternFill></fill></fills>'
+      + `<fonts count="${polices.length}">${polices.map((p) => `<font>${POLICES_XL[p]}<name val="Calibri"/></font>`).join("")}</fonts>`
+      + `<fills count="${fonds.length + 2}"><fill><patternFill patternType="none"/></fill><fill><patternFill patternType="gray125"/></fill>`
+      + fonds.map((f) => `<fill><patternFill patternType="solid"><fgColor rgb="${FONDS_XL[f]}"/><bgColor indexed="64"/></patternFill></fill>`).join("")
+      + "</fills>"
       + '<borders count="1"><border><left/><right/><top/><bottom/><diagonal/></border></borders>'
       + '<cellStyleXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0"/></cellStyleXfs>'
-      + '<cellXfs count="19">'
+      + `<cellXfs count="${STYLES_XL.length + 1}">`
       + '<xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0"/>'
-      + '<xf numFmtId="0" fontId="4" fillId="0" borderId="0" xfId="0" applyFont="1"/>'
-      + '<xf numFmtId="0" fontId="3" fillId="0" borderId="0" xfId="0" applyFont="1"/>'
-      + '<xf numFmtId="0" fontId="2" fillId="2" borderId="0" xfId="0" applyFont="1" applyFill="1"/>'
-      + '<xf numFmtId="0" fontId="5" fillId="0" borderId="0" xfId="0" applyFont="1"/>'
-      + '<xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0"/>'
-      + '<xf numFmtId="164" fontId="0" fillId="0" borderId="0" xfId="0" applyNumberFormat="1"/>'
-      + '<xf numFmtId="165" fontId="0" fillId="0" borderId="0" xfId="0" applyNumberFormat="1"/>'
-      + '<xf numFmtId="166" fontId="3" fillId="0" borderId="0" xfId="0" applyNumberFormat="1" applyFont="1"/>'
-      + '<xf numFmtId="0" fontId="1" fillId="3" borderId="0" xfId="0" applyFont="1" applyFill="1"/>'
-      + '<xf numFmtId="164" fontId="1" fillId="3" borderId="0" xfId="0" applyNumberFormat="1" applyFont="1" applyFill="1"/>'
-      + '<xf numFmtId="165" fontId="1" fillId="3" borderId="0" xfId="0" applyNumberFormat="1" applyFont="1" applyFill="1"/>'
-      + '<xf numFmtId="0" fontId="3" fillId="0" borderId="0" xfId="0" applyFont="1"/>'
-      + '<xf numFmtId="49" fontId="0" fillId="0" borderId="0" xfId="0" applyNumberFormat="1"/>'
-      + '<xf numFmtId="165" fontId="6" fillId="0" borderId="0" xfId="0" applyNumberFormat="1" applyFont="1"/>'
-      + '<xf numFmtId="166" fontId="6" fillId="0" borderId="0" xfId="0" applyNumberFormat="1" applyFont="1"/>'
-      + '<xf numFmtId="167" fontId="0" fillId="0" borderId="0" xfId="0" applyNumberFormat="1"/>'
-      + '<xf numFmtId="166" fontId="0" fillId="0" borderId="0" xfId="0" applyNumberFormat="1"/>'
-      + '<xf numFmtId="168" fontId="0" fillId="0" borderId="0" xfId="0" applyNumberFormat="1"/>'
+      + STYLES_XL.map(([, police, fond, format, alignement]) => {
+        const fillId = fond ? fonds.indexOf(fond) + 2 : 0;
+        return `<xf numFmtId="${format || 0}" fontId="${polices.indexOf(police)}" fillId="${fillId}" borderId="0" xfId="0" applyFont="1"`
+          + (format ? ' applyNumberFormat="1"' : "") + (fillId ? ' applyFill="1"' : "")
+          + (alignement ? ` applyAlignment="1">${alignement}</xf>` : "/>");
+      }).join("")
       + '</cellXfs><cellStyles count="1"><cellStyle name="Normal" xfId="0" builtinId="0"/></cellStyles></styleSheet>';
   }
   function paquetXlsx(feuilles, actif) {
@@ -6197,6 +6391,19 @@
     { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });
   }
 
+  // Ton de chaque ligne des états, comme dans le modèle : grands agrégats en
+  // bandeau, CA et sous-totaux du bilan en bleu, charges de détail en indigo,
+  // le reste en gris.
+  const TON_LIGNE_XL = {
+    ebitda: "bandeau", ebit: "bandeau", rn: "bandeau", actif_net: "bandeau", cp: "bandeau",
+    marge_ebitda: "bandeauFin", marge_ebit: "bandeauFin",
+    ca: "accent", actifs_immo: "accent", bfr: "accent", tresorerie: "accent", dettes_fin: "accent", tresorerie_nette: "accent",
+    ecart: "rouge",
+  };
+  for (const cle of ["production_stockee", "achats", "autres_achats", "transports", "sous_traitance", "locations", "entretien",
+    "assurances", "etudes", "publicite", "telecom", "frais_bancaires", "honoraires", "autres_services",
+    "dotations", "reprises", "produits_fin", "charges_fin"]) TON_LIGNE_XL[cle] = "indigo";
+
   function feuillesEtats(bg) {
     const n = bg.annees.length;
     const fy = bg.annees.map((a) => "FY" + String(a).slice(-2));
@@ -6220,31 +6427,32 @@
       }));
     const colBg = (t) => colXl(7 + t);
 
-    // ---- Cdr et Bilan : même gabarit — A mapping, B libellé, C… exercices, TCAM
-    const colAn = (t) => colXl(2 + t);
-    const colTcam = colXl(2 + n + 1);
+    // ---- P&L et Balance sheet : A mapping, [B marge,] libellé, exercices, TCAM
     const ecartAns = bg.annees[n - 1] - bg.annees[0];
     function etat(plan, valeurs, options) {
+      const marge = options.marge ? 1 : 0;
+      const colAn = (t) => colXl(2 + marge + t);
       const rang = {};
+      const intercale = (cellules) => (marge ? [cellules[0], null].concat(cellules.slice(1)) : cellules);
       const lignes = [
         [{ v: options.titre, s: ST.titre }],
         [{ v: options.note, s: ST.note }],
-        [{ v: "Mapping", s: ST.entete }, { v: options.unite, s: ST.entete }]
-          .concat(fy.map((t) => ({ v: t, s: ST.entete })))
-          .concat(options.tcam && n > 1 ? [null, { v: "TCAM " + fy[0] + "–" + fy[n - 1], s: ST.entete }] : []),
+        intercale([{ v: "Mapping", s: ST.entete }, { v: options.unite, s: ST.entete }]
+          .concat(fy.map((t) => ({ v: t, s: ST.enteteNombre })))
+          .concat(options.tcam && n > 1 ? [null, { v: "TCAM " + fy[0] + "–" + fy[n - 1], s: ST.enteteNombre }] : [])),
       ];
       const tcamCellule = (r, vals) => {
         if (!options.tcam || n < 2) return [];
         const ratio = vals[n - 1] / vals[0];
         const v = Number.isFinite(ratio) ? Math.pow(ratio, 1 / ecartAns) - 1 : NaN;
-        return [null, { f: `IFERROR((${colAn(n - 1)}${r}/${colAn(0)}${r})^(1/${ecartAns})-1,"n.a")`, v: Number.isFinite(v) ? v : "n.a", s: ST.pct }];
+        return [null, { f: `IFERROR((${colAn(n - 1)}${r}/${colAn(0)}${r})^(1/${ecartAns})-1,"n.a")`, v: Number.isFinite(v) ? v : "n.a", s: ST.grisPct }];
       };
       for (const l of plan) {
         const r = lignes.length + 1;
         rang[l.cle] = r;
         const v = valeurs[l.cle];
-        const total = Boolean(l.total || l.controle || l.lien);
-        const sNombre = total ? options.sTotal : options.sNombre;
+        const ton = TON_LIGNE_XL[l.cle] || "gris";
+        const sNombre = ST[ton + options.format];
         let cellules;
         if (l.prefixes) {
           const signe = options.echelle === 1 ? "-" : l.signe === -1 ? "-" : "";
@@ -6253,15 +6461,14 @@
         } else if (l.total) {
           cellules = v.map((x, t) => ({ f: l.total.map((k) => colAn(t) + rang[k]).join("+"), v: x, s: sNombre }));
         } else if (l.ratio) {
-          cellules = v.map((x, t) => ({ f: `IFERROR(${colAn(t)}${rang[l.ratio]}/${colAn(t)}${rang.ca},"n.a")`, v: x == null ? "n.a" : x, s: ST.pct }));
+          cellules = v.map((x, t) => ({ f: `IFERROR(${colAn(t)}${rang[l.ratio]}/${colAn(t)}${rang.ca},"n.a")`, v: x == null ? "n.a" : x, s: ST[ton + "Pct"] }));
         } else if (l.lien) {
-          cellules = v.map((x, t) => ({ f: `Cdr!${colAn(t)}${options.rangCdr[l.lien]}/1000000`, v: x, s: sNombre }));
+          cellules = v.map((x, t) => ({ f: `'P&L'!${colXl(2 + t)}${options.rangCdr[l.lien]}/1000000`, v: x, s: sNombre }));
         } else if (l.controle) {
           cellules = v.map((x, t) => ({ f: `${colAn(t)}${rang.actif_net}-${colAn(t)}${rang.cp}`, v: x, s: sNombre }));
         }
-        const libelle = { v: l.libelle, s: l.ratio ? ST.pctLib : total ? ST.totalLib : ST.libelle };
-        lignes.push([{ v: l.prefixes ? l.libelle : "", s: ST.cle }, libelle].concat(cellules)
-          .concat(l.ratio || l.controle ? [] : tcamCellule(r, v)));
+        lignes.push(intercale([{ v: l.prefixes ? l.libelle : "", s: ST.cle }, { v: l.libelle, s: ST[ton] }].concat(cellules)
+          .concat(l.ratio || l.controle ? [] : tcamCellule(r, v))));
       }
       lignes.push([]);
       lignes.push([{ v: "Source : balance générale comparée, classée selon le plan SYSCOHADA (feuille Plan SYSCOHADA).", s: ST.note }]);
@@ -6269,11 +6476,11 @@
     }
     const cdr = etat(PLAN_CDR, e.cdr, {
       titre: "Compte de résultat — SYSCOHADA", note: "Montants en FCFA, construits depuis la feuille BG COMP (SUMIF sur la colonne Mapping).",
-      unite: "En FCFA", echelle: 1, sNombre: ST.fcfa, sTotal: ST.totalFcfa, tcam: true,
+      unite: "En FCFA", echelle: 1, format: "Fcfa", tcam: true,
     });
     const bilan = etat(PLAN_BILAN, e.bilan, {
       titre: "Actif net — SYSCOHADA", note: "Montants en M FCFA. Actif net et capitaux propres doivent se rejoindre : la dernière ligne contrôle l'équilibre.",
-      unite: "En M FCFA", echelle: 1e-6, sNombre: ST.m, sTotal: ST.totalM, rangCdr: cdr.rang,
+      unite: "En M FCFA", echelle: 1e-6, format: "M", marge: true, rangCdr: cdr.rang,
     });
 
     // ---- Plan SYSCOHADA appliqué
@@ -6284,18 +6491,21 @@
       ]))
       .concat([[], [{ v: "Un compte rejoint la ligne de son préfixe le plus long ; sans préfixe connu, celle de sa classe (2 : immobilisations corporelles, 3 : stocks, 4 : débiteurs et créditeurs divers, 5 : disponibilités, 6 : autres charges, 7 : autres produits, 8 : résultat HAO).", s: ST.note }]]);
 
-    const largeursEtat = [30, 44].concat(fy.map(() => 14)).concat([3, 16]);
-    return [
-      { nom: "BG COMP", xml: feuilleEtatsXml(bgLignes, [34, 5, 5, 6, 6, 10, 46].concat(fy.map(() => 15))) },
-      { nom: "Cdr", xml: feuilleEtatsXml(cdr.lignes, largeursEtat, true) },
-      { nom: "Bilan", xml: feuilleEtatsXml(bilan.lignes, largeursEtat, true) },
-      { nom: "Plan SYSCOHADA", xml: feuilleEtatsXml(plan, [10, 50, 20]) },
-    ];
+    return {
+      parametres: [
+        { nom: "Plan SYSCOHADA", xml: feuilleEtatsXml(plan, [10, 50, 20]) },
+        { nom: "BG COMP", xml: feuilleEtatsXml(bgLignes, [34, 5, 5, 6, 6, 10, 46].concat(fy.map(() => 15))) },
+      ],
+      efs: [
+        { nom: "P&L", xml: feuilleEtatsXml(cdr.lignes, [34, 42].concat(fy.map(() => 16)).concat([3, 16]), true) },
+        { nom: "Balance sheet", xml: feuilleEtatsXml(bilan.lignes, [34, 3, 44].concat(fy.map(() => 12)), true) },
+      ],
+    };
   }
   /* ---- Export de la valorisation : DCF, Comparables, Synthèse ----
-     Mêmes principes que les états financiers : les saisies en bleu, tout le
-     reste en formules, et les valeurs de l'écran en cache. Changer le CMPC ou
-     g dans la feuille DCF recalcule la VE, que la Synthèse reprend. */
+     Mêmes principes que les états financiers : tout en formules, les valeurs
+     de l'écran en cache. Changer le CMPC ou g dans la feuille DCF recalcule
+     la VE, la sensibilité et la Synthèse. */
 
   // Ajoute une ligne et rend son numéro ; `cle` la retrouve pour les formules.
   function redacteur() {
@@ -6314,6 +6524,7 @@
     const r = calculDcf(f, wacc, f.g, impot);
     const estime = Boolean(f.estime && VALO.hyp && VALO.bg);
     const col = (t) => colXl(2 + t);
+    const colFin = col(n - 1);
     const fixe = (cle) => "$C$" + w.rang[cle];
     const w = redacteur();
 
@@ -6321,92 +6532,142 @@
     w.ajoute(null, [null, { v: "M FCFA · actualisation en fin d'année · valeur terminale de Gordon-Shapiro"
       + (estime ? " · prévisionnel estimé à partir d'hypothèses" : " · prévisionnel importé"), s: ST.note }]);
     w.ajoute(null, []);
+    const hyp = (cle, libelle, v, style) => w.ajoute(cle, [null, { v: libelle, s: ST.gris }, { v: v, s: style }]);
     w.ajoute(null, [null, { v: "Hypothèses", s: ST.entete }, { v: "", s: ST.entete }]);
-    w.ajoute("cmpc", [null, { v: "CMPC, monnaie locale" }, { v: wacc, s: ST.saisiePct }]);
-    w.ajoute("g", [null, { v: "Croissance à l'infini (g)" }, { v: f.g, s: ST.saisiePct }]);
-    w.ajoute("is", [null, { v: "Taux d'IS normatif" }, { v: impot, s: ST.saisiePct }]);
-    w.ajoute("dette", [null, { v: "Dette nette (négative : trésorerie nette)" }, { v: f.detteNette, s: ST.saisieM }]);
+    hyp("cmpc", "CMPC, monnaie locale", wacc, ST.grisPct);
+    hyp("g", "Croissance à l'infini (g)", f.g, ST.grisPct);
+    hyp("is", "Taux d'IS normatif", impot, ST.grisPct);
+    hyp("dette", "Dette nette (négative : trésorerie nette)", f.detteNette, ST.grisM);
     if (estime) {
       const b = baseEstimation(VALO.bg);
-      w.ajoute("base", [null, { v: "Chiffre d'affaires de base, " + frFy(b.an) }, { v: b.ca, s: ST.saisieM }]);
-      w.ajoute("marge", [null, { v: "Marge d'EBITDA" }, { v: VALO.hyp.marge, s: ST.saisiePct }]);
-      w.ajoute("tda", [null, { v: "D&A, en % du CA" }, { v: VALO.hyp.da, s: ST.saisiePct }]);
-      w.ajoute("tbfr", [null, { v: "Variation du BFR, en % de la variation du CA" }, { v: VALO.hyp.bfr, s: ST.saisiePct }]);
+      hyp("base", "Chiffre d'affaires de base, " + frFy(b.an), b.ca, ST.grisM);
+      hyp("marge", "Marge d'EBITDA", VALO.hyp.marge, ST.grisPct);
+      hyp("tda", "D&A, en % du CA", VALO.hyp.da, ST.grisPct);
+      hyp("tbfr", "Variation du BFR, en % de la variation du CA", VALO.hyp.bfr, ST.grisPct);
     }
     w.ajoute(null, []);
-    w.ajoute(null, [null, { v: "M FCFA", s: ST.entete }].concat(f.annees.map((a) => ({ v: frFy(a), s: ST.entete }))));
+    w.ajoute(null, [null, { v: "M FCFA", s: ST.entete }].concat(f.annees.map((a) => ({ v: frFy(a), s: ST.enteteNombre }))));
 
     // Une ligne par exercice : saisie (valeurs) ou calcul (formule par colonne).
-    const ligne = (cle, libelle, valeurs, formule, style, styleLib) => {
+    const ligne = (cle, libelle, valeurs, formule, ton, format) => {
       const rr = w.suivante();
-      return w.ajoute(cle, [null, { v: libelle, s: styleLib || ST.libelle }].concat(valeurs.map((v, t) =>
-        formule ? { f: formule(t, rr), v: v, s: style } : { v: v, s: style })));
+      const s = ST[ton + (format || "M")];
+      return w.ajoute(cle, [null, { v: libelle, s: ST[ton] }].concat(valeurs.map((v, t) =>
+        formule ? { f: formule(t, rr), v: v, s: s } : { v: v, s: s })));
     };
     const c = (cle, t) => col(t) + w.rang[cle];
     if (estime) {
-      ligne("croissance", "Croissance du CA", VALO.hyp.croissance, null, ST.saisiePct);
+      ligne("croissance", "Croissance du CA", VALO.hyp.croissance, null, "gris", "Pct");
       ligne("ca", "Chiffre d'affaires", f.ca,
-        (t, rr) => (t ? col(t - 1) + rr : fixe("base")) + "*(1+" + c("croissance", t) + ")", ST.m);
-      ligne("ebitda", "EBITDA", f.ebitda, (t) => c("ca", t) + "*" + fixe("marge"), ST.m);
-      ligne("da", "D&A", f.da, (t) => c("ca", t) + "*" + fixe("tda"), ST.m);
-      ligne("ebit", "EBIT", f.ebit, (t) => c("ebitda", t) + "-" + c("da", t), ST.totalM, ST.totalLib);
-      ligne("capex", "CapEx", f.capex, null, ST.saisieM);
+        (t, rr) => (t ? col(t - 1) + rr : fixe("base")) + "*(1+" + c("croissance", t) + ")", "gris");
+      ligne("ebitda", "EBITDA", f.ebitda, (t) => c("ca", t) + "*" + fixe("marge"), "gris");
+      ligne("da", "D&A", f.da, (t) => c("ca", t) + "*" + fixe("tda"), "gris");
+      ligne("ebit", "EBIT", f.ebit, (t) => c("ebitda", t) + "-" + c("da", t), "noirGras");
+      ligne("capex", "CapEx", f.capex, null, "gris");
       ligne("bfr", "Variation du BFR (signée comme un flux)", f.bfr,
-        (t) => "-" + fixe("tbfr") + "*(" + c("ca", t) + "-" + (t ? c("ca", t - 1) : fixe("base")) + ")", ST.m);
+        (t) => "-" + fixe("tbfr") + "*(" + c("ca", t) + "-" + (t ? c("ca", t - 1) : fixe("base")) + ")", "gris");
     } else {
-      ligne("ebit", "EBIT", f.ebit, null, ST.saisieM);
-      ligne("da", "D&A", f.da, null, ST.saisieM);
-      ligne("capex", "CapEx", f.capex, null, ST.saisieM);
-      ligne("bfr", "Variation du BFR (signée comme un flux)", f.bfr, null, ST.saisieM);
+      ligne("ebit", "EBIT", f.ebit, null, "noirGras");
+      ligne("da", "D&A", f.da, null, "gris");
+      ligne("capex", "CapEx", f.capex, null, "gris");
+      ligne("bfr", "Variation du BFR (signée comme un flux)", f.bfr, null, "gris");
     }
     w.ajoute(null, []);
-    ligne("impot", "(−) Impôt normatif sur l'EBIT", r.impot, (t) => "-MAX(0," + c("ebit", t) + ")*" + fixe("is"), ST.m);
-    ligne("nopat", "NOPAT", r.nopat, (t) => c("ebit", t) + "+" + c("impot", t), ST.totalM, ST.totalLib);
+    ligne("impot", "(−) Impôt normatif sur l'EBIT", r.impot, (t) => "-MAX(0," + c("ebit", t) + ")*" + fixe("is"), "noir");
+    ligne("nopat", "NOPAT", r.nopat, (t) => c("ebit", t) + "+" + c("impot", t), "noirGras");
     ligne("fcff", "FCFF = NOPAT + D&A − CapEx + variation du BFR", r.fcff,
-      (t) => c("nopat", t) + "+" + c("da", t) + "-" + c("capex", t) + "+" + c("bfr", t), ST.totalM, ST.totalLib);
-    ligne("periode", "Période d'actualisation (années)", f.annees.map((_, t) => t + 1), null, ST.fcfa);
-    ligne("facteur", "Facteur d'actualisation", r.facteur, (t) => "1/(1+" + fixe("cmpc") + ")^" + c("periode", t), ST.facteur);
-    ligne("actualise", "FCFF actualisé", r.actualise, (t) => c("fcff", t) + "*" + c("facteur", t), ST.totalM, ST.totalLib);
+      (t) => c("nopat", t) + "+" + c("da", t) + "-" + c("capex", t) + "+" + c("bfr", t), "lavande");
+    ligne("periode", "Période d'actualisation (années)", f.annees.map((_, t) => t + 1), null, "indigo", "Fcfa");
+    ligne("facteur", "Facteur d'actualisation", r.facteur, (t) => "1/(1+" + fixe("cmpc") + ")^" + c("periode", t), "indigo", "Facteur");
+    ligne("actualise", "FCFF actualisé", r.actualise, (t) => c("fcff", t) + "*" + c("facteur", t), "lavande");
     w.ajoute(null, []);
+
+    // FCFF normatif pour un g donné (référence de cellule) : sert à la ligne
+    // de l'exercice N+1 comme au tableau de sensibilité.
+    const der = n - 1;
+    let fcffNormatif = null;
     if (r.normatif) {
-      const N = r.normatif, der = n - 1;
-      w.ajoute(null, [null, { v: "Exercice normatif (N+1), base de la valeur terminale", s: ST.entete }, { v: "N+1", s: ST.entete }]);
-      const norm = (cle, libelle, formule, v, style, styleLib) => w.ajoute(cle, [null, { v: libelle, s: styleLib || ST.libelle },
-        formule ? { f: formule(), v: v, s: style } : { v: v, s: ST.saisieM }]);
-      norm("n_ebit", "EBIT, en croissance de g", () => `${c("ebit", der)}*(1+${fixe("g")})`, N.ebit, ST.m);
-      norm("n_impot", "(−) Impôt normatif", () => `-MAX(0,C${w.rang.n_ebit})*${fixe("is")}`, N.impot, ST.m);
-      norm("n_nopat", "NOPAT", () => `C${w.rang.n_ebit}+C${w.rang.n_impot}`, N.nopat, ST.totalM, ST.totalLib);
-      norm("n_da", "D&A, en croissance de g", () => `${c("da", der)}*(1+${fixe("g")})`, N.da, ST.m);
-      norm("n_capex", "CapEx = D&A × (1 + g)", () => `C${w.rang.n_da}*(1+${fixe("g")})`, N.capex, ST.m);
-      norm("n_bfr", "Variation du BFR, proportionnée à g" + (estime ? "" : " (calculée à l'écran)"),
-        estime ? () => `-${fixe("tbfr")}*${c("ca", der)}*${fixe("g")}` : null, N.bfr, ST.m);
+      const N = r.normatif, k = der;
+      const bfrN = (g) => {
+        if (estime) return `-${fixe("tbfr")}*${c("ca", der)}*${g}`;
+        if (N.bfrExtrapole) return `${c("bfr", der)}*(1+${g})`;
+        const coef = f.tauxBfr != null ? -f.tauxBfr * f.ca[k] : f.bfr[k] / (f.ca[k] - f.ca[k - 1]) * f.ca[k];
+        return `${xlNombre(coef)}*${g}`;
+      };
+      fcffNormatif = (g) => `${c("ebit", der)}*(1+${g})-MAX(0,${c("ebit", der)}*(1+${g}))*${fixe("is")}`
+        + `+${c("da", der)}*(1+${g})-${c("da", der)}*(1+${g})^2+${bfrN(g)}`;
+      w.ajoute(null, [null, { v: "Exercice normatif (N+1), base de la valeur terminale", s: ST.entete }, { v: "N+1", s: ST.enteteNombre }]);
+      const norm = (cle, libelle, formule, v, ton) => w.ajoute(cle, [null, { v: libelle, s: ST[ton] },
+        { f: formule(), v: v, s: ST[ton + "M"] }]);
+      norm("n_ebit", "EBIT, en croissance de g", () => `${c("ebit", der)}*(1+${fixe("g")})`, N.ebit, "gris");
+      norm("n_impot", "(−) Impôt normatif", () => `-MAX(0,C${w.rang.n_ebit})*${fixe("is")}`, N.impot, "noir");
+      norm("n_nopat", "NOPAT", () => `C${w.rang.n_ebit}+C${w.rang.n_impot}`, N.nopat, "noirGras");
+      norm("n_da", "D&A, en croissance de g", () => `${c("da", der)}*(1+${fixe("g")})`, N.da, "gris");
+      norm("n_capex", "CapEx = D&A × (1 + g)", () => `C${w.rang.n_da}*(1+${fixe("g")})`, N.capex, "gris");
+      norm("n_bfr", "Variation du BFR, proportionnée à g", () => bfrN(fixe("g")), N.bfr, "gris");
       norm("n_fcff", "FCFF normatif", () => `C${w.rang.n_nopat}+C${w.rang.n_da}-C${w.rang.n_capex}+C${w.rang.n_bfr}`,
-        N.fcff, ST.totalM, ST.totalLib);
+        N.fcff, "noirGras");
       w.ajoute(null, []);
     }
 
-    const total = (cle, libelle, formule, v, style, styleLib) =>
-      w.ajoute(cle, [null, { v: libelle, s: styleLib || ST.libelle }, { f: formule(), v: v, s: style }]);
-    total("somme", "Somme des FCFF actualisés", () => `SUM(${c("actualise", 0)}:${c("actualise", n - 1)})`, r.somme, ST.m);
-    total("vt", "Valeur terminale à fin " + frFy(f.annees[n - 1]),
+    // Somme, VT et VE sous le dernier exercice, comme dans le modèle ; poids
+    // de la VT, dette et fonds propres en colonne C.
+    const sousDernier = (cle, libelle, formule, v, ton) => w.ajoute(cle, [null, { v: libelle, s: ST[ton] }]
+      .concat(Array.from({ length: n - 1 }, () => ({ v: "", s: ST[ton] })))
+      .concat([{ f: formule(), v: v, s: ST[ton + "M"] }]));
+    const enC = (cle, libelle, formule, v, ton, format) => w.ajoute(cle, [null, { v: libelle, s: ST[ton] },
+      { f: formule(), v: v, s: ST[ton + (format || "M")] }]);
+    sousDernier("somme", "Somme des FCFF actualisés", () => `SUM(${c("actualise", 0)}:${c("actualise", n - 1)})`, r.somme, "noir");
+    sousDernier("vt", "Valeur terminale à fin " + frFy(f.annees[n - 1]) + " (Gordon-Shapiro)",
       () => r.normatif ? `C${w.rang.n_fcff}/(${fixe("cmpc")}-${fixe("g")})`
-        : `${c("fcff", n - 1)}*(1+${fixe("g")})/(${fixe("cmpc")}-${fixe("g")})`, r.vt, ST.m);
-    total("vtact", "Valeur terminale actualisée", () => `C${w.rang.vt}*${c("facteur", n - 1)}`, r.vtAct, ST.m);
-    total("ve", "Valeur d'entreprise", () => `C${w.rang.somme}+C${w.rang.vtact}`, r.ve, ST.totalM, ST.totalLib);
-    total("poidsvt", "Poids de la valeur terminale", () => `IFERROR(C${w.rang.vtact}/C${w.rang.ve},"n.a")`,
-      r.poidsVt == null ? "n.a" : r.poidsVt, ST.pctN);
-    total("dette_nette", "(−) Dette nette", () => fixe("dette"), f.detteNette, ST.m);
-    total("vfp", "Valeur des fonds propres", () => `C${w.rang.ve}-C${w.rang.dette_nette}`,
-      r.ve == null ? null : r.ve - f.detteNette, ST.totalM, ST.totalLib);
+        : `${c("fcff", n - 1)}*(1+${fixe("g")})/(${fixe("cmpc")}-${fixe("g")})`, r.vt, "indigo");
+    sousDernier("vtact", "Valeur terminale actualisée", () => `${colFin}${w.rang.vt}*${c("facteur", n - 1)}`, r.vtAct, "menthe");
+    sousDernier("ve", "Valeur d'entreprise", () => `${colFin}${w.rang.somme}+${colFin}${w.rang.vtact}`, r.ve, "bandeau");
+    w.ajoute(null, []);
+    enC("poidsvt", "Poids de la valeur terminale", () => `IFERROR(${colFin}${w.rang.vtact}/${colFin}${w.rang.ve},"n.a")`,
+      r.poidsVt == null ? "n.a" : r.poidsVt, "noir", "Pct");
+    enC("dette_nette", "(−) Dette nette", () => fixe("dette"), f.detteNette, "noir");
+    enC("vfp", "Valeur des fonds propres", () => `${colFin}${w.rang.ve}-C${w.rang.dette_nette}`,
+      r.ve == null ? null : r.ve - f.detteNette, "lavande");
+
+    // ---- Test de sensibilité : fonds propres selon le CMPC (lignes) et g
+    // (colonnes), en formules — les en-têtes suivent le CMPC et g saisis.
+    const k = [-2, -1, 0, 1, 2];
+    w.ajoute(null, []);
+    w.ajoute(null, []);
+    w.ajoute(null, [null, { v: "Test de sensibilité — valeur des fonds propres (M FCFA)", s: ST.compactGras }]);
+    const pas = (ref, i, p) => (i ? `${ref}${i > 0 ? "+" : "-"}${Math.abs(i)}*${xlNombre(p)}` : ref);
+    const rg = w.suivante();
+    w.ajoute(null, [null, null, null, { v: "CMPC \\ g", s: ST.compactGrasNombre }].concat(k.map((j) =>
+      ({ f: pas(fixe("g"), j, VALO.pasG), v: f.g + j * VALO.pasG, s: ST.bandeauPct }))));
+    const plage = (cle) => `$C$${w.rang[cle]}:$${colFin}$${w.rang[cle]}`;
+    const r0 = w.suivante();
+    k.forEach((i) => {
+      const rr = w.suivante();
+      const wi = wacc + i * VALO.pasWacc;
+      w.ajoute(null, [null, i === -2 ? { v: "CMPC", s: ST.fusion } : null, null,
+        { f: pas(fixe("cmpc"), i, VALO.pasWacc), v: wi, s: ST.bandeauPct }].concat(k.map((j, jj) => {
+        const gj = f.g + j * VALO.pasG;
+        const W = `$D${rr}`, G = `${colXl(4 + jj)}$${rg}`;
+        const vt = fcffNormatif ? `(${fcffNormatif(G)})/(${W}-${G})` : `$${colFin}$${w.rang.fcff}*(1+${G})/(${W}-${G})`;
+        const res = calculDcf(f, wi, gj, impot);
+        const v = res.ve == null ? "n.a" : res.ve - f.detteNette;
+        return {
+          f: `IF(${W}>${G},SUMPRODUCT(${plage("fcff")},(1+${W})^(-${plage("periode")}))+${vt}*(1+${W})^(-$${colFin}$${w.rang.periode})-${fixe("dette")},"n.a")`,
+          v: v, s: i === 0 && j === 0 ? ST.lavandeM : ST.grisM,
+        };
+      })));
+    });
 
     return {
       nom: "DCF", ve: r.ve, dette: f.detteNette,
-      refVe: "DCF!$C$" + w.rang.ve, refDette: "DCF!$C$" + w.rang.dette,
-      xml: feuilleEtatsXml(w.lignes, [3, 46].concat(f.annees.map(() => 13)), true),
+      refVe: `DCF!$${colFin}$${w.rang.ve}`, refDette: "DCF!$C$" + w.rang.dette,
+      xml: feuilleEtatsXml(w.lignes, [3, 46].concat(f.annees.map(() => 13)).concat([13, 13, 13, 13]),
+        { sansQuadrillage: true, fusions: [`B${r0}:C${r0 + k.length - 1}`] }),
     };
   }
 
-  function feuilleComparables(m) {
+  function feuilleComparables(m, dette, refDette) {
     const ST = ST_ETATS;
     const w = redacteur();
     const societes = m.mc.societes;
@@ -6415,24 +6676,41 @@
       + m.mc.an + " · VE = capitalisation + dette", s: ST.note }]);
     w.ajoute(null, []);
     w.ajoute(null, [null].concat(["Société", "Capitalisation (M FCFA)", "Dette (M FCFA)", "VE (M FCFA)", "EBITDA " + m.mc.an + " (M FCFA)", "VE / EBITDA"]
-      .map((t) => ({ v: t, s: ST.entete }))));
+      .map((t, i) => ({ v: t, s: i ? ST.enteteNombre : ST.entete }))));
     const r0 = w.suivante();
     for (const o of societes) {
       const rr = w.suivante();
-      w.ajoute(null, [null, { v: o.nom }, { v: o.cap, s: ST.saisieM }, { v: o.dette, s: ST.saisieM },
-        { f: `C${rr}+D${rr}`, v: o.cap + o.dette, s: ST.m }, { v: o.eb, s: ST.saisieM },
-        { f: `E${rr}/F${rr}`, v: o.v, s: ST.mult }]);
+      w.ajoute(null, [null, { v: o.nom, s: ST.gris }, { v: o.cap, s: ST.grisM }, { v: o.dette, s: ST.grisM },
+        { f: `C${rr}+D${rr}`, v: o.cap + o.dette, s: ST.grisM }, { v: o.eb, s: ST.grisM },
+        { f: `E${rr}/F${rr}`, v: o.v, s: ST.grisMult }]);
     }
     const r1 = w.suivante() - 1;
+
+    // ---- Valorisation : fourchette min / médiane / max des multiples
+    const multiples = societes.map((o) => o.v);
+    const fourchette = [Math.min(...multiples), m.mc.med, Math.max(...multiples)];
+    const cols = ["C", "D", "E"];
+    const trois = (fn) => cols.map((cl, i) => fn(cl, i));
     w.ajoute(null, []);
-    w.ajoute("med", [null, { v: "VE / EBITDA médian", s: ST.totalLib }, { f: `MEDIAN(G${r0}:G${r1})`, v: m.mc.med, s: ST.mult }]);
-    w.ajoute("ebitda", [null, { v: "EBITDA de référence, " + frFy(m.eb.an) + " (M FCFA) — " + m.eb.source },
-      { v: m.eb.valeur, s: ST.saisieM }]);
-    w.ajoute("ve", [null, { v: "Valeur d'entreprise par les comparables (M FCFA)", s: ST.totalLib },
-      { f: `C${w.rang.ebitda}*C${w.rang.med}`, v: m.ve, s: ST.totalM }]);
+    w.ajoute(null, []);
+    w.ajoute(null, [null, { v: "Valorisation selon les comparables boursiers", s: ST.bandeau }].concat(trois(() => ({ v: "", s: ST.bandeau }))));
+    w.ajoute(null, [null].concat(["M FCFA", "Min.", "Méd.", "Max."].map((t, i) => ({ v: t, s: i ? ST.compactGrasNombre : ST.compactGras }))));
+    const re = w.ajoute("ebitda", [null, { v: "EBITDA de référence, " + frFy(m.eb.an), s: ST.noir }]
+      .concat(trois((cl, i) => (i ? { f: `$C$${w.suivante()}`, v: m.eb.valeur, s: ST.noirM } : { v: m.eb.valeur, s: ST.noirM }))));
+    const rm = w.ajoute("mult", [null, { v: "Multiple d'EBITDA", s: ST.compact }].concat(trois((cl, i) =>
+      ({ f: `${["MIN", "MEDIAN", "MAX"][i]}(G${r0}:G${r1})`, v: fourchette[i], s: ST.compactMult }))));
+    const rv = w.ajoute("ve", [null, { v: "Valeur d'entreprise", s: ST.compactAccent }].concat(trois((cl, i) =>
+      ({ f: `${cl}${re}*${cl}${rm}`, v: m.eb.valeur * fourchette[i], s: ST.compactAccentM }))));
+    const rd = w.ajoute("dette", [null, { v: "Dette financière nette ajustée", s: ST.compact }].concat(trois((cl, i) =>
+      (i ? { f: `$C$${w.suivante()}`, v: dette, s: ST.compactM }
+        : refDette ? { f: refDette, v: dette, s: ST.compactM } : { v: dette, s: ST.compactM }))));
+    w.ajoute("vfp", [null, { v: "Valeur des fonds propres", s: ST.bandeau }].concat(trois((cl, i) =>
+      ({ f: `${cl}${rv}-${cl}${rd}`, v: dette == null ? null : m.eb.valeur * fourchette[i] - dette, s: ST.bandeauM }))));
+    w.ajoute(null, [null, { v: "Sources : EBITDA de référence — " + m.eb.source + " ; multiples — échantillon de sociétés cotées du secteur,"
+      + " capitalisation et dette de marché.", s: ST.source }]);
     return {
-      nom: "Comparables", ve: m.ve, refVe: "Comparables!$C$" + w.rang.ve,
-      xml: feuilleEtatsXml(w.lignes, [3, 40, 18, 14, 14, 16, 13]),
+      nom: "Comparables", ve: m.ve, refVe: "Comparables!$D$" + rv,
+      xml: feuilleEtatsXml(w.lignes, [3, 40, 22, 15, 15, 21, 13], true),
     };
   }
 
@@ -6458,24 +6736,24 @@
     w.ajoute(null, [null, { v: "M FCFA · " + (methodes.length === 1 ? "une seule méthode, qui porte tout le poids"
       : pondere ? "moyenne pondérée des VE" : "moyenne arithmétique des VE") + " · poids modifiables en colonne D", s: ST.note }]);
     w.ajoute(null, []);
-    w.ajoute(null, [null].concat(["Méthode", "VE", "Poids", "VE pondérée"].map((t) => ({ v: t, s: ST.entete }))));
+    w.ajoute(null, [null].concat(["Méthode", "VE", "Poids", "VE pondérée"].map((t, i) => ({ v: t, s: i ? ST.enteteNombre : ST.entete }))));
     const r0 = w.suivante();
     let ve = 0;
     for (const [k, libelle] of methodes) {
       const rr = w.suivante();
       const v = refs[k].ve;
       ve += v == null ? 0 : v * poids[k];
-      w.ajoute(k, [null, { v: libelle }, { f: refs[k].refVe, v: v, s: ST.m }, { v: poids[k], s: ST.saisiePct },
-        { f: `C${rr}*D${rr}`, v: v == null ? null : v * poids[k], s: ST.m }]);
+      w.ajoute(k, [null, { v: libelle, s: ST.gris }, { f: refs[k].refVe, v: v, s: ST.grisM }, { v: poids[k], s: ST.grisPct },
+        { f: `C${rr}*D${rr}`, v: v == null ? null : v * poids[k], s: ST.grisM }]);
     }
     const r1 = w.suivante() - 1;
-    w.ajoute("somme_poids", [null, { v: "Somme des poids", s: ST.pctLib }, null, { f: `SUM(D${r0}:D${r1})`, v: 1, s: ST.pctN }]);
+    w.ajoute("somme_poids", [null, { v: "Somme des poids", s: ST.discret }, null, { f: `SUM(D${r0}:D${r1})`, v: 1, s: ST.discretPct }]);
     w.ajoute(null, []);
-    w.ajoute("ve", [null, { v: "Valeur d'entreprise retenue", s: ST.totalLib }, { f: `SUM(E${r0}:E${r1})`, v: ve, s: ST.totalM }]);
-    w.ajoute("dette", [null, { v: "(−) Dette nette" },
-      refs.dcf ? { f: refs.dcf.refDette, v: dette, s: ST.m } : { v: dette, s: ST.saisieM }]);
-    w.ajoute("vfp", [null, { v: "Valeur des fonds propres", s: ST.totalLib },
-      { f: `C${w.rang.ve}-C${w.rang.dette}`, v: dette == null ? null : ve - dette, s: ST.totalM }]);
+    w.ajoute("ve", [null, { v: "Valeur d'entreprise retenue", s: ST.grisGras }, { f: `SUM(E${r0}:E${r1})`, v: ve, s: ST.grisGrasM }]);
+    w.ajoute("dette", [null, { v: "(−) Dette nette", s: ST.noir },
+      refs.dcf ? { f: refs.dcf.refDette, v: dette, s: ST.noirM } : { v: dette, s: ST.noirM }]);
+    w.ajoute("vfp", [null, { v: "Valeur des fonds propres", s: ST.grisGras },
+      { f: `C${w.rang.ve}-C${w.rang.dette}`, v: dette == null ? null : ve - dette, s: ST.grisGrasM }]);
     return { nom: "Synthèse", xml: feuilleEtatsXml(w.lignes, [3, 32, 16, 12, 16], true) };
   }
 
@@ -6489,19 +6767,29 @@
     };
   }
 
+  // Ordre du modèle : Paramètres > (plan, balance), EFS > (P&L, Balance
+  // sheet), Valorisation > (DCF, Comparables, Synthèse).
   function classeurExport(choix) {
     const feuilles = [];
     let actif = 0;
-    if (choix.etats && VALO.bg) { feuilles.push(...feuillesEtats(VALO.bg)); actif = 1; }
+    if (choix.etats && VALO.bg) {
+      const ef = feuillesEtats(VALO.bg);
+      feuilles.push(feuilleIntercalaire("Paramètres >"), ...ef.parametres, feuilleIntercalaire("EFS >"));
+      actif = feuilles.length;
+      feuilles.push(...ef.efs);
+    }
     const f = fluxActif();
+    const dette = f ? f.detteNette : VALO.bg ? baseEstimation(VALO.bg).dette : null;
     const refs = {};
-    if (choix.dcf && f) { refs.dcf = feuilleDcf(f); feuilles.push(refs.dcf); }
+    if (choix.dcf && f) refs.dcf = feuilleDcf(f);
     if (choix.comp) {
       const m = methodeComparables(f);
-      if (!m.indispo) { refs.comp = feuilleComparables(m); feuilles.push(refs.comp); }
+      if (!m.indispo) refs.comp = feuilleComparables(m, dette, refs.dcf ? refs.dcf.refDette : null);
     }
     if (refs.dcf || refs.comp) {
-      const dette = f ? f.detteNette : VALO.bg ? baseEstimation(VALO.bg).dette : null;
+      feuilles.push(feuilleIntercalaire("Valorisation >"));
+      if (refs.dcf) feuilles.push(refs.dcf);
+      if (refs.comp) feuilles.push(refs.comp);
       feuilles.push(feuilleSynthese(refs, dette));
       actif = feuilles.length - 1;
     }
@@ -6515,13 +6803,13 @@
     const etats = $("expEtats");
     etats.disabled = Boolean(raisons.etats);
     etats.checked = !raisons.etats;
-    $("expEtatsAide").textContent = raisons.etats || "Balance comparée, compte de résultat, actif net et plan SYSCOHADA, en formules.";
+    $("expEtatsAide").textContent = raisons.etats || "Plan SYSCOHADA, balance comparée, P&L et Balance sheet, en formules.";
     fond.querySelectorAll("[data-exp-methode]").forEach((c) => {
       const raison = raisons[c.dataset.expMethode];
       c.disabled = Boolean(raison);
       c.checked = !raison;
       c.closest("label").querySelector("small").textContent = raison
-        || (c.dataset.expMethode === "dcf" ? "Flux, actualisation et valeur terminale, en formules." : "Échantillon, médiane VE / EBITDA et VE.");
+        || (c.dataset.expMethode === "dcf" ? "Flux, actualisation et valeur terminale, en formules." : "Échantillon et fourchette min / médiane / max des multiples.");
     });
     $("expValoListe").hidden = true;
     $("expValoBouton").setAttribute("aria-expanded", "false");
@@ -6657,7 +6945,7 @@
     const mc = multipleComparables();
     const eb = ebitdaHistorique(f);   // la balance suffit, même sans classeur
     let indispo = null;
-    if (!estComparables()) indispo = "Référentiel Comparables requis, dans l'onglet Paramètres.";
+    if (!estComparables()) indispo = "Référentiel Comparables requis, dans CMPC › Paramètres.";
     else if (!mc) indispo = "Aucun multiple VE / EBITDA dans l'échantillon.";
     else if (!f && !VALO.bg) indispo = "Aucun classeur ni balance importés.";
     else if (!eb) indispo = "Pas de partie historique dans le classeur.";
@@ -7550,12 +7838,12 @@
     const sourceTaux = "US Treasury " + params.maturity + ", moyenne " + params.year + " (home.treasury.gov)";
     const sourcePrime = "Damodaran, ctryprem.xlsx — prime de risque pays " + params.country + primeNote;
     const sourcePrimeMarche = "Damodaran, ctryprem.xlsx — prime de risque des marchés matures (cellule E3)";
-    const sourceTaille = "Prime de taille + prime spécifique, saisies dans l'onglet Paramètres";
+    const sourceTaille = "Prime de taille + prime spécifique, saisies dans CMPC › Paramètres";
 
     if (estComparables()) {
       const cc = cmpcComparables();
       if (!cc) return null;
-      // L'échantillon est repris tel que l'onglet Sociétés le marque : même
+      // L'échantillon est repris tel que Comparables › Sociétés le marque : même
       // périmètre, même tri, mêmes vingt valeurs. Le classeur et l'écran ne
       // peuvent donc pas décrire deux populations différentes.
       const ret = societesRetenues();
@@ -7685,9 +7973,9 @@
 
       bandeauXl(26, "TRANSPOSITION USD → MONNAIE LOCALE (DIFFÉRENTIEL D'INFLATION — FISHER)", XL.bandeauFisher),
       ligneXl({ r: 27, libelle: "Inflation long terme États-Unis (π_US)", valeur: x.inflationRef, sV: XL.saisiePct2,
-                commentaire: "Saisie dans l'onglet Paramètres (ex. Cleveland Fed — Ten years expected inflation)" }),
+                commentaire: "Saisie dans CMPC › Paramètres (ex. Cleveland Fed — Ten years expected inflation)" }),
       ligneXl({ r: 28, libelle: "Inflation long terme " + params.country + " (π_loc)", valeur: x.inflationLocale, sV: XL.saisiePct2,
-                commentaire: "Saisie dans l'onglet Paramètres (ex. critère de convergence UEMOA, 3 % plafond)" }),
+                commentaire: "Saisie dans CMPC › Paramètres (ex. critère de convergence UEMOA, 3 % plafond)" }),
       ligneXl({ r: 29, libelle: "Différentiel d'inflation (π_loc − π_US)", sL: XL.libelleGras, formule: "C28-C27", valeur: x.inflationLocale - x.inflationRef, sV: XL.calculPct2,
                 commentaire: "Positif : inflation locale > inflation US ⇒ CMPC local > CMPC en monnaie du taux sans risque", sC: XL.commentaireGras }),
       ligneXl({ r: 30, libelle: "WACC monnaie locale = (1 + WACC_USD) × (1 + π_loc) / (1 + π_US) − 1", sL: XL.libelleGras,
@@ -7702,7 +7990,7 @@
   }
 
   /* ---------- Feuille « Sociétés » ---------- */
-  // Une ligne par comparable de l'échantillon, dans l'ordre où l'onglet Sociétés
+  // Une ligne par comparable de l'échantillon, dans l'ordre où Comparables › Sociétés
   // les classe — par capitalisation décroissante. Trois blocs se suivent : les
   // sociétés, la médiane de chaque colonne, puis ce que le CMPC reprend de
   // cette médiane, cellule de la feuille WACC à l'appui. Les multiples d'EBITDA
@@ -8180,6 +8468,339 @@
     }
   }
 
+  /* ================= Comparables › Insight =================
+     Le secteur vu en ensemble : croissance du CA et marges, médiane et
+     quartiles par exercice, composition de l'échantillon, et la société
+     évaluée — celle de la balance générale — placée dans ces quartiles.
+     Des quartiles plutôt que des moyennes : une marge de −400 % chez une
+     jeune pousse suffirait à fausser une moyenne sur vingt sociétés. */
+  const INSIGHT = { portee: "echantillon", indicateur: "marge" };
+
+  const INDICATEURS_INSIGHT = [
+    { cle: "croissance", libelle: "Croissance du CA" },
+    { cle: "marge", libelle: "Marge d'EBITDA" },
+    { cle: "margeNette", libelle: "Marge nette" },
+  ];
+
+  // Quartiles par interpolation linéaire, comme la médiane des multiples.
+  function quartiles(valeurs) {
+    const v = valeurs.filter((x) => Number.isFinite(x)).sort((a, b) => a - b);
+    if (!v.length) return null;
+    const q = (p) => {
+      const x = p * (v.length - 1), i = Math.floor(x);
+      return v[i] + (v[Math.min(i + 1, v.length - 1)] - v[i]) * (x - i);
+    };
+    return { min: v[0], q1: q(0.25), med: q(0.5), q3: q(0.75), max: v[v.length - 1], p10: q(0.1), p90: q(0.9), n: v.length };
+  }
+
+  // Valeur d'un indicateur pour une année, depuis des séries { an: montant }.
+  function indicateurAnnee(cle, ca, ebitda, rn, an) {
+    const c = ca[an];
+    if (cle === "croissance") {
+      const p = ca[an - 1];
+      return c > 0 && p > 0 ? c / p - 1 : null;
+    }
+    if (!(c > 0)) return null;
+    const num = cle === "marge" ? ebitda[an] : rn[an];
+    return num == null ? null : num / c;
+  }
+
+  function societesInsight() {
+    const secteur = Object.keys(COMPARABLES).filter((id) => COMPARABLES[id].industrie === params.secteur);
+    const retenues = societesRetenues().ids;
+    const ids = INSIGHT.portee === "secteur" ? secteur : retenues;
+    return { liste: ids.map((id) => COMPARABLES[id]).filter(Boolean), nSecteur: secteur.length, nRetenues: retenues.length };
+  }
+
+  // Exercices lus : ceux qu'au moins la moitié des sociétés documente.
+  function exercicesInsight(liste) {
+    const annees = [...new Set(liste.flatMap((s) => s.annees || []))].sort((a, b) => a - b);
+    return annees.filter((a) => liste.filter((s) => (s.ca || {})[String(a)] != null).length * 2 >= liste.length);
+  }
+
+  // La société évaluée, en séries annuelles, depuis la balance importée.
+  function cibleInsight() {
+    if (!VALO.bg) return null;
+    const e = VALO.bg.etats.cdr, ca = {}, ebitda = {}, rn = {};
+    VALO.bg.annees.forEach((a, t) => { ca[a] = e.ca[t]; ebitda[a] = e.ebitda[t]; rn[a] = e.rn[t]; });
+    return { annees: VALO.bg.annees.slice(), ca: ca, ebitda: ebitda, rn: rn };
+  }
+
+  function statsInsight() {
+    const { liste, nSecteur, nRetenues } = societesInsight();
+    if (!liste.length) return { liste: liste, nSecteur: nSecteur, nRetenues: nRetenues, annees: [] };
+    const annees = exercicesInsight(liste);
+    const series = (s) => {
+      const conv = (o) => { const r = {}; for (const k in o || {}) r[Number(k)] = o[k]; return r; };
+      return { ca: conv(s.ca), ebitda: conv(s.ebitda), rn: conv(s.rn) };
+    };
+    const donnees = liste.map((s) => ({ s: s, ...series(s) }));
+    const parAn = {};
+    for (const ind of INDICATEURS_INSIGHT) {
+      parAn[ind.cle] = annees.map((a) => ({
+        an: a, q: quartiles(donnees.map((d) => indicateurAnnee(ind.cle, d.ca, d.ebitda, d.rn, a))),
+      }));
+    }
+    const a0 = annees[0], aN = annees[annees.length - 1];
+    const tcam = (d, x, y) => tcamEntre(d.ca[x], d.ca[y], y - x);
+    return {
+      liste: liste, nSecteur: nSecteur, nRetenues: nRetenues, annees: annees, donnees: donnees, parAn: parAn,
+      tcam: annees.length > 1 ? quartiles(donnees.map((d) => tcam(d, a0, aN))) : null,
+      capi: quartiles(liste.map((s) => s.capitalisation)),
+      tcamEntre: (x, y) => quartiles(donnees.map((d) => tcam(d, x, y))),
+      indicateurEn: (cle, a) => quartiles(donnees.map((d) => indicateurAnnee(cle, d.ca, d.ebitda, d.rn, a))),
+    };
+  }
+
+  const pctInsight = (v, dec) => (v == null || !Number.isFinite(v) ? "—" : frPct(v, dec === undefined ? 1 : dec));
+
+  // Où tombe une valeur dans la distribution : le mot, et le rang de quartile.
+  function quartileDe(v, q) {
+    if (v == null || !q) return null;
+    if (v < q.q1) return { rang: 1, texte: "sous le 1er quartile" };
+    if (v < q.med) return { rang: 2, texte: "entre le 1er quartile et la médiane" };
+    if (v <= q.q3) return { rang: 3, texte: "entre la médiane et le 3e quartile" };
+    return { rang: 4, texte: "au-dessus du 3e quartile" };
+  }
+
+  function renderInsight() {
+    const racine = $("insightCorps");
+    if (!racine) return;
+    if (!estComparables()) { racine.innerHTML = ""; return; }
+    const st = statsInsight();
+    const secteur = params.secteur || "";
+    const portee = `
+      <div class="ins-portee" role="group" aria-label="Sociétés lues">
+        <button type="button" data-portee="echantillon" class="${INSIGHT.portee === "echantillon" ? "is-active" : ""}">Échantillon retenu · ${st.nRetenues}</button>
+        <button type="button" data-portee="secteur" class="${INSIGHT.portee === "secteur" ? "is-active" : ""}">Tout le secteur · ${st.nSecteur}</button>
+      </div>`;
+    const tete = `
+      <div class="ins-tete">
+        <div>
+          <h2 class="ins-titre">${esc(secteur)}</h2>
+          <p class="ins-sous-titre">${st.annees.length ? "Exercices " + st.annees[0] + "–" + st.annees[st.annees.length - 1] + " · " : ""}${
+            INSIGHT.portee === "echantillon" ? "les sociétés qui alimentent le CMPC" : "toutes les sociétés cotées du secteur, toutes zones"}</p>
+        </div>
+        ${portee}
+      </div>`;
+    if (!st.liste.length || !st.annees.length) {
+      racine.innerHTML = tete + `
+        <div class="valo-depot"><h3>Pas de sociétés à lire</h3>
+        <p>Aucune société du secteur ne publie d'états financiers sur ce périmètre. Élargissez le cadrage dans
+        CMPC › Paramètres, ou passez sur tout le secteur.</p></div>`;
+      return;
+    }
+    const aN = st.annees[st.annees.length - 1];
+    const margeRef = st.parAn.marge[st.parAn.marge.length - 1].q;
+    const cases = [
+      { libelle: "Sociétés", valeur: String(st.liste.length),
+        aide: INSIGHT.portee === "echantillon" ? "sur " + st.nSecteur + " cotées du secteur" : "toutes zones confondues" },
+      { libelle: "Capitalisation médiane", valeur: st.capi ? frMontant(st.capi.med) : "—", aide: "M FCFA" },
+      { libelle: "TCAM médian du CA", valeur: pctInsight(st.tcam && st.tcam.med), aide: st.annees[0] + "–" + aN },
+      { libelle: "Marge d'EBITDA médiane", valeur: pctInsight(margeRef && margeRef.med), aide: "Exercice " + aN },
+    ];
+    racine.innerHTML = tete + `
+      <div class="dcf-cases ins-cases">
+        ${cases.map((c) => `
+          <div class="dcf-case">
+            <span class="dcf-case-label">${esc(c.libelle)}</span>
+            <span class="dcf-case-valeur">${esc(c.valeur)}</span>
+            <span class="dcf-case-aide">${esc(c.aide)}</span>
+          </div>`).join("")}
+      </div>
+      <section class="ins-bloc">
+        <div class="ins-bloc-tete">
+          <h2 class="dcf-rubrique">Croissance et marges</h2>
+          <div class="ins-choix" role="group" aria-label="Indicateur">
+            ${INDICATEURS_INSIGHT.map((i) => `<button type="button" data-indicateur="${i.cle}" class="${INSIGHT.indicateur === i.cle ? "is-active" : ""}">${esc(i.libelle)}</button>`).join("")}
+          </div>
+        </div>
+        <div class="ins-graphe" id="insightGraphe"></div>
+        <div class="ins-legende">
+          <span><i class="ins-l-bande"></i>1er–3e quartile</span>
+          <span><i class="ins-l-med"></i>Médiane</span>
+          ${VALO.bg ? `<span><i class="ins-l-cible"></i>Société évaluée</span>` : ""}
+        </div>
+      </section>
+      <section class="ins-bloc">
+        <h2 class="dcf-rubrique">Positionnement de la société évaluée</h2>
+        ${positionnementHtml(st)}
+      </section>
+      <section class="ins-bloc">
+        <h2 class="dcf-rubrique">Composition</h2>
+        ${compositionHtml(st)}
+      </section>`;
+    requestAnimationFrame(dessinerInsight);
+  }
+
+  // Médiane et bande interquartile par exercice ; la société évaluée par-dessus.
+  function dessinerInsight() {
+    const cadre = $("insightGraphe");
+    if (!cadre || !cadre.offsetWidth) return;
+    const st = statsInsight();
+    const cle = INSIGHT.indicateur;
+    const points = st.parAn[cle].filter((p) => p.q);
+    const cible = cibleInsight();
+    const pointsCible = cible ? cible.annees
+      .map((a) => ({ an: a, v: indicateurAnnee(cle, cible.ca, cible.ebitda, cible.rn, a) }))
+      .filter((p) => p.v != null) : [];
+    if (!points.length) { cadre.innerHTML = `<p class="ins-vide">Pas assez de données pour cet indicateur.</p>`; return; }
+    const annees = [...new Set(points.map((p) => p.an).concat(pointsCible.map((p) => p.an)))].sort((a, b) => a - b);
+    const W = cadre.offsetWidth, H = 250, g = 46, d = 18, h = 18, b = 30, retrait = 34;
+    const vals = points.flatMap((p) => [p.q.q1, p.q.q3, p.q.med]).concat(pointsCible.map((p) => p.v));
+    let lo = Math.min(0, ...vals), hi = Math.max(...vals);
+    if (hi - lo < 0.02) { hi += 0.01; lo -= 0.01; }
+    const marge = (hi - lo) * 0.12;
+    lo -= lo < 0 ? marge : 0; hi += marge;
+    // Un retrait de part et d'autre : les étiquettes du premier et du dernier
+    // exercice ne mordent ni sur l'axe ni sur le bord.
+    const x = (a) => annees.length === 1 ? (g + W - d) / 2
+      : g + retrait + (W - g - d - 2 * retrait) * (annees.indexOf(a) / (annees.length - 1));
+    const y = (v) => h + (H - h - b) * (1 - (v - lo) / (hi - lo));
+    const pas = [0.01, 0.02, 0.05, 0.1, 0.2, 0.25, 0.5, 1].find((p) => (hi - lo) / p <= 5) || 1;
+    const graduations = [];
+    for (let v = Math.ceil(lo / pas) * pas; v <= hi + 1e-9; v += pas) graduations.push(v);
+    const haut = points.map((p) => `${x(p.an)},${y(p.q.q3)}`).join(" ");
+    const bas = points.slice().reverse().map((p) => `${x(p.an)},${y(p.q.q1)}`).join(" ");
+    const ligne = (pts) => pts.map((p, i) => (i ? "L" : "M") + x(p.an) + "," + y(p.v)).join(" ");
+    const med = points.map((p) => ({ an: p.an, v: p.q.med }));
+    cadre.innerHTML = `
+      <svg width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" role="img"
+           aria-label="${esc(INDICATEURS_INSIGHT.find((i) => i.cle === cle).libelle)} : médiane et quartiles du secteur par exercice">
+        ${graduations.map((v) => `
+          <line x1="${g}" x2="${W - d}" y1="${y(v)}" y2="${y(v)}" class="${Math.abs(v) < 1e-9 ? "ins-zero" : "ins-grille"}"/>
+          <text x="${g - 8}" y="${y(v) + 3.5}" class="ins-axe" text-anchor="end">${pctInsight(v, 0)}</text>`).join("")}
+        ${annees.map((a) => `<text x="${x(a)}" y="${H - 8}" class="ins-axe" text-anchor="middle">${a}</text>`).join("")}
+        ${points.length > 1 ? `<polygon points="${haut} ${bas}" class="ins-bande"/>` : ""}
+        ${points.map((p) => `<line x1="${x(p.an)}" x2="${x(p.an)}" y1="${y(p.q.q1)}" y2="${y(p.q.q3)}" class="ins-moustache"/>`).join("")}
+        <path d="${ligne(med)}" class="ins-med"/>
+        ${points.map((p) => `
+          <g class="ins-point"><title>${p.an} · médiane ${pctInsight(p.q.med)} · quartiles ${pctInsight(p.q.q1)} à ${pctInsight(p.q.q3)} · ${p.q.n} sociétés</title>
+            <circle cx="${x(p.an)}" cy="${y(p.q.med)}" r="4" class="ins-med-point"/>
+            <text x="${x(p.an)}" y="${y(p.q.med) - 10}" text-anchor="middle" class="ins-etiquette">${pctInsight(p.q.med)}</text>
+          </g>`).join("")}
+        ${pointsCible.length ? `
+          ${pointsCible.length > 1 ? `<path d="${ligne(pointsCible)}" class="ins-cible"/>` : ""}
+          ${pointsCible.map((p) => `
+            <g class="ins-point"><title>Société évaluée · ${p.an} · ${pctInsight(p.v)}</title>
+              <circle cx="${x(p.an)}" cy="${y(p.v)}" r="4.5" class="ins-cible-point"/>
+              <text x="${x(p.an)}" y="${y(p.v) + 17}" text-anchor="middle" class="ins-etiquette is-cible">${pctInsight(p.v)}</text>
+            </g>`).join("")}` : ""}
+      </svg>`;
+  }
+
+  // Trois réglettes : TCAM du CA, marge d'EBITDA, marge nette. Chacune sur
+  // la période de la société quand le secteur la documente.
+  function positionnementHtml(st) {
+    const cible = cibleInsight();
+    if (!cible) {
+      return `
+        <div class="ins-invite">
+          <p>Importez la balance générale dans Valorisation › États financiers : sa croissance et ses marges
+          viendront se placer ici, face aux quartiles du secteur.</p>
+          <button type="button" class="valo-bouton" data-action="insight-balance">Aller aux États financiers</button>
+        </div>`;
+    }
+    const ans = cible.annees, a0 = ans[0], aN = ans[ans.length - 1];
+    const secteurDocumente = (a) => st.annees.indexOf(a) >= 0;
+    const anRef = secteurDocumente(aN) ? aN : st.annees[st.annees.length - 1];
+    // TCAM : la fenêtre commune à la société et au secteur, sinon celle du secteur.
+    const communs = ans.filter(secteurDocumente);
+    const fen = communs.length > 1 ? [communs[0], communs[communs.length - 1]] : [st.annees[0], st.annees[st.annees.length - 1]];
+    const lignes = [
+      { libelle: "TCAM du CA", v: tcamEntre(cible.ca[a0], cible.ca[aN], aN - a0),
+        periodeCible: a0 + "–" + aN, q: fen[1] > fen[0] ? st.tcamEntre(fen[0], fen[1]) : null, periodeSecteur: fen[0] + "–" + fen[1] },
+      { libelle: "Marge d'EBITDA", v: indicateurAnnee("marge", cible.ca, cible.ebitda, cible.rn, aN),
+        periodeCible: String(aN), q: st.indicateurEn("marge", anRef), periodeSecteur: String(anRef) },
+      { libelle: "Marge nette", v: indicateurAnnee("margeNette", cible.ca, cible.ebitda, cible.rn, aN),
+        periodeCible: String(aN), q: st.indicateurEn("margeNette", anRef), periodeSecteur: String(anRef) },
+    ];
+    return `<div class="ins-reglettes">${lignes.map((l) => {
+      if (!l.q || l.v == null) {
+        return `<div class="ins-reglette"><div class="ins-reglette-tete"><strong>${esc(l.libelle)}</strong>
+          <span class="ins-verdict">non calculable</span></div></div>`;
+      }
+      const lo0 = Math.min(l.q.p10, l.v), hi0 = Math.max(l.q.p90, l.v);
+      const ec = (hi0 - lo0) || 0.01, lo = lo0 - ec * 0.08, hi = hi0 + ec * 0.08;
+      const pos = (v) => ((v - lo) / (hi - lo) * 100).toFixed(2) + "%";
+      const qd = quartileDe(l.v, l.q);
+      return `
+        <div class="ins-reglette" data-rang="${qd.rang}">
+          <div class="ins-reglette-tete">
+            <strong>${esc(l.libelle)}</strong>
+            <span class="ins-verdict"><b>${pctInsight(l.v)}</b> ${esc(qd.texte)}</span>
+          </div>
+          <div class="ins-piste" aria-hidden="true">
+            <span class="ins-piste-ligne" style="left:${pos(l.q.p10)};right:calc(100% - ${pos(l.q.p90)})"></span>
+            <span class="ins-piste-boite" style="left:${pos(l.q.q1)};right:calc(100% - ${pos(l.q.q3)})"></span>
+            <span class="ins-piste-med" style="left:${pos(l.q.med)}"></span>
+            <span class="ins-piste-cible" style="left:${pos(l.v)}"></span>
+          </div>
+          <div class="ins-reglette-pied">
+            <span>Secteur ${esc(l.periodeSecteur)} · médiane ${pctInsight(l.q.med)} · quartiles ${pctInsight(l.q.q1)} à ${pctInsight(l.q.q3)}</span>
+            <span>Société ${esc(l.periodeCible)}</span>
+          </div>
+        </div>`;
+    }).join("")}</div>`;
+  }
+
+  // Répartition par zone et par place, puis les plus grosses capitalisations.
+  function compositionHtml(st) {
+    const repartition = (cle) => {
+      const compte = {};
+      for (const s of st.liste) {
+        const k = s[cle] || "Non renseigné";
+        compte[k] = compte[k] || { n: 0, capi: 0 };
+        compte[k].n += 1;
+        compte[k].capi += s.capitalisation || 0;
+      }
+      const lignes = Object.entries(compte).sort((a, b) => b[1].n - a[1].n || b[1].capi - a[1].capi);
+      const max = lignes.length ? lignes[0][1].n : 1;
+      const total = st.liste.reduce((t, s) => t + (s.capitalisation || 0), 0) || 1;
+      return lignes.slice(0, 8).map(([k, o]) => `
+        <div class="ins-barre">
+          <span class="ins-barre-nom">${esc(k)}</span>
+          <span class="ins-barre-piste"><span style="width:${(o.n / max * 100).toFixed(1)}%"></span></span>
+          <span class="ins-barre-n">${o.n}</span>
+          <span class="ins-barre-part">${frPct(o.capi / total, 0)} de la capi.</span>
+        </div>`).join("") + (lignes.length > 8 ? `<p class="ins-reste">+ ${lignes.length - 8} autres</p>` : "");
+    };
+    const aN = st.annees[st.annees.length - 1], a0 = st.annees[0];
+    const premieres = st.donnees.slice().sort((a, b) => (b.s.capitalisation || 0) - (a.s.capitalisation || 0)).slice(0, 8);
+    return `
+      <div class="ins-compo">
+        <div><h3 class="ins-sous-rubrique">Par zone</h3>${repartition("zone")}</div>
+        <div><h3 class="ins-sous-rubrique">Par place de cotation</h3>${repartition("place")}</div>
+      </div>
+      <h3 class="ins-sous-rubrique">Principales capitalisations</h3>
+      <table class="ins-table">
+        <thead><tr><th>Société</th><th>Capitalisation</th><th>TCAM du CA ${a0}–${aN}</th><th>Marge d'EBITDA ${aN}</th></tr></thead>
+        <tbody>${premieres.map((d) => `
+          <tr><td>${esc(d.s.nom)}<small>${esc(d.s.pays || "")}${d.s.place ? " · " + esc(d.s.place) : ""}</small></td>
+            <td>${esc(frMontant(d.s.capitalisation))}</td>
+            <td>${pctInsight(tcamEntre(d.ca[a0], d.ca[aN], aN - a0))}</td>
+            <td>${pctInsight(indicateurAnnee("marge", d.ca, d.ebitda, d.rn, aN))}</td></tr>`).join("")}
+        </tbody>
+      </table>`;
+  }
+
+  $("panel-insight").addEventListener("click", (ev) => {
+    const b = ev.target.closest("button");
+    if (!b) return;
+    if (b.dataset.portee && b.dataset.portee !== INSIGHT.portee) { INSIGHT.portee = b.dataset.portee; renderInsight(); }
+    else if (b.dataset.indicateur && b.dataset.indicateur !== INSIGHT.indicateur) {
+      INSIGHT.indicateur = b.dataset.indicateur;
+      $("panel-insight").querySelectorAll("[data-indicateur]").forEach((x) => x.classList.toggle("is-active", x === b));
+      dessinerInsight();
+    } else if (b.dataset.action === "insight-balance") {
+      VALO.vue = "etats";
+      tab = "valorisation";
+      renderTabs();
+      chargerValorisation(true);
+    }
+  });
+  window.addEventListener("resize", () => { if (tab === "insight") dessinerInsight(); });
+
   function renderAll() {
     majBoutonClasseur();
     renderParams();
@@ -8191,6 +8812,7 @@
 
     chargerCmpc();
     chargerSocietes();
+    renderInsight();
     chargerComparables();
     chargerValorisation();
 

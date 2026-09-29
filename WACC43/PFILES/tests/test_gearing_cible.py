@@ -7,7 +7,7 @@ deux — médiane observée ou cible posée à la main — alimente le CMPC.
 
 import pytest
 
-from conftest import (choisir, ligne_resultat, mode_comparables, nombre_fr,
+from conftest import (choisir, ligne_resultat, mode_comparables, nombre_fr, ouvrir,
                       secteur)
 
 CHAMP = "#paramsResult #champGearingCible"
@@ -151,7 +151,7 @@ def test_le_beta_est_reendette_a_la_cible(page, donnees):
     page.click(VERROU)
     saisir(page, "70")
 
-    page.click('.tabs button[data-tab="wacc"]')
+    ouvrir(page, "wacc")
     page.click('#stack .comp[data-comp="ke"] .comp-head')
     detail = page.inner_text('#frame .detail[data-detail="ke"]')
 

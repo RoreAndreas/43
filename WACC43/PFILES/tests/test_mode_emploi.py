@@ -8,7 +8,7 @@ v4-trait) — et sa note de clôture réutilise ce personnage à l'identique : c
 délibéré, la demande était des illustrations « dans le sens du 404 ».
 """
 
-from conftest import mode_comparables
+from conftest import mode_comparables, ouvrir
 
 # Le guide n'est pas un onglet : c'est un bouton « ? » dans l'en-tête, à côté
 # du titre. Les onglets portent des vues du calcul, lui explique l'outil.
@@ -39,7 +39,7 @@ def test_le_bouton_est_visible_sans_rien_choisir(page):
 def test_le_bouton_reste_visible_sous_comparables(page):
     mode_comparables(page)
     assert page.is_visible("#tabAide")
-    assert page.get_attribute("#tabSocietes", "hidden") is None
+    assert page.get_attribute("#tabComparables", "hidden") is None
 
 
 def test_le_bouton_marque_qu_il_est_ouvert(page):
@@ -47,7 +47,7 @@ def test_le_bouton_marque_qu_il_est_ouvert(page):
     son état actif se pose à part, et pourrait être oublié."""
     page.click(ONGLET)
     assert "is-on" in page.get_attribute("#tabAide", "class")
-    page.click('.tabs button[data-tab="params"]')
+    ouvrir(page, "params")
     assert "is-on" not in page.get_attribute("#tabAide", "class")
 
 
@@ -172,6 +172,6 @@ def test_va_et_vient_entre_le_guide_et_les_autres_onglets(page):
     de solliciter le va-et-vient qui la révélerait."""
     mode_comparables(page)
     page.click(ONGLET)
-    page.click('.tabs button[data-tab="wacc"]')
+    ouvrir(page, "wacc")
     page.click(ONGLET)
     assert page.is_visible(PANNEAU)

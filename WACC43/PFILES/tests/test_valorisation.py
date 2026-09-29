@@ -11,9 +11,9 @@ la page affiche, plutôt que recopiés.
 import openpyxl
 import pytest
 
-from conftest import mode_comparables
+from conftest import mode_comparables, ouvrir
 
-ONGLET = '.tabs button[data-tab="valorisation"]'
+ONGLET = '.tabs button[data-groupe="valorisation"]'
 
 ANNEES = [2026, 2027, 2028, 2029]
 EBIT = [54463, 63821, 76624, 106636]
@@ -262,7 +262,7 @@ def test_la_vue_comparables_montre_les_multiples(page):
     page.click(ONGLET)
     page.click('.valo-vues button[data-vue="comparables"]')
     assert page.is_visible("#comparablesAbsents")
-    page.click('.tabs button[data-tab="params"]')
+    ouvrir(page, "params")
     mode_comparables(page)
     page.click(ONGLET)
     assert page.is_hidden("#comparablesAbsents")

@@ -13,17 +13,17 @@ voyait qu'il répondait à une autre question.
 
 import pytest
 
-from conftest import choisir, continent_vide, mode_comparables, zone_vide
+from conftest import choisir, continent_vide, mode_comparables, zone_vide, ouvrir
 
 VIDE = "#stackSoc .vide404"
 
 
 def ouvrir_societes(page):
-    page.click('.tabs button[data-tab="societes"]')
+    ouvrir(page, "societes")
 
 
 def revenir_aux_parametres(page):
-    page.click('.tabs button[data-tab="params"]')
+    ouvrir(page, "params")
 
 
 def cartes(page):

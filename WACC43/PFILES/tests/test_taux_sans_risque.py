@@ -19,7 +19,7 @@ sans objet.
 
 import pytest
 
-from conftest import choisir, ligne_resultat, mode_comparables, nombre_fr
+from conftest import choisir, ligne_resultat, mode_comparables, nombre_fr, ouvrir
 
 # Un pays par branche, choisi pour ce qu'il exerce.
 BENIN = "Benin"                  # prime forte, conversion nécessaire
@@ -38,7 +38,7 @@ def cmpc(page):
 
 
 def cartes(page):
-    page.click('.tabs button[data-tab="wacc"]')
+    ouvrir(page, "wacc")
     return page.eval_on_selector_all(
         "#stack .comp", "els => els.map(e => e.dataset.comp)")
 
@@ -168,7 +168,7 @@ def test_pas_de_conversion_la_ou_le_dollar_a_cours_legal(page):
     assert page.evaluate("cmpcComparables().conversion") is False
     assert "loc" not in cartes(page)
 
-    page.click('.tabs button[data-tab="params"]')
+    ouvrir(page, "params")
     assert cmpc(page) == pytest.approx(
         round(page.evaluate("cmpcComparables().wacc") * 100, 2))
 
