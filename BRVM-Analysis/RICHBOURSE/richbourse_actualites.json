@@ -1,7 +1,22 @@
 {
-    "last_update": "2026-09-26 14:18:27",
+    "last_update": "2026-09-29 02:32:47",
     "count": 20,
     "weeks": [
+        {
+            "semaine": "Semaine du 28 Septembre au 04 Octobre 2026",
+            "publications": [
+                {
+                    "date": "28/09/2026",
+                    "titre": "SIB CI : Rapport d'activités - 1er semestre 2026",
+                    "url": "https://www.richbourse.com/common/actualite/afficher-fichier/28-09-2026-sib-ci-rapport-d-activites-1er-semestre-2026"
+                },
+                {
+                    "date": "28/09/2026",
+                    "titre": "SIB CI : Attestation des Commissaires Aux Comptes - 1er semestre 2026",
+                    "url": "https://www.richbourse.com/common/actualite/afficher-fichier/28-09-2026-sib-ci-attestation-des-commissaires-aux-comptes-1er-semestre-2026"
+                }
+            ]
+        },
         {
             "semaine": "Semaine du 21 Septembre au 27 Septembre 2026",
             "publications": [
@@ -99,16 +114,6 @@
                     "date": "17/09/2026",
                     "titre": "AFRICA GLOBAL LOGISTICS CI : Etats Financiers certifiés - Exercice 2025",
                     "url": "https://www.richbourse.com/common/actualite/afficher-fichier/17-09-2026-africa-global-logistics-ci-etats-financiers-certifies-exercice-2025"
-                },
-                {
-                    "date": "16/09/2026",
-                    "titre": "SUCRIVOIRE S.A : Suspension de la cotation",
-                    "url": "https://www.richbourse.com/common/actualite/afficher-fichier/16-09-2026-sucrivoire-s-a-suspension-de-la-cotation-de-sucrivoire-s-a"
-                },
-                {
-                    "date": "16/09/2026",
-                    "titre": "SONOCO METAL PACKAGING SIEM CI : Suspension de la cotation",
-                    "url": "https://www.richbourse.com/common/actualite/afficher-fichier/16-09-2026-brvm-suspension-de-la-cotation-de-sonoco-metal-packaging-siem-ci"
                 }
             ]
         }
