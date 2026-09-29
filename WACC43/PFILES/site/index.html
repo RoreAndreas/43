@@ -1889,7 +1889,7 @@
 
   /* Le bloc graphique/calcul bascule en entier au clic — pas ligne par ligne —
      pour rester lisible avec un échantillon de vingt sociétés ; même mécanique
-     de couleur que les cartes dépliées de Comparables › Sociétés. */
+     de couleur que les cartes dépliées de CMPC › Sociétés. */
   .mult-view {
     background: var(--surface);
     border: 1px solid var(--line);
@@ -2136,8 +2136,8 @@
   .dcf-resultat .dcf-compo-seuil { background: #facc15; }
 
   /* ---------- Sous-onglets ---------- */
-  /* CMPC et Comparables ouvrent chacun sur deux vues : le même sélecteur que
-     celui de la Valorisation, posé au même endroit, au-dessus du panneau. */
+  /* Le CMPC ouvre sur trois vues : le même sélecteur que celui de la
+     Valorisation, posé au même endroit, au-dessus du panneau. */
   .sous-barre {
     max-width: 1060px;
     margin: 0 auto;
@@ -2145,28 +2145,15 @@
   }
   .sous-barre:not([hidden]) ~ main { padding-top: 20px; }
 
-  /* ---------- Comparables › Insight ---------- */
+  /* ---------- Insight ---------- */
   .ins {
     max-width: 1060px;
     margin: 0 auto;
     padding: 30px 32px 120px;
   }
   .ins-corps { display: grid; gap: 20px; min-width: 0; }
-  .ins-tete { display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
   .ins-titre { margin: 0; font: 500 19px/1.2 var(--sans); color: var(--ink); }
   .ins-sous-titre { margin: 5px 0 0; font: 400 12.5px/1.4 var(--sans); color: var(--muted); }
-  .ins-portee, .ins-choix { display: inline-flex; gap: 2px; padding: 3px; border: 1px solid var(--line); border-radius: 8px; background: var(--surface); }
-  .ins-portee button, .ins-choix button {
-    padding: 6px 12px;
-    border: 0;
-    border-radius: 6px;
-    background: transparent;
-    font: 400 12px/1 var(--sans);
-    color: var(--muted);
-    cursor: pointer;
-    transition: color 160ms ease, background-color 160ms ease;
-  }
-  .ins-portee button.is-active, .ins-choix button.is-active { background: var(--accent-soft); color: var(--accent); font-weight: 500; }
   .ins-bloc {
     min-width: 0;
     background: var(--surface);
@@ -2175,64 +2162,44 @@
     padding: 20px 22px 22px;
   }
   .ins-bloc .dcf-rubrique { margin-top: 0; }
-  .ins-bloc-tete { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-bottom: 8px; }
-  .ins-bloc-tete .dcf-rubrique { margin: 0; }
+  .ins-chiffres { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; margin-bottom: 14px; }
+  .ins-chiffre { display: grid; gap: 6px; padding: 14px 16px; border-radius: 8px; border-left: 3px solid var(--accent); background: var(--accent-tint); }
+  .ins-chiffre.is-cible { border-left-color: var(--green); background: var(--green-tint); }
+  .ins-chiffre span { font: 400 11.5px var(--sans); color: var(--muted); }
+  .ins-chiffre strong { font: 500 22px/1 var(--mono); color: var(--accent); }
+  .ins-chiffre.is-cible strong { color: var(--green); }
+  .ins-chiffre small { font: 400 12px var(--sans); color: var(--ink-4); }
+  .ins-chiffre small b { font: 500 12px var(--mono); color: var(--ink-2); }
   .ins-graphe { min-width: 0; }
   .ins-graphe svg { display: block; max-width: 100%; }
   .ins-grille { stroke: var(--line); stroke-width: 1; }
   .ins-zero { stroke: var(--muted-2); stroke-width: 1; }
   .ins-axe { font: 400 10.5px var(--mono); fill: var(--muted); }
-  .ins-bande { fill: var(--accent-soft); opacity: .75; }
-  .ins-moustache { stroke: var(--accent-chip); stroke-width: 1; }
   .ins-med { fill: none; stroke: var(--accent); stroke-width: 2; stroke-linejoin: round; }
   .ins-med-point { fill: var(--surface); stroke: var(--accent); stroke-width: 2; }
   .ins-cible { fill: none; stroke: var(--green); stroke-width: 2; stroke-dasharray: 5 4; }
   .ins-cible-point { fill: var(--green); stroke: var(--surface); stroke-width: 1.5; }
   .ins-etiquette { font: 500 10.5px var(--mono); fill: var(--accent); paint-order: stroke; stroke: var(--surface); stroke-width: 3px; }
   .ins-etiquette.is-cible { fill: var(--green); }
-  .ins-vide { margin: 20px 0; font: 400 12.5px var(--sans); color: var(--muted); }
   .ins-legende { display: flex; gap: 18px; flex-wrap: wrap; margin-top: 6px; font: 400 11.5px var(--sans); color: var(--muted); }
   .ins-legende span { display: inline-flex; align-items: center; gap: 6px; }
-  .ins-legende i { display: inline-block; width: 16px; height: 10px; border-radius: 2px; }
-  .ins-l-bande { background: var(--accent-soft); }
-  .ins-l-med { height: 2px !important; background: var(--accent); }
-  .ins-l-cible { height: 0 !important; border-top: 2px dashed var(--green); border-radius: 0 !important; }
-
-  .ins-invite { display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
-  .ins-invite p { margin: 0; max-width: 620px; font: 400 12.5px/1.55 var(--sans); color: var(--muted); }
-  .ins-reglettes { display: grid; gap: 18px; margin-top: 6px; }
-  .ins-reglette-tete { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; flex-wrap: wrap; }
-  .ins-reglette-tete strong { font: 500 13px var(--sans); color: var(--ink-2); }
-  .ins-verdict { font: 400 12px var(--sans); color: var(--muted); }
-  .ins-verdict b { font: 500 12.5px var(--mono); color: var(--green); margin-right: 4px; }
-  .ins-piste { position: relative; height: 22px; margin: 8px 0 6px; }
-  .ins-piste > span { position: absolute; top: 50%; }
-  .ins-piste-ligne { height: 2px; margin-top: -1px; background: var(--line); }
-  .ins-piste-boite { height: 12px; margin-top: -6px; border-radius: 3px; background: var(--accent-soft); }
-  .ins-piste-med { width: 2px; height: 16px; margin: -8px 0 0 -1px; background: var(--accent); }
-  .ins-piste-cible { width: 12px; height: 12px; margin: -6px 0 0 -6px; border-radius: 50%; background: var(--green); box-shadow: 0 0 0 2px var(--surface); }
-  .ins-reglette-pied { display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; font: 400 11px var(--sans); color: var(--muted-2); }
-
-  .ins-compo { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px 32px; margin-bottom: 18px; }
-  .ins-sous-rubrique { margin: 6px 0 10px; font: 500 12px var(--sans); color: var(--ink-3); }
-  .ins-barre { display: grid; grid-template-columns: minmax(0, 1fr) 90px 24px 92px; align-items: center; gap: 10px; padding: 4px 0; font: 400 12px var(--sans); color: var(--ink-3); }
-  .ins-barre-nom { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  .ins-barre-piste { height: 8px; border-radius: 4px; background: var(--field); overflow: hidden; }
-  .ins-barre-piste > span { display: block; height: 100%; border-radius: 4px; background: var(--accent); opacity: .75; }
-  .ins-barre-n { font: 500 12px var(--mono); text-align: right; color: var(--ink-2); }
-  .ins-barre-part { font: 400 11px var(--sans); color: var(--muted-2); text-align: right; }
-  .ins-reste { margin: 4px 0 0; font: 400 11px var(--sans); color: var(--muted-2); }
+  .ins-legende i { display: inline-block; width: 16px; }
+  .ins-l-med { height: 2px; background: var(--accent); }
+  .ins-l-cible { height: 0; border-top: 2px dashed var(--green); }
+  .ins-table-cadre { overflow-x: auto; }
   .ins-table { width: 100%; border-collapse: collapse; font: 400 12px var(--sans); }
   .ins-table th { padding: 8px 10px; text-align: right; font: 500 10.5px var(--sans); color: var(--muted); border-bottom: 1px solid var(--line); }
-  .ins-table td { padding: 8px 10px; text-align: right; font-family: var(--mono); font-variant-numeric: tabular-nums; color: var(--ink-2); border-bottom: 1px solid var(--field); }
+  .ins-table td { padding: 9px 10px; text-align: right; font-family: var(--mono); font-variant-numeric: tabular-nums; color: var(--ink-2); border-bottom: 1px solid var(--field); }
   .ins-table th:first-child, .ins-table td:first-child { text-align: left; font-family: var(--sans); }
-  .ins-table td small { display: block; margin-top: 2px; font: 400 10.5px var(--sans); color: var(--muted-2); }
+  .ins-table tr.is-ecart td { font-weight: 500; border-bottom: 0; }
+  .ins-table .is-evo { background: var(--accent-tint); }
+  .ins-table td.is-pos { color: var(--green); }
+  .ins-table td.is-neg { color: var(--warn); }
+  .ins-note { margin: 12px 0 0; font: 400 11.5px/1.55 var(--sans); color: var(--muted-2); }
+  .ins-lien { padding: 0; border: 0; background: none; font: inherit; color: var(--accent); text-decoration: underline; cursor: pointer; }
   @media (max-width: 760px) {
-    .ins-compo { grid-template-columns: 1fr; }
-    .ins-cases { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-    .ins-barre { grid-template-columns: minmax(0, 1fr) 60px 22px; }
-    .ins-barre-part { display: none; }
-    .ins-table th:nth-child(3), .ins-table td:nth-child(3) { display: none; }
+    .ins-chiffres { grid-template-columns: 1fr; }
+    .ins-table th, .ins-table td { padding: 8px 5px; }
   }
   [hidden] { display: none !important; }
   .is-busy { opacity: .55; transition: opacity 160ms ease; }
@@ -2290,7 +2257,7 @@
     <nav class="tabs">
       <button type="button" data-groupe="cmpc" class="is-active">CMPC</button>
       <!-- N'apparaît qu'avec le référentiel Comparables -->
-      <button type="button" data-groupe="comparables" id="tabComparables" hidden>Comparables</button>
+      <button type="button" data-groupe="insight" id="tabInsight" hidden>Insight</button>
       <button type="button" data-groupe="valorisation">Valorisation</button>
     </nav>
   </div>
@@ -2301,11 +2268,8 @@
     <span class="sous-vues-curseur" aria-hidden="true"></span>
     <button type="button" role="tab" data-tab="params" class="is-active" aria-selected="true">Paramètres</button>
     <button type="button" role="tab" data-tab="wacc" aria-selected="false">Calcul</button>
-  </div>
-  <div class="sous-vues" role="tablist" aria-label="Comparables" data-groupe="comparables" hidden>
-    <span class="sous-vues-curseur" aria-hidden="true"></span>
-    <button type="button" role="tab" data-tab="societes" id="tabSocietes" aria-selected="false">Sociétés</button>
-    <button type="button" role="tab" data-tab="insight" aria-selected="false">Insight</button>
+    <!-- N'apparaît qu'avec le référentiel Comparables -->
+    <button type="button" role="tab" data-tab="societes" id="tabSocietes" aria-selected="false" hidden>Sociétés</button>
   </div>
 </div>
 
@@ -2411,8 +2375,8 @@
           <ul>
             <li><strong>Damodaran</strong> : des moyennes de secteur publiées une fois par an.</li>
             <li><strong>Comparables</strong> : le bêta calculé sur de vraies sociétés cotées. Ce
-            choix fait apparaître l'onglet Comparables — Sociétés et Insight — et la vue
-            Comparables de la Valorisation.</li>
+            choix fait apparaître le sous-onglet Sociétés du CMPC, l'onglet Insight et la
+            vue Comparables de la Valorisation.</li>
           </ul>
           <p>Le menu <strong>Pays de valorisation</strong>, à côté de la carte, sert à
           fixer la prime de risque du pays, le taux d'impôt, et la devise du résultat.</p>
@@ -2494,15 +2458,14 @@
           <circle cx="30.5" cy="25.6" r="2" class="v4-accent-point"/>
         </svg></span>
         <div>
-          <h2>L'onglet Comparables</h2>
-          <span class="aide-ou">Comparables › Sociétés et Insight — référentiel Comparables</span>
+          <h2>Sociétés et Insight</h2>
+          <span class="aide-ou">CMPC › Sociétés, et onglet Insight — référentiel Comparables</span>
           <p>Sociétés : la liste des sociétés qui servent au calcul, de la plus grosse à la
           plus petite. Une carte par société : pays, bourse, bêta, capitalisation, dette, et
           les comptes des quatre derniers exercices.</p>
-          <p>Insight : le secteur en ensemble — croissance du CA, marge d'EBITDA et marge
-          nette par exercice, en médiane et quartiles, et la composition de l'échantillon par
-          zone et par place. Dès que la balance générale est importée, la société évaluée
-          se place dans ces quartiles.</p>
+          <p>Insight : la marge d'EBITDA moyenne de ces sociétés, exercice par exercice, face
+          à celle de la société évaluée, et l'évolution moyenne de chacune en points par an —
+          une base pour caler la marge du prévisionnel.</p>
         </div>
       </li>
 
@@ -2963,12 +2926,11 @@
   }
 
   /* ================= Onglets =================
-     Trois onglets, dont deux à sous-onglets : CMPC (Paramètres, Calcul),
-     Comparables (Sociétés, Insight) et Valorisation. `tab` retient la vue
-     affichée ; l'onglet du haut s'en déduit, et se rouvre sur la dernière
-     vue visitée. */
-  const GROUPE_ONGLET = { params: "cmpc", wacc: "cmpc", societes: "comparables", insight: "comparables", valorisation: "valorisation" };
-  const DERNIER_ONGLET = { cmpc: "params", comparables: "societes", valorisation: "valorisation" };
+     Trois onglets : CMPC (Paramètres, Calcul, Sociétés), Insight et
+     Valorisation. `tab` retient la vue affichée ; l'onglet du haut s'en
+     déduit, et se rouvre sur la dernière vue visitée. */
+  const GROUPE_ONGLET = { params: "cmpc", wacc: "cmpc", societes: "cmpc", insight: "insight", valorisation: "valorisation" };
+  const DERNIER_ONGLET = { cmpc: "params", insight: "insight", valorisation: "valorisation" };
 
   // Le fond noir des sous-onglets glisse, comme celui des vues de la Valorisation.
   function placerCurseursOnglets() {
@@ -2982,10 +2944,12 @@
   }
 
   function renderTabs() {
-    // Comparables n'existe que sous référentiel Comparables. Valorisation reste
-    // toujours là : son DCF ne dépend pas du référentiel.
-    if (!estComparables() && GROUPE_ONGLET[tab] === "comparables") tab = "params";
-    $("tabComparables").hidden = !estComparables();
+    // Sociétés et Insight n'existent que sous référentiel Comparables.
+    // Valorisation reste toujours là : son DCF ne dépend pas du référentiel.
+    if (!estComparables() && (tab === "societes" || tab === "insight")) tab = "params";
+    if (!estComparables() && DERNIER_ONGLET.cmpc === "societes") DERNIER_ONGLET.cmpc = "params";
+    $("tabInsight").hidden = !estComparables();
+    $("tabSocietes").hidden = !estComparables();
     const groupe = GROUPE_ONGLET[tab] || null;
     if (groupe) DERNIER_ONGLET[groupe] = tab;
 
@@ -3000,7 +2964,7 @@
         b.setAttribute("aria-selected", actif ? "true" : "false");
       });
     });
-    $("sousBarre").hidden = groupe !== "cmpc" && groupe !== "comparables";
+    $("sousBarre").hidden = groupe !== "cmpc";
     $("panel-params").hidden = tab !== "params";
     $("panel-wacc").hidden = tab !== "wacc";
     $("panel-societes").hidden = tab !== "societes";
@@ -3164,7 +3128,7 @@
 
   // Ce que le périmètre courant contient réellement : zone retenue si elle
   // l'est, sinon toutes les zones du continent, filtrées sur l'industrie. Une
-  // seule lecture partagée par le résumé, la carte et Comparables › Sociétés — trois
+  // seule lecture partagée par le résumé, la carte et CMPC › Sociétés — trois
   // affichages qui divergeaient tant qu'ils comptaient chacun de leur côté.
   function perimetreCourant() {
     const ind = industrieCourante();
@@ -4267,7 +4231,7 @@
           cadenas de l'encadré « Secteur comparable », dans CMPC › Paramètres, pour poser
           un gearing cible.</p>
           <p>Les bêtas cotés, les capitalisations et les états financiers des sociétés du
-          secteur restent consultables dans Comparables › Sociétés.</p>
+          secteur restent consultables dans CMPC › Sociétés.</p>
         </div>`;
       $(pan.frame).innerHTML = "";
       $(pan.col).classList.remove("is-on");
@@ -4493,7 +4457,7 @@
           <h3>Comparables indisponibles</h3>
           <p>Aucune société n'est disponible pour « ${esc(params.secteur || "ce secteur")} » : sans
           échantillon, il n'y a pas de multiple à calculer. Ce sont les mêmes sociétés qui alimentent
-          Comparables › Sociétés et la médiane du CMPC — élargissez le cadrage dans CMPC › Paramètres si
+          CMPC › Sociétés et la médiane du CMPC — élargissez le cadrage dans CMPC › Paramètres si
           le secteur en compte ailleurs.</p>
         </div>`;
       return;
@@ -7843,7 +7807,7 @@
     if (estComparables()) {
       const cc = cmpcComparables();
       if (!cc) return null;
-      // L'échantillon est repris tel que Comparables › Sociétés le marque : même
+      // L'échantillon est repris tel que CMPC › Sociétés le marque : même
       // périmètre, même tri, mêmes vingt valeurs. Le classeur et l'écran ne
       // peuvent donc pas décrire deux populations différentes.
       const ret = societesRetenues();
@@ -7990,7 +7954,7 @@
   }
 
   /* ---------- Feuille « Sociétés » ---------- */
-  // Une ligne par comparable de l'échantillon, dans l'ordre où Comparables › Sociétés
+  // Une ligne par comparable de l'échantillon, dans l'ordre où CMPC › Sociétés
   // les classe — par capitalisation décroissante. Trois blocs se suivent : les
   // sociétés, la médiane de chaque colonne, puis ce que le CMPC reprend de
   // cette médiane, cellule de la feuille WACC à l'appui. Les multiples d'EBITDA
@@ -8468,48 +8432,17 @@
     }
   }
 
-  /* ================= Comparables › Insight =================
-     Le secteur vu en ensemble : croissance du CA et marges, médiane et
-     quartiles par exercice, composition de l'échantillon, et la société
-     évaluée — celle de la balance générale — placée dans ces quartiles.
-     Des quartiles plutôt que des moyennes : une marge de −400 % chez une
-     jeune pousse suffirait à fausser une moyenne sur vingt sociétés. */
-  const INSIGHT = { portee: "echantillon", indicateur: "marge" };
+  /* ================= Insight =================
+     Une question : à quel niveau se tient la marge d'EBITDA du secteur, et
+     de combien évolue-t-elle chaque année ? — face à la société évaluée.
+     C'est la base pour caler la marge du prévisionnel. La moyenne est prise
+     sur les sociétés de l'échantillon présentes à tous les exercices : sinon
+     une société qui entre ou sort ferait bouger la moyenne sans que le
+     secteur ait changé. */
 
-  const INDICATEURS_INSIGHT = [
-    { cle: "croissance", libelle: "Croissance du CA" },
-    { cle: "marge", libelle: "Marge d'EBITDA" },
-    { cle: "margeNette", libelle: "Marge nette" },
-  ];
-
-  // Quartiles par interpolation linéaire, comme la médiane des multiples.
-  function quartiles(valeurs) {
-    const v = valeurs.filter((x) => Number.isFinite(x)).sort((a, b) => a - b);
-    if (!v.length) return null;
-    const q = (p) => {
-      const x = p * (v.length - 1), i = Math.floor(x);
-      return v[i] + (v[Math.min(i + 1, v.length - 1)] - v[i]) * (x - i);
-    };
-    return { min: v[0], q1: q(0.25), med: q(0.5), q3: q(0.75), max: v[v.length - 1], p10: q(0.1), p90: q(0.9), n: v.length };
-  }
-
-  // Valeur d'un indicateur pour une année, depuis des séries { an: montant }.
-  function indicateurAnnee(cle, ca, ebitda, rn, an) {
-    const c = ca[an];
-    if (cle === "croissance") {
-      const p = ca[an - 1];
-      return c > 0 && p > 0 ? c / p - 1 : null;
-    }
-    if (!(c > 0)) return null;
-    const num = cle === "marge" ? ebitda[an] : rn[an];
-    return num == null ? null : num / c;
-  }
-
-  function societesInsight() {
-    const secteur = Object.keys(COMPARABLES).filter((id) => COMPARABLES[id].industrie === params.secteur);
-    const retenues = societesRetenues().ids;
-    const ids = INSIGHT.portee === "secteur" ? secteur : retenues;
-    return { liste: ids.map((id) => COMPARABLES[id]).filter(Boolean), nSecteur: secteur.length, nRetenues: retenues.length };
+  function margeAnnee(ca, ebitda, an) {
+    const c = ca[an], e = ebitda[an];
+    return c > 0 && e != null ? e / c : null;
   }
 
   // Exercices lus : ceux qu'au moins la moitié des sociétés documente.
@@ -8518,139 +8451,132 @@
     return annees.filter((a) => liste.filter((s) => (s.ca || {})[String(a)] != null).length * 2 >= liste.length);
   }
 
-  // La société évaluée, en séries annuelles, depuis la balance importée.
-  function cibleInsight() {
-    if (!VALO.bg) return null;
-    const e = VALO.bg.etats.cdr, ca = {}, ebitda = {}, rn = {};
-    VALO.bg.annees.forEach((a, t) => { ca[a] = e.ca[t]; ebitda[a] = e.ebitda[t]; rn[a] = e.rn[t]; });
-    return { annees: VALO.bg.annees.slice(), ca: ca, ebitda: ebitda, rn: rn };
+  const seriesAnnuelles = (o) => { const r = {}; for (const k in o || {}) r[Number(k)] = o[k]; return r; };
+
+  // Évolution moyenne, en points de marge par an, du premier au dernier exercice.
+  function evolutionAnnuelle(points) {
+    const p = points.filter((x) => x.v != null);
+    if (p.length < 2) return null;
+    const a = p[0], b = p[p.length - 1];
+    return (b.v - a.v) / (b.an - a.an);
   }
 
-  function statsInsight() {
-    const { liste, nSecteur, nRetenues } = societesInsight();
-    if (!liste.length) return { liste: liste, nSecteur: nSecteur, nRetenues: nRetenues, annees: [] };
+  function margeSecteurInsight() {
+    const liste = societesRetenues().ids.map((id) => COMPARABLES[id]).filter(Boolean);
+    if (!liste.length) return null;
     const annees = exercicesInsight(liste);
-    const series = (s) => {
-      const conv = (o) => { const r = {}; for (const k in o || {}) r[Number(k)] = o[k]; return r; };
-      return { ca: conv(s.ca), ebitda: conv(s.ebitda), rn: conv(s.rn) };
-    };
-    const donnees = liste.map((s) => ({ s: s, ...series(s) }));
-    const parAn = {};
-    for (const ind of INDICATEURS_INSIGHT) {
-      parAn[ind.cle] = annees.map((a) => ({
-        an: a, q: quartiles(donnees.map((d) => indicateurAnnee(ind.cle, d.ca, d.ebitda, d.rn, a))),
-      }));
-    }
-    const a0 = annees[0], aN = annees[annees.length - 1];
-    const tcam = (d, x, y) => tcamEntre(d.ca[x], d.ca[y], y - x);
-    return {
-      liste: liste, nSecteur: nSecteur, nRetenues: nRetenues, annees: annees, donnees: donnees, parAn: parAn,
-      tcam: annees.length > 1 ? quartiles(donnees.map((d) => tcam(d, a0, aN))) : null,
-      capi: quartiles(liste.map((s) => s.capitalisation)),
-      tcamEntre: (x, y) => quartiles(donnees.map((d) => tcam(d, x, y))),
-      indicateurEn: (cle, a) => quartiles(donnees.map((d) => indicateurAnnee(cle, d.ca, d.ebitda, d.rn, a))),
-    };
+    const marges = liste.map((s) => {
+      const ca = seriesAnnuelles(s.ca), eb = seriesAnnuelles(s.ebitda);
+      return annees.map((a) => margeAnnee(ca, eb, a));
+    });
+    // Toutes les sociétés présentes à chaque exercice, si elles restent
+    // assez nombreuses ; sinon, celles de chaque exercice.
+    const completes = marges.filter((m) => m.every((v) => v != null));
+    const constant = completes.length >= Math.max(3, liste.length / 2);
+    const base = constant ? completes : marges;
+    const points = annees.map((a, t) => {
+      const v = base.map((m) => m[t]).filter((x) => x != null);
+      return { an: a, v: v.length ? v.reduce((x, y) => x + y, 0) / v.length : null, n: v.length };
+    });
+    return { points: points, n: constant ? completes.length : liste.length, constant: constant, total: liste.length };
+  }
+
+  function margeCibleInsight() {
+    if (!VALO.bg) return null;
+    const e = VALO.bg.etats.cdr;
+    return VALO.bg.annees.map((a, t) => ({ an: a, v: e.ca[t] > 0 ? e.ebitda[t] / e.ca[t] : null }));
   }
 
   const pctInsight = (v, dec) => (v == null || !Number.isFinite(v) ? "—" : frPct(v, dec === undefined ? 1 : dec));
-
-  // Où tombe une valeur dans la distribution : le mot, et le rang de quartile.
-  function quartileDe(v, q) {
-    if (v == null || !q) return null;
-    if (v < q.q1) return { rang: 1, texte: "sous le 1er quartile" };
-    if (v < q.med) return { rang: 2, texte: "entre le 1er quartile et la médiane" };
-    if (v <= q.q3) return { rang: 3, texte: "entre la médiane et le 3e quartile" };
-    return { rang: 4, texte: "au-dessus du 3e quartile" };
-  }
+  const ptsInsight = (v) => (v == null || !Number.isFinite(v) ? "—"
+    : (v > 0 ? "+" : v < 0 ? "−" : "") + frNum(Math.abs(v * 100), 1) + " pt");
 
   function renderInsight() {
     const racine = $("insightCorps");
     if (!racine) return;
     if (!estComparables()) { racine.innerHTML = ""; return; }
-    const st = statsInsight();
-    const secteur = params.secteur || "";
-    const portee = `
-      <div class="ins-portee" role="group" aria-label="Sociétés lues">
-        <button type="button" data-portee="echantillon" class="${INSIGHT.portee === "echantillon" ? "is-active" : ""}">Échantillon retenu · ${st.nRetenues}</button>
-        <button type="button" data-portee="secteur" class="${INSIGHT.portee === "secteur" ? "is-active" : ""}">Tout le secteur · ${st.nSecteur}</button>
-      </div>`;
+    const sect = margeSecteurInsight();
     const tete = `
       <div class="ins-tete">
-        <div>
-          <h2 class="ins-titre">${esc(secteur)}</h2>
-          <p class="ins-sous-titre">${st.annees.length ? "Exercices " + st.annees[0] + "–" + st.annees[st.annees.length - 1] + " · " : ""}${
-            INSIGHT.portee === "echantillon" ? "les sociétés qui alimentent le CMPC" : "toutes les sociétés cotées du secteur, toutes zones"}</p>
-        </div>
-        ${portee}
+        <h2 class="ins-titre">${esc(params.secteur || "")}</h2>
+        <p class="ins-sous-titre">Marge d'EBITDA : le secteur face à la société évaluée</p>
       </div>`;
-    if (!st.liste.length || !st.annees.length) {
+    if (!sect || !sect.points.some((p) => p.v != null)) {
       racine.innerHTML = tete + `
         <div class="valo-depot"><h3>Pas de sociétés à lire</h3>
-        <p>Aucune société du secteur ne publie d'états financiers sur ce périmètre. Élargissez le cadrage dans
-        CMPC › Paramètres, ou passez sur tout le secteur.</p></div>`;
+        <p>Aucune société de l'échantillon ne publie de comptes sur ce périmètre. Élargissez le cadrage
+        dans CMPC › Paramètres.</p></div>`;
       return;
     }
-    const aN = st.annees[st.annees.length - 1];
-    const margeRef = st.parAn.marge[st.parAn.marge.length - 1].q;
-    const cases = [
-      { libelle: "Sociétés", valeur: String(st.liste.length),
-        aide: INSIGHT.portee === "echantillon" ? "sur " + st.nSecteur + " cotées du secteur" : "toutes zones confondues" },
-      { libelle: "Capitalisation médiane", valeur: st.capi ? frMontant(st.capi.med) : "—", aide: "M FCFA" },
-      { libelle: "TCAM médian du CA", valeur: pctInsight(st.tcam && st.tcam.med), aide: st.annees[0] + "–" + aN },
-      { libelle: "Marge d'EBITDA médiane", valeur: pctInsight(margeRef && margeRef.med), aide: "Exercice " + aN },
-    ];
+    const cible = margeCibleInsight();
+    const evoS = evolutionAnnuelle(sect.points), evoC = cible ? evolutionAnnuelle(cible) : null;
+    const dernier = sect.points.filter((p) => p.v != null).slice(-1)[0];
+    const moyenneS = sect.points.filter((p) => p.v != null);
+    const niveauS = moyenneS.reduce((t, p) => t + p.v, 0) / moyenneS.length;
+    const periodeS = moyenneS[0].an + "–" + dernier.an;
+    const pointsC = cible ? cible.filter((p) => p.v != null) : [];
+    const annees = [...new Set(sect.points.map((p) => p.an).concat(pointsC.map((p) => p.an)))].sort((a, b) => a - b);
+    const valeur = (pts, a) => { const p = pts.find((x) => x.an === a); return p ? p.v : null; };
+    const ecart = (a) => {
+      const c = valeur(pointsC, a), s = valeur(sect.points, a);
+      return c != null && s != null ? c - s : null;
+    };
+    const signe = (v) => (v == null ? "" : v < 0 ? " is-neg" : " is-pos");
+
     racine.innerHTML = tete + `
-      <div class="dcf-cases ins-cases">
-        ${cases.map((c) => `
-          <div class="dcf-case">
-            <span class="dcf-case-label">${esc(c.libelle)}</span>
-            <span class="dcf-case-valeur">${esc(c.valeur)}</span>
-            <span class="dcf-case-aide">${esc(c.aide)}</span>
-          </div>`).join("")}
-      </div>
       <section class="ins-bloc">
-        <div class="ins-bloc-tete">
-          <h2 class="dcf-rubrique">Croissance et marges</h2>
-          <div class="ins-choix" role="group" aria-label="Indicateur">
-            ${INDICATEURS_INSIGHT.map((i) => `<button type="button" data-indicateur="${i.cle}" class="${INSIGHT.indicateur === i.cle ? "is-active" : ""}">${esc(i.libelle)}</button>`).join("")}
+        <div class="ins-chiffres">
+          <div class="ins-chiffre is-secteur">
+            <span>Secteur, en moyenne sur ${periodeS}</span>
+            <strong>${pctInsight(niveauS)}</strong>
+            <small>évolue de <b>${ptsInsight(evoS)}</b> par an</small>
+          </div>
+          <div class="ins-chiffre is-cible">
+            <span>Société évaluée${pointsC.length ? ", " + pointsC[pointsC.length - 1].an : ""}</span>
+            <strong>${pointsC.length ? pctInsight(pointsC[pointsC.length - 1].v) : "—"}</strong>
+            <small>${pointsC.length > 1 ? `évolue de <b>${ptsInsight(evoC)}</b> par an` : pointsC.length ? "un seul exercice" : "balance non importée"}</small>
           </div>
         </div>
         <div class="ins-graphe" id="insightGraphe"></div>
         <div class="ins-legende">
-          <span><i class="ins-l-bande"></i>1er–3e quartile</span>
-          <span><i class="ins-l-med"></i>Médiane</span>
-          ${VALO.bg ? `<span><i class="ins-l-cible"></i>Société évaluée</span>` : ""}
+          <span><i class="ins-l-med"></i>Secteur, moyenne</span>
+          ${pointsC.length ? `<span><i class="ins-l-cible"></i>Société évaluée</span>` : ""}
         </div>
       </section>
       <section class="ins-bloc">
-        <h2 class="dcf-rubrique">Positionnement de la société évaluée</h2>
-        ${positionnementHtml(st)}
-      </section>
-      <section class="ins-bloc">
-        <h2 class="dcf-rubrique">Composition</h2>
-        ${compositionHtml(st)}
+        <h2 class="dcf-rubrique">Écart par exercice</h2>
+        <div class="ins-table-cadre"><table class="ins-table">
+          <thead><tr><th>Marge d'EBITDA</th>${annees.map((a) => `<th>${a}</th>`).join("")}<th class="is-evo">Évolution par an</th></tr></thead>
+          <tbody>
+            <tr><td>Secteur, moyenne</td>${annees.map((a) => `<td>${pctInsight(valeur(sect.points, a))}</td>`).join("")}<td class="is-evo">${ptsInsight(evoS)}</td></tr>
+            <tr><td>Société évaluée</td>${annees.map((a) => `<td>${pointsC.length ? pctInsight(valeur(pointsC, a)) : "—"}</td>`).join("")}<td class="is-evo">${ptsInsight(evoC)}</td></tr>
+            <tr class="is-ecart"><td>Écart</td>${annees.map((a) => `<td class="${signe(ecart(a))}">${ptsInsight(ecart(a))}</td>`).join("")}
+              <td class="is-evo${signe(evoC != null && evoS != null ? evoC - evoS : null)}">${ptsInsight(evoC != null && evoS != null ? evoC - evoS : null)}</td></tr>
+          </tbody>
+        </table></div>
+        <p class="ins-note">${pointsC.length ? "" : `Importez la balance générale dans Valorisation › États financiers pour comparer.
+          <button type="button" class="ins-lien" data-action="insight-balance">Y aller</button><br>`}
+          Moyenne simple des marges de ${sect.n} société${sect.n > 1 ? "s" : ""} de l'échantillon${sect.constant
+            ? ", présentes sur tous les exercices" : ", exercice par exercice"}${sect.n < sect.total ? " (sur " + sect.total + ")" : ""}.
+          Évolution : écart entre le premier et le dernier exercice, divisé par le nombre d'années.</p>
       </section>`;
     requestAnimationFrame(dessinerInsight);
   }
 
-  // Médiane et bande interquartile par exercice ; la société évaluée par-dessus.
   function dessinerInsight() {
     const cadre = $("insightGraphe");
     if (!cadre || !cadre.offsetWidth) return;
-    const st = statsInsight();
-    const cle = INSIGHT.indicateur;
-    const points = st.parAn[cle].filter((p) => p.q);
-    const cible = cibleInsight();
-    const pointsCible = cible ? cible.annees
-      .map((a) => ({ an: a, v: indicateurAnnee(cle, cible.ca, cible.ebitda, cible.rn, a) }))
-      .filter((p) => p.v != null) : [];
-    if (!points.length) { cadre.innerHTML = `<p class="ins-vide">Pas assez de données pour cet indicateur.</p>`; return; }
-    const annees = [...new Set(points.map((p) => p.an).concat(pointsCible.map((p) => p.an)))].sort((a, b) => a - b);
-    const W = cadre.offsetWidth, H = 250, g = 46, d = 18, h = 18, b = 30, retrait = 34;
-    const vals = points.flatMap((p) => [p.q.q1, p.q.q3, p.q.med]).concat(pointsCible.map((p) => p.v));
+    const sect = margeSecteurInsight();
+    if (!sect) return;
+    const pointsS = sect.points.filter((p) => p.v != null);
+    const cible = margeCibleInsight();
+    const pointsC = cible ? cible.filter((p) => p.v != null) : [];
+    const annees = [...new Set(pointsS.map((p) => p.an).concat(pointsC.map((p) => p.an)))].sort((a, b) => a - b);
+    const W = cadre.offsetWidth, H = 240, g = 46, d = 18, h = 22, b = 30, retrait = 34;
+    const vals = pointsS.concat(pointsC).map((p) => p.v);
     let lo = Math.min(0, ...vals), hi = Math.max(...vals);
     if (hi - lo < 0.02) { hi += 0.01; lo -= 0.01; }
-    const marge = (hi - lo) * 0.12;
+    const marge = (hi - lo) * 0.14;
     lo -= lo < 0 ? marge : 0; hi += marge;
     // Un retrait de part et d'autre : les étiquettes du premier et du dernier
     // exercice ne mordent ni sur l'axe ni sur le bord.
@@ -8660,139 +8586,31 @@
     const pas = [0.01, 0.02, 0.05, 0.1, 0.2, 0.25, 0.5, 1].find((p) => (hi - lo) / p <= 5) || 1;
     const graduations = [];
     for (let v = Math.ceil(lo / pas) * pas; v <= hi + 1e-9; v += pas) graduations.push(v);
-    const haut = points.map((p) => `${x(p.an)},${y(p.q.q3)}`).join(" ");
-    const bas = points.slice().reverse().map((p) => `${x(p.an)},${y(p.q.q1)}`).join(" ");
     const ligne = (pts) => pts.map((p, i) => (i ? "L" : "M") + x(p.an) + "," + y(p.v)).join(" ");
-    const med = points.map((p) => ({ an: p.an, v: p.q.med }));
+    // Étiquettes : au-dessus de la courbe la plus haute, en dessous de l'autre.
+    const auDessus = (p, autres) => { const o = autres.find((q) => q.an === p.an); return !o || p.v >= o.v; };
+    const serie = (pts, autres, classe, titre) => `
+      ${pts.length > 1 ? `<path d="${ligne(pts)}" class="${classe}"/>` : ""}
+      ${pts.map((p) => {
+        const haut = auDessus(p, autres);
+        return `<g><title>${titre} · ${p.an} · ${pctInsight(p.v)}</title>
+          <circle cx="${x(p.an)}" cy="${y(p.v)}" r="4.5" class="${classe}-point"/>
+          <text x="${x(p.an)}" y="${y(p.v) + (haut ? -11 : 19)}" text-anchor="middle" class="ins-etiquette${classe === "ins-cible" ? " is-cible" : ""}">${pctInsight(p.v)}</text></g>`;
+      }).join("")}`;
     cadre.innerHTML = `
-      <svg width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" role="img"
-           aria-label="${esc(INDICATEURS_INSIGHT.find((i) => i.cle === cle).libelle)} : médiane et quartiles du secteur par exercice">
+      <svg width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" role="img" aria-label="Marge d'EBITDA par exercice : moyenne du secteur et société évaluée">
         ${graduations.map((v) => `
           <line x1="${g}" x2="${W - d}" y1="${y(v)}" y2="${y(v)}" class="${Math.abs(v) < 1e-9 ? "ins-zero" : "ins-grille"}"/>
           <text x="${g - 8}" y="${y(v) + 3.5}" class="ins-axe" text-anchor="end">${pctInsight(v, 0)}</text>`).join("")}
         ${annees.map((a) => `<text x="${x(a)}" y="${H - 8}" class="ins-axe" text-anchor="middle">${a}</text>`).join("")}
-        ${points.length > 1 ? `<polygon points="${haut} ${bas}" class="ins-bande"/>` : ""}
-        ${points.map((p) => `<line x1="${x(p.an)}" x2="${x(p.an)}" y1="${y(p.q.q1)}" y2="${y(p.q.q3)}" class="ins-moustache"/>`).join("")}
-        <path d="${ligne(med)}" class="ins-med"/>
-        ${points.map((p) => `
-          <g class="ins-point"><title>${p.an} · médiane ${pctInsight(p.q.med)} · quartiles ${pctInsight(p.q.q1)} à ${pctInsight(p.q.q3)} · ${p.q.n} sociétés</title>
-            <circle cx="${x(p.an)}" cy="${y(p.q.med)}" r="4" class="ins-med-point"/>
-            <text x="${x(p.an)}" y="${y(p.q.med) - 10}" text-anchor="middle" class="ins-etiquette">${pctInsight(p.q.med)}</text>
-          </g>`).join("")}
-        ${pointsCible.length ? `
-          ${pointsCible.length > 1 ? `<path d="${ligne(pointsCible)}" class="ins-cible"/>` : ""}
-          ${pointsCible.map((p) => `
-            <g class="ins-point"><title>Société évaluée · ${p.an} · ${pctInsight(p.v)}</title>
-              <circle cx="${x(p.an)}" cy="${y(p.v)}" r="4.5" class="ins-cible-point"/>
-              <text x="${x(p.an)}" y="${y(p.v) + 17}" text-anchor="middle" class="ins-etiquette is-cible">${pctInsight(p.v)}</text>
-            </g>`).join("")}` : ""}
+        ${serie(pointsS, pointsC, "ins-med", "Secteur, moyenne")}
+        ${serie(pointsC, pointsS, "ins-cible", "Société évaluée")}
       </svg>`;
-  }
-
-  // Trois réglettes : TCAM du CA, marge d'EBITDA, marge nette. Chacune sur
-  // la période de la société quand le secteur la documente.
-  function positionnementHtml(st) {
-    const cible = cibleInsight();
-    if (!cible) {
-      return `
-        <div class="ins-invite">
-          <p>Importez la balance générale dans Valorisation › États financiers : sa croissance et ses marges
-          viendront se placer ici, face aux quartiles du secteur.</p>
-          <button type="button" class="valo-bouton" data-action="insight-balance">Aller aux États financiers</button>
-        </div>`;
-    }
-    const ans = cible.annees, a0 = ans[0], aN = ans[ans.length - 1];
-    const secteurDocumente = (a) => st.annees.indexOf(a) >= 0;
-    const anRef = secteurDocumente(aN) ? aN : st.annees[st.annees.length - 1];
-    // TCAM : la fenêtre commune à la société et au secteur, sinon celle du secteur.
-    const communs = ans.filter(secteurDocumente);
-    const fen = communs.length > 1 ? [communs[0], communs[communs.length - 1]] : [st.annees[0], st.annees[st.annees.length - 1]];
-    const lignes = [
-      { libelle: "TCAM du CA", v: tcamEntre(cible.ca[a0], cible.ca[aN], aN - a0),
-        periodeCible: a0 + "–" + aN, q: fen[1] > fen[0] ? st.tcamEntre(fen[0], fen[1]) : null, periodeSecteur: fen[0] + "–" + fen[1] },
-      { libelle: "Marge d'EBITDA", v: indicateurAnnee("marge", cible.ca, cible.ebitda, cible.rn, aN),
-        periodeCible: String(aN), q: st.indicateurEn("marge", anRef), periodeSecteur: String(anRef) },
-      { libelle: "Marge nette", v: indicateurAnnee("margeNette", cible.ca, cible.ebitda, cible.rn, aN),
-        periodeCible: String(aN), q: st.indicateurEn("margeNette", anRef), periodeSecteur: String(anRef) },
-    ];
-    return `<div class="ins-reglettes">${lignes.map((l) => {
-      if (!l.q || l.v == null) {
-        return `<div class="ins-reglette"><div class="ins-reglette-tete"><strong>${esc(l.libelle)}</strong>
-          <span class="ins-verdict">non calculable</span></div></div>`;
-      }
-      const lo0 = Math.min(l.q.p10, l.v), hi0 = Math.max(l.q.p90, l.v);
-      const ec = (hi0 - lo0) || 0.01, lo = lo0 - ec * 0.08, hi = hi0 + ec * 0.08;
-      const pos = (v) => ((v - lo) / (hi - lo) * 100).toFixed(2) + "%";
-      const qd = quartileDe(l.v, l.q);
-      return `
-        <div class="ins-reglette" data-rang="${qd.rang}">
-          <div class="ins-reglette-tete">
-            <strong>${esc(l.libelle)}</strong>
-            <span class="ins-verdict"><b>${pctInsight(l.v)}</b> ${esc(qd.texte)}</span>
-          </div>
-          <div class="ins-piste" aria-hidden="true">
-            <span class="ins-piste-ligne" style="left:${pos(l.q.p10)};right:calc(100% - ${pos(l.q.p90)})"></span>
-            <span class="ins-piste-boite" style="left:${pos(l.q.q1)};right:calc(100% - ${pos(l.q.q3)})"></span>
-            <span class="ins-piste-med" style="left:${pos(l.q.med)}"></span>
-            <span class="ins-piste-cible" style="left:${pos(l.v)}"></span>
-          </div>
-          <div class="ins-reglette-pied">
-            <span>Secteur ${esc(l.periodeSecteur)} · médiane ${pctInsight(l.q.med)} · quartiles ${pctInsight(l.q.q1)} à ${pctInsight(l.q.q3)}</span>
-            <span>Société ${esc(l.periodeCible)}</span>
-          </div>
-        </div>`;
-    }).join("")}</div>`;
-  }
-
-  // Répartition par zone et par place, puis les plus grosses capitalisations.
-  function compositionHtml(st) {
-    const repartition = (cle) => {
-      const compte = {};
-      for (const s of st.liste) {
-        const k = s[cle] || "Non renseigné";
-        compte[k] = compte[k] || { n: 0, capi: 0 };
-        compte[k].n += 1;
-        compte[k].capi += s.capitalisation || 0;
-      }
-      const lignes = Object.entries(compte).sort((a, b) => b[1].n - a[1].n || b[1].capi - a[1].capi);
-      const max = lignes.length ? lignes[0][1].n : 1;
-      const total = st.liste.reduce((t, s) => t + (s.capitalisation || 0), 0) || 1;
-      return lignes.slice(0, 8).map(([k, o]) => `
-        <div class="ins-barre">
-          <span class="ins-barre-nom">${esc(k)}</span>
-          <span class="ins-barre-piste"><span style="width:${(o.n / max * 100).toFixed(1)}%"></span></span>
-          <span class="ins-barre-n">${o.n}</span>
-          <span class="ins-barre-part">${frPct(o.capi / total, 0)} de la capi.</span>
-        </div>`).join("") + (lignes.length > 8 ? `<p class="ins-reste">+ ${lignes.length - 8} autres</p>` : "");
-    };
-    const aN = st.annees[st.annees.length - 1], a0 = st.annees[0];
-    const premieres = st.donnees.slice().sort((a, b) => (b.s.capitalisation || 0) - (a.s.capitalisation || 0)).slice(0, 8);
-    return `
-      <div class="ins-compo">
-        <div><h3 class="ins-sous-rubrique">Par zone</h3>${repartition("zone")}</div>
-        <div><h3 class="ins-sous-rubrique">Par place de cotation</h3>${repartition("place")}</div>
-      </div>
-      <h3 class="ins-sous-rubrique">Principales capitalisations</h3>
-      <table class="ins-table">
-        <thead><tr><th>Société</th><th>Capitalisation</th><th>TCAM du CA ${a0}–${aN}</th><th>Marge d'EBITDA ${aN}</th></tr></thead>
-        <tbody>${premieres.map((d) => `
-          <tr><td>${esc(d.s.nom)}<small>${esc(d.s.pays || "")}${d.s.place ? " · " + esc(d.s.place) : ""}</small></td>
-            <td>${esc(frMontant(d.s.capitalisation))}</td>
-            <td>${pctInsight(tcamEntre(d.ca[a0], d.ca[aN], aN - a0))}</td>
-            <td>${pctInsight(indicateurAnnee("marge", d.ca, d.ebitda, d.rn, aN))}</td></tr>`).join("")}
-        </tbody>
-      </table>`;
   }
 
   $("panel-insight").addEventListener("click", (ev) => {
     const b = ev.target.closest("button");
-    if (!b) return;
-    if (b.dataset.portee && b.dataset.portee !== INSIGHT.portee) { INSIGHT.portee = b.dataset.portee; renderInsight(); }
-    else if (b.dataset.indicateur && b.dataset.indicateur !== INSIGHT.indicateur) {
-      INSIGHT.indicateur = b.dataset.indicateur;
-      $("panel-insight").querySelectorAll("[data-indicateur]").forEach((x) => x.classList.toggle("is-active", x === b));
-      dessinerInsight();
-    } else if (b.dataset.action === "insight-balance") {
+    if (b && b.dataset.action === "insight-balance") {
       VALO.vue = "etats";
       tab = "valorisation";
       renderTabs();

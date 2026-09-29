@@ -39,7 +39,7 @@ def test_le_bouton_est_visible_sans_rien_choisir(page):
 def test_le_bouton_reste_visible_sous_comparables(page):
     mode_comparables(page)
     assert page.is_visible("#tabAide")
-    assert page.get_attribute("#tabComparables", "hidden") is None
+    assert page.get_attribute("#tabInsight", "hidden") is None
 
 
 def test_le_bouton_marque_qu_il_est_ouvert(page):
