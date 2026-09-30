@@ -19,6 +19,9 @@ Les dossiers peuvent eux aussi commencer par un numéro (« 1 - Présentation »
 il ne sert qu'à les ranger dans l'ordre de la page, et ne compte pas dans leur
 nom.
 
+Les dimensions des images sont notées au passage : le diaporama prend le
+format de ses pages.
+
 serve.py le relance à chaque chargement de la page, et Cloudflare à chaque
 mise en ligne si sa commande de construction est « python3 inventaire.py » :
 il n'y a normalement pas à le lancer soi-même. Sinon : python inventaire.py
@@ -26,6 +29,7 @@ il n'y a normalement pas à le lancer soi-même. Sinon : python inventaire.py
 
 import json
 import re
+import struct
 import sys
 import unicodedata
 import urllib.parse
@@ -78,6 +82,85 @@ def ordre(titre, rang):
     return (rang is None, rang or 0, naturel(titre))
 
 
+# Marqueurs JPEG qui ouvrent une image (SOF) et donnent ses dimensions.
+SOF = {0xC0, 0xC1, 0xC2, 0xC3, 0xC5, 0xC6, 0xC7, 0xC9, 0xCA, 0xCB, 0xCD, 0xCE, 0xCF}
+
+
+def dimensions(f):
+    """(largeur, hauteur) d'une image telle qu'elle s'affiche, lues dans son
+    en-tête sans la décoder. None pour un format non lu ici (AVIF) : le site
+    les mesure alors lui-même au chargement."""
+    try:
+        with f.open("rb") as h:
+            tete = h.read(40)
+            if tete.startswith(b"\x89PNG\r\n\x1a\n") and tete[12:16] == b"IHDR":
+                return struct.unpack(">II", tete[16:24])
+            if tete[:6] in (b"GIF87a", b"GIF89a"):
+                return struct.unpack("<HH", tete[6:10])
+            if tete[:4] == b"RIFF" and tete[8:12] == b"WEBP":
+                return dimensions_webp(tete)
+            if tete[:2] == b"\xff\xd8":
+                h.seek(2)
+                return dimensions_jpeg(h)
+    except (OSError, struct.error, IndexError):
+        pass
+    return None
+
+
+def dimensions_webp(b):
+    morceau = b[12:16]
+    if morceau == b"VP8 " and b[23:26] == b"\x9d\x01\x2a":
+        largeur, hauteur = struct.unpack("<HH", b[26:30])
+        return largeur & 0x3FFF, hauteur & 0x3FFF
+    if morceau == b"VP8L" and b[20] == 0x2F:
+        bits = int.from_bytes(b[21:25], "little")
+        return (bits & 0x3FFF) + 1, (bits >> 14 & 0x3FFF) + 1
+    if morceau == b"VP8X":
+        return int.from_bytes(b[24:27], "little") + 1, int.from_bytes(b[27:30], "little") + 1
+    return None
+
+
+def dimensions_jpeg(h):
+    """Parcourt les segments jusqu'au premier SOF. Une photo de téléphone
+    tournée par son orientation EXIF (5 à 8) s'affiche largeur et hauteur
+    échangées."""
+    tournee = False
+    while True:
+        octet = h.read(1)
+        if not octet:
+            return None
+        if octet != b"\xff":
+            continue
+        marqueur = h.read(1)
+        while marqueur == b"\xff":  # octets de bourrage
+            marqueur = h.read(1)
+        if not marqueur or marqueur[0] in (0xD9, 0xDA):  # fin, ou image sans SOF avant elle
+            return None
+        m = marqueur[0]
+        if m == 0x01 or 0xD0 <= m <= 0xD8:  # marqueurs sans longueur
+            continue
+        donnees = h.read(struct.unpack(">H", h.read(2))[0] - 2)
+        if m in SOF:
+            hauteur, largeur = struct.unpack(">HH", donnees[1:5])
+            return (hauteur, largeur) if tournee else (largeur, hauteur)
+        if m == 0xE1 and donnees[:6] == b"Exif\x00\x00":
+            tournee = orientation_exif(donnees[6:]) in (5, 6, 7, 8)
+
+
+def orientation_exif(tiff):
+    """L'orientation EXIF (1 à 8) d'une photo, 1 si elle n'en dit rien."""
+    try:
+        ordre = {b"II": "<", b"MM": ">"}[tiff[:2]]
+        ifd = struct.unpack(ordre + "I", tiff[4:8])[0]
+        for i in range(struct.unpack(ordre + "H", tiff[ifd:ifd + 2])[0]):
+            e = ifd + 2 + 12 * i
+            if struct.unpack(ordre + "H", tiff[e:e + 2])[0] == 0x0112:
+                return struct.unpack(ordre + "H", tiff[e + 8:e + 10])[0]
+    except (KeyError, struct.error):
+        pass
+    return 1
+
+
 def lire_fichiers(dossier, avertir):
     """Les images, vidéos et audios d'un dossier de cadre, dans l'ordre d'affichage."""
     trouves = []
@@ -85,6 +168,9 @@ def lire_fichiers(dossier, avertir):
         if not f.is_file() or f.name.startswith("."):
             continue
         ext = f.suffix.lower()
+        if ext == ".pdf":
+            avertir(f"{dossier.name}/{f.name} : un PDF ne s'affiche pas, exportez ses pages en images (voir LISEZMOI.txt)")
+            continue
         genre = "image" if ext in IMAGE else "video" if ext in VIDEO else "audio" if ext in AUDIO else None
         if not genre:
             continue  # LISEZMOI.txt, fichiers système…
@@ -98,7 +184,11 @@ def lire_fichiers(dossier, avertir):
         # (%28, %27…), Cloudflare les redirige vers leur forme lisible, un
         # aller-retour de plus à chaque fichier.
         chemin = "/".join(urllib.parse.quote(p, safe="!$&'()*+,;=:@") for p in ("cadres", dossier.name, f.name))
-        trouves.append((ordre(titre, rang), {"titre": titre, "type": genre, "fichier": chemin}))
+        x = {"titre": titre, "type": genre, "fichier": chemin}
+        taille_image = dimensions(f) if genre == "image" else None
+        if taille_image:
+            x["largeur"], x["hauteur"] = taille_image
+        trouves.append((ordre(titre, rang), x))
     return [x for _, x in sorted(trouves, key=lambda t: t[0])]
 
 

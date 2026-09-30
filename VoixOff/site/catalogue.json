@@ -1,20 +1,54 @@
 {
   "cadres": {
-    "Présentation": [
+    "À propos de moi": [
       {
-        "titre": "Couverture (exemple)",
+        "titre": "Image 1",
         "type": "image",
-        "fichier": "cadres/1%20-%20Pr%C3%A9sentation/01%20-%20Couverture%20(exemple).jpg"
+        "fichier": "cadres/1%20-%20%C3%80%20propos%20de%20moi/Image%201.jpg",
+        "largeur": 1920,
+        "hauteur": 1080
       },
       {
-        "titre": "Photo plein cadre (exemple)",
+        "titre": "Image 2",
         "type": "image",
-        "fichier": "cadres/1%20-%20Pr%C3%A9sentation/02%20-%20Photo%20plein%20cadre%20(exemple).jpg"
+        "fichier": "cadres/1%20-%20%C3%80%20propos%20de%20moi/Image%202.jpg",
+        "largeur": 1920,
+        "hauteur": 1080
       },
       {
-        "titre": "Texte sur fond sombre (exemple)",
+        "titre": "Image 3",
         "type": "image",
-        "fichier": "cadres/1%20-%20Pr%C3%A9sentation/03%20-%20Texte%20sur%20fond%20sombre%20(exemple).jpg"
+        "fichier": "cadres/1%20-%20%C3%80%20propos%20de%20moi/Image%203.jpg",
+        "largeur": 1920,
+        "hauteur": 1080
+      },
+      {
+        "titre": "Image 4",
+        "type": "image",
+        "fichier": "cadres/1%20-%20%C3%80%20propos%20de%20moi/Image%204.jpg",
+        "largeur": 1920,
+        "hauteur": 1080
+      },
+      {
+        "titre": "Image 5",
+        "type": "image",
+        "fichier": "cadres/1%20-%20%C3%80%20propos%20de%20moi/Image%205.jpg",
+        "largeur": 1920,
+        "hauteur": 1080
+      },
+      {
+        "titre": "Image 6",
+        "type": "image",
+        "fichier": "cadres/1%20-%20%C3%80%20propos%20de%20moi/Image%206.jpg",
+        "largeur": 1920,
+        "hauteur": 1080
+      },
+      {
+        "titre": "Image 7",
+        "type": "image",
+        "fichier": "cadres/1%20-%20%C3%80%20propos%20de%20moi/Image%207.jpg",
+        "largeur": 1920,
+        "hauteur": 1080
       }
     ],
     "Expériences et réalisations": [

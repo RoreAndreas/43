@@ -1,0 +1,21 @@
+Premier cadre de l'accueil : À propos de moi.
+
+Les pages de la présentation, une image par page : Image 1.jpg, Image 2.jpg…
+Quand on ouvre le cadre, elles défilent en grand avec les flèches (ou le
+glissé du doigt), et leurs miniatures s'alignent dessous. Le lecteur prend
+le format de la première page : des pages au même format le remplissent
+exactement, sans bandes ni flou.
+
+  - Changer une page : remplacez l'image du même nom (Image 3.jpg, par
+    exemple) par la nouvelle version.
+  - Ajouter une page : déposez Image 8.jpg, Image 9.jpg… Les images
+    s'affichent dans l'ordre de leur numéro.
+  - Retirer une page : supprimez son image.
+  - Depuis Canva : Partager › Télécharger › JPG, en choisissant les pages
+    voulues. Renommez ensuite l'image téléchargée comme celle qu'elle
+    remplace.
+  - Formats : .jpg (conseillé), .png, .webp. 1 920 px de large suffisent.
+
+Les pages actuelles viennent de Caroussel.pdf, rangé dans VoixOff/sources/
+avec les autres originaux : ce dossier ne part pas en ligne. Un PDF déposé
+ici ne s'affiche pas : exportez ses pages en images.

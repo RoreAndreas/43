@@ -5,7 +5,8 @@
    le trouve seul dans le dossier cadres/ (à côté de ce fichier), un dossier
    par cadre, et dans cadres/youtube.txt pour les vidéos YouTube.
 
-     cadres/1 - Présentation/                 les images du carrousel
+     cadres/1 - À propos de moi/              les pages de la présentation,
+                                              une image par page
      cadres/2 - Expériences et réalisations/  vidéos, audios, images
      cadres/3 - Voix off/                     audios, vidéos
      cadres/youtube.txt                       liens YouTube, rangés sous
@@ -20,15 +21,11 @@
      dossier    son dossier dans cadres/, sans le numéro (par défaut, le
                 titre) ; c'est aussi le nom à écrire entre crochets dans
                 youtube.txt
-     affichage  "carrousel" : les images défilent, sur l'accueil comme dans
-                le cadre ouvert ; "liste" (par défaut) : une liste de
-                réalisations à côté d'un lecteur
-     ajustement pour un carrousel : "entier" (par défaut) montre chaque image
-                en entier, sur un fond flou ; "couvrir" la recadre pour
-                remplir le cadre, mieux pour des photos que des diapositives
+     affichage  "diaporama" : les images du dossier se font défiler dans le
+                lecteur, avec des flèches ; "liste" (par défaut) : une liste
+                de réalisations à côté d'un lecteur
      intro      une phrase sous le titre (facultatif)
-     image      la photo du cadre, déposée dans medias/ (un carrousel montre
-                ses propres images)
+     image      la photo du cadre, déposée dans medias/
      cadrage    le point de la photo à garder visible quand elle est recadrée :
                 position horizontale puis verticale, de "0%" (bord gauche /
                 haut) à "100%" (bord droit / bas). Par défaut "50% 50%".
@@ -36,8 +33,7 @@
 
 window.PORTFOLIO = {
   nom: "Anne-Katy MILIDJI",
-  // Sous le nom. Une barre « / » sépare les deux métiers : sur les écrans
-  // étroits, chacun passe sur sa ligne.
+  // Sous le nom. Une barre « / » sépare les deux métiers : chacun a sa ligne.
   metier: "Responsable marketing & communication / Voix off professionnel",
   email: "contact@exemple.fr",
   liens: [
@@ -47,10 +43,12 @@ window.PORTFOLIO = {
 
   cadres: [
     {
-      titre: "Présentation",
-      dossier: "Présentation",
-      affichage: "carrousel",
-      intro: "Parcours et savoir-faire, en quelques images.",
+      titre: "À propos de moi",
+      dossier: "À propos de moi",
+      affichage: "diaporama",
+      intro: "Ma présentation, page par page.",
+      image: "medias/a-propos-de-moi.jpg",
+      cadrage: "50% 43%",
     },
     {
       titre: "Expériences et réalisations",

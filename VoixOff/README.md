@@ -3,14 +3,16 @@
 Portfolio d'Anne-Katy MILIDJI, responsable marketing & communication et voix
 off professionnel. L'accueil montre trois cadres :
 
-1. **Présentation** — un carrousel : les images défilent seules sur l'accueil,
-   puis en grand quand on ouvre le cadre, avec leur sommaire à côté ;
+1. **À propos de moi** — la présentation, page par page : un diaporama au
+   format des pages, aussi grand que l'écran le permet, les miniatures
+   dessous ; on tourne les pages avec les flèches, le clavier, le doigt ou
+   une miniature ;
 2. **Expériences et réalisations** — vidéos, audios, images, liens YouTube ;
 3. **Voix off** — audios, vidéos, liens YouTube.
 
-Au clic, le visuel du cadre s'installe dans le lecteur et la liste apparaît
-à côté, sur la même ligne. Le bouton « Retour », en haut à gauche, ramène aux
-trois cadres.
+Au clic, la photo du cadre s'envole jusqu'au lecteur ; la liste apparaît à
+côté, sur la même ligne (pour « À propos de moi », les pages se posent sur
+la photo). Le bouton « Retour », en haut à gauche, ramène aux trois cadres.
 
 Page statique, projet indépendant de WACC43.
 
@@ -18,14 +20,15 @@ Page statique, projet indépendant de WACC43.
 VoixOff/
 ├── site/                                    le dossier publié, tel quel
 │   ├── cadres/                              ← le contenu, un dossier par cadre
-│   │   ├── 1 - Présentation/                ← les images du carrousel
+│   │   ├── 1 - À propos de moi/             ← les pages : Image 1.jpg, Image 2.jpg…
 │   │   ├── 2 - Expériences et réalisations/ ← vidéos, audios, images
 │   │   ├── 3 - Voix off/                    ← audios, vidéos
 │   │   └── youtube.txt                      ← les liens YouTube
 │   ├── catalogue.json     la liste du contenu, écrite par inventaire.py
 │   ├── contenu.js         réglages : nom, titre, réseaux, cadres
-│   ├── medias/            photos des cadres 2 et 3
+│   ├── medias/            photos des trois cadres
 │   └── index.html, style.css, app.js, favicon.svg
+├── sources/               originaux (le PDF de la présentation) : ni publiés, ni suivis par git
 ├── inventaire.py          dresse le catalogue
 └── serve.py               aperçu local
 ```
@@ -40,11 +43,14 @@ Le nom du fichier devient le titre : « Film institutionnel.mp4 » s'affiche
 « 01 - Film institutionnel.mp4 ». Sans numéro, les noms sont triés comme on
 les lit : « Diapositive2 » avant « Diapositive10 ».
 
-- Présentation : des images, une par diapositive (`.png`, `.jpg`, `.webp`).
-  Depuis PowerPoint : *Fichier › Exporter › Changer le type de fichier ›
-  PNG*, « Toutes les diapositives » ; depuis Canva : *Partager › Télécharger
-  › PNG*. L'image s'affiche en entier, sur un fond flou tiré d'elle-même
-  quand elle ne remplit pas le cadre.
+- À propos de moi : une image par page, `Image 1.jpg`, `Image 2.jpg`… dans
+  l'ordre de leur numéro (le nom ne s'affiche pas). Pour changer une page,
+  remplacez l'image du même nom ; pour en ajouter une, déposez `Image 9.jpg`.
+  Depuis Canva : *Partager › Télécharger › JPG*. Le lecteur prend le format
+  de la première page : des pages au même format le remplissent exactement,
+  sans bandes, sans flou, sans rien de rogné. Un PDF ne s'affiche pas :
+  exportez ses pages en images, et gardez l'original dans `VoixOff/sources/`
+  (les pages actuelles viennent de `Caroussel.pdf`).
 - Expériences et réalisations, Voix off : vidéos (`.mp4` conseillé, aussi
   `.webm`, `.mov`), audios (`.mp3` conseillé, aussi `.wav`, `.m4a`),
   images.
@@ -66,10 +72,9 @@ l'intégration (réglage par défaut) : « non répertoriée » fonctionne,
 « privée » non. Dans chaque cadre, les fichiers viennent d'abord, puis les
 vidéos YouTube dans l'ordre du fichier.
 
-Les liens actuels de `youtube.txt` (films libres de la Blender Foundation),
-les trois diapositives « (exemple) » et les trois audios « (exemple) »,
-murmures de synthèse, ne sont là que pour montrer les lecteurs : remplacez-les
-par votre contenu.
+Les liens actuels de `youtube.txt` (films libres de la Blender Foundation) et
+les trois audios « (exemple) », murmures de synthèse, ne sont là que pour
+montrer les lecteurs : remplacez-les par votre contenu.
 
 ## Le catalogue
 
@@ -83,18 +88,17 @@ le fait pour lui et écrit `site/catalogue.json`, à ne pas modifier à la main.
   VoixOff/inventaire.py`. Pour que Cloudflare le refasse lui-même à chaque
   mise en ligne, voir la commande de construction ci-dessous.
 
-Il garde les titres YouTube déjà obtenus, pour qu'une construction hors
-ligne ne les perde pas, et signale les liens illisibles, les fichiers trop
-lourds et les dossiers mal nommés.
+Il note les dimensions des images, lues dans leur en-tête (le diaporama prend
+le format de ses pages), garde les titres YouTube déjà obtenus, pour qu'une
+construction hors ligne ne les perde pas, et signale les liens illisibles,
+les fichiers trop lourds, les PDF et les dossiers mal nommés.
 
 ## Réglages
 
 `site/contenu.js` : nom, titre (deux métiers séparés par « / », chacun sur sa
 ligne sous le nom), courriel, réseaux, et pour chaque cadre son titre, son
-dossier, son affichage (`"carrousel"` ou liste), sa phrase d'introduction,
-sa photo et son cadrage. Un carrousel dont les images sont des photos plutôt
-que des diapositives peut les recadrer pour remplir le cadre :
-`ajustement: "couvrir"`.
+dossier, son affichage (`"diaporama"`, ou une liste par défaut), sa phrase
+d'introduction, sa photo et son cadrage.
 
 La même photo est recadrée en hauteur sur l'accueil et en largeur dans le
 cadre ouvert : `cadrage` indique le point à garder visible, position

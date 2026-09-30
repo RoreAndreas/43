@@ -57,21 +57,14 @@
       <div class="cadre">
         <div class="cadre-image"></div>
 
-        <!-- Carrousel : flèches, pause et avancée du défilement. -->
-        <div class="carrousel-ui">
-          <button type="button" class="carrousel-fleche carrousel-precedente" aria-label="Diapositive précédente">
-            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg>
+        <!-- Diaporama : une flèche en verre de chaque côté. -->
+        <div class="diaporama-ui">
+          <button type="button" class="verre diaporama-fleche diaporama-precedente" aria-label="Diapositive précédente">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14.5 5.5 8 12l6.5 6.5"/></svg>
           </button>
-          <button type="button" class="carrousel-fleche carrousel-suivante" aria-label="Diapositive suivante">
-            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg>
+          <button type="button" class="verre diaporama-fleche diaporama-suivante" aria-label="Diapositive suivante">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9.5 5.5 16 12l-6.5 6.5"/></svg>
           </button>
-          <button type="button" class="carrousel-pause" aria-label="Mettre le défilement en pause">
-            <span class="bascule" aria-hidden="true">
-              <svg class="i-lecture" viewBox="0 0 24 24"><path d="M8.5 5.6v12.8a.9.9 0 0 0 1.37.77l10.2-6.4a.9.9 0 0 0 0-1.54l-10.2-6.4A.9.9 0 0 0 8.5 5.6z"/></svg>
-              <svg class="i-pause" viewBox="0 0 24 24"><rect x="6.5" y="5" width="3.8" height="14" rx="1.1"/><rect x="13.7" y="5" width="3.8" height="14" rx="1.1"/></svg>
-            </span>
-          </button>
-          <span class="carrousel-piste" aria-hidden="true"><span class="carrousel-avance"></span></span>
         </div>
 
         <div class="audio-ui">
@@ -97,6 +90,9 @@
         <p class="cartel-meta"></p>
         <p class="cartel-texte"></p>
       </div>
+
+      <!-- Diaporama : les miniatures des pages, sous le lecteur. -->
+      <nav class="miniatures" aria-label="Pages"></nav>
     </section>
   </main>
 

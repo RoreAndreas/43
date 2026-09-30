@@ -1,3 +1,9 @@
 # Caches Python : serve.py importe inventaire.py
 __pycache__/
 *.pyc
+
+# Les PDF sources restent sur l'ordinateur : trop lourds pour Git et pour
+# Cloudflare (25 Mo au plus par fichier). Le site en montre les pages, en
+# images, dans le dossier du cadre.
+sources/
+site/cadres/**/*.pdf
