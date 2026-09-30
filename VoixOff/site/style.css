@@ -707,7 +707,8 @@ video.lecteur { object-fit: contain; }
 /* ---------- Légende sous le lecteur ---------- */
 
 .cartel { grid-area: cartel; min-height: 96px; padding-top: 20px; }
-.cartel-titre { margin: 0; font-size: clamp(20px, 1.8vw, 26px); font-weight: 300; line-height: 1.2; letter-spacing: -.01em; }
+/* Un nom de fichier sans espace (« AQMeCBa209Pu0x….mp4 ») se coupe plutôt que de sortir de l'écran. */
+.cartel-titre { margin: 0; font-size: clamp(20px, 1.8vw, 26px); font-weight: 300; line-height: 1.2; letter-spacing: -.01em; overflow-wrap: anywhere; }
 .cartel-meta { margin: 8px 0 0; font: 400 11px/1.4 var(--mono); letter-spacing: .06em; text-transform: uppercase; color: var(--doux); }
 .cartel-texte { max-width: 68ch; margin: 10px 0 0; font-size: 14px; line-height: 1.55; color: rgb(244 244 245 / .72); }
 .cartel.vide > :not(.cartel-invite), .cartel:not(.vide) > .cartel-invite { display: none; }
