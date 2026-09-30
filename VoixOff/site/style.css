@@ -1,5 +1,5 @@
 /* ==========================================================================
-   Portfolio voix off — styles
+   Portfolio — styles
 
    Toutes les couleurs se règlent dans :root : fond noir, bleu en accent.
    Les photos s'affichent telles quelles, coins arrondis.
@@ -24,8 +24,8 @@
   --ease: cubic-bezier(.22, .8, .24, 1);
   --rayon: 14px;
   --marge: 40px;
-  --haut: 118px;     /* espace réservé à l'en-tête */
-  --barre: 97px;     /* hauteur réelle de l'en-tête, mesurée par app.js */
+  --haut: 132px;     /* espace laissé à l'en-tête ; app.js l'ajuste à sa hauteur réelle */
+  --barre: 112px;    /* hauteur réelle de l'en-tête, mesurée par app.js */
   color-scheme: dark;
 }
 
@@ -97,10 +97,9 @@ a { color: inherit; text-decoration: none; }
   z-index: 60;
   display: grid;
   grid-template-columns: 1fr auto 1fr;
-  align-items: center;
   align-items: start;
   gap: 24px;
-  padding: 30px var(--marge);
+  padding: 28px var(--marge) 26px;
   background: color-mix(in srgb, var(--fond) 88%, transparent);
   --ligne-nom: 24px; /* la première ligne du nom : les deux côtés s'y alignent */
   -webkit-backdrop-filter: blur(6px);
@@ -121,8 +120,8 @@ a { color: inherit; text-decoration: none; }
   transition: opacity .4s var(--ease);
 }
 
-/* Le bouton retour n'apparaît que dans une rubrique, pendant que la photo
-   s'installe ; il s'efface dès qu'on repart. */
+/* Le bouton retour n'apparaît que dans un cadre ouvert, pendant que le
+   visuel s'installe ; il s'efface dès qu'on repart. */
 .retour {
   display: inline-flex;
   align-items: center;
@@ -158,7 +157,23 @@ a { color: inherit; text-decoration: none; }
 
 .barre-nom { display: grid; justify-items: center; line-height: 1; white-space: nowrap; }
 .barre-nom-texte { font-size: var(--ligne-nom); font-weight: 300; letter-spacing: .04em; }
-.barre-metier { margin-top: 8px; font-size: 10px; letter-spacing: .3em; text-transform: uppercase; color: var(--bleu); }
+
+/* Les deux métiers, chacun sur sa ligne, en petites capitales bleues. */
+.barre-metier {
+  --interlettre: .24em;
+  display: grid;
+  justify-items: center;
+  gap: 6px;
+  margin-top: 9px;
+  font-size: 10px;
+  line-height: 1;
+  letter-spacing: var(--interlettre);
+  text-transform: uppercase;
+  color: var(--bleu);
+}
+/* L'espacement suit aussi la dernière lettre : on le retire pour centrer
+   exactement chaque ligne sous le nom. */
+.barre-metier-ligne { margin-right: calc(-1 * var(--interlettre)); }
 
 .barre-droite { justify-content: flex-end; gap: 28px; }
 .contact-icone { display: none; width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 1.4; stroke-linejoin: round; }
@@ -186,32 +201,33 @@ a { color: inherit; text-decoration: none; }
 }
 .bande:has(.panneau:hover) .panneau:not(:hover) { opacity: .4; }
 
-/* La photo, arrondie ; la même classe habille la copie qui vole. */
+/* Le visuel, arrondi ; la même classe habille la copie qui vole. */
 .visuel {
   position: relative;
   display: block;
   flex: 1;
   overflow: hidden;
   isolation: isolate;
-  container-type: inline-size; /* le titre se règle sur la largeur de la photo */
+  container-type: inline-size; /* le titre se règle sur la largeur du visuel */
   border-radius: var(--rayon);
   background: var(--surface);
 }
-.visuel > img {
+.visuel > img, .visuel > .diapos {
   position: absolute;
   inset: 0;
   width: 100%;
   height: 100%;
-  object-fit: cover;
   transition: transform 1.8s var(--ease), opacity .9s var(--ease);
 }
+.visuel > img { object-fit: cover; }
 .visuel > img.fondu:not(.vue) { opacity: 0; }
 
-.panneau:hover .visuel > img, .panneau:focus-visible .visuel > img { transform: scale(1.03); }
+.panneau:hover .visuel > img, .panneau:focus-visible .visuel > img,
+.panneau:hover .visuel > .diapos, .panneau:focus-visible .visuel > .diapos { transform: scale(1.03); }
 .panneau:focus-visible { outline: none; }
 .panneau:focus-visible .visuel { outline: 1px solid var(--bleu); outline-offset: 4px; }
 
-/* Au survol, la photo se voile et son titre monte, en grand, de derrière un
+/* Au survol, le visuel se voile et son titre monte, en grand, de derrière un
    cache. Sur les écrans tactiles, sans survol, il reste affiché. */
 .voile {
   position: absolute;
@@ -240,8 +256,9 @@ a { color: inherit; text-decoration: none; }
   display: block;
   font-size: clamp(28px, 12cqi, 76px);
   font-weight: 300;
-  line-height: 1.1;
+  line-height: 1.08;
   letter-spacing: -.02em;
+  text-wrap: balance; /* « Expériences et réalisations » passe sur deux lignes égales */
   color: #fff;
   text-shadow: 0 2px 28px rgb(0 0 0 / .35);
   transform: translateY(130%);
@@ -265,15 +282,44 @@ a { color: inherit; text-decoration: none; }
   transition-delay: .15s;
 }
 
+/* Sur un carrousel, le titre passe devant des diapositives souvent chargées
+   de texte : le voile est plus sombre et les brouille légèrement. La classe
+   est sur le visuel, pour que la copie qui vole la garde. */
+.visuel.carrousel .voile {
+  background: rgb(0 0 0 / .5);
+  -webkit-backdrop-filter: blur(5px);
+  backdrop-filter: blur(5px);
+}
+
 @media (hover: none) {
   .voile { opacity: 1; background: rgb(0 0 0 / .3); }
+  /* Toujours visible ici : le carrousel doit rester perceptible dessous. */
+  .visuel.carrousel .voile { background: rgb(0 0 0 / .4); -webkit-backdrop-filter: blur(3px); backdrop-filter: blur(3px); }
   .visuel-titre > span { transform: none; }
   .visuel-compte { opacity: 1; transform: none; }
 }
 
 .volant { position: fixed; z-index: 55; margin: 0; pointer-events: none; }
 
-/* ---------- Rubrique ouverte : le cadre de la liste et le lecteur ---------- */
+/* ---------- Diaporama : les images du carrousel ---------- */
+
+.diapos { position: absolute; inset: 0; overflow: hidden; }
+.diapo { position: absolute; inset: 0; overflow: hidden; background: #000; }
+.diapo-image { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; }
+/* L'image entière, posée sur un fond flou tiré d'elle-même : une diapositive
+   16:9 dans un cadre en hauteur ne laisse pas de bandes noires. */
+.diapo-fond {
+  position: absolute;
+  inset: -10%;
+  width: 120%;
+  height: 120%;
+  max-width: none;
+  object-fit: cover;
+  filter: blur(30px) brightness(.5) saturate(1.15);
+}
+.diapos.couvrir .diapo-image { object-fit: cover; }
+
+/* ---------- Cadre ouvert : la liste et le lecteur ---------- */
 
 .focus {
   --gouttiere: 28px;
@@ -298,7 +344,6 @@ a { color: inherit; text-decoration: none; }
 }
 .focus::-webkit-scrollbar { display: none; }
 
-
 /* Le cadre de la liste prend la hauteur du lecteur, pas davantage : sa
    propre hauteur ne compte pas (contain), la ligne est celle du lecteur. */
 .carte {
@@ -322,6 +367,7 @@ a { color: inherit; text-decoration: none; }
   font-weight: 300;
   line-height: 1.05;
   letter-spacing: -.02em;
+  text-wrap: balance;
 }
 .carte-intro { margin: -4px 0 0; font-size: 13px; line-height: 1.5; color: var(--doux); text-wrap: pretty; }
 
@@ -379,7 +425,7 @@ a { color: inherit; text-decoration: none; }
 .oeuvre[aria-current="true"] .oeuvre-num, .oeuvre[aria-current="true"] .oeuvre-info { color: var(--bleu); }
 .carte-vide { margin-top: auto; padding: 16px 2px 2px; color: var(--pale); }
 
-/* ---------- Le lecteur : la photo, puis la réalisation choisie ---------- */
+/* ---------- Le lecteur : le visuel du cadre, puis la réalisation choisie ---------- */
 
 .cadre {
   grid-area: cadre;
@@ -429,7 +475,52 @@ video.lecteur { object-fit: contain; }
 .cadre.charge .chargeur { opacity: 1; transition-delay: .35s; animation-play-state: running; }
 @keyframes tourner { to { transform: rotate(1turn); } }
 
-/* Lecteur audio : une barre posée au bas de la photo. */
+/* ---------- Carrousel du cadre ouvert ---------- */
+
+.cadre.mode-carrousel { touch-action: pan-y; } /* le glissé horizontal change de diapositive */
+.carrousel-ui {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  pointer-events: none;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity .5s var(--ease), visibility 0s .5s;
+}
+.cadre.mode-carrousel .carrousel-ui { opacity: 1; visibility: visible; transition-delay: 0s; }
+
+.carrousel-fleche, .carrousel-pause {
+  position: absolute;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: rgb(0 0 0 / .42);
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+  color: #fff;
+  pointer-events: auto;
+  opacity: 0;
+  transition: opacity .4s var(--ease), transform .6s var(--ease), background-color .3s;
+}
+.carrousel-fleche { top: 50%; width: 48px; height: 48px; margin-top: -24px; }
+.carrousel-fleche svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
+.carrousel-precedente { left: 18px; transform: translateX(-6px); }
+.carrousel-suivante { right: 18px; transform: translateX(6px); }
+.carrousel-pause { left: 18px; bottom: 18px; width: 36px; height: 36px; }
+.carrousel-pause .bascule { width: 14px; height: 14px; }
+.carrousel-fleche:hover, .carrousel-pause:hover { background: rgb(0 0 0 / .62); }
+/* Les commandes paraissent quand la souris est sur le lecteur, ou au clavier. */
+.cadre:hover .carrousel-fleche, .cadre:hover .carrousel-pause,
+.carrousel-fleche:focus-visible, .carrousel-pause:focus-visible { opacity: 1; transform: none; }
+/* Sans défilement (mouvements limités), le bouton pause n'a pas d'objet. */
+.carrousel-ui:not(.defile) .carrousel-pause, .carrousel-ui:not(.defile) .carrousel-piste { display: none; }
+
+/* L'avancée du défilement : un filet bleu au bas du lecteur. */
+.carrousel-piste { position: absolute; left: 0; right: 0; bottom: 0; height: 2px; background: rgb(255 255 255 / .14); }
+.carrousel-avance { display: block; height: 100%; background: var(--bleu); transform: scaleX(0); transform-origin: left; }
+
+/* ---------- Lecteur audio : une barre posée au bas de la photo ---------- */
+
 .audio-ui {
   position: absolute;
   z-index: 3;
@@ -501,22 +592,32 @@ video.lecteur { object-fit: contain; }
 .cartel-texte { max-width: 68ch; margin: 10px 0 0; font-size: 14px; line-height: 1.55; color: rgb(244 244 245 / .72); }
 .cartel.vide > :not(.cartel-invite), .cartel:not(.vide) > .cartel-invite { display: none; }
 
-/* ---------- Petits écrans ---------- */
+/* ---------- En-tête compact, dès que la place manque ---------- */
 
-@media (max-width: 899px) {
-  :root { --marge: 16px; --haut: 88px; --rayon: 12px; }
-
-  /* Le nom reste au centre : le retour se réduit à sa flèche, le contact
-     à une enveloppe, les réseaux se retirent. */
-  .barre { gap: 12px; padding: 16px var(--marge); --ligne-nom: 17px; }
-  .marque { font-size: clamp(14px, 4.2vw, 17px); }
-  .barre-metier { margin-top: 7px; font-size: 9px; letter-spacing: .26em; }
+/* Le nom reste au centre : le retour se réduit à sa flèche, qui prend la
+   place de « Portfolio », le contact à une enveloppe, les réseaux se
+   retirent. */
+@media (max-width: 999px) {
   .barre-droite a:not(.contact) { display: none; }
   .contact-texte, .retour-texte { display: none; }
   .contact-icone { display: block; }
-  /* Dans une rubrique, la flèche de retour prend la place de « Portfolio ». */
   .retour { position: absolute; left: 0; top: calc(50% - 17px); padding: 8px; }
   .barre.en-rubrique .marque { opacity: 0; pointer-events: none; }
+}
+
+/* ---------- Petits écrans ---------- */
+
+@media (max-width: 899px) {
+  :root { --marge: 16px; --haut: 116px; --barre: 102px; --rayon: 12px; }
+
+  /* Le nom tient la première ligne entre « Portfolio » et l'enveloppe ; les
+     métiers, dessous, prennent toute la largeur. */
+  .barre { gap: 0 12px; padding: 16px var(--marge) 14px; --ligne-nom: 17px; }
+  .barre-nom { grid-column: 1 / -1; grid-row: 1; }
+  .barre-gauche { grid-column: 1; grid-row: 1; z-index: 1; }
+  .barre-droite { grid-column: 3; grid-row: 1; z-index: 1; }
+  .marque { font-size: clamp(14px, 4.2vw, 17px); }
+  .barre-metier { --interlettre: .15em; gap: 5px; margin-top: 8px; font-size: 8.5px; }
 
   .bande { flex-direction: column; height: auto; min-height: 0; gap: 40px; }
   .visuel { flex: none; aspect-ratio: 4 / 5; }
@@ -529,6 +630,18 @@ video.lecteur { object-fit: contain; }
   .cartel { order: 3; min-height: 0; }
   .carte { order: 4; contain: none; margin-top: 24px; }
   .liste { overflow: hidden; } /* toute la liste s'affiche ; les coins restent arrondis */
+}
+
+/* Sans survol (écrans tactiles), les commandes du carrousel restent visibles,
+   plus petites et plus légères : l'image passe avant. */
+@media (hover: none) {
+  .carrousel-fleche, .carrousel-pause { opacity: 1; transform: none; background: rgb(0 0 0 / .3); }
+  .carrousel-fleche { width: 34px; height: 34px; margin-top: -17px; }
+  .carrousel-fleche svg { width: 16px; height: 16px; }
+  .carrousel-precedente { left: 8px; }
+  .carrousel-suivante { right: 8px; }
+  .carrousel-pause { left: auto; right: 8px; bottom: 10px; width: 28px; height: 28px; }
+  .carrousel-pause .bascule { width: 11px; height: 11px; }
 }
 
 @media (prefers-reduced-motion: reduce) {

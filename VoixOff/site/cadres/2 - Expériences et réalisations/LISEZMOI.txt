@@ -1,0 +1,14 @@
+Deuxième cadre de l'accueil : Expériences et réalisations.
+
+Déposez ici les vidéos, audios et images de vos réalisations de marketing
+et de communication.
+
+  - Le nom du fichier devient le titre affiché : « Campagne été.mp4 »
+    s'affiche « Campagne été ».
+  - Pour fixer l'ordre, commencez le nom par un numéro : « 01 - … »,
+    « 02 - … ». Le numéro ne s'affiche pas.
+  - Formats : vidéo .mp4 (conseillé), .webm, .mov ; audio .mp3, .wav,
+    .m4a ; image .jpg, .png, .webp.
+  - 25 Mo au plus par fichier, limite de l'hébergeur : les vidéos longues
+    vont plutôt sur YouTube, sous [Expériences et réalisations] dans le
+    fichier ../youtube.txt.

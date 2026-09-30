@@ -1,7 +1,7 @@
 """Aperçu local du portfolio : python serve.py, puis http://localhost:8000.
 
 Le catalogue des réalisations est refait à chaque chargement de la page : un
-fichier déposé dans site/realisations/, un lien ajouté à youtube.txt
+fichier déposé dans site/cadres/, un lien ajouté à cadres/youtube.txt
 apparaissent au simple rechargement.
 
 Le serveur de base de Python ignore les requêtes partielles (Range) : le

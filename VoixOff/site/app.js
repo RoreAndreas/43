@@ -1,17 +1,20 @@
 /* ==========================================================================
-   Portfolio voix off — rendu et interactions.
+   Portfolio — rendu et interactions.
 
-   Les réglages viennent de contenu.js (window.PORTFOLIO), les réalisations
-   de catalogue.json, qu'écrit inventaire.py à partir du dossier
-   realisations/ (les fichiers déposés) et de realisations/youtube.txt (les
-   liens YouTube) : rien à modifier ici.
+   Les réglages viennent de contenu.js (window.PORTFOLIO), le contenu de
+   catalogue.json, qu'écrit inventaire.py à partir du dossier cadres/ (les
+   fichiers déposés) et de cadres/youtube.txt (les liens YouTube) : rien à
+   modifier ici.
 
-   Accueil : une photo par rubrique. Au clic, la photo s'envole et devient
-   l'illustration de la rubrique, à droite, pendant que les autres se fondent
-   dans le noir et que le cadre des réalisations apparaît à gauche, sur la
-   même ligne. Choisir une réalisation la lit dans le même cadre, à la place
-   de la photo. « Retour », Échap ou le retour du navigateur ramènent la
-   photo à sa place. Un seul média joue à la fois.
+   Accueil : trois cadres. Au clic, le visuel du cadre s'envole et devient le
+   lecteur, à droite, pendant que les autres se fondent dans le noir et que
+   la liste apparaît à gauche, sur la même ligne. Deux sortes de cadres :
+     - carrousel : les images défilent seules, sur l'accueil puis en grand ;
+       la liste en donne le sommaire, les flèches et le glissé du doigt les
+       font avancer ;
+     - liste : choisir une réalisation la lit dans le lecteur, à la place de
+       la photo. Un seul média joue à la fois.
+   « Retour », Échap ou le retour du navigateur ramènent le visuel à sa place.
    ========================================================================== */
 
 (() => {
@@ -21,9 +24,11 @@
   const racine = document.documentElement;
   const reduit = matchMedia("(prefers-reduced-motion: reduce)");
   const EASE = "cubic-bezier(.22, .8, .24, 1)";
-  // La photo qui vole : départ en douceur, longue arrivée.
+  // Le visuel qui vole : départ en douceur, longue arrivée.
   const VOL = "cubic-bezier(.6, 0, .15, 1)";
   const DUREE_VOL = 900;
+  const DIAPO_ACCUEIL = 5000; // une diapositive sur l'accueil
+  const DIAPO_CADRE = 6500; // une diapositive dans le cadre ouvert
 
   /* Durée d'une animation, ramenée à zéro si le visiteur limite les mouvements. */
   const ms = (d) => (reduit.matches ? 0 : d);
@@ -34,6 +39,7 @@
   const $$ = (s, r = document) => [...r.querySelectorAll(s)];
   const deux = (n) => String(n).padStart(2, "0");
   const pluriel = (n, mot) => `${n} ${mot}${n > 1 ? "s" : ""}`;
+  const modulo = (i, n) => ((i % n) + n) % n;
 
   /* Une image clé marquée offset 0 part de là et arrive sur l'état réel de
      l'élément ; sans offset, elle part de l'état réel pour y arriver. */
@@ -68,7 +74,7 @@
   const px = (r) => ({ top: `${r.top}px`, left: `${r.left}px`, width: `${r.width}px`, height: `${r.height}px` });
 
   /* ------------------------------------------------------------------------
-     Les réalisations : catalogue.json
+     Le contenu : catalogue.json
      ------------------------------------------------------------------------ */
 
   function slugifier(texte, pris) {
@@ -85,8 +91,8 @@
     return s;
   }
 
-  /* Illustration de repli, pour une rubrique sans photo : dégradé bleu et
-     barres d'onde, toujours les mêmes pour une même rubrique. */
+  /* Illustration de repli, pour un cadre sans photo ni image : dégradé bleu
+     et barres d'onde, toujours les mêmes pour un même cadre. */
   function artOnde(graine) {
     let h = 2166136261;
     for (const c of graine) h = Math.imul(h ^ c.charCodeAt(0), 16777619);
@@ -111,7 +117,8 @@
     return { src: `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}` };
   }
 
-  /* Même comparaison que inventaire.py : sans accents, casse ni espaces en trop. */
+  /* Mêmes règles que inventaire.py : comparaison sans accents, casse ni
+     espaces en trop, et numéro de rang en tête ignoré (« 1 - Présentation »). */
   const cle = (t) =>
     String(t || "")
       .normalize("NFD")
@@ -120,6 +127,7 @@
       .split(/\s+/)
       .filter(Boolean)
       .join(" ");
+  const sansRang = (t) => String(t || "").replace(/^\s*\d{1,3}(?:\s*[-–—_.)]\s*|\s+)(?=\S)/, "");
 
   async function chargerCatalogue() {
     try {
@@ -136,26 +144,44 @@
     const titre = String(brut.titre || "Sans titre");
     const commun = { titre, rub, slug: slugifier(titre, pris), auteur: brut.auteur || "" };
     if (brut.type === "youtube" && brut.youtube) return { ...commun, type: "youtube", yt: brut.youtube, debut: brut.debut || 0 };
-    if ((brut.type === "video" || brut.type === "audio") && brut.fichier) return { ...commun, type: brut.type, lien: brut.fichier };
+    if (["image", "video", "audio"].includes(brut.type) && brut.fichier) return { ...commun, type: brut.type, lien: brut.fichier };
     return null;
   }
 
-  /* Les rubriques de contenu.js, garnies des réalisations de leur dossier. */
-  function preparerRubriques(catalogue) {
-    const parDossier = new Map(Object.entries((catalogue && catalogue.rubriques) || {}).map(([nom, liste]) => [cle(nom), liste]));
+  const estCarrousel = (r) => Boolean(r) && r.mode === "carrousel" && r.travaux.length > 0;
+
+  /* Les cadres de contenu.js, garnis du contenu de leur dossier. */
+  function preparerCadres(catalogue) {
+    const source = (catalogue && (catalogue.cadres || catalogue.rubriques)) || {};
+    const parDossier = new Map(Object.entries(source).map(([nom, liste]) => [cle(sansRang(nom)), liste]));
     const idsPris = new Set();
-    return (Array.isArray(P.rubriques) ? P.rubriques : []).map((r, index) => {
-      const rub = { titre: String(r.titre || "Rubrique"), intro: r.intro || "", index, cadrage: r.cadrage || "50% 50%" };
+    const reglages = Array.isArray(P.cadres) ? P.cadres : Array.isArray(P.rubriques) ? P.rubriques : [];
+    return reglages.map((r, index) => {
+      const rub = {
+        titre: String(r.titre || "Cadre"),
+        intro: r.intro || "",
+        index,
+        cadrage: r.cadrage || "50% 50%",
+        mode: r.affichage === "carrousel" ? "carrousel" : "liste",
+        ajustement: r.ajustement === "couvrir" ? "couvrir" : "entier",
+      };
       rub.id = slugifier(r.id || r.titre, idsPris);
       const pris = new Set();
-      const liste = parDossier.get(cle(r.dossier || r.titre)) || [];
+      const liste = parDossier.get(cle(sansRang(r.dossier || r.titre))) || [];
       rub.travaux = liste.map((t) => realisation(t, rub, pris)).filter(Boolean);
+      if (rub.mode === "carrousel") {
+        const autres = rub.travaux.filter((t) => t.type !== "image");
+        if (autres.length) console.info(`[portfolio] « ${rub.titre} » est un carrousel : ${pluriel(autres.length, "fichier")} autre(s) qu'une image ignoré(s).`);
+        rub.travaux = rub.travaux.filter((t) => t.type === "image");
+      }
       const yt = rub.travaux.find((t) => t.yt);
       rub.image = r.image
         ? { src: r.image }
-        : yt
-          ? { src: `https://i.ytimg.com/vi/${encodeURIComponent(yt.yt)}/maxresdefault.jpg`, yt: yt.yt }
-          : artOnde(rub.id);
+        : rub.mode === "carrousel" && rub.travaux[0]
+          ? { src: rub.travaux[0].lien }
+          : yt
+            ? { src: `https://i.ytimg.com/vi/${encodeURIComponent(yt.yt)}/maxresdefault.jpg`, yt: yt.yt }
+            : artOnde(rub.id);
       return rub;
     });
   }
@@ -193,6 +219,56 @@
   const decodee = (img) => Promise.race([img.decode ? img.decode().catch(() => {}) : Promise.resolve(), attendre(700)]);
 
   /* ------------------------------------------------------------------------
+     Diaporama : des images qui se remplacent en fondu enchaîné, pour le
+     carrousel de l'accueil comme pour celui du cadre ouvert.
+     ------------------------------------------------------------------------ */
+
+  /* Une diapositive : l'image entière, posée sur un fond flou tiré d'elle-même
+     quand elle ne remplit pas le cadre (« entier ») ; ou recadrée pour le
+     remplir (« couvrir »). */
+  function diapo(item, ajustement) {
+    const s = el("span", { class: "diapo" });
+    if (ajustement !== "couvrir") {
+      s.append(el("img", { class: "diapo-fond", src: item.lien, alt: "", "aria-hidden": "true", decoding: "async", draggable: "false" }));
+    }
+    s.append(el("img", { class: "diapo-image", src: item.lien, alt: item.titre, decoding: "async", draggable: "false" }));
+    return s;
+  }
+
+  function creerDiaporama(rub) {
+    const d = {
+      rub,
+      index: -1,
+      jeton: 0,
+      noeud: el("span", { class: `diapos ${rub.ajustement}` }),
+      /* Montre la diapositive i ; la promesse est tenue quand elle est prête. */
+      async montrer(i, { instant = false } = {}) {
+        const n = rub.travaux.length;
+        if (!n) return;
+        i = modulo(i, n);
+        if (i === d.index) return;
+        d.index = i;
+        const jeton = ++d.jeton;
+        const s = diapo(rub.travaux[i], rub.ajustement);
+        s.style.opacity = "0";
+        d.noeud.append(s);
+        await decodee($(".diapo-image", s));
+        if (jeton !== d.jeton) {
+          s.remove(); // une autre diapositive a été demandée entre-temps
+          return;
+        }
+        const anciennes = [...d.noeud.children].filter((x) => x !== s);
+        s.style.opacity = "";
+        if (instant || !ms(1)) anciennes.forEach((x) => x.remove());
+        else anim(s, [{ opacity: 0, offset: 0 }], { duration: 900 }).then(() => anciennes.forEach((x) => x.remove()));
+        // La suivante se charge pendant qu'on regarde celle-ci.
+        if (n > 1) new Image().src = rub.travaux[modulo(i + 1, n)].lien;
+      },
+    };
+    return d;
+  }
+
+  /* ------------------------------------------------------------------------
      Éléments de la page
      ------------------------------------------------------------------------ */
 
@@ -210,28 +286,34 @@
   const enteteCarte = () => [$(".carte-tete"), $(".carte-titre"), $(".carte-intro")];
 
   const etat = {
-    ouvert: false, // une rubrique est ouverte (ou s'ouvre, ou se ferme)
+    ouvert: false, // un cadre est ouvert (ou s'ouvre, ou se ferme)
     occupe: false, // une transition est en cours
     aFermer: false, // fermeture demandée pendant une transition
     pousse: false, // l'ouverture a ajouté une entrée à l'historique
     clavier: false, // la dernière commande venait du clavier
     rub: null,
-    choix: null, // la réalisation choisie
-    lecteur: null, // le lecteur vidéo monté dans le cadre
+    choix: null, // la réalisation (ou la diapositive) choisie
+    lecteur: null, // le lecteur vidéo ou image monté dans le cadre
   };
 
   function construire() {
     const nom = String(P.nom || "").trim();
-    document.title = [nom, P.metier].filter(Boolean).join(" — ") || document.title;
+    // « Responsable marketing & communication / Voix off professionnel » :
+    // chaque métier sur sa ligne, sous le nom.
+    const metiers = String(P.metier || "")
+      .split("/")
+      .map((m) => m.trim())
+      .filter(Boolean);
+    document.title = [nom, metiers.join(" / ")].filter(Boolean).join(" — ") || document.title;
     $(".barre-nom-texte").textContent = nom;
-    $(".barre-metier").textContent = P.metier || "";
+    $(".barre-metier").replaceChildren(...metiers.map((m) => el("span", { class: "barre-metier-ligne", text: m })));
 
     const droite = [];
     for (const l of Array.isArray(P.liens) ? P.liens : []) {
       if (l && l.url) droite.push(el("a", { href: l.url, target: "_blank", rel: "noopener", text: l.libelle || l.url }));
     }
     if (P.email) {
-      // Sur mobile, le mot « Contact » laisse place à une enveloppe.
+      // Sur les écrans étroits, le mot « Contact » laisse place à une enveloppe.
       const enveloppe = document.createElementNS("http://www.w3.org/2000/svg", "svg");
       enveloppe.setAttribute("class", "contact-icone");
       enveloppe.setAttribute("viewBox", "0 0 24 24");
@@ -243,24 +325,26 @@
 
     bande.replaceChildren(
       ...rubriques.map((r) => {
-        const n = pluriel(r.travaux.length, "réalisation");
-        const b = el(
-          "button",
-          { type: "button", class: "panneau", "data-id": r.id, "aria-label": `${r.titre} — ${n}` },
+        const n = pluriel(r.travaux.length, r.mode === "carrousel" ? "diapositive" : "réalisation");
+        const visuel = el("span", { class: estCarrousel(r) ? "visuel carrousel" : "visuel" });
+        if (estCarrousel(r)) {
+          r.teaser = creerDiaporama(r);
+          visuel.append(r.teaser.noeud);
+          r.teaser.montrer(0, { instant: true });
+        } else {
+          visuel.append(creerImg(r.image, r.cadrage, true));
+        }
+        visuel.append(
+          el("span", { class: "voile", "aria-hidden": "true" }),
+          // Le titre, en grand, monte de derrière un cache au survol.
           el(
             "span",
-            { class: "visuel" },
-            creerImg(r.image, r.cadrage, true),
-            el("span", { class: "voile", "aria-hidden": "true" }),
-            // Le titre, en grand, monte de derrière un cache au survol.
-            el(
-              "span",
-              { class: "visuel-texte", "aria-hidden": "true" },
-              el("span", { class: "visuel-titre" }, el("span", { text: r.titre })),
-              el("span", { class: "visuel-compte", text: n }),
-            ),
+            { class: "visuel-texte", "aria-hidden": "true" },
+            el("span", { class: "visuel-titre" }, el("span", { text: r.titre })),
+            el("span", { class: "visuel-compte", text: n }),
           ),
         );
+        const b = el("button", { type: "button", class: "panneau", "data-id": r.id, "aria-label": `${r.titre} — ${n}` }, visuel);
         b.addEventListener("click", (e) => ouvrir(r, { clavier: e.detail === 0 }));
         r.panneau = b;
         return b;
@@ -268,21 +352,41 @@
     );
   }
 
-  /* Le bouton retour s'affiche dans une rubrique, et seulement là. */
+  /* Sur l'accueil, le carrousel avance seul : pas quand un cadre est ouvert,
+     ni page cachée, ni pour qui limite les mouvements. */
+  function lancerTeasers() {
+    for (const r of rubriques) {
+      clearInterval(r.minuteur);
+      if (!r.teaser || r.travaux.length < 2) continue;
+      r.minuteur = setInterval(() => {
+        if (etat.ouvert || document.hidden || reduit.matches) return;
+        r.teaser.montrer(r.teaser.index + 1);
+      }, DIAPO_ACCUEIL);
+    }
+  }
+
+  /* Le bouton retour s'affiche dans un cadre ouvert, et seulement là. */
   function majRetour(r) {
     retour.classList.toggle("visible", Boolean(r));
     barre.classList.toggle("en-rubrique", Boolean(r));
   }
 
-  /* L'en-tête fixe : sa hauteur réelle sert au lecteur collant du mobile. */
-  const mesurerBarre = () => racine.style.setProperty("--barre", `${barre.offsetHeight}px`);
+  /* L'en-tête fixe : sa hauteur réelle règle l'espace qui lui est laissé au
+     haut de la page, et la position du lecteur collant sur mobile. */
+  function mesurerBarre() {
+    const h = barre.offsetHeight;
+    racine.style.setProperty("--barre", `${h}px`);
+    racine.style.setProperty("--haut", `${h + (innerWidth < 900 ? 14 : 20)}px`);
+  }
 
   /* ------------------------------------------------------------------------
-     Le cadre des réalisations
+     La liste
      ------------------------------------------------------------------------ */
 
   function remplirFocus(r) {
     annuler(...enteteCarte(), ...$$(".oeuvre", liste));
+    const carrousel = r.mode === "carrousel";
+    $(".carte-etiquette").textContent = carrousel ? "Diapositives" : "Réalisations";
     $(".carte-titre").textContent = r.titre;
     $(".carte-compte").textContent = deux(r.travaux.length);
     const intro = $(".carte-intro");
@@ -290,14 +394,19 @@
     intro.hidden = !r.intro;
     liste.replaceChildren(...r.travaux.map((item, i) => el("li", {}, ligne(item, i))));
     liste.hidden = !r.travaux.length;
-    $(".carte-vide").hidden = r.travaux.length > 0;
+    const vide = $(".carte-vide");
+    vide.textContent = carrousel ? "Aucune diapositive pour l'instant" : "Aucune réalisation pour l'instant";
+    vide.hidden = r.travaux.length > 0;
+    $(".cartel-invite").hidden = !r.travaux.length; // rien à sélectionner
     liste.scrollTop = 0;
     requestAnimationFrame(majDebord);
     return $$(".oeuvre", liste);
   }
 
   function ligne(item, i) {
-    const info = el("span", { class: "oeuvre-info", text: item.type === "youtube" ? "YouTube" : item.dureeTexte || "" });
+    const carrousel = item.rub.mode === "carrousel";
+    const texteInfo = carrousel ? "" : item.type === "youtube" ? "YouTube" : item.type === "image" ? "Image" : item.dureeTexte || "";
+    const info = el("span", { class: "oeuvre-info", text: texteInfo });
     const b = el(
       "button",
       { type: "button", class: "oeuvre", "data-slug": item.slug, "aria-current": "false", title: item.titre },
@@ -310,9 +419,9 @@
         info,
       ),
     );
-    b.addEventListener("click", () => choisir(item, { auto: true }));
+    b.addEventListener("click", () => (carrousel ? allerDiapo(i, { manuel: true }) : choisir(item, { auto: true })));
     if (item.yt) b.addEventListener("pointerenter", prechauffer, { once: true });
-    else if (!item.dureeTexte) mesurerDuree(item, info);
+    else if (!carrousel && (item.type === "audio" || item.type === "video") && !item.dureeTexte) mesurerDuree(item, info);
     return b;
   }
 
@@ -367,28 +476,41 @@
   }
 
   /* ------------------------------------------------------------------------
-     Le lecteur : la photo de la rubrique, puis la réalisation choisie
+     Le lecteur : le visuel du cadre, puis la réalisation choisie
      ------------------------------------------------------------------------ */
 
-  /* Pose la photo d'une rubrique dans le lecteur, en fondu enchaîné. Rend une
-     promesse tenue quand la photo est prête à s'afficher. */
-  function montrerIllustration(r, instant = false) {
-    if (illustration.dataset.cle === r.image.src) return Promise.resolve();
-    illustration.dataset.cle = r.image.src;
-    const img = creerImg(r.image, r.cadrage);
-    const prete = decodee(img);
-    const anciennes = [...illustration.children];
+  /* Pose dans le lecteur le visuel d'un cadre, photo ou carrousel (à la
+     diapositive `index`), en fondu enchaîné. La promesse est tenue quand il
+     est prêt à s'afficher. */
+  function montrerIllustration(r, instant = false, index = 0) {
+    const carrousel = estCarrousel(r);
+    const cleVue = carrousel ? `carrousel:${r.id}` : r.image.src;
+    if (!carrousel && illustration.dataset.cle === cleVue) return Promise.resolve();
+    illustration.dataset.cle = cleVue;
+    let calque;
+    let prete;
+    if (carrousel) {
+      const d = creerDiaporama(r);
+      Carrousel.diaporama = d;
+      calque = d.noeud;
+      prete = d.montrer(index, { instant: true });
+    } else {
+      calque = creerImg(r.image, r.cadrage);
+      prete = decodee(calque);
+    }
+    const anciens = [...illustration.children];
     if (instant || !ms(1)) {
-      illustration.replaceChildren(img);
+      illustration.replaceChildren(calque);
       return prete;
     }
-    img.style.opacity = "0";
-    illustration.append(img);
+    calque.style.opacity = "0";
+    illustration.append(calque);
     prete.then(() => {
-      if (!img.isConnected) return;
-      img.style.opacity = "";
-      img.animate([{ opacity: 0, transform: "scale(1.02)" }, { opacity: 1, transform: "none" }], { duration: 800, easing: EASE })
-        .finished.then(() => anciennes.forEach((n) => n.remove()))
+      if (!calque.isConnected) return;
+      calque.style.opacity = "";
+      calque
+        .animate([{ opacity: 0, transform: "scale(1.02)" }, { opacity: 1, transform: "none" }], { duration: 800, easing: EASE })
+        .finished.then(() => anciens.forEach((n) => n.remove()))
         .catch(() => {});
     });
     return prete;
@@ -414,11 +536,15 @@
       cartel.classList.toggle("vide", !item);
       if (!item) return;
       $(".cartel-titre").textContent = item.titre;
-      const meta = (item.type === "youtube" ? [item.auteur, "YouTube"] : [item.type === "audio" ? "Audio" : "Vidéo", item.dureeTexte])
-        .filter(Boolean)
-        .join(" · ");
-      $(".cartel-meta").textContent = meta;
-      $(".cartel-meta").hidden = !meta;
+      const r = item.rub;
+      const meta = estCarrousel(r)
+        ? [`Diapositive ${r.travaux.indexOf(item) + 1} / ${r.travaux.length}`]
+        : item.type === "youtube"
+          ? [item.auteur, "YouTube"]
+          : [{ audio: "Audio", video: "Vidéo", image: "Image" }[item.type], item.dureeTexte];
+      const texte = meta.filter(Boolean).join(" · ");
+      $(".cartel-meta").textContent = texte;
+      $(".cartel-meta").hidden = !texte;
       $(".cartel-texte").hidden = true;
     };
     annuler(cartel);
@@ -460,7 +586,7 @@
     marquer();
   }
 
-  /* Coupe ce qui joue, en fondu ; la photo de la rubrique réapparaît. */
+  /* Coupe ce qui joue, en fondu ; le visuel du cadre réapparaît. */
   function arreter() {
     if (etat.lecteur) demonterLecteur();
     const it = Audio_.item;
@@ -483,6 +609,11 @@
         referrerpolicy: "strict-origin-when-cross-origin",
       });
       l.addEventListener("load", () => pret(l), { once: true });
+    } else if (item.type === "image") {
+      // Une image entière, sur son propre fond flou, comme une diapositive.
+      l = diapo(item, "entier");
+      l.classList.add("lecteur");
+      decodee($(".diapo-image", l)).then(() => pret(l));
     } else {
       l = el("video", { class: "lecteur", src: item.lien, controls: true, playsinline: true, preload: "auto" });
       l.addEventListener("loadeddata", () => pret(l), { once: true });
@@ -549,6 +680,118 @@
     };
     requestAnimationFrame(etape);
   }
+
+  /* ------------------------------------------------------------------------
+     Le carrousel du cadre ouvert : défilement, flèches, pause, glissé
+     ------------------------------------------------------------------------ */
+
+  const Carrousel = {
+    rub: null,
+    diaporama: null,
+    index: 0,
+    avancee: null, // l'animation de la barre de progression
+    pause: false, // mis en pause par le visiteur
+    survol: false, // la souris est sur le lecteur
+    ui: $(".carrousel-ui"),
+    bouton: $(".carrousel-pause"),
+    barre: $(".carrousel-avance"),
+  };
+
+  /* Installe le carrousel d'un cadre, à la diapositive `index`, sans encore
+     le faire défiler : il part quand le cadre a fini de s'ouvrir. */
+  function demarrerCarrousel(r, index) {
+    Object.assign(Carrousel, { rub: r, index: modulo(index, r.travaux.length), pause: false, survol: cadre.matches(":hover") });
+    cadre.classList.toggle("mode-carrousel", r.travaux.length > 1);
+    majPause();
+    etat.choix = r.travaux[Carrousel.index];
+    marquer();
+    majCartel(etat.choix, true);
+  }
+
+  function arreterCarrousel() {
+    if (Carrousel.avancee) Carrousel.avancee.cancel();
+    Object.assign(Carrousel, { rub: null, diaporama: null, avancee: null, survol: false });
+    cadre.classList.remove("mode-carrousel");
+    Carrousel.ui.classList.remove("defile");
+    cartel.setAttribute("aria-live", "polite");
+  }
+
+  /* `manuel` : le visiteur a choisi la diapositive ; elle s'annonce aux
+     lecteurs d'écran et s'inscrit dans l'adresse de la page, ce que le
+     défilement automatique ne fait pas. */
+  function allerDiapo(i, { manuel = false } = {}) {
+    const r = Carrousel.rub;
+    if (!r || !Carrousel.diaporama || !etat.ouvert) return;
+    Carrousel.index = modulo(i, r.travaux.length);
+    Carrousel.diaporama.montrer(Carrousel.index);
+    etat.choix = r.travaux[Carrousel.index];
+    marquer();
+    cartel.setAttribute("aria-live", manuel ? "polite" : "off");
+    majCartel(etat.choix);
+    if (manuel) majHash();
+    relancerAvance();
+  }
+
+  /* La barre de progression, au bas du lecteur, compte le temps jusqu'à la
+     diapositive suivante ; au bout, le carrousel avance. */
+  function relancerAvance() {
+    if (Carrousel.avancee) Carrousel.avancee.cancel();
+    Carrousel.avancee = null;
+    const r = Carrousel.rub;
+    const defile = Boolean(r) && r.travaux.length > 1 && ms(1) > 0;
+    Carrousel.ui.classList.toggle("defile", defile);
+    if (!defile) return;
+    const a = Carrousel.barre.animate([{ transform: "scaleX(0)" }, { transform: "scaleX(1)" }], { duration: DIAPO_CADRE, easing: "linear", fill: "forwards" });
+    a.onfinish = () => Carrousel.avancee === a && allerDiapo(Carrousel.index + 1);
+    Carrousel.avancee = a;
+    if (Carrousel.pause || Carrousel.survol || document.hidden) a.pause();
+  }
+
+  function reprendre() {
+    const a = Carrousel.avancee;
+    if (!a) return;
+    if (Carrousel.pause || Carrousel.survol || document.hidden) a.pause();
+    else a.play();
+  }
+
+  function majPause() {
+    Carrousel.ui.classList.toggle("joue", !Carrousel.pause);
+    Carrousel.bouton.setAttribute("aria-label", Carrousel.pause ? "Reprendre le défilement" : "Mettre le défilement en pause");
+  }
+
+  $(".carrousel-precedente").addEventListener("click", () => allerDiapo(Carrousel.index - 1, { manuel: true }));
+  $(".carrousel-suivante").addEventListener("click", () => allerDiapo(Carrousel.index + 1, { manuel: true }));
+  Carrousel.bouton.addEventListener("click", () => {
+    Carrousel.pause = !Carrousel.pause;
+    majPause();
+    reprendre();
+  });
+  // La souris posée sur le lecteur suspend le défilement, le temps de lire.
+  cadre.addEventListener("pointerenter", (e) => {
+    if (e.pointerType !== "mouse") return;
+    Carrousel.survol = true;
+    reprendre();
+  });
+  cadre.addEventListener("pointerleave", (e) => {
+    if (e.pointerType !== "mouse") return;
+    Carrousel.survol = false;
+    reprendre();
+  });
+  document.addEventListener("visibilitychange", reprendre);
+
+  // Sur écran tactile : glisser vers la gauche ou la droite.
+  let glisse = null;
+  cadre.addEventListener("pointerdown", (e) => {
+    glisse = Carrousel.rub && e.pointerType !== "mouse" && !e.target.closest("button") ? { x: e.clientX, y: e.clientY } : null;
+  });
+  cadre.addEventListener("pointerup", (e) => {
+    if (!glisse) return;
+    const dx = e.clientX - glisse.x;
+    const dy = e.clientY - glisse.y;
+    glisse = null;
+    if (Math.abs(dx) > 40 && Math.abs(dx) > 1.5 * Math.abs(dy)) allerDiapo(Carrousel.index + (dx < 0 ? 1 : -1), { manuel: true });
+  });
+  cadre.addEventListener("pointercancel", () => (glisse = null));
 
   /* ------------------------------------------------------------------------
      Pistes audio : une barre de lecture posée au bas de la photo
@@ -736,19 +979,19 @@
   });
 
   /* ------------------------------------------------------------------------
-     Transitions entre l'accueil et une rubrique
+     Transitions entre l'accueil et un cadre
      ------------------------------------------------------------------------ */
 
   const panneaux = () => rubriques.map((r) => r.panneau);
 
-  /* Les autres photos se fondent dans le noir, sur place. */
+  /* Les autres cadres se fondent dans le noir, sur place. */
   function sortirPanneaux(p) {
     panneaux().forEach((n) => {
       if (n !== p) anim(n, [{ opacity: 0, transform: "scale(.96)" }], { duration: 650, fill: "forwards" });
     });
   }
 
-  /* Au retour, elles en ressortent, de la plus proche à la plus lointaine. */
+  /* Au retour, ils en ressortent, du plus proche au plus lointain. */
   function entrerPanneaux(p, delai) {
     const k = panneaux().indexOf(p);
     panneaux().forEach((n, i) => {
@@ -757,9 +1000,9 @@
     });
   }
 
-  /* Le cadre des réalisations apparaît pendant que la photo s'installe, puis
-     ses lignes se déroulent. `complet` : ouverture, et non changement de
-     rubrique (le cadre est alors déjà là, seul son contenu change). */
+  /* La liste apparaît pendant que le visuel s'installe, puis ses lignes se
+     déroulent. `complet` : ouverture, et non changement de cadre (la liste
+     est alors déjà là, seul son contenu change). */
   function entrerFocus(lignes, delai, complet) {
     if (complet) {
       anim(carte, [{ opacity: 0, transform: "translateY(16px)", offset: 0 }], { duration: 850, delay: delai + 40, fill: "backwards" });
@@ -779,8 +1022,8 @@
     anim(cartel, [{ opacity: 0 }], { duration: 260, fill: "forwards" });
   }
 
-  /* Recopie sur la copie volante l'état affiché d'un élément du panneau,
-     survol compris : hors du panneau, la copie ne serait plus survolée. */
+  /* Recopie sur la copie volante l'état affiché d'un élément du cadre,
+     survol compris : hors de l'accueil, la copie ne serait plus survolée. */
   function figer(source, clone, sel, props) {
     const s = getComputedStyle($(sel, source));
     const c = $(sel, clone);
@@ -788,7 +1031,10 @@
     for (const prop of props) c.style[prop] = s[prop];
   }
 
-  /* Copie volante de la photo d'un panneau. */
+  /* Ce qui grossit au survol d'un cadre : sa photo, ou son carrousel. */
+  const zoomable = (visuel) => $(":scope > img, :scope > .diapos", visuel);
+
+  /* Copie volante du visuel d'un cadre. */
   function copieVolante(source, a) {
     const clone = source.cloneNode(true);
     clone.classList.add("volant");
@@ -810,9 +1056,14 @@
     racine.classList.add("verrou");
     majRetour(r);
     const lignes = remplirFocus(r);
-    majCartel(null, true);
     cadre.classList.remove("mode-audio", "charge");
-    const prete = montrerIllustration(r, true);
+    // Un carrousel reprend là où en était celui de l'accueil, ou à la
+    // diapositive de l'adresse.
+    let depart = slug ? r.travaux.findIndex((t) => t.slug === slug) : -1;
+    if (depart < 0) depart = r.teaser ? Math.max(0, r.teaser.index) : 0;
+    const prete = montrerIllustration(r, true, depart);
+    if (estCarrousel(r)) demarrerCarrousel(r, depart);
+    else majCartel(null, true);
     focus.hidden = false;
     focus.scrollTop = 0;
     majDebord();
@@ -823,22 +1074,22 @@
       const de = rect(source);
       const vers = rect(cadre);
       const clone = copieVolante(source, de);
-      const zoom = getComputedStyle($("img", source)).transform;
-      // La copie part de ce qu'on voit sous la souris : titre levé, photo
-      // voilée. En vol, le titre s'efface et le voile se lève.
+      const zoom = getComputedStyle(zoomable(source)).transform;
+      // La copie part de ce qu'on voit sous la souris : titre levé, visuel
+      // voilé. En vol, le titre s'efface et le voile se lève.
       figer(source, clone, ".voile", ["opacity"]);
       figer(source, clone, ".visuel-titre > span", ["transform"]);
       figer(source, clone, ".visuel-compte", ["opacity", "transform"]);
       source.style.visibility = "hidden";
       cadre.style.opacity = "0";
 
-      anim($("img", clone), [{ transform: zoom === "none" ? "none" : zoom }, { transform: "none" }], { duration: DUREE_VOL, easing: VOL, fill: "forwards" });
+      anim(zoomable(clone), [{ transform: zoom === "none" ? "none" : zoom }, { transform: "none" }], { duration: DUREE_VOL, easing: VOL, fill: "forwards" });
       anim($(".visuel-texte", clone), [{ opacity: 0, transform: "translateY(-12px)" }], { duration: 420, fill: "forwards" });
       anim($(".voile", clone), [{ opacity: 0 }], { duration: 650, fill: "forwards" });
       sortirPanneaux(p);
       entrerFocus(lignes, 340, true);
 
-      // La photo du lecteur doit être décodée avant de remplacer la copie.
+      // Le visuel du lecteur doit être décodé avant de remplacer la copie.
       await Promise.all([voler(clone, de, vers), prete]);
       cadre.style.opacity = "";
       await image();
@@ -855,9 +1106,14 @@
     accueil.inert = true;
     focus.inert = false;
     annuler(...panneaux());
-    const cible = slug && r.travaux.find((t) => t.slug === slug);
-    if (cible) choisir(cible);
-    const premiere = $(".oeuvre", liste);
+    if (estCarrousel(r)) {
+      if (slug && r.travaux.some((t) => t.slug === slug)) majHash();
+      relancerAvance();
+    } else {
+      const cible = slug && r.travaux.find((t) => t.slug === slug);
+      if (cible) choisir(cible);
+    }
+    const premiere = $('.oeuvre[aria-current="true"]', liste) || $(".oeuvre", liste);
     if (premiere && (!document.activeElement || document.activeElement === document.body || p.contains(document.activeElement))) {
       premiere.focus({ preventScroll: true, focusVisible: clavier });
     }
@@ -869,16 +1125,23 @@
     if (!etat.ouvert || !r || r === etat.rub || etat.occupe) return;
     etat.occupe = true;
     arreter();
+    arreterCarrousel();
     Object.assign(etat, { rub: r, choix: null });
     majRetour(r);
     history.replaceState(null, "", `#/${r.id}`);
-    majCartel(null);
-    montrerIllustration(r);
+    const depart = r.teaser ? Math.max(0, r.teaser.index) : 0;
+    montrerIllustration(r, false, depart);
+    if (!estCarrousel(r)) majCartel(null);
     await Promise.all([
       ...enteteCarte().map((n) => anim(n, [{ opacity: 0 }], { duration: 220, fill: "forwards" })),
       ...$$(".oeuvre", liste).map((l, i) => anim(l, [{ opacity: 0 }], { duration: 220, delay: i * 20, fill: "forwards" })),
     ]);
-    entrerFocus(remplirFocus(r), 0, false);
+    const lignes = remplirFocus(r);
+    if (estCarrousel(r)) {
+      demarrerCarrousel(r, depart);
+      relancerAvance();
+    }
+    entrerFocus(lignes, 0, false);
     etat.occupe = false;
     if (etat.aFermer) fermer();
   }
@@ -892,7 +1155,9 @@
     etat.occupe = true;
     etat.aFermer = false;
     const lecteurVisible = Boolean(etat.lecteur) || cadre.classList.contains("mode-audio");
+    const diapoFinale = Carrousel.index;
     arreter();
+    arreterCarrousel();
     etat.choix = null;
     marquer();
     majRetour(null);
@@ -900,9 +1165,12 @@
     const r = etat.rub;
     const p = r.panneau;
     const source = $(".visuel", p);
+    // Le carrousel de l'accueil se cale sur la diapositive que l'on quitte :
+    // c'est elle qui repart vers sa place.
+    if (r.teaser) await r.teaser.montrer(diapoFinale, { instant: true });
 
     if (ms(1)) {
-      // Le lecteur s'efface d'abord : c'est la photo qu'on voit qui repart.
+      // Le lecteur s'efface d'abord : c'est le visuel qu'on voit qui repart.
       if (lecteurVisible) await attendre(320);
       accueil.classList.remove("cache");
       accueil.inert = false;
@@ -914,7 +1182,7 @@
       const de = rect(cadre);
       const clone = copieVolante(source, de);
       // La copie part du lecteur, sans titre ni voile, et arrive dans l'état
-      // du panneau : titre affiché sur les écrans tactiles, caché sinon.
+      // du cadre d'accueil : titre affiché sur les écrans tactiles, caché sinon.
       const voileCible = getComputedStyle($(".voile", source)).opacity;
       const texte = $(".visuel-texte", clone);
       const voile = $(".voile", clone);
@@ -943,6 +1211,7 @@
     racine.classList.remove("verrou");
     const clavier = etat.clavier;
     Object.assign(etat, { ouvert: false, occupe: false, aFermer: false, pousse: false, clavier: false, rub: null, choix: null });
+    lancerTeasers(); // le carrousel de l'accueil repart pour une période entière
     p.focus({ preventScroll: true, focusVisible: clavier });
   }
 
@@ -984,9 +1253,16 @@
     });
   }
   document.addEventListener("keydown", (e) => {
-    if (e.key === "Escape" && etat.ouvert) {
+    if (!etat.ouvert) return;
+    if (e.key === "Escape") {
       e.preventDefault();
       demanderFermeture(true);
+      return;
+    }
+    // Dans un carrousel, les flèches gauche et droite changent de diapositive.
+    if ((e.key === "ArrowLeft" || e.key === "ArrowRight") && Carrousel.rub && !e.altKey && !e.ctrlKey && !e.metaKey && !e.target.closest(".onde, input, textarea")) {
+      e.preventDefault();
+      allerDiapo(Carrousel.index + (e.key === "ArrowRight" ? 1 : -1), { manuel: true });
     }
   });
   addEventListener("resize", () => {
@@ -1000,17 +1276,19 @@
 
   async function demarrer() {
     if (!window.PORTFOLIO) console.warn("[portfolio] contenu.js est introuvable ou contient une erreur.");
-    rubriques = preparerRubriques(await chargerCatalogue());
+    rubriques = preparerCadres(await chargerCatalogue());
     construire();
     mesurerBarre();
+    lancerTeasers();
     const h = lireHash();
     const polices = document.fonts && document.fonts.ready ? Promise.race([document.fonts.ready, attendre(900)]) : Promise.resolve();
+    polices.then(mesurerBarre); // le nom, dans sa police, peut changer la hauteur de l'en-tête
     if (h) {
       polices.then(() => ouvrir(h.rub, { historique: false, vol: false, slug: h.slug }));
       return;
     }
     majRetour(null);
-    // Entrée comme sur la référence : les photos glissent de la droite, l'une après l'autre.
+    // Entrée comme sur la référence : les cadres glissent de la droite, l'un après l'autre.
     panneaux().forEach((n) => (n.style.opacity = "0"));
     const pretes = panneaux().map((n) => decodee($("img", n)));
     Promise.all([polices, ...pretes].map((x) => Promise.race([x, attendre(1200)]))).then(() =>

@@ -1,6 +1,23 @@
 {
-  "rubriques": {
-    "Corporate": [
+  "cadres": {
+    "Présentation": [
+      {
+        "titre": "Couverture (exemple)",
+        "type": "image",
+        "fichier": "cadres/1%20-%20Pr%C3%A9sentation/01%20-%20Couverture%20(exemple).jpg"
+      },
+      {
+        "titre": "Photo plein cadre (exemple)",
+        "type": "image",
+        "fichier": "cadres/1%20-%20Pr%C3%A9sentation/02%20-%20Photo%20plein%20cadre%20(exemple).jpg"
+      },
+      {
+        "titre": "Texte sur fond sombre (exemple)",
+        "type": "image",
+        "fichier": "cadres/1%20-%20Pr%C3%A9sentation/03%20-%20Texte%20sur%20fond%20sombre%20(exemple).jpg"
+      }
+    ],
+    "Expériences et réalisations": [
       {
         "titre": "Tears of Steel - Blender VFX Open Movie",
         "type": "youtube",
@@ -23,7 +40,22 @@
         "auteur": "Blender"
       }
     ],
-    "Documentaire": [
+    "Voix off": [
+      {
+        "titre": "Livre audio (exemple)",
+        "type": "audio",
+        "fichier": "cadres/3%20-%20Voix%20off/01%20-%20Livre%20audio%20(exemple).wav"
+      },
+      {
+        "titre": "Spot radio (exemple)",
+        "type": "audio",
+        "fichier": "cadres/3%20-%20Voix%20off/02%20-%20Spot%20radio%20(exemple).wav"
+      },
+      {
+        "titre": "Message d'accueil (exemple)",
+        "type": "audio",
+        "fichier": "cadres/3%20-%20Voix%20off/03%20-%20Message%20d'accueil%20(exemple).wav"
+      },
       {
         "titre": "Big Buck Bunny 60fps 4K - Official Blender Foundation Short Film",
         "type": "youtube",
@@ -51,23 +83,6 @@
         "youtube": "Y-rmzh0PI3c",
         "titreYoutube": "Cosmos Laundromat - First Cycle. Official Blender Foundation release.",
         "auteur": "Blender"
-      }
-    ],
-    "Piste audio": [
-      {
-        "titre": "Livre audio (exemple)",
-        "type": "audio",
-        "fichier": "realisations/Piste%20audio/01%20-%20Livre%20audio%20%28exemple%29.wav"
-      },
-      {
-        "titre": "Spot radio (exemple)",
-        "type": "audio",
-        "fichier": "realisations/Piste%20audio/02%20-%20Spot%20radio%20%28exemple%29.wav"
-      },
-      {
-        "titre": "Message d'accueil (exemple)",
-        "type": "audio",
-        "fichier": "realisations/Piste%20audio/03%20-%20Message%20d%27accueil%20%28exemple%29.wav"
       }
     ]
   }

@@ -3,12 +3,12 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <title>Anne-Katy MILIDJI — Voix off professionnel</title>
+  <title>Anne-Katy MILIDJI — Responsable marketing &amp; communication / Voix off professionnel</title>
   <!-- Texte repris par les moteurs de recherche et lors du partage d'un lien. -->
-  <meta name="description" content="Anne-Katy MILIDJI, voix off professionnel : corporate, documentaire, pistes audio.">
+  <meta name="description" content="Anne-Katy MILIDJI, responsable marketing &amp; communication et voix off professionnel : présentation, expériences et réalisations, voix off.">
   <meta property="og:type" content="website">
-  <meta property="og:title" content="Anne-Katy MILIDJI — Voix off professionnel">
-  <meta property="og:description" content="Corporate, documentaire, pistes audio : regardez et écoutez mes réalisations.">
+  <meta property="og:title" content="Anne-Katy MILIDJI — Responsable marketing &amp; communication / Voix off professionnel">
+  <meta property="og:description" content="Présentation, expériences et réalisations, voix off : regardez et écoutez mon travail.">
   <meta name="theme-color" content="#000000">
   <link rel="icon" href="favicon.svg" type="image/svg+xml">
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -22,8 +22,8 @@
   <header class="barre">
     <div class="barre-gauche">
       <a class="marque" href="#/">Portfolio</a>
-      <!-- N'apparaît que dans une rubrique : ramène aux trois photos. -->
-      <button type="button" class="retour" aria-label="Retour aux rubriques">
+      <!-- N'apparaît que dans un cadre ouvert : ramène aux trois cadres. -->
+      <button type="button" class="retour" aria-label="Retour à l'accueil">
         <svg class="retour-fleche" viewBox="0 0 24 24" aria-hidden="true"><path d="M19 12H5M11 5l-7 7 7 7"/></svg>
         <span class="retour-texte">Retour</span>
       </button>
@@ -36,16 +36,16 @@
   </header>
 
   <main>
-    <!-- Accueil : une photo par rubrique. -->
-    <section class="accueil" aria-label="Rubriques">
+    <!-- Accueil : les trois cadres. -->
+    <section class="accueil" aria-label="Accueil">
       <div class="bande"></div>
     </section>
 
-    <!-- Rubrique ouverte : le cadre de la liste et le lecteur, sur une même ligne. -->
+    <!-- Cadre ouvert : la liste et le lecteur, sur une même ligne. -->
     <section class="focus" aria-labelledby="focus-titre" hidden inert>
       <div class="carte">
         <div class="carte-tete">
-          <span class="etiquette">Réalisations</span>
+          <span class="etiquette carte-etiquette">Réalisations</span>
           <span class="carte-compte"></span>
         </div>
         <h1 class="carte-titre" id="focus-titre"></h1>
@@ -56,6 +56,24 @@
 
       <div class="cadre">
         <div class="cadre-image"></div>
+
+        <!-- Carrousel : flèches, pause et avancée du défilement. -->
+        <div class="carrousel-ui">
+          <button type="button" class="carrousel-fleche carrousel-precedente" aria-label="Diapositive précédente">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg>
+          </button>
+          <button type="button" class="carrousel-fleche carrousel-suivante" aria-label="Diapositive suivante">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg>
+          </button>
+          <button type="button" class="carrousel-pause" aria-label="Mettre le défilement en pause">
+            <span class="bascule" aria-hidden="true">
+              <svg class="i-lecture" viewBox="0 0 24 24"><path d="M8.5 5.6v12.8a.9.9 0 0 0 1.37.77l10.2-6.4a.9.9 0 0 0 0-1.54l-10.2-6.4A.9.9 0 0 0 8.5 5.6z"/></svg>
+              <svg class="i-pause" viewBox="0 0 24 24"><rect x="6.5" y="5" width="3.8" height="14" rx="1.1"/><rect x="13.7" y="5" width="3.8" height="14" rx="1.1"/></svg>
+            </span>
+          </button>
+          <span class="carrousel-piste" aria-hidden="true"><span class="carrousel-avance"></span></span>
+        </div>
+
         <div class="audio-ui">
           <button type="button" class="audio-bouton" aria-label="Écouter">
             <span class="bascule" aria-hidden="true">
@@ -83,7 +101,7 @@
   </main>
 
   <noscript>
-    <p style="padding: 120px 40px">Ce portfolio a besoin de JavaScript pour afficher les vidéos et les extraits audio.</p>
+    <p style="padding: 120px 40px">Ce portfolio a besoin de JavaScript pour afficher la présentation, les vidéos et les extraits audio.</p>
   </noscript>
 </body>
 </html>
