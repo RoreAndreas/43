@@ -1,10 +1,35 @@
 {
-    "last_update": "2026-10-01 01:57:55",
+    "last_update": "2026-10-02 16:11:51",
     "count": 20,
     "weeks": [
         {
             "semaine": "Semaine du 28 Septembre au 04 Octobre 2026",
             "publications": [
+                {
+                    "date": "01/10/2026",
+                    "titre": "BOA CI : Rapport d'examen limité des états financiers - 1er semestre 2026",
+                    "url": "https://www.richbourse.com/common/actualite/afficher-fichier/01-10-2026-boa-ci-rapport-d-examen-limite-des-etats-financiers-1er-semestre-2026"
+                },
+                {
+                    "date": "01/10/2026",
+                    "titre": "Composition de l'indice BRVM",
+                    "url": "https://www.richbourse.com/common/actualite/afficher-fichier/01-10-2026-composition-de-l-indice-brvm"
+                },
+                {
+                    "date": "01/10/2026",
+                    "titre": "BOA CI : Rapport d'activités - 1er semestre 2026",
+                    "url": "https://www.richbourse.com/common/actualite/afficher-fichier/01-10-2026-boa-ci-rapport-d-activites-1er-semestre-2026"
+                },
+                {
+                    "date": "01/10/2026",
+                    "titre": "ONATEL BF : Rapport d'activités et Attestation des Commissaires Aux Comptes - 1er semestre 2026",
+                    "url": "https://www.richbourse.com/common/actualite/afficher-fichier/01-10-2026-onatel-bf-rapport-d-activites-et-attestation-des-commissaires-aux-comptes-1er-semestre-2026"
+                },
+                {
+                    "date": "01/10/2026",
+                    "titre": "ONATEL BF : Rapport d'activités - 1er semestre 2026",
+                    "url": "https://www.richbourse.com/common/actualite/afficher-fichier/01-10-2026-onatel-bf-rapport-dactivites-1er-semestre-2026"
+                },
                 {
                     "date": "30/09/2026",
                     "titre": "AMF-UMOA : Communiqué - Souscription à des Offres Publiques de Vente hors du territoire de l'UEMOA",
@@ -17,13 +42,13 @@
                 },
                 {
                     "date": "28/09/2026",
-                    "titre": "SIB CI : Attestation des Commissaires Aux Comptes - 1er semestre 2026",
-                    "url": "https://www.richbourse.com/common/actualite/afficher-fichier/28-09-2026-sib-ci-attestation-des-commissaires-aux-comptes-1er-semestre-2026"
+                    "titre": "SIB CI : Rapport d'activités - 1er semestre 2026",
+                    "url": "https://www.richbourse.com/common/actualite/afficher-fichier/28-09-2026-sib-ci-rapport-d-activites-1er-semestre-2026"
                 },
                 {
                     "date": "28/09/2026",
-                    "titre": "SIB CI : Rapport d'activités - 1er semestre 2026",
-                    "url": "https://www.richbourse.com/common/actualite/afficher-fichier/28-09-2026-sib-ci-rapport-d-activites-1er-semestre-2026"
+                    "titre": "SIB CI : Attestation des Commissaires Aux Comptes - 1er semestre 2026",
+                    "url": "https://www.richbourse.com/common/actualite/afficher-fichier/28-09-2026-sib-ci-attestation-des-commissaires-aux-comptes-1er-semestre-2026"
                 }
             ]
         },
@@ -42,11 +67,6 @@
                 },
                 {
                     "date": "24/09/2026",
-                    "titre": "TOTALENERGIES MARKETING SN : Changement important dans la Direction",
-                    "url": "https://www.richbourse.com/common/actualite/afficher-fichier/24-09-2026-totalenergies-marketing-sn-changement-important-dans-la-direction"
-                },
-                {
-                    "date": "24/09/2026",
                     "titre": "BRIDGE BANK GROUP CI : Rapport d'activités - 1er semestre 2026",
                     "url": "https://www.richbourse.com/common/actualite/afficher-fichier/24-09-2026-bridge-bank-group-ci-rapport-d-activites-1er-semestre-2026"
                 },
@@ -59,6 +79,11 @@
                     "date": "24/09/2026",
                     "titre": "BRIDGE BANK GROUP CI : Rapport des Commissaires Aux Comptes - 1er semestre 2026",
                     "url": "https://www.richbourse.com/common/actualite/afficher-fichier/24-09-2026-bridge-bank-group-ci-rapport-des-commissaires-aux-comptes-1er-semestre-2026"
+                },
+                {
+                    "date": "24/09/2026",
+                    "titre": "TOTALENERGIES MARKETING SN : Changement important dans la Direction",
+                    "url": "https://www.richbourse.com/common/actualite/afficher-fichier/24-09-2026-totalenergies-marketing-sn-changement-important-dans-la-direction"
                 },
                 {
                     "date": "23/09/2026",
@@ -77,11 +102,6 @@
                 },
                 {
                     "date": "21/09/2026",
-                    "titre": "SUCRIVOIRE CI : Rapport d'activités - 1er trimestre 2026",
-                    "url": "https://www.richbourse.com/common/actualite/afficher-fichier/21-09-2026-sucrivoire-ci-rapport-d-activites-1er-trimestre-2026"
-                },
-                {
-                    "date": "21/09/2026",
                     "titre": "BOA SENEGAL : Rapport d'activités - 1er semestre 2026",
                     "url": "https://www.richbourse.com/common/actualite/afficher-fichier/21-09-2026-boa-senegal-rapport-d-activites-1er-semestre-2026"
                 },
@@ -89,31 +109,6 @@
                     "date": "21/09/2026",
                     "titre": "SAPH CI : Communiqué - Changement important dans la Direction",
                     "url": "https://www.richbourse.com/common/actualite/afficher-fichier/21-09-2026-saph-ci-communique-changement-important-dans-la-direction"
-                },
-                {
-                    "date": "21/09/2026",
-                    "titre": "SUCRIVOIRE S.A : Levée de suspension de la cotation de SUCRIVOIRE S.A.",
-                    "url": "https://www.richbourse.com/common/actualite/afficher-fichier/21-09-2026-sucrivoire-s-a-levee-de-suspension-de-la-cotation-de-sucrivoire-s-a"
-                }
-            ]
-        },
-        {
-            "semaine": "Semaine du 14 Septembre au 20 Septembre 2026",
-            "publications": [
-                {
-                    "date": "18/09/2026",
-                    "titre": "Transactions Sur Dossier",
-                    "url": "https://www.richbourse.com/common/actualite/afficher-fichier/18-09-2026-transactions-sur-dossier"
-                },
-                {
-                    "date": "18/09/2026",
-                    "titre": "UNIWAX : Communiqué - Declaration de franchissement de seuil - FRAGECI, VLISCO B.V, CFCI SA, COIC SA",
-                    "url": "https://www.richbourse.com/common/actualite/afficher-fichier/18-09-2026-uniwax-communique-declaration-de-franchissement-de-seuil-frageci-vlisco-bv-cfci-sa-coic-sa"
-                },
-                {
-                    "date": "17/09/2026",
-                    "titre": "AFRICA GLOBAL LOGISTICS CI : Rapport des Commissaires Aux Comptes sur les Etats Financiers",
-                    "url": "https://www.richbourse.com/common/actualite/afficher-fichier/17-09-2026-africa-global-logistics-ci-rapport-des-commissaires-aux-comptes-sur-les-etats-financiers"
                 }
             ]
         }
