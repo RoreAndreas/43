@@ -1,14 +1,19 @@
 {
-    "last_update": "2026-10-02 16:11:51",
+    "last_update": "2026-10-03 01:51:23",
     "count": 20,
     "weeks": [
         {
             "semaine": "Semaine du 28 Septembre au 04 Octobre 2026",
             "publications": [
                 {
+                    "date": "02/10/2026",
+                    "titre": "ETI TG : Avis de convocation - Assemblée Générale Ordinaire",
+                    "url": "https://www.richbourse.com/common/actualite/afficher-fichier/02-10-2026-eti-tg-avis-de-convocation-assemblee-generale-ordinaire"
+                },
+                {
                     "date": "01/10/2026",
-                    "titre": "BOA CI : Rapport d'examen limité des états financiers - 1er semestre 2026",
-                    "url": "https://www.richbourse.com/common/actualite/afficher-fichier/01-10-2026-boa-ci-rapport-d-examen-limite-des-etats-financiers-1er-semestre-2026"
+                    "titre": "ONATEL BF : Rapport d'activités - 1er semestre 2026",
+                    "url": "https://www.richbourse.com/common/actualite/afficher-fichier/01-10-2026-onatel-bf-rapport-dactivites-1er-semestre-2026"
                 },
                 {
                     "date": "01/10/2026",
@@ -17,8 +22,8 @@
                 },
                 {
                     "date": "01/10/2026",
-                    "titre": "BOA CI : Rapport d'activités - 1er semestre 2026",
-                    "url": "https://www.richbourse.com/common/actualite/afficher-fichier/01-10-2026-boa-ci-rapport-d-activites-1er-semestre-2026"
+                    "titre": "BOA CI : Rapport d'examen limité des états financiers - 1er semestre 2026",
+                    "url": "https://www.richbourse.com/common/actualite/afficher-fichier/01-10-2026-boa-ci-rapport-d-examen-limite-des-etats-financiers-1er-semestre-2026"
                 },
                 {
                     "date": "01/10/2026",
@@ -27,8 +32,8 @@
                 },
                 {
                     "date": "01/10/2026",
-                    "titre": "ONATEL BF : Rapport d'activités - 1er semestre 2026",
-                    "url": "https://www.richbourse.com/common/actualite/afficher-fichier/01-10-2026-onatel-bf-rapport-dactivites-1er-semestre-2026"
+                    "titre": "BOA CI : Rapport d'activités - 1er semestre 2026",
+                    "url": "https://www.richbourse.com/common/actualite/afficher-fichier/01-10-2026-boa-ci-rapport-d-activites-1er-semestre-2026"
                 },
                 {
                     "date": "30/09/2026",
@@ -42,13 +47,13 @@
                 },
                 {
                     "date": "28/09/2026",
-                    "titre": "SIB CI : Rapport d'activités - 1er semestre 2026",
-                    "url": "https://www.richbourse.com/common/actualite/afficher-fichier/28-09-2026-sib-ci-rapport-d-activites-1er-semestre-2026"
+                    "titre": "SIB CI : Attestation des Commissaires Aux Comptes - 1er semestre 2026",
+                    "url": "https://www.richbourse.com/common/actualite/afficher-fichier/28-09-2026-sib-ci-attestation-des-commissaires-aux-comptes-1er-semestre-2026"
                 },
                 {
                     "date": "28/09/2026",
-                    "titre": "SIB CI : Attestation des Commissaires Aux Comptes - 1er semestre 2026",
-                    "url": "https://www.richbourse.com/common/actualite/afficher-fichier/28-09-2026-sib-ci-attestation-des-commissaires-aux-comptes-1er-semestre-2026"
+                    "titre": "SIB CI : Rapport d'activités - 1er semestre 2026",
+                    "url": "https://www.richbourse.com/common/actualite/afficher-fichier/28-09-2026-sib-ci-rapport-d-activites-1er-semestre-2026"
                 }
             ]
         },
@@ -67,8 +72,8 @@
                 },
                 {
                     "date": "24/09/2026",
-                    "titre": "BRIDGE BANK GROUP CI : Rapport d'activités - 1er semestre 2026",
-                    "url": "https://www.richbourse.com/common/actualite/afficher-fichier/24-09-2026-bridge-bank-group-ci-rapport-d-activites-1er-semestre-2026"
+                    "titre": "BRIDGE BANK GROUP CI : Rapport des Commissaires Aux Comptes - 1er semestre 2026",
+                    "url": "https://www.richbourse.com/common/actualite/afficher-fichier/24-09-2026-bridge-bank-group-ci-rapport-des-commissaires-aux-comptes-1er-semestre-2026"
                 },
                 {
                     "date": "24/09/2026",
@@ -77,13 +82,13 @@
                 },
                 {
                     "date": "24/09/2026",
-                    "titre": "BRIDGE BANK GROUP CI : Rapport des Commissaires Aux Comptes - 1er semestre 2026",
-                    "url": "https://www.richbourse.com/common/actualite/afficher-fichier/24-09-2026-bridge-bank-group-ci-rapport-des-commissaires-aux-comptes-1er-semestre-2026"
+                    "titre": "TOTALENERGIES MARKETING SN : Changement important dans la Direction",
+                    "url": "https://www.richbourse.com/common/actualite/afficher-fichier/24-09-2026-totalenergies-marketing-sn-changement-important-dans-la-direction"
                 },
                 {
                     "date": "24/09/2026",
-                    "titre": "TOTALENERGIES MARKETING SN : Changement important dans la Direction",
-                    "url": "https://www.richbourse.com/common/actualite/afficher-fichier/24-09-2026-totalenergies-marketing-sn-changement-important-dans-la-direction"
+                    "titre": "BRIDGE BANK GROUP CI : Rapport d'activités - 1er semestre 2026",
+                    "url": "https://www.richbourse.com/common/actualite/afficher-fichier/24-09-2026-bridge-bank-group-ci-rapport-d-activites-1er-semestre-2026"
                 },
                 {
                     "date": "23/09/2026",
@@ -99,11 +104,6 @@
                     "date": "21/09/2026",
                     "titre": "BIIC BN : Rapport d'activités et Etats financiers IFRS - 1er semestre 2026",
                     "url": "https://www.richbourse.com/common/actualite/afficher-fichier/21-09-2026-biic-bn-rapport-d-activites-et-etats-financiers-ifrs-1er-semestre-2026"
-                },
-                {
-                    "date": "21/09/2026",
-                    "titre": "BOA SENEGAL : Rapport d'activités - 1er semestre 2026",
-                    "url": "https://www.richbourse.com/common/actualite/afficher-fichier/21-09-2026-boa-senegal-rapport-d-activites-1er-semestre-2026"
                 },
                 {
                     "date": "21/09/2026",
