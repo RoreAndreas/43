@@ -1,19 +1,34 @@
 """
-Univers de comparables, lu depuis l'export S&P Global déposé dans WACC43.
+Univers de comparables, lu depuis les exports S&P Global déposés dans WACC43.
 
-L'export tient en trois onglets qui partagent la même liste de sociétés, dans le
-même ordre, appariés par `Entity ID` :
+Un export par grande zone — `43 AF.xlsx`, `43 EU.xlsx`, `43 ME.xlsx`,
+`43 US.xlsx`. Chacun tient en trois onglets qui partagent la même liste de
+sociétés, appariés par `Entity ID` :
 
     Sheet1  produits, EBITDA, marge, résultat net (FY2022 à FY2025),
-            puis bêta 1 an (colonne S) et bêta 3 ans (colonne T)
+            bêta 1 an, bêta 3 ans, taux d'IS effectif
     Sheet2  géographie, pays, industrie, industrie primaire, description
-    Sheet3  dette totale, capitalisation boursière
+    Sheet3  fonds propres, dette totale, capitalisation boursière
+
+Les colonnes sont repérées par leur code S&P (ligne 4) et leur exercice
+(ligne 5), pas par leur position : d'un export à l'autre, S&P ajoute ou retire
+des colonnes. `43 US.xlsx` n'a pas de bêta à 3 ans, et la dette, qui ouvrait
+Sheet3, y vient désormais après les fonds propres.
 
 Seules les sociétés **complètes** alimentent la plateforme : pays, industrie,
-les deux bêtas, dette, capitalisation, chiffre d'affaires sur quatre exercices
-et résultat net sur trois. Les autres sont conservées dans l'univers mais
-marquées `visible: False`, et n'entrent ni dans les médianes ni dans les
-effectifs affichés.
+bêtas, dette, fonds propres positifs, capitalisation, chiffre d'affaires sur
+quatre exercices et résultat net sur trois. Les autres sont conservées dans
+l'univers mais marquées `visible: False`, et n'entrent ni dans les médianes ni
+dans les effectifs affichés.
+
+Le bêta de chaque société est désendetté ici, à son propre levier :
+
+    bêta désendetté = bêta / (1 + (1 − t) × dette totale / fonds propres)
+
+`t` est le taux d'IS légal du pays de la société (Damodaran). Le taux effectif
+publié par S&P est conservé à côté, dans `is_effectif`, sans entrer dans le
+calcul. Le gearing est le même rapport dette totale / fonds propres comptables.
+La page ré-endette ensuite la médiane du secteur au gearing retenu.
 
 L'EBITDA est délibérément hors critère. S&P n'en publie pas pour les banques ni
 les assureurs — la notion n'a pas de sens pour elles — et l'exiger ferait tomber
@@ -27,14 +42,14 @@ trop éclatée pour servir de maille de comparables.
 
 Le fichier porte les deux bêtas cotés, à un an et à trois ans. C'est le trois ans
 qui alimente le coût des fonds propres : sur des marchés peu liquides, celui à un
-an bouge trop pour servir de base à un coût du capital. Dette et capitalisation
-donnent par ailleurs un gearing sectoriel observé — celui qu'il fallait jusqu'ici
-saisir à la main.
+an bouge trop pour servir de base à un coût du capital. Un export qui ne publie
+pas de bêta à 3 ans — `43 US.xlsx` — fait retenir le bêta à 1 an pour toutes
+ses sociétés, et chacune le porte dans `beta_horizon`.
 
-Piège d'unités : S&P exporte les comptes et la dette en **milliers** (en-tête
-`BCEAO000`) mais la capitalisation en **millions** (`BCEAOM`). Rapporter l'une à
-l'autre sans conversion donne un gearing mille fois trop élevé — 593 pour les
-banques au lieu de 0,59. Tout est donc ramené ici en millions.
+Piège d'unités : S&P exporte les comptes, les fonds propres et la dette en
+**milliers** (en-tête `BCEAO000`) mais la capitalisation en **millions**
+(`BCEAOM`). Rapporter l'une à l'autre sans conversion donne un rapport mille fois
+trop élevé. Tout est donc ramené ici en millions.
 
 Les en-têtes occupent les lignes 3 à 6 ; les données commencent ligne 7.
 """
@@ -65,6 +80,14 @@ _POINT = re.compile(r"\.(?=\s|$)")
 _PHRASE_MIN = 25
 
 PREMIERE_LIGNE = 7
+LIGNE_CODES, LIGNE_EXERCICES = 4, 5
+
+# Exports déposés à la racine de WACC43 : « 43 AF.xlsx », « 43 EU.xlsx »…
+MOTIF_EXPORTS = "43 *.xlsx"
+
+# Taux d'IS retenu quand Damodaran n'en publie pas pour le pays de la société —
+# le même que la page applique au pays valorisé dans ce cas.
+TAUX_IS_DEFAUT = 0.25
 
 # Longueur au-delà de laquelle la présentation est coupée. Voir `resume()` : la
 # première phrase fait 123 caractères en médiane, et 4 % seulement atteignent ce
@@ -135,11 +158,13 @@ def _industrie_canonique(industrie: str) -> str:
 
 
 def trouver_exports(racine: Path) -> list:
-    """Tous les exports `comps*.xlsx` trouvés autour du dossier fourni.
+    """Tous les exports `43 *.xlsx` trouvés autour du dossier fourni.
 
-    Un fichier par grande zone — compsAF, compsEU, compsUS, et ceux à venir —
+    Un fichier par grande zone — 43 AF, 43 EU, 43 ME, 43 US, et ceux à venir —
     plutôt qu'un export unique : les actualiser séparément évite de retélécharger
-    vingt-cinq mille lignes américaines pour corriger une ligne africaine.
+    vingt-cinq mille lignes américaines pour corriger une ligne africaine. Les
+    anciens `comps*.xlsx` ne sont plus lus : les fusionner aux nouveaux ferait
+    cohabiter deux dates d'arrêté sous un même identifiant.
 
     Les exports sont déposés à la racine de WACC43, alors que le build travaille
     depuis PFILES. On regarde donc le dossier donné, son parent et son
@@ -150,10 +175,46 @@ def trouver_exports(racine: Path) -> list:
     for base in (racine, racine.parent, racine.parent.parent):
         if not base.is_dir():
             continue
-        trouves = sorted(base.glob("comps*.xlsx"))
+        trouves = sorted(base.glob(MOTIF_EXPORTS))
         if trouves:
             return trouves
     return []
+
+
+def _colonnes(feuille, chemin: Path) -> "Colonnes":
+    """Les colonnes d'un onglet, repérées par code S&P et exercice."""
+    codes = next(feuille.iter_rows(min_row=LIGNE_CODES, max_row=LIGNE_CODES, values_only=True))
+    exercices = next(feuille.iter_rows(min_row=LIGNE_EXERCICES, max_row=LIGNE_EXERCICES,
+                                       values_only=True))
+    index = {}
+    for i, code in enumerate(codes):
+        if code:
+            exercice = exercices[i] if i < len(exercices) else None
+            index.setdefault(str(code).strip(), {})[str(exercice or "").strip()] = i
+    return Colonnes(index, f"{chemin.name} › {feuille.title}")
+
+
+class Colonnes:
+    """Positions d'un onglet. Un code obligatoire absent arrête la lecture en
+    le nommant : une colonne manquante ne doit pas passer pour une donnée vide."""
+
+    def __init__(self, index: dict, ou: str):
+        self.index, self.ou = index, ou
+
+    def a(self, code: str) -> bool:
+        return code in self.index
+
+    def une(self, code: str) -> int:
+        if code not in self.index:
+            raise ValueError(f"{self.ou} : colonne {code} absente")
+        return next(iter(self.index[code].values()))
+
+    def serie(self, code: str, exercices: list) -> dict:
+        positions = self.index.get(code, {})
+        manquants = [a for a in exercices if a not in positions]
+        if manquants:
+            raise ValueError(f"{self.ou} : {code} absent pour {', '.join(manquants)}")
+        return {a: positions[a] for a in exercices}
 
 
 def charger(chemin: Path, progress=None) -> dict:
@@ -165,13 +226,17 @@ def charger(chemin: Path, progress=None) -> dict:
     dire(f"Comparables : lecture de {chemin.name}...")
     wb = openpyxl.load_workbook(chemin, read_only=True, data_only=True)
     try:
+        c2 = _colonnes(wb["Sheet2"], chemin)
+        p_nom, p_id, p_pays, p_ind, p_prim, p_desc = (c2.une(code) for code in (
+            "SP_ENTITY_NAME", "SP_ENTITY_ID", "SP_COUNTRY_NAME", "IQ_INDUSTRY",
+            "IQ_PRIMARY_INDUSTRY", "SP_BUSINESS_DESCRIPTION"))
         signaletique = {}
-        for ligne in wb["Sheet2"].iter_rows(
-            min_row=PREMIERE_LIGNE, min_col=1, max_col=7, values_only=True
-        ):
-            nom, ident, _geo, pays, industrie, primaire, description = ligne[:7]
+        for ligne in wb["Sheet2"].iter_rows(min_row=PREMIERE_LIGNE, values_only=True):
+            nom, ident = ligne[p_nom], ligne[p_id]
             if not nom or not ident:
                 continue
+            pays, industrie, primaire, description = (
+                ligne[p_pays], ligne[p_ind], ligne[p_prim], ligne[p_desc])
             place, code = _place_et_ticker(nom, ident)
             signaletique[str(ident)] = {
                 "nom": _nom_court(nom),
@@ -183,34 +248,54 @@ def charger(chemin: Path, progress=None) -> dict:
                 "description": (description or "").strip() or None,
             }
 
+        c1 = _colonnes(wb["Sheet1"], chemin)
+        ca, ebitda = c1.serie("IQ_TOTAL_REV", EXERCICES), c1.serie("IQ_EBITDA", EXERCICES)
+        rn = c1.serie("IQ_NET_INC_PARENT", EXERCICES[:3])
+        beta_1an = c1.une("SP_BETA1YR")
+        # Sans bêta à 3 ans dans l'export, c'est le 1 an qui sert, pour toutes
+        # ses sociétés : mêler les deux horizons dans un même fichier ferait
+        # dépendre le bêta retenu de ce que S&P a su calculer, société par société.
+        beta_3ans = c1.une("SP_BETA_3YR") if c1.a("SP_BETA_3YR") else None
+        horizon = "3 ans" if beta_3ans is not None else "1 an"
+        if beta_3ans is None:
+            dire(f"Comparables : {chemin.name} sans bêta à 3 ans — bêta à 1 an retenu.")
+        is_effectif = c1.une("IQ_EFFECT_TAX_RATE") if c1.a("IQ_EFFECT_TAX_RATE") else None
+        p_id = c1.une("SP_ENTITY_ID")
+
         comptes = {}
-        for ligne in wb["Sheet1"].iter_rows(
-            min_row=PREMIERE_LIGNE, min_col=1, max_col=20, values_only=True
-        ):
-            ident = ligne[1]
+        for ligne in wb["Sheet1"].iter_rows(min_row=PREMIERE_LIGNE, values_only=True):
+            ident = ligne[p_id]
             if not ident:
                 continue
+            taux = None if is_effectif is None else _nombre(ligne[is_effectif])
             comptes[str(ident)] = {
-                "ca": {a: _nombre(ligne[2 + i]) for i, a in enumerate(EXERCICES)},
-                "ebitda": {a: _nombre(ligne[6 + i]) for i, a in enumerate(EXERCICES)},
-                "rn": {a: _nombre(ligne[14 + i]) for i, a in enumerate(EXERCICES[:3])},
-                "beta_1an": _nombre(ligne[18]),
-                "beta_3ans": _nombre(ligne[19]),
+                "ca": {a: _nombre(ligne[i]) for a, i in ca.items()},
+                "ebitda": {a: _nombre(ligne[i]) for a, i in ebitda.items()},
+                "rn": {a: _nombre(ligne[i]) for a, i in rn.items()},
+                "beta_1an": _nombre(ligne[beta_1an]),
+                "beta_3ans": None if beta_3ans is None else _nombre(ligne[beta_3ans]),
+                "beta_horizon": horizon,
+                # Publié en pourcentage, tel quel : S&P le donne au-delà de
+                # 100 % quand le résultat avant impôt est presque nul. Conservé
+                # pour un usage ultérieur, il n'entre pas dans le désendettement.
+                "is_effectif": None if taux is None else taux / 100.0,
             }
 
+        c3 = _colonnes(wb["Sheet3"], chemin)
+        p_id, fp, dette, capi = (c3.une(code) for code in
+                                 ("SP_ENTITY_ID", "IQ_TOTAL_EQUITY", "IQ_TOTAL_DEBT", "SP_MARKETCAP"))
         marche = {}
-        for ligne in wb["Sheet3"].iter_rows(
-            min_row=PREMIERE_LIGNE, min_col=1, max_col=4, values_only=True
-        ):
-            ident = ligne[1]
+        for ligne in wb["Sheet3"].iter_rows(min_row=PREMIERE_LIGNE, values_only=True):
+            ident = ligne[p_id]
             if not ident:
                 continue
-            dette = _nombre(ligne[2])
+            fonds_propres, montant = _nombre(ligne[fp]), _nombre(ligne[dette])
             marche[str(ident)] = {
-                # Dette en milliers, capitalisation en millions : on ramène tout
-                # en millions pour que le rapport ait un sens.
-                "dette": None if dette is None else dette / 1000.0,
-                "capitalisation": _nombre(ligne[3]),
+                # Fonds propres et dette en milliers, capitalisation en millions :
+                # on ramène tout en millions pour que les rapports aient un sens.
+                "fonds_propres": None if fonds_propres is None else fonds_propres / 1000.0,
+                "dette": None if montant is None else montant / 1000.0,
+                "capitalisation": _nombre(ligne[capi]),
             }
     finally:
         wb.close()
@@ -233,18 +318,29 @@ def charger(chemin: Path, progress=None) -> dict:
     }
 
 
+def beta_retenu(s: dict):
+    """Le bêta coté qui entre dans le calcul : le 3 ans, ou le 1 an quand
+    l'export de la société n'en publie pas d'autre."""
+    return s.get("beta_3ans") if s.get("beta_horizon") == "3 ans" else s.get("beta_1an")
+
+
 def _est_complete(s: dict) -> bool:
     """La société porte-t-elle toutes les valeurs dont la plateforme se sert ?
 
-    Bêtas, dette et capitalisation alimentent le coût du capital ; chiffre
-    d'affaires et résultat net alimentent l'affichage. L'EBITDA est hors critère,
-    pour la raison exposée en tête de module.
+    Bêtas, dette et fonds propres alimentent le coût du capital ; la
+    capitalisation classe l'échantillon ; chiffre d'affaires et résultat net
+    alimentent l'affichage. Des fonds propres nuls ou négatifs rendent le gearing
+    sans objet : la société ne peut pas être désendettée. Le taux d'IS effectif
+    est hors critère — il n'entre pas dans le calcul. L'EBITDA aussi, pour la
+    raison exposée en tête de module.
     """
     if not s.get("pays") or not s.get("industrie"):
         return False
-    if s.get("beta_1an") is None or s.get("beta_3ans") is None:
+    if s.get("beta_1an") is None or beta_retenu(s) is None:
         return False
     if s.get("dette") is None or not s.get("capitalisation"):
+        return False
+    if not (s.get("fonds_propres") or 0) > 0:
         return False
     ca = s.get("ca") or {}
     rn = s.get("rn") or {}
@@ -253,6 +349,45 @@ def _est_complete(s: dict) -> bool:
     if any(rn.get(a) is None for a in EXERCICES[:3]):
         return False
     return True
+
+
+def taux_desendettement(societe: dict, taux_pays) -> tuple:
+    """Taux d'IS qui désendette le bêta d'une société, et son origine.
+
+    Le taux légal de son pays, pas le taux effectif publié par S&P : celui-ci
+    reste dans `is_effectif`. C'est ici, et seulement ici, qu'il faudra le
+    brancher le jour où on décidera de s'en servir.
+    """
+    return taux_pays(societe["pays"])
+
+
+def desendetter(societes: dict, taux_pays) -> dict:
+    """Gearing et bêta désendetté de chaque société complète, à son propre levier.
+
+        gearing          = dette totale / fonds propres
+        bêta désendetté  = bêta retenu / (1 + (1 − t) × gearing)
+
+    Désendetter société par société, plutôt que la médiane au gearing médian,
+    retire à chaque bêta le levier qui est le sien : une banque à dix fois ses
+    fonds propres et une foncière à 0,3 ne portent pas le même risque financier,
+    et la médiane des bêtas endettés mêlerait les deux.
+
+    `taux_pays(pays)` rend (taux, origine). Modifie `societes` sur place ; rend
+    le décompte des sociétés par origine du taux, pour le journal du build.
+    """
+    origines = {}
+    for s in societes.values():
+        if not s.get("visible"):
+            continue
+        taux, origine = taux_desendettement(s, taux_pays)
+        gearing = s["dette"] / s["fonds_propres"]
+        # Arrondis ici, une fois : la page refait la médiane des sociétés
+        # retenues sur ces valeurs embarquées, et doit retomber sur celle du build.
+        s["gearing"] = round(gearing, 6)
+        s["is_desendettement"] = taux
+        s["beta_u"] = round(beta_retenu(s) / (1 + (1 - taux) * gearing), 6)
+        origines[origine] = origines.get(origine, 0) + 1
+    return origines
 
 
 def statistiques(membres: list) -> dict:
@@ -279,6 +414,7 @@ def statistiques(membres: list) -> dict:
     inchangée, ses échantillons n'atteignant pas ce nombre.
     """
     def mediane(valeurs):
+        valeurs = [v for v in valeurs if v is not None]
         return round(statistics.median(valeurs), 4) if valeurs else None
 
     retenus = sorted(membres, key=lambda s: -(s["capitalisation"] or 0))[:ECHANTILLON_MAX]
@@ -289,9 +425,17 @@ def statistiques(membres: list) -> dict:
         # une autre.
         "societes": len(membres),
         "retenues": len(retenus),
+        # Le bêta qui entre dans le CMPC : désendetté société par société, voir
+        # `desendetter()`. Les médianes cotées restent publiées pour la lecture.
+        "beta_u": mediane([s["beta_u"] for s in retenus]),
         "beta_1an": mediane([s["beta_1an"] for s in retenus]),
         "beta_3ans": mediane([s["beta_3ans"] for s in retenus]),
-        "gearing": mediane([s["dette"] / s["capitalisation"] for s in retenus]),
+        # Sociétés de l'échantillon dont le bêta retenu est le 1 an, faute de
+        # 3 ans dans leur export : la page le signale.
+        "horizon_1an": sum(1 for s in retenus if s.get("beta_horizon") == "1 an"),
+        "gearing": mediane([s["gearing"] for s in retenus]),
+        # Conservé pour un usage ultérieur ; n'entre pas dans le calcul.
+        "is_effectif": mediane([s.get("is_effectif") for s in retenus]),
         # Somme et non médiane : la capitalisation ne sert pas au calcul, elle
         # dit le poids de l'échantillon. Elle porte donc sur exactement les
         # sociétés qui produisent les médianes ci-dessus.
@@ -368,7 +512,7 @@ def payload_page(univers: dict, classer) -> dict:
     def millions(valeur):
         return None if valeur is None else round(valeur / 1000.0, 1)
 
-    def resume(texte):
+    def resume(texte, nom=None):
         """La première phrase de la description S&P, coupée si besoin.
 
         Les descriptions font mille caractères en moyenne et montent à cinq
@@ -384,11 +528,20 @@ def payload_page(univers: dict, classer) -> dict:
         On ne retire pas le nom de la société bien qu'il figure déjà sur la
         carte : l'ôter laisse une phrase sans sujet, qui se lit plus mal qu'une
         redite de trois mots.
+
+        Aucune liste d'abréviations ne couvrira toutes les raisons sociales —
+        « Drugs Mfg. Co. », « Holdings PTV. Ltd. », « Communications. (K.S.C.P) »
+        sont arrivées avec l'export Moyen-Orient. Quand la description s'ouvre
+        sur le nom de la société, les points qu'il contient sont donc ignorés.
         """
         if not texte:
             return None
         propre = " ".join(texte.split())
+        nom_propre = " ".join(str(nom or "").split())
+        tete = len(nom_propre) if nom_propre and propre.startswith(nom_propre) else 0
         for point in _POINT.finditer(propre):
+            if point.end() <= tete:
+                continue
             debut = propre.rfind(" ", 0, point.start()) + 1
             mot = propre[debut:point.start()].lower().strip("(),;:\"'")
             # Une initiale, un sigle pointé, une forme juridique : on passe.
@@ -418,11 +571,17 @@ def payload_page(univers: dict, classer) -> dict:
             "zone": zone,
             "industrie": s["industrie"],
             "activite": s.get("industrie_fine"),
-            "presentation": resume(s.get("description")),
+            "presentation": resume(s.get("description"), s["nom"]),
             "beta_1an": s.get("beta_1an"),
             "beta_3ans": s.get("beta_3ans"),
+            "beta_horizon": s.get("beta_horizon"),
+            "beta_u": s.get("beta_u"),
             "capitalisation": round(s["capitalisation"], 1),
             "dette": round(s["dette"], 1),
+            "fonds_propres": round(s["fonds_propres"], 1),
+            "gearing": s.get("gearing"),
+            "is_desendettement": s.get("is_desendettement"),
+            "is_effectif": None if s.get("is_effectif") is None else round(s["is_effectif"], 5),
             # Exercices en clair : le gabarit indexe les séries par année.
             "annees": [int(a[2:]) for a in reversed(EXERCICES)],
             "ca": {a[2:]: millions(ca.get(a)) for a in EXERCICES},
@@ -457,14 +616,18 @@ def indexer_par_zone(univers: dict, classer) -> tuple[dict, list]:
     return index, sorted(set(orphelins))
 
 
-def construire(racine: Path, progress=None) -> dict | None:
-    """Point d'entrée du build : fusionne tous les exports déposés.
+def construire(racine: Path, taux_pays, progress=None) -> dict | None:
+    """Point d'entrée du build : fusionne tous les exports déposés, puis
+    désendette le bêta de chaque société complète.
 
     Rend None si aucun n'est trouvé. Les sociétés sont appariées par `Entity ID`,
     identifiant S&P global : un même titre présent dans deux exports n'est donc
     compté qu'une fois, et la fusion reste sûre quand les périmètres se
-    recouvrent — ce que fera tôt ou tard un export « Moyen-Orient » face à un
-    export « Afrique » sur l'Égypte.
+    recouvrent — ce que fait l'export « Moyen-Orient » face à l'export
+    « Afrique » sur l'Égypte.
+
+    `taux_pays(pays)` rend le taux d'IS légal du pays et son origine : voir
+    `desendetter()`.
     """
     chemins = trouver_exports(racine)
     if not chemins:
@@ -477,9 +640,29 @@ def construire(racine: Path, progress=None) -> dict | None:
         societes.update(bloc["societes"])
         sources.append(chemin.name)
 
+    origines = desendetter(societes, taux_pays)
+
     if progress:
         visibles = sum(1 for s in societes.values() if s["visible"])
         recouvrement = f", {doublons} en double" if doublons else ""
         progress(f"Comparables : {len(sources)} export(s) fusionné(s) — "
                  f"{visibles} sociétés complètes sur {len(societes)}{recouvrement}.")
+        if origines.get("défaut"):
+            progress(f"Comparables : {origines['défaut']} société(s) sans taux d'IS "
+                     f"Damodaran pour leur pays — désendettées à {TAUX_IS_DEFAUT:.0%}.")
     return {"source": ", ".join(sources), "societes": societes}
+
+
+def taux_pays_damodaran(pays_damodaran: dict, nom_damodaran):
+    """Fonction `taux_pays` adossée au jeu de données Damodaran.
+
+    `pays_damodaran` : l'entrée `pays` du jeu de données, où chaque pays porte
+    son taux d'IS sous `tax` quand Damodaran en publie un. `nom_damodaran`
+    ramène l'orthographe S&P (« USA », « Türkiye ») à celle de Damodaran.
+    """
+    def taux(pays):
+        entree = pays_damodaran.get(nom_damodaran(pays)) or {}
+        if entree.get("tax") is not None:
+            return entree["tax"], "pays"
+        return TAUX_IS_DEFAUT, "défaut"
+    return taux

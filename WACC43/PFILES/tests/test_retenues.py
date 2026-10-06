@@ -19,7 +19,7 @@ import statistics
 
 import pytest
 
-from conftest import choisir, mode_comparables
+from conftest import choisir, mode_comparables, zone_sans
 from conftest import ouvrir as ouvrir_vue
 
 MARQUEE = "#stackSoc .comp.is-retenue"
@@ -57,9 +57,9 @@ def test_les_marquees_reproduisent_la_mediane_publiee(page, donnees, continent, 
     assert ids, "aucune société marquée"
 
     soc = donnees["comparables"]["societes"]
-    calculee = statistics.median([soc[i]["beta_3ans"] for i in ids])
+    calculee = statistics.median([soc[i]["beta_u"] for i in ids])
 
-    publiee = page.evaluate("nom => statsSecteur(nom).beta_3ans", secteur)
+    publiee = page.evaluate("nom => statsSecteur(nom).beta_u", secteur)
     assert round(calculee, 4) == publiee, (
         f"médiane des marquées {calculee:.4f} contre {publiee} publiée")
 
@@ -67,7 +67,14 @@ def test_les_marquees_reproduisent_la_mediane_publiee(page, donnees, continent, 
 def test_le_gearing_aussi(page, donnees):
     ouvrir(page, "Amériques", "Amérique du Nord", "Banks")
     soc = donnees["comparables"]["societes"]
-    ratios = [soc[i]["dette"] / soc[i]["capitalisation"] for i in marquees(page)]
+    # Dette totale sur fonds propres comptables, tels que S&P les publie. Le
+    # rapport est embarqué par société ; dette et fonds propres, arrondis au
+    # dixième de million, ne le redonnent qu'à l'arrondi près.
+    ids = marquees(page)
+    for i in ids:
+        assert soc[i]["gearing"] == pytest.approx(
+            soc[i]["dette"] / soc[i]["fonds_propres"], rel=1e-3, abs=1e-3)
+    ratios = [soc[i]["gearing"] for i in ids]
     assert round(statistics.median(ratios), 4) == page.evaluate(
         "statsSecteur('Banks').gearing")
 
@@ -123,9 +130,9 @@ def test_la_legende_dit_le_perimetre_de_la_mediane(page):
     assert "Afrique" in legende
 
 
-def test_une_zone_vide_dit_ou_est_calculee_la_mediane(page):
+def test_une_zone_vide_dit_ou_est_calculee_la_mediane(page, donnees):
     """Sinon « aucune société » et un CMPC chiffré se contrediraient à voix basse."""
-    ouvrir(page, "Afrique", "Afrique du Nord", "Banks")
+    ouvrir(page, "Afrique", zone_sans(donnees, "Afrique", "Banks"), "Banks")
     assert page.query_selector("#stackSoc .vide404") is not None
     texte = page.inner_text("#stackSoc .vide404")
     assert "Le CMPC reste calculé" in texte

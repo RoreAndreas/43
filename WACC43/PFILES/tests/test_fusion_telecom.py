@@ -50,5 +50,5 @@ def test_orange_ci_et_sonatel_comptent_dans_la_meme_mediane(page, donnees):
     choisir(page, "secteur", FUSIONNE)
 
     attendu = secteur(donnees, FUSIONNE, perimetre="Afrique")
-    assert nombre_fr(ligne_resultat(page, "Bêta médian (3 ans)")) == round(attendu["beta_3ans"], 3)
+    assert nombre_fr(ligne_resultat(page, "Bêta désendetté médian")) == round(attendu["beta_u"], 3)
     assert nombre_fr(ligne_resultat(page, "Sociétés du secteur")) == attendu["societes"]

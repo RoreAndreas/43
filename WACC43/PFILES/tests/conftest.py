@@ -56,7 +56,10 @@ def page(navigateur):
     onglet = navigateur.new_page(viewport={"width": 1280, "height": 900})
     erreurs = []
     onglet.on("pageerror", lambda e: erreurs.append(str(e)))
-    onglet.goto(PAGE.resolve().as_uri())
+    # La page embarque sept mille cinq cents sociétés : sept mégaoctets que
+    # Chromium met parfois plus de trente secondes à analyser sur un poste
+    # chargé, le délai par défaut.
+    onglet.goto(PAGE.resolve().as_uri(), timeout=90000)
     onglet.wait_for_selector("#paramsMain .card-block")
     yield onglet
     # Une exception JS laisse la page à moitié dessinée : le test suivant
@@ -133,6 +136,21 @@ def continent_vide(donnees: dict) -> str:
         if continent not in peuples:
             return continent
     pytest.skip("aucun continent vide : l'univers les couvre tous")
+
+
+def zone_sans(donnees: dict, continent: str, nom_secteur: str) -> str:
+    """Une zone du continent où le secteur ne compte aucune société.
+
+    L'Afrique du Nord a longtemps servi de zone sans banque, codée en dur ;
+    l'export Moyen-Orient y a apporté l'Égypte et ses banques. On la cherche
+    donc dans les données.
+    """
+    peuplees = {s["zone"] for s in (donnees.get("comparables") or {}).get("societes", {}).values()
+                if s["industrie"] == nom_secteur}
+    for zone, _pays in donnees["options"]["zones_par_continent"].get(continent, []):
+        if zone not in peuplees:
+            return zone
+    pytest.skip(f"toutes les zones de {continent} comptent un « {nom_secteur} »")
 
 
 def zone_vide(donnees: dict, continent: str) -> str:

@@ -58,10 +58,12 @@ ZONES = {
         "Armenia", "Azerbaijan", "Georgia", "Kazakhstan", "Kyrgyzstan",
         "Tajikistan", "Uzbekistan",
     ],
+    # Iran, Palestine, Syrie et Yémen ne sont pas notés par Damodaran, mais
+    # l'export Moyen-Orient de S&P y compte des sociétés cotées.
     "Moyen-Orient": [
-        "Abu Dhabi", "Bahrain", "Iraq", "Israel", "Jordan", "Kuwait", "Lebanon",
-        "Oman", "Qatar", "Ras Al Khaimah (Emirate of)", "Saudi Arabia",
-        "Sharjah", "United Arab Emirates",
+        "Abu Dhabi", "Bahrain", "Iran", "Iraq", "Israel", "Jordan", "Kuwait",
+        "Lebanon", "Oman", "Palestine", "Qatar", "Ras Al Khaimah (Emirate of)",
+        "Saudi Arabia", "Sharjah", "Syria", "United Arab Emirates", "Yemen",
     ],
 
     # ---- Europe ----
@@ -183,7 +185,41 @@ _ALIAS = {
     "ivorycoast": "Côte d'Ivoire",
     "thegambia": "Gambia",
     "saotomeandprincipe": "Sao Tome and Principe",
+    # Le fichier fiscal de Damodaran suit la nomenclature des Nations unies,
+    # pas celle de son propre fichier de primes. Sans ces lignes, vingt-trois
+    # pays — dont les États-Unis et le Royaume-Uni — y restaient sans taux d'IS.
+    "unitedstatesofamerica": "United States",
+    "unitedkingdomofgreatbritainandnorthernireland": "United Kingdom",
+    "unitedrepublicoftanzania": "Tanzania",
+    "republicofkorea": "Korea",
+    "czechia": "Czech Republic",
+    "plurinationalstateofbolivia": "Bolivia",
+    "bolivarianrepublicofvenezuela": "Venezuela",
+    "venezuelabolivarianrepublicof": "Venezuela",
+    "republicofmoldova": "Moldova",
+    "theformeryugoslavrepublicofmacedonia": "Macedonia",
+    "laopeoplesdemocraticrepublic": "Laos",
+    "chinahongkongspecialadministrativeregion": "Hong Kong",
+    "chinamacaospecialadministrativeregion": "Macao",
+    "andorra": "Andorra (Principality of)",
+    "guernsey": "Guernsey (States of)",
+    "jersey": "Jersey (States of)",
+    "sintmaartendutchpart": "St. Maarten",
+    "saintvincentandthegrenadines": "St. Vincent & the Grenadines",
 }
+
+
+_NOM_PAR_CLE = {_sans_accent(pays): pays for pays in _PAR_PAYS}
+
+
+def nom_damodaran(pays: str) -> str:
+    """Le libellé Damodaran d'un pays écrit autrement — « USA », « Türkiye »,
+    « Bénin ». Rend le libellé tel quel s'il n'est connu sous aucune forme."""
+    libelle = str(pays).strip()
+    if libelle in _PAR_PAYS:
+        return libelle
+    cle = _sans_accent(libelle)
+    return _NOM_PAR_CLE.get(cle) or _ALIAS.get(cle) or libelle
 
 
 def classer(pays: str, region_damodaran: str = None):

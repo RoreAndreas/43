@@ -2615,7 +2615,7 @@
     "mature": 0.0423,
     "adjustment": { "rows": [], "correction": 0 },
     "rf": { "2026-30": 4.94 },
-    "pays": { "—": { "crp": 0.0064, "tax": 0.25 } },
+    "pays": { "—": { "crp": 0.0064, "ds": 0.0042, "tax": 0.25 } },
     "industries": { "—": { "beta": 1.163, "de": 0.32, "spread": 0.0134 } },
     "options": { "years": [2026], "maturities": ["30Y", "10Y"], "countries": ["—"], "countries_grouped": [["—", ["—"]]], "industries": ["—"] },
     "defaults": { "year": 2026, "maturity": "30Y", "country": "—", "industry": "—", "d": 0.01, "e": 0.005, "inflation_ref": 0.025, "inflation_local": 0.03 }
@@ -2700,6 +2700,12 @@
   // véhicule.
   const PAYS_DOLLAR = ["United States", "Ecuador", "El Salvador", "Panama"];
 
+  // La dette ne porte pas la prime de risque pays : celle-ci est le spread de
+  // défaut souverain multiplié par la volatilité relative des actions, une
+  // grandeur de fonds propres. Un prêteur, lui, exige le spread de défaut tel
+  // quel — celui que Damodaran tire de la notation du pays.
+  //
+  //     taux de la dette = US Bond (année, maturité) + spread de défaut pays
   function tauxSansRisque() {
     const code = params.maturity === "30Y" ? "30" : "10";
     const brut = DATA.rf[params.year + "-" + code];
@@ -2707,11 +2713,15 @@
     const pays = DATA.pays[params.country] || {};
     const primeDefaut = pays.crp === undefined;
     const prime = primeDefaut ? 0.01 : pays.crp;
+    const spreadPaysDefaut = pays.ds === undefined;
+    const spreadPays = spreadPaysDefaut ? 0.01 : pays.ds;
     return {
       pays: params.country,
       libelle: "US Bond " + params.maturity + " (" + params.year + ")",
       socle: brut / 100, prime: prime, primeDefaut: primeDefaut,
       taux: brut / 100 + prime,
+      spreadPays: spreadPays, spreadPaysDefaut: spreadPaysDefaut,
+      tauxDette: brut / 100 + spreadPays,
       monnaie: DOLLAR, source: "US Treasury",
       locale: PAYS_DOLLAR.indexOf(params.country) >= 0,
     };
@@ -2766,6 +2776,8 @@
     const rf = tauxSansRisque();
     const crp = rf ? rf.prime : 0.01;
     if (country.crp === undefined) notes.push("Prime de risque pays indisponible, 1,00 % retenu");
+    const spreadPays = rf ? rf.spreadPays : 0.01;
+    if (country.ds === undefined) notes.push("Spread de défaut pays indisponible, 1,00 % retenu");
     let tax = country.tax;
     if (tax === undefined) { tax = 0.25; notes.push("Taux d'IS indisponible pour ce pays, 25,00 % retenu"); }
     let beta = industry.beta, de = industry.de;
@@ -2773,13 +2785,15 @@
     let rawSpread = industry.spread;
     if (rawSpread === undefined) { rawSpread = 0.05; notes.push("Spread de financement indisponible, 5,00 % retenu"); }
 
-    let rfPct, a;
+    let rfPct, a, aDette;
     if (rf) {
       rfPct = rf.socle * 100;
       a = rf.taux;
+      aDette = rf.tauxDette;
     } else {
       rfPct = 0;
       a = 0.03;
+      aDette = 0.03;
       notes.push("Taux US " + p.maturity + " indisponible pour " + p.year + ", 3,00 % retenu");
     }
 
@@ -2787,7 +2801,7 @@
     const b = beta * (1 + de * (1 - tax));
     const re = a + b * c + p.d + p.e;
     const spread = adjustedSpread(rawSpread);
-    const rdPre = spread.value + a;
+    const rdPre = spread.value + aDette;
     const rdPost = rdPre * (1 - tax);
     const ev = 1 / (1 + de);
     const dv = 1 - ev;
@@ -2821,16 +2835,17 @@
       {
         id: "rd", title: "Coût de la dette", symbol: "Rd", value: frPct(rdPre), tone: "accent",
         rows: [
-          { label: "Taux sans risque local (a)", value: frPct(a) },
+          { label: "Taux US Bond " + p.maturity + " (" + p.year + ")", value: frPct(rfPct / 100) },
+          { label: "Spread de défaut pays", value: frPct(spreadPays) },
           { label: spreadLabel, value: frPct(spread.value) },
           { label: "Coût de la dette avant impôt", value: frPct(rdPre), strong: true },
           { label: "Coût de la dette après impôt", value: frPct(rdPost) }
         ],
-        methodology: "Coût marginal de la dette : taux sans risque local majoré du spread de financement sectoriel, puis net d'économie d'impôt.",
-        source: "Spread de financement sectoriel Damodaran (" + p.industry + ")" + (spread.adjusted ? " ; spread ajusté via la table de notation." : "."),
-        hypothesis: "Refinancement aux conditions actuelles ; charges financières intégralement déductibles.",
+        methodology: "Coût marginal de la dette : taux US Bond majoré du spread de défaut du pays et du spread de financement sectoriel, puis net d'économie d'impôt. Le spread de défaut remplace la prime de risque pays, propre aux fonds propres.",
+        source: "Spread de défaut fondé sur la notation souveraine de " + p.country + " et spread de financement sectoriel Damodaran (" + p.industry + ")" + (spread.adjusted ? " ; spread sectoriel ajusté via la table de notation." : "."),
+        hypothesis: "Refinancement aux conditions actuelles ; emprunteur noté comme son État ; charges financières intégralement déductibles.",
         formula: [
-          "Rd = a + spread = " + frPct(a) + " + " + frPct(spread.value) + " = " + frPct(rdPre),
+          "Rd = Rf + spread pays + spread = " + frPct(rfPct / 100) + " + " + frPct(spreadPays) + " + " + frPct(spread.value) + " = " + frPct(rdPre),
           "Rd après impôt = " + frPct(rdPre) + " × (1 − " + frPct(tax) + ") = " + frPct(rdPost)
         ]
       },
@@ -2927,8 +2942,8 @@
         socle: rfPct / 100, prime: crp, a: a,
         beta: beta, de: de, tax: tax, betaReendette: b,
         primeMarche: c, d: p.d, e: p.e, ke: re,
-        spread: spread.value, spreadAjuste: spread.adjusted,
-        kd: rdPost, we: ev, wd: dv, wacc: wacc, waccLocal: local,
+        spreadPays: spreadPays, spread: spread.value, spreadAjuste: spread.adjusted,
+        kdPre: rdPre, kd: rdPost, we: ev, wd: dv, wacc: wacc, waccLocal: local,
         inflationRef: p.inflation_ref, inflationLocale: p.inflation_local,
       },
       components: components
@@ -3271,9 +3286,10 @@
   }
 
   /* ---------- CMPC du référentiel Comparables ---------- */
-  // Le gearing sectoriel est observé : c'est la médiane des rapports dette /
-  // capitalisation des sociétés complètes du secteur. Il sert tel quel, et ne
-  // cède la place à une cible que si l'utilisateur ouvre le cadenas.
+  // Le gearing sectoriel est observé : c'est la médiane des rapports dette
+  // totale / fonds propres des sociétés complètes du secteur, tels que S&P les
+  // publie. Il sert tel quel, et ne cède la place à une cible que si
+  // l'utilisateur ouvre le cadenas.
   // Le coût de la dette, lui, n'est pas publié : elle est supposée levée au taux
   // souverain, hypothèse la plus neutre disponible et certainement optimiste
   // pour un émetteur privé. Elle est écrite sous le résultat plutôt que
@@ -3449,31 +3465,27 @@
     const rf = tauxSansRisque();
     const g = gearingRetenu();
     const pays = DATA.pays[params.country] || {};
-    if (!rf || !secteur || secteur.beta_3ans == null || g == null || !(g >= 0)) {
+    if (!rf || !secteur || secteur.beta_u == null || g == null || !(g >= 0)) {
       return null;
     }
-    // Damodaran ne publie pas de taux d'IS pour 23 pays sur 157, dont les
-    // États-Unis — d'où viennent plus de la moitié des comparables. Refuser de
-    // calculer y serait absurde : on retient 25 %, comme le fait déjà le
-    // référentiel Damodaran dans le même cas, et l'encadré le signale.
+    // Filet pour un pays que le fichier fiscal de Damodaran ne couvrirait pas :
+    // on retient 25 %, comme le référentiel Damodaran dans le même cas, et
+    // l'encadré le signale.
     const taxDefaut = pays.tax == null;
     const tax = taxDefaut ? 0.25 : pays.tax;
     const gSect = secteur.gearing;
     const cible = gearingCibleDE();
-    const betaL = secteur.beta_3ans;
 
-    // Hamada. Le bêta médian du secteur est endetté au levier de l'échantillon :
-    // le transposer tel quel sur une structure cible différente reviendrait à
-    // changer les pondérations sans changer le risque, ce qui n'a pas de sens.
-    // On le désendette au gearing observé puis on le ré-endette à la cible.
-    // Quand la cible est absente, g vaut gSect et la transformation est neutre —
-    // même formule, aucun cas particulier à maintenir.
-    const relevable = gSect != null && gSect >= 0;
-    const betaU = relevable ? betaL / (1 + (1 - tax) * gSect) : null;
-    const beta = relevable ? betaU * (1 + (1 - tax) * g) : betaL;
+    // Hamada, en deux temps. Le build a désendetté chaque bêta de l'échantillon
+    // à son propre levier — dette totale sur fonds propres — et au taux d'IS de
+    // son pays : la médiane publiée est donc un bêta d'actif. On la ré-endette
+    // ici au gearing retenu et au taux d'IS du pays valorisé.
+    const betaU = secteur.beta_u;
+    const beta = betaU * (1 + (1 - tax) * g);
 
     const ke = rf.taux + beta * DATA.mature + Number(params.d) + Number(params.e);
-    const kd = rf.taux * (1 - tax);
+    const kdPre = rf.tauxDette;
+    const kd = kdPre * (1 - tax);
     const we = 1 / (1 + g);
     const wacc = ke * we + kd * (1 - we);
 
@@ -3491,8 +3503,8 @@
       ? (1 + wacc) * (1 + inflationLocale) / (1 + inflationRef) - 1
       : wacc;
     return {
-      beta: beta, betaL: betaL, betaU: betaU, beta1: secteur.beta_1an,
-      relevable: relevable, rf: rf, tax: tax,
+      beta: beta, betaU: betaU, beta3: secteur.beta_3ans, beta1: secteur.beta_1an,
+      horizon1an: secteur.horizon_1an || 0, rf: rf, tax: tax,
       perimetre: secteur.perimetre, echelle: secteur.echelle, repli: secteur.repli,
       retenues: secteur.retenues,
       demande: secteur.demande, demandeN: secteur.demandeN,
@@ -3500,7 +3512,7 @@
       gearingCible: cible != null ? params.gearing_cible : null,
       gearingSaisi: cible != null, societes: secteur.societes,
       prime: DATA.mature, d: Number(params.d), e: Number(params.e),
-      ke: ke, kd: kd, we: we, wd: 1 - we, taxDefaut: taxDefaut,
+      ke: ke, kdPre: kdPre, kd: kd, we: we, wd: 1 - we, taxDefaut: taxDefaut,
       wacc: wacc, waccLocal: waccLocal, conversion: conversion,
       inflationRef: inflationRef, inflationLocale: inflationLocale,
     };
@@ -3524,22 +3536,23 @@
     ];
   }
 
+  // Horizon des bêtas cotés derrière la médiane : trois ans, sauf pour les
+  // sociétés d'un export qui n'en publie pas, ramenées au bêta à un an.
+  function horizonBeta(cc) {
+    return cc.horizon1an ? "3 ans, 1 an pour " + cc.horizon1an + " société(s)" : "3 ans";
+  }
+
   function composantesComparables(cc) {
     const contribFp = cc.ke * cc.we;
     const contribDette = cc.kd * cc.wd;
 
-    // Le ré-endettement n'apparaît que s'il déplace quelque chose. Quand la
-    // cible vaut le gearing observé, il est neutre : trois lignes de plus qui
-    // répètent le même nombre feraient du bruit, pas de la transparence.
-    const lignesBeta = cc.relevable && cc.gearingSaisi
-      ? [
-          { label: "Bêta (3 ans) médian du secteur", value: frNum(cc.betaL, 3) },
-          { label: "Gearing de l'échantillon (D/E)", value: frNum(cc.gearingSecteur, 2) },
-          { label: "Bêta désendetté", value: frNum(cc.betaU, 3) },
-          { label: "Gearing retenu (D/E)", value: frNum(cc.gearing, 2) },
-          { label: "Bêta ré-endetté, retenu", value: frNum(cc.beta, 3), strong: true },
-        ]
-      : [{ label: "Bêta (3 ans) médian du secteur", value: frNum(cc.beta, 3), strong: true }];
+    // Le bêta du calcul est toujours un bêta ré-endetté : la médiane publiée
+    // est désendettée, et le gearing retenu la ré-endette, cible ou pas.
+    const lignesBeta = [
+      { label: "Bêta désendetté médian du secteur (" + horizonBeta(cc) + ")", value: frNum(cc.betaU, 3) },
+      { label: "Gearing retenu (D/E)", value: frNum(cc.gearing, 2) },
+      { label: "Bêta ré-endetté, retenu", value: frNum(cc.beta, 3), strong: true },
+    ];
 
     return [
       {
@@ -3550,21 +3563,23 @@
           { label: "Prime spécifique (e)", value: frPct(cc.e) },
           { label: "Coût des fonds propres", value: frPct(cc.ke), strong: true },
         ]),
-        methodology: "MEDAF sur taux souverain local : taux sans risque + bêta (3 ans) du secteur x prime de marché + prime de taille + prime spécifique.",
-        source: "Bêtas à trois ans médians sur " + cc.retenues + " société(s) du secteur" +
+        methodology: "MEDAF : taux sans risque + bêta ré-endetté x prime de marché + prime de taille + prime spécifique. Chaque bêta coté de l'échantillon est désendetté à son propre levier — dette totale sur fonds propres — au taux d'IS de son pays ; la médiane est ré-endettée au gearing retenu et au taux d'IS du pays valorisé.",
+        source: "Bêtas cotés (" + horizonBeta(cc) + ") désendettés, médiane sur " + cc.retenues + " société(s) du secteur" +
           (cc.retenues < cc.societes ? ", les plus grosses capitalisations de " + cc.perimetre +
            " qui en compte " + cc.societes : " sur " + cc.perimetre) +
-          ", taux " + cc.rf.libelle + " publié par le " + cc.rf.source +
-          ", prime de risque pays et prime de marché mature Damodaran.",
-        hypothesis: (cc.relevable && cc.gearingSaisi
-            ? "Bêta désendetté puis ré-endetté au gearing cible (Hamada). "
-            : "Bêta employé tel quel, structure de l'échantillon retenue. ") +
-          "Taux sans risque en US Bonds, cohérent avec la prime de marché. Bêtas africains parfois proches de zéro par illiquidité, ce qui écrase le coût des fonds propres vers le taux sans risque.",
-        retained: "Bêta (3 ans) " + frNum(cc.beta, 3) + (cc.beta1 == null ? "" : ", horizon 1 an publié à " + frNum(cc.beta1, 3) + " mais non utilisé") + ", taux sans risque " + frPct(cc.rf.taux) + ", prime de marché " + frPct(cc.prime) + ".",
-        formula: (cc.relevable && cc.gearingSaisi
-          ? ["Bêta désendetté = " + frNum(cc.betaL, 3) + " / (1 + (1 - " + frPct(cc.tax, 1) + ") x " + frNum(cc.gearingSecteur, 2) + ") = " + frNum(cc.betaU, 3),
-             "Bêta ré-endetté = " + frNum(cc.betaU, 3) + " x (1 + (1 - " + frPct(cc.tax, 1) + ") x " + frNum(cc.gearing, 2) + ") = " + frNum(cc.beta, 3)]
-          : []).concat([
+          " ; fonds propres et dette totale S&P Capital IQ ; taux " + cc.rf.libelle + " publié par le " + cc.rf.source +
+          ", taux d'IS, prime de risque pays et prime de marché mature Damodaran.",
+        hypothesis: (cc.gearingSaisi
+            ? "Médiane ré-endettée au gearing cible saisi. "
+            : "Médiane ré-endettée au gearing médian de l'échantillon. ") +
+          "Taux d'IS légal du pays de chaque société pour le désendettement ; le taux effectif publié par S&P est conservé mais non utilisé. Bêtas africains parfois proches de zéro par illiquidité, ce qui écrase le coût des fonds propres vers le taux sans risque.",
+        retained: "Bêta désendetté " + frNum(cc.betaU, 3) + ", ré-endetté à " + frNum(cc.beta, 3) +
+          (cc.beta3 == null ? "" : " ; médiane cotée à 3 ans " + frNum(cc.beta3, 3) + ", non utilisée telle quelle") +
+          ", taux sans risque " + frPct(cc.rf.taux) + ", prime de marché " + frPct(cc.prime) + ".",
+        formula: [
+            "Bêta désendetté (par société) = bêta / (1 + (1 - t pays) x dette / fonds propres)",
+            "Bêta ré-endetté = " + frNum(cc.betaU, 3) + " x (1 + (1 - " + frPct(cc.tax, 1) + ") x " + frNum(cc.gearing, 2) + ") = " + frNum(cc.beta, 3),
+          ].concat([
             "a = taux US Bond + prime pays = " + frPct(cc.rf.socle) + " + " +
             frPct(cc.rf.prime) + " = " + frPct(cc.rf.taux),
           ]).concat([
@@ -3576,21 +3591,26 @@
       {
         id: "kd", title: "Coût de la dette après IS", symbol: "Kd", value: frPct(cc.kd), tone: "green",
         rows: [
-          { label: "Taux sans risque, en " + cc.rf.monnaie, value: frPct(cc.rf.taux) },
+          { label: "Taux " + cc.rf.libelle, value: frPct(cc.rf.socle) },
+          { label: "Spread de défaut pays (" + cc.rf.pays + ")" +
+                   (cc.rf.spreadPaysDefaut ? ", non publié : 1,00 % retenu" : ""),
+            value: frPct(cc.rf.spreadPays) },
           { label: "Spread de financement", value: "non publié, nul par hypothèse" },
-          { label: "Coût de la dette avant IS", value: frPct(cc.rf.taux), strong: true },
+          { label: "Coût de la dette avant IS", value: frPct(cc.kdPre), strong: true },
           { label: "Taux d'IS" + (cc.taxDefaut ? ", non publié : 25 % retenu" : ""), value: frPct(cc.tax, 1) },
-          { label: "Économie d'impôt", value: frPts(cc.rf.taux * cc.tax) },
+          { label: "Économie d'impôt", value: frPts(cc.kdPre * cc.tax) },
           { label: "Coût de la dette après IS", value: frPct(cc.kd), strong: true },
         ],
-        methodology: "Taux sans risque du pays diminué de l'économie d'impôt.",
+        methodology: "Taux US Bond majoré du spread de défaut du pays, diminué de l'économie d'impôt. Le spread de défaut remplace la prime de risque pays, propre aux fonds propres.",
         source: "Taux " + cc.rf.libelle + " publié par le " + cc.rf.source +
-          ", prime de risque pays Damodaran, " + (cc.taxDefaut
+          ", spread de défaut Damodaran fondé sur la notation souveraine, " + (cc.taxDefaut
           ? "taux d'IS non publié par Damodaran pour " + params.country + " : 25 % retenu"
           : "taux d'IS de droit commun Damodaran (" + params.country + ")") + ".",
-        hypothesis: "Aucun spread publié : dette supposée levée au taux souverain — neutre, probablement optimiste pour un émetteur privé.",
-        retained: "Taux sans risque " + frPct(cc.rf.taux) + ", IS " + frPct(cc.tax, 1) + ".",
-        formula: ["Kd = " + frPct(cc.rf.taux) + " x (1 - " + frPct(cc.tax, 1) + ") = " + frPct(cc.kd)],
+        hypothesis: "Aucun spread sectoriel publié : dette supposée levée au taux souverain du pays — neutre, probablement optimiste pour un émetteur privé.",
+        retained: "Taux de la dette " + frPct(cc.kdPre) + ", IS " + frPct(cc.tax, 1) + ".",
+        formula: ["Kd avant IS = taux US Bond + spread pays = " + frPct(cc.rf.socle) + " + " +
+                    frPct(cc.rf.spreadPays) + " = " + frPct(cc.kdPre),
+                  "Kd = " + frPct(cc.kdPre) + " x (1 - " + frPct(cc.tax, 1) + ") = " + frPct(cc.kd)],
       },
       {
         id: "poids", title: "Structure financière", symbol: "FP / D",
@@ -3611,10 +3631,10 @@
         methodology: "Déduite du gearing : fonds propres / valeur = 1 / (1 + D/E).",
         source: cc.gearingSaisi
           ? "Gearing cible saisi à la main, cadenas de l'encadré « Secteur comparable » ouvert."
-          : "Médiane des rapports dette / capitalisation du secteur, sur les sociétés complètes de l'univers de comparables.",
+          : "Médiane des rapports dette totale / fonds propres du secteur (S&P Capital IQ), sur les sociétés retenues de l'univers de comparables.",
         hypothesis: cc.gearingSaisi
           ? "Le gearing cible remplace la médiane et sert aussi à ré-endetter le bêta."
-          : "Médiane, pas moyenne : une moyenne serait dominée par la plus grosse capitalisation du secteur.",
+          : "Médiane, pas moyenne : une moyenne serait dominée par les sociétés les plus endettées. Fonds propres comptables, et non capitalisation boursière.",
         retained: "Gearing D/E = " + frNum(cc.gearing, 2) + ".",
         formula: ["E/V = 1 / (1 + D/E) = 1 / " + frNum(1 + cc.gearing, 2) + " = " + frPct(cc.we),
                   "D/V = 1 - E/V = " + frPct(cc.wd)],
@@ -3949,7 +3969,13 @@
                 capitalisations : au-delà, ce sont les micro-capitalisations
                 illiquides qui décident.</span>
             </span>` : ""}
-          <span class="result-row"><span>Bêta médian (3 ans)</span><span>${secteur && secteur.beta_3ans != null ? frNum(secteur.beta_3ans, 3) : "—"}</span></span>
+          <span class="result-row"><span>Bêta désendetté médian (3 ans)</span><span>${secteur && secteur.beta_u != null ? frNum(secteur.beta_u, 3) : "—"}</span></span>
+          ${secteur && secteur.horizon_1an ? `
+            <span class="result-row is-appoint">
+              <span>${secteur.horizon_1an} société(s) de l'échantillon sans bêta à 3 ans
+                dans leur export S&P : leur bêta à 1 an est retenu.</span>
+            </span>` : ""}
+          ${cc ? `<span class="result-row"><span>Bêta ré-endetté</span><span>${frNum(cc.beta, 3)}</span></span>` : ""}
           <span class="result-row"><span>Taux ${rf ? esc(rf.libelle) : "US Bond"}</span><span>${rf ? frPct(rf.socle) : "indisponible"}</span></span>
           ${rf ? `
             <span class="result-row"><span>Prime de risque pays</span><span>${frPct(rf.prime)}</span></span>
@@ -3976,6 +4002,7 @@
                   : `<span class="result-row is-appoint"><span>Champ vide</span><span>médiane du secteur retenue</span></span>`)}` : ""}
           ${cc ? `
             <span class="result-row"><span>Coût des fonds propres</span><span>${frPct(cc.ke)}</span></span>
+            <span class="result-row"><span>Spread de défaut pays</span><span>${frPct(cc.rf.spreadPays)}</span></span>
             <span class="result-row"><span>Coût de la dette après IS</span><span>${frPct(cc.kd)}</span></span>
             <span class="result-row"><span>Fonds propres / dette</span><span>${frPct(cc.we, 0)} / ${frPct(cc.wd, 0)}</span></span>
             ${cc.taxDefaut ? `
@@ -4215,7 +4242,9 @@
         ${s.presentation ? `<span class="detail-label">Présentation</span><span class="detail-text">${esc(s.presentation)}</span>` : ""}
         <span class="detail-label">Capitalisation</span><span class="detail-text">${esc(frMontant(s.capitalisation))} FCFA</span>
         <span class="detail-label">Dette totale</span><span class="detail-text">${esc(frMontant(s.dette))} FCFA</span>
-        <span class="detail-label">Bêta (3 ans)</span><span class="detail-text">${s.beta_3ans == null ? "non publié" : frNum(s.beta_3ans, 3)}${s.beta_1an == null ? "" : ", horizon 1 an : " + frNum(s.beta_1an, 3)}. Le CMPC retient la médiane du secteur, pas ce bêta.</span>
+        <span class="detail-label">Fonds propres</span><span class="detail-text">${esc(frMontant(s.fonds_propres))} FCFA, soit un gearing (dette / fonds propres) de ${s.gearing == null ? "—" : frNum(s.gearing, 2)}</span>
+        <span class="detail-label">Bêta (3 ans)</span><span class="detail-text">${s.beta_3ans == null ? "non publié" : frNum(s.beta_3ans, 3)}${s.beta_1an == null ? "" : ", horizon 1 an : " + frNum(s.beta_1an, 3)}.</span>
+        <span class="detail-label">Bêta désendetté</span><span class="detail-text">${s.beta_u == null ? "—" : frNum(s.beta_u, 3)}, à partir du bêta ${esc(s.beta_horizon || "3 ans")} et d'un IS de ${s.is_desendettement == null ? "—" : frPct(s.is_desendettement, 1)} (taux légal du pays)${s.is_effectif == null ? "" : " ; IS effectif publié : " + frPct(s.is_effectif, 1) + ", non utilisé"}. Le CMPC retient la médiane du secteur, pas ce bêta.</span>
       </span>
       <span class="bulle bulle-defilante">
         <span class="bulle-titre">Données financières</span>
@@ -4325,7 +4354,6 @@
       const s = COMPARABLES[id];
       const derniere = (s.annees || []).slice(-1)[0];
       const val = (serie) => frMontant((serie || {})[String(derniere)]);
-      const gearing = s.capitalisation ? s.dette / s.capitalisation : null;
       return {
         id: id,
         title: s.nom,
@@ -4336,10 +4364,11 @@
           { label: "Pays", value: s.pays },
           { label: "Place", value: s.place || "hors cote" },
           { label: "Bêta (3 ans)", value: s.beta_3ans == null ? "non publié" : frNum(s.beta_3ans, 3) },
+          { label: "Bêta désendetté", value: s.beta_u == null ? "—" : frNum(s.beta_u, 3) },
           { label: `Chiffre d'affaires ${derniere || ""}`.trim(), value: val(s.ca), strong: true },
           margeEbitda(s),
           { label: `Résultat net ${derniere || ""}`.trim(), value: val(s.rn) },
-          { label: "Dette / capitalisation", value: gearing == null ? "—" : frNum(gearing, 2) }
+          { label: "Dette / fonds propres", value: s.gearing == null ? "—" : frNum(s.gearing, 2) }
         ]
       };
     });
@@ -7811,6 +7840,8 @@
     const primeNote = rf.primeDefaut ? " — non publiée, 1,00 % retenu" : "";
     const sourceTaux = "US Treasury " + params.maturity + ", moyenne " + params.year + " (home.treasury.gov)";
     const sourcePrime = "Damodaran, ctryprem.xlsx — prime de risque pays " + params.country + primeNote;
+    const sourceSpreadPays = "Damodaran, ctryprem.xlsx — Rating-based Default Spread " + params.country +
+      (rf.spreadPaysDefaut ? " — non publié, 1,00 % retenu" : "");
     const sourcePrimeMarche = "Damodaran, ctryprem.xlsx — prime de risque des marchés matures (cellule E3)";
     const sourceTaille = "Prime de taille + prime spécifique, saisies dans CMPC › Paramètres";
 
@@ -7825,37 +7856,36 @@
         referentiel: "Comparables",
         societes: ret.ids.length ? {
           ids: ret.ids, perimetre: cc.perimetre, echelle: cc.echelle,
-          total: cc.societes, relevable: cc.relevable,
-          betaL: cc.betaL, gearingSecteur: cc.gearingSecteur,
+          total: cc.societes, betaU: cc.betaU, gearingSecteur: cc.gearingSecteur,
           gearingSaisi: cc.gearingSaisi,
         } : null,
         objet: params.secteur,
         origineBeta: "médian comparables",
-        origineGearing: "moyen comparables",
+        origineGearing: "médian comparables (dette / fonds propres)",
         socle: rf.socle, prime: rf.prime, a: rf.taux,
-        betaDesendette: cc.relevable ? cc.betaU : cc.betaL,
+        betaDesendette: cc.betaU,
         gearing: cc.gearing, tax: cc.tax, betaReendette: cc.beta,
         primeMarche: cc.prime, primeTaille: cc.d + cc.e, ke: cc.ke,
-        spread: 0, kdPre: cc.rf.taux, kd: cc.kd, we: cc.we, wd: cc.wd,
+        spreadPays: rf.spreadPays, spread: 0, kdPre: cc.kdPre, kd: cc.kd, we: cc.we, wd: cc.wd,
         wacc: cc.wacc, conversion: cc.conversion,
         inflationRef: cc.inflationRef, inflationLocale: cc.inflationLocale,
         waccLocal: cc.waccLocal,
         sources: {
           taux: sourceTaux,
           prime: sourcePrime,
-          beta: "Médiane des bêtas cotés à trois ans du secteur " + params.secteur + ", " +
-            cc.perimetre + " (" + cc.retenues + " sociétés)" +
-            (cc.relevable
-              ? ", désendettée au gearing de l'échantillon (" + frNum(cc.gearingSecteur, 2) + ")"
-              : " — gearing de l'échantillon non publié, bêta employé tel quel"),
+          beta: "Médiane des bêtas cotés à trois ans" +
+            (cc.horizon1an ? " (1 an pour " + cc.horizon1an + " société(s) sans 3 ans publié)" : "") +
+            " du secteur " + params.secteur + ", " + cc.perimetre + " (" + cc.retenues + " sociétés)," +
+            " chacun désendetté à son levier dette totale / fonds propres et au taux d'IS légal de son pays",
           impot: cc.taxDefaut
             ? "Taux d'IS non publié pour " + params.country + " : 25 % retenu, comme sous le référentiel Damodaran"
             : "Damodaran, countrytaxrates.xls — taux d'IS " + params.country,
           gearing: cc.gearingSaisi
             ? "Gearing cible posé dans la page : " + frPct(cc.wd, 0) + " de dette"
-            : "Gearing médian du secteur, " + cc.perimetre,
+            : "Gearing médian du secteur, dette totale / fonds propres S&P Capital IQ, " + cc.perimetre,
           primeMarche: sourcePrimeMarche,
           primeTaille: sourceTaille,
+          spreadPays: sourceSpreadPays,
           spread: "Dette supposée levée au taux souverain : aucun spread de crédit n'est publié sous ce référentiel",
         },
       };
@@ -7876,7 +7906,7 @@
       socle: b.socle, prime: b.prime, a: b.a,
       betaDesendette: b.beta, gearing: b.de, tax: b.tax, betaReendette: b.betaReendette,
       primeMarche: b.primeMarche, primeTaille: b.d + b.e, ke: b.ke,
-      spread: b.spread, kdPre: b.a + b.spread, kd: b.kd, we: b.we, wd: b.wd,
+      spreadPays: b.spreadPays, spread: b.spread, kdPre: b.kdPre, kd: b.kd, we: b.we, wd: b.wd,
       wacc: b.wacc, conversion: true,
       inflationRef: b.inflationRef, inflationLocale: b.inflationLocale,
       waccLocal: b.waccLocal,
@@ -7888,6 +7918,7 @@
         gearing: "Damodaran, betaemerg.xls — D/E Ratio du secteur " + params.industry,
         primeMarche: sourcePrimeMarche,
         primeTaille: sourceTaille,
+        spreadPays: sourceSpreadPays,
         spread: "Damodaran, wacc.xls — spread de dette sectoriel, US" +
                 (b.spreadAjuste ? ", ajusté par la table de correction (coût de la dette faible)" : ""),
       },
@@ -7928,11 +7959,11 @@
                 formule: "C5+C9*C10+C11", valeur: x.ke, sV: XL.resultat }),
 
       bandeauXl(14, "COÛT DE LA DETTE (Kd) EN USD", XL.bandeau),
-      ligneXl({ r: 15, libelle: "Taux sans risque local (Rf + CRP)", formule: "C5", valeur: x.a, sV: XL.valeurPct2,
-                commentaire: "Idem partie Ke — taux sans risque local" }),
+      ligneXl({ r: 15, libelle: "Spread de défaut pays " + params.country + " (notation souveraine)", valeur: x.spreadPays, sV: XL.saisiePct2,
+                commentaire: x.sources.spreadPays }),
       ligneXl({ r: 16, libelle: "Spread de la dette (Damodaran EM)", valeur: x.spread, sV: XL.saisiePct2, commentaire: x.sources.spread }),
-      ligneXl({ r: 17, libelle: "Coût de la dette avant IS Kd_pre = Rf_local + spread", sL: XL.libelleGras, formule: "C15+C16", valeur: x.kdPre, sV: XL.calculPct2,
-                commentaire: "Coût de la dette brute (CRP déjà inclus via Rf_local)", sC: XL.commentaireGras }),
+      ligneXl({ r: 17, libelle: "Coût de la dette avant IS Kd_pre = Rf + spread pays + spread", sL: XL.libelleGras, formule: "C3+C15+C16", valeur: x.kdPre, sV: XL.calculPct2,
+                commentaire: "Le spread de défaut pays remplace la CRP, propre aux fonds propres", sC: XL.commentaireGras }),
       ligneXl({ r: 18, libelle: "Coût de la dette après IS Kd = Kd_pre × (1 − t)", sL: XL.libelleGras, formule: "C17*(1-C7)", valeur: x.kd, sV: XL.resultat,
                 commentaire: "Économie fiscale (intérêts déductibles)", sC: XL.commentaireGras }),
 
@@ -8036,10 +8067,13 @@
         sS: XL.statMontant, sM: XL.medMontant, valeur: (s) => s.capitalisation },
       { cle: "dette", entete: "Dette totale (M FCFA)", largeur: 12.5, s: XL.socMontant,
         sS: XL.statMontant, sM: XL.medMontant, valeur: (s) => s.dette },
-      { cle: "de", entete: "Dette / capi (D/E)", largeur: 14.6, s: XL.socNum2,
+      // Le gearing est désormais rapporté aux fonds propres comptables, pas à la
+      // capitalisation : la colonne garde sa place dans le gabarit, son
+      // dénominateur est ajouté à droite du tableau.
+      { cle: "de", entete: "Dette / fonds propres (D/E)", largeur: 14.6, s: XL.socNum2,
         sS: XL.statNum2, sM: XL.medNum2,
-        valeur: (s) => (s.capitalisation ? s.dette / s.capitalisation : null),
-        formule: (s, r, L) => L.dette + r + "/" + L.capi + r },
+        valeur: (s) => (s.fonds_propres ? s.dette / s.fonds_propres : null),
+        formule: (s, r, L) => L.dette + r + "/" + L.fp + r },
       { cle: "beta1", entete: "Bêta 1 an", largeur: 9, s: XL.socNum3,
         sS: XL.statNum3, sM: XL.medNum3, valeur: (s) => s.beta_1an },
       { cle: "beta3", entete: "Bêta 3 ans", largeur: null, s: XL.socNum3,
@@ -8059,6 +8093,19 @@
         sS: XL.statMult, sM: XL.medMult, ebitda: true,
         valeur: (s) => (eb(s) > 0 ? ve(s) / eb(s) : null),
         formule: (s, r, L) => (eb(s) > 0 ? L.ve + r + "/" + L.ebitda + r : null) },
+      // Au-delà du gabarit, à droite : ce qu'il faut pour refaire le
+      // désendettement ligne à ligne. La médiane de « Bêta désendetté » est
+      // celle que le CMPC ré-endette.
+      { cle: "fp", entete: "Fonds propres (M FCFA)", largeur: 12.7, s: XL.socMontant,
+        sS: XL.statMontant, sM: XL.medMontant, valeur: (s) => s.fonds_propres },
+      { cle: "is", entete: "IS légal du pays", largeur: 9, s: XL.socPct1,
+        sS: XL.statPct1, sM: XL.medPct1, valeur: (s) => s.is_desendettement },
+      { cle: "betau", entete: "Bêta désendetté", largeur: 11, s: XL.socNum3,
+        sS: XL.statNum3, sM: XL.medNum3, valeur: (s) => s.beta_u,
+        formule: (s, r, L) => (s.beta_horizon === "1 an" ? L.beta1 : L.beta3) + r +
+          "/(1+(1-" + L.is + r + ")*" + L.de + r + ")" },
+      { cle: "iseff", entete: "IS effectif (non utilisé)", largeur: 11, s: XL.socPct1,
+        sS: XL.statPct1, sM: XL.medPct1, valeur: (s) => s.is_effectif },
     ].filter((c) => avecEbitda > 0 || !c.ebitda);
 
     // Colonne A en gouttière : le tableau commence en B, comme dans le gabarit.

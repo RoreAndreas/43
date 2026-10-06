@@ -14,6 +14,11 @@ source, bloc de paramètres, note de bas de feuille. Ces tests vérifient la
 géométrie autant que les nombres : c'est le format dans lequel les notes de
 valorisation sont relues, et un décalage d'une colonne suffit à le rompre.
 
+Le désendettement société par société a ajouté quatre colonnes, à droite du
+gabarit plutôt qu'en son milieu : fonds propres, IS légal du pays, bêta
+désendetté, IS effectif. Le D/E de la colonne H se rapporte désormais aux fonds
+propres, et non plus à la capitalisation.
+
 Trois choses doivent tenir. Que la feuille décrive exactement la population que
 l'écran marque comme retenue. Que les statistiques soient des formules sur la
 plage juste au-dessus, pour que retirer une société les fasse bouger. Et que les
@@ -34,6 +39,7 @@ SECTEUR = "Telecommunication Services"
 NOM, TICKER, PLACE, PAYS = 2, 3, 4, 5
 CAPI, DETTE, DE, BETA1, BETA3 = 6, 7, 8, 9, 10
 CA, EBITDA, MARGE, VE, MULTIPLE = 11, 12, 13, 14, 15
+FP, IS, BETAU, ISEFF = 16, 17, 18, 19
 TITRE, ENTETES, PREMIERE = 2, 3, 4
 STATS = ("Min", "Moy", "Médiane", "Max")
 
@@ -115,6 +121,7 @@ def test_la_gouttiere_et_les_largeurs_sont_celles_du_gabarit(page, tmp_path):
     assert largeurs == {
         "A": 3.0, "B": 21.5, "C": 10.0, "D": 8.0, "E": 15.5, "F": 12.7, "G": 12.5,
         "H": 14.6, "I": 9.0, "K": 15.0, "L": 15.0, "M": 11.5, "N": 14.0, "O": 11.5,
+        "P": 12.7, "Q": 9.0, "R": 11.0, "S": 11.0,
     }
 
 
@@ -157,13 +164,16 @@ def test_les_entetes_sont_ceux_du_gabarit(page, tmp_path):
     lus = [f.cell(row=ENTETES, column=c).value for c in range(NOM, MULTIPLE + 1)]
     assert lus[:4] == ["Société", "Ticker", "Place", "Pays"]
     assert lus[4] == "Capitalisation (M FCFA)" and lus[5] == "Dette totale (M FCFA)"
-    assert lus[6:9] == ["Dette / capi (D/E)", "Bêta 1 an", "Bêta 3 ans"]
+    assert lus[6:9] == ["Dette / fonds propres (D/E)", "Bêta 1 an", "Bêta 3 ans"]
     assert lus[9].startswith("Chiffre d'affaires") and lus[9].endswith("(M FCFA)")
     assert lus[10].startswith("EBITDA") and lus[10].endswith("(M FCFA)")
     assert lus[11] == "Marge d'EBITDA"
     assert lus[12].startswith("VE ") and lus[12].endswith("(M FCFA)")
     assert lus[13] == "VE / EBITDA"
     assert f.row_dimensions[ENTETES].height == 26.0
+    ajout = [f.cell(row=ENTETES, column=c).value for c in (FP, IS, BETAU, ISEFF)]
+    assert ajout == ["Fonds propres (M FCFA)", "IS légal du pays", "Bêta désendetté",
+                     "IS effectif (non utilisé)"]
 
 
 def test_les_colonnes_monetaires_annoncent_leur_unite(page, tmp_path):
@@ -221,6 +231,8 @@ def test_les_chiffres_sont_ceux_du_jeu_de_donnees(page, tmp_path, donnees):
         assert f.cell(row=ligne, column=CAPI).value == pytest.approx(s["capitalisation"])
         assert f.cell(row=ligne, column=DETTE).value == pytest.approx(s["dette"])
         assert f.cell(row=ligne, column=BETA3).value == pytest.approx(s["beta_3ans"])
+        assert f.cell(row=ligne, column=FP).value == pytest.approx(s["fonds_propres"])
+        assert f.cell(row=ligne, column=IS).value == pytest.approx(s["is_desendettement"])
 
 
 def test_les_societes_sont_classees_par_taille(page, tmp_path):
@@ -240,7 +252,19 @@ def test_ve_et_multiple_sont_des_formules(page, tmp_path):
     assert f.cell(row=ligne, column=VE).value == f"=F{ligne}+G{ligne}"
     assert f.cell(row=ligne, column=MULTIPLE).value == f"=N{ligne}/L{ligne}"
     assert f.cell(row=ligne, column=MARGE).value == f"=L{ligne}/K{ligne}"
-    assert f.cell(row=ligne, column=DE).value == f"=G{ligne}/F{ligne}"
+    assert f.cell(row=ligne, column=DE).value == f"=G{ligne}/P{ligne}"
+    assert f.cell(row=ligne, column=BETAU).value == f"=J{ligne}/(1+(1-Q{ligne})*H{ligne})"
+
+
+def test_le_beta_desendette_se_refait_ligne_a_ligne(page, tmp_path):
+    """βu = β 3 ans / (1 + (1 − IS) × dette / fonds propres), cache compris."""
+    cadrer(page)
+    _, v = feuille(page, tmp_path)
+    for ligne in societes(v):
+        beta, taux = v.cell(row=ligne, column=BETA3).value, v.cell(row=ligne, column=IS).value
+        dette, fp = v.cell(row=ligne, column=DETTE).value, v.cell(row=ligne, column=FP).value
+        assert v.cell(row=ligne, column=BETAU).value == pytest.approx(
+            beta / (1 + (1 - taux) * dette / fp), rel=1e-3)
 
 
 def test_le_multiple_vaut_bien_ve_sur_ebitda(page, tmp_path):
@@ -297,12 +321,12 @@ def test_les_quatre_statistiques_se_suivent_sous_l_echantillon(page, tmp_path):
 
 def test_la_mediane_du_beta_est_celle_du_cmpc(page, tmp_path):
     """La feuille et l'encadré portent le même bêta : même échantillon, même
-    règle."""
+    règle — la médiane des bêtas désendettés."""
     cadrer(page)
-    affiche = nombre_fr(ligne_resultat(page, "Bêta médian (3 ans)"))
+    affiche = nombre_fr(ligne_resultat(page, "Bêta désendetté médian"))
     f, v = feuille(page, tmp_path)
     ligne = ligne_stat(f, "Médiane")
-    assert round(v.cell(row=ligne, column=BETA3).value, 3) == affiche
+    assert round(v.cell(row=ligne, column=BETAU).value, 3) == affiche
 
 
 def test_min_et_max_encadrent_la_mediane(page, tmp_path):
@@ -362,7 +386,11 @@ def test_la_note_ferme_la_feuille_et_court_sur_toute_sa_largeur(page, tmp_path):
     ligne = ligne_libelle(f, "Paramètres") + 6
     note = f.cell(row=ligne, column=NOM).value
     assert "EBITDA" in note
-    assert f"B{ligne}:O{ligne}" in [str(m) for m in f.merged_cells.ranges]
+    # Jusqu'à la dernière colonne du tableau, ajouts de droite compris.
+    derniere = max(c for c in range(NOM, f.max_column + 1)
+                   if f.cell(row=ENTETES, column=c).value)
+    assert derniere == ISEFF
+    assert f"B{ligne}:S{ligne}" in [str(m) for m in f.merged_cells.ranges]
 
 
 def test_la_note_chiffre_ce_que_l_ebitda_couvre(page, tmp_path):

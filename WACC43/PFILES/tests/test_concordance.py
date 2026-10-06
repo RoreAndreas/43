@@ -58,21 +58,28 @@ def test_le_balayage_couvre_bien_quelque_chose(page):
 
 
 def test_le_cas_signale_consumer_finance(page, donnees):
-    """Deux sociétés annoncées, deux sociétés affichées — aucune à Abidjan."""
+    """Autant de sociétés annoncées qu'affichées — aucune à Abidjan.
+
+    Les effectifs se relisent dans les données : l'export d'octobre 2026 a
+    remplacé la société mauricienne par une égyptienne."""
+    attendues = [s for s in donnees["comparables"]["societes"].values()
+                 if s["industrie"] == "Consumer Finance" and s["continent"] == "Afrique"]
+    assert attendues and not any(s["place"] == "BRVM" for s in attendues)
     mode_comparables(page)
     choisir(page, "continent", "Afrique")
     choisir(page, "secteur", "Consumer Finance")
 
-    assert "2 sociétés" in page.inner_text("#paramsMain .block-head .chip")
+    n = len(attendues)
+    assert f"{n} société" in page.inner_text("#paramsMain .block-head .chip")
 
     ouvrir(page, "societes")
     assert page.query_selector("#stackSoc .vide404") is None
     cartes = page.query_selector_all("#stackSoc .comp")
-    assert len(cartes) == 2
+    assert len(cartes) == n
 
     pays = {donnees["comparables"]["societes"][c.get_attribute("data-comp")]["pays"]
             for c in cartes}
-    assert pays == {"Botswana", "Mauritius"}
+    assert pays == {s["pays"] for s in attendues}
 
 
 def test_les_societes_listees_appartiennent_a_la_zone(page, donnees):

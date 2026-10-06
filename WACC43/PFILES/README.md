@@ -99,9 +99,10 @@ automatiquement.
 
 ```
 a     = taux US Treasury (moyenne annuelle) + prime de risque pays
+a_d   = taux US Treasury (moyenne annuelle) + spread de défaut pays
 b     = beta désendetté × (1 + D/E × (1 − t))
 Re    = a + b × c + d + e                    coût des fonds propres (MEDAF)
-Rd    = (spread + a) × (1 − t)               coût de la dette après impôt
+Rd    = (spread + a_d) × (1 − t)             coût de la dette après impôt
 WACC  = E/V × Re + D/V × Rd
 CMPC  = (1 + WACC) × (1 + infl. locale) / (1 + infl. référence) − 1
 local
@@ -110,15 +111,46 @@ local
 `c` : prime de risque d'un marché mature (Damodaran). `d` et `e` : primes de
 taille et spécifique, saisies dans l'interface. `E/V = 1/(1 + D/E)`.
 
+Le pays entre deux fois, par deux colonnes du même fichier Damodaran
+(`ctryprem.xlsx`, feuille *ERPs by country*). La prime de risque pays
+(*Country Risk Premium*) majore le taux sans risque des fonds propres. Le coût
+de la dette prend le spread de défaut fondé sur la notation souveraine
+(*Rating-based Default Spread*), parce que la prime pays est ce même spread
+multiplié par la volatilité relative des actions, une grandeur propre aux fonds
+propres. Sous le référentiel Comparables, aucun spread sectoriel n'est publié :
+`Rd = a_d × (1 − t)`.
+
 Sous référentiel BRVM, le taux sans risque vient de la courbe souveraine de
 l'État retenu, publiée chaque semaine par UMOA-Titres. Il porte déjà le risque
 pays : aucune prime ne s'y ajoute, et le coût du capital qui en découle est
 directement en monnaie locale. La profondeur des courbes va de 7 ans (Niger,
 Guinée-Bissau) à 15 ans (Côte d'Ivoire, Sénégal, Togo).
 
-Couverture : 157 pays et 94 industries. 23 pays n'ont pas de taux d'IS dans la
-base Damodaran — le calcul retient alors 25 %, et la page l'indique sous les
-tuiles de marché.
+Couverture : 157 pays et 94 industries, tous dotés d'un taux d'IS. Le fichier
+fiscal de Damodaran suit la nomenclature des Nations unies (« United States of
+America ») : `zones.py` ramène ses libellés à ceux du fichier de primes. Il se
+termine aussi par une liste qui répète vingt-deux pays à des taux antérieurs ;
+seule la première occurrence est retenue. Un pays qui resterait sans taux
+prendrait 25 %, signalé à l'écran.
+
+### Référentiel Comparables
+
+L'univers vient des exports S&P Capital IQ déposés à la racine de WACC43 :
+`43 AF.xlsx`, `43 EU.xlsx`, `43 ME.xlsx`, `43 US.xlsx` (stockés sur Git LFS).
+Les colonnes y sont repérées par leur code S&P, pas par leur position.
+
+```
+gearing (société)          = dette totale / fonds propres
+βu (société)               = β coté / (1 + (1 − t pays) × gearing)
+βu (secteur), gearing      = médianes sur les 20 plus grosses capitalisations
+β ré-endetté               = βu × (1 + (1 − t pays valorisé) × gearing retenu)
+```
+
+`t pays` est le taux d'IS légal Damodaran du pays de chaque société. Le taux
+effectif publié par S&P est conservé dans les données (`is_effectif`) sans
+entrer dans le calcul ; le brancher se fait dans
+`comparables.taux_desendettement()`. Le bêta coté est le 3 ans ; un export qui
+n'en publie pas fait retenir le 1 an pour ses sociétés, et la page le signale.
 
 > Les formules existent en deux exemplaires : en JavaScript dans le gabarit,
 > pour la page, et en Python dans `moteur/wacc_core.py`, pour l'export Excel.

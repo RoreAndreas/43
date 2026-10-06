@@ -13,7 +13,8 @@ from conftest import choisir, mode_comparables, ouvrir
 PALIERS = [
     ("ke", "Taux US Bond"),
     ("ke", "Prime de risque pays"),
-    ("ke", "Bêta (3 ans)"),
+    ("ke", "Bêta désendetté médian"),
+    ("ke", "Bêta ré-endetté"),
     ("ke", "Prime de risque marché"),
     ("kd", "Taux d'IS"),
     ("kd", "Coût de la dette après IS"),

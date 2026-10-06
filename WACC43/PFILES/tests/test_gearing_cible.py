@@ -133,8 +133,11 @@ def test_le_cmpc_utilise_la_cible_et_non_la_mediane(page, donnees):
     mediane = secteur(donnees, "Banks")["gearing"]
     auto = cmpc(page)
 
+    # Une cible plus endettée que la médiane, quelle qu'elle soit : en fonds
+    # propres comptables, les banques dépassent déjà 70 % de dette.
+    poids = mediane / (1 + mediane) * 100
     page.click(VERROU)
-    saisir(page, "70")
+    saisir(page, f"{min(95, poids + 10):.0f}")
     cible = cmpc(page)
 
     assert cible != auto
@@ -155,10 +158,14 @@ def test_le_beta_est_reendette_a_la_cible(page, donnees):
     page.click('#stack .comp[data-comp="ke"] .comp-head')
     detail = page.inner_text('#frame .detail[data-detail="ke"]')
 
-    b3 = secteur(donnees, "Banks")["beta_3ans"]
+    bu = secteur(donnees, "Banks")["beta_u"]
     assert "endett" in detail.lower()
-    # Le bêta employé n'est plus celui de l'échantillon, ré-endetté qu'il est.
-    assert f"Bêta (3 ans) {b3:.3f}".replace(".", ",") not in detail
+    # La médiane désendettée est ré-endettée à 70 % de dette, soit D/E = 7/3,
+    # au taux d'IS du pays valorisé.
+    cc = page.evaluate("cmpcComparables()")
+    assert cc["gearing"] == pytest.approx(0.7 / 0.3)
+    assert cc["beta"] == pytest.approx(bu * (1 + (1 - cc["tax"]) * 0.7 / 0.3))
+    assert f"{cc['beta']:.3f}".replace(".", ",") in detail
 
 
 def test_cible_egale_a_la_mediane_ne_change_rien(page, donnees):

@@ -6,3 +6,4 @@
 # construit la page doit demander `lfs: true`, sinon build_static.py reçoit des
 # pointeurs de cent trente octets et échoue en tentant de les ouvrir.
 WACC43/comps*.xlsx filter=lfs diff=lfs merge=lfs -text
+WACC43/43[[:space:]]*.xlsx filter=lfs diff=lfs merge=lfs -text

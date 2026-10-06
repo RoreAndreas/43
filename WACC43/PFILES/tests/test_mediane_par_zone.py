@@ -14,7 +14,7 @@ zone hors UMOA, du temps où ce taux venait d'une courbe souveraine locale.
 
 import pytest
 
-from conftest import choisir, ligne_resultat, mode_comparables, nombre_fr, secteur
+from conftest import choisir, ligne_resultat, mode_comparables, nombre_fr, secteur, zone_sans
 
 ZONES = ["Afrique de l'Ouest", "Afrique de l'Est", "Afrique australe"]
 
@@ -49,7 +49,7 @@ def test_le_beta_affiche_est_celui_de_la_zone(page, donnees, zone):
     cadrer(page, zone)
     attendu = secteur(donnees, "Banks", zone)
     assert echantillon(page) == (zone, attendu["societes"])
-    assert nombre_fr(ligne_resultat(page, "Bêta médian (3 ans)")) == round(attendu["beta_3ans"], 3)
+    assert nombre_fr(ligne_resultat(page, "Bêta désendetté médian")) == round(attendu["beta_u"], 3)
     assert nombre_fr(ligne_resultat(page, "Gearing sectoriel")) == round(attendu["gearing"], 2)
 
 
@@ -97,8 +97,8 @@ def test_pas_de_repli_annonce_quand_la_zone_suffit(page):
 
 
 def test_une_zone_vide_replie_aussi(page, donnees):
-    """Aucune banque en Afrique du Nord : le continent prend le relais."""
-    cadrer(page, "Afrique du Nord", "Banks")
+    """Une zone africaine sans banque : le continent prend le relais."""
+    cadrer(page, zone_sans(donnees, "Afrique", "Banks"), "Banks")
     libelle, n = echantillon(page)
     assert libelle == "Afrique"
     assert n == secteur(donnees, "Banks", "Afrique")["societes"]

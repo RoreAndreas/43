@@ -11,11 +11,13 @@ from conftest import choisir, ligne_resultat, mode_comparables, nombre_fr, secte
 
 
 def test_encadre_affiche_la_mediane_trois_ans(page, donnees):
+    """La médiane affichée est celle des bêtas à 3 ans, désendettés un à un :
+    c'est elle que le calcul ré-endette."""
     mode_comparables(page)
     choisir(page, "secteur", "Banks")
 
-    attendu = secteur(donnees, "Banks")["beta_3ans"]
-    assert nombre_fr(ligne_resultat(page, "Bêta médian (3 ans)")) == round(attendu, 3)
+    attendu = secteur(donnees, "Banks")["beta_u"]
+    assert nombre_fr(ligne_resultat(page, "Bêta désendetté médian (3 ans)")) == round(attendu, 3)
 
 
 def test_l_effectif_annonce_est_celui_du_beta(page, donnees):
@@ -28,7 +30,8 @@ def test_l_effectif_annonce_est_celui_du_beta(page, donnees):
 
 
 def test_le_calcul_du_cout_des_fonds_propres_reprend_ce_beta(page, donnees):
-    """Le Ke détaillé dans l'onglet CMPC doit citer le bêta 3 ans, pas le 1 an."""
+    """Le Ke détaillé dans l'onglet CMPC doit citer la médiane désendettée des
+    bêtas 3 ans, pas le 1 an."""
     mode_comparables(page)
     choisir(page, "secteur", "Banks")
 
@@ -36,8 +39,8 @@ def test_le_calcul_du_cout_des_fonds_propres_reprend_ce_beta(page, donnees):
     page.click('#stack .comp[data-comp="ke"] .comp-head')
     detail = page.inner_text('#frame .detail[data-detail="ke"]')
 
-    b3 = secteur(donnees, "Banks")["beta_3ans"]
-    assert f"{b3:.3f}".replace(".", ",") in detail
+    bu = secteur(donnees, "Banks")["beta_u"]
+    assert f"{bu:.3f}".replace(".", ",") in detail
     assert "3 ans" in detail
 
 

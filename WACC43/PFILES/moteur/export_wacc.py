@@ -56,7 +56,8 @@ DAMODARAN_SOURCES = [
      "Unlevered beta (colonne F) et D/E Ratio par secteur -> feuille 'Industry Averages'"),
     ("Primes de risque pays (ERP)", "ctryprem.xlsx", "ERPs by country",
      "https://www.stern.nyu.edu/~adamodar/pc/datasets/ctryprem.xlsx",
-     "Country Risk Premium par pays et prime de risque marché mature (cellule E3) -> feuille 'ERPs by country'"),
+     "Country Risk Premium par pays (coût des fonds propres), Rating-based Default Spread par pays "
+     "(coût de la dette) et prime de risque marché mature (cellule E3) -> feuille 'ERPs by country'"),
     ("Taux d'imposition par pays", "countrytaxrates.xls", "feuille 1",
      "https://www.stern.nyu.edu/~adamodar/pc/datasets/countrytaxrates.xls",
      "Corporate tax rate par pays -> feuille 'Tax Rate'"),
@@ -227,7 +228,7 @@ def generate_wacc_workbook(data: dict, betas_data, erps_data, tax_rates_data, fi
 
     `data` attend les clés :
     country, industry, valuation_year, avg_30y_rate (en %), country_risk_premium,
-    beta_desendette, gearing_sectoriel, tax_rate, beta_reendette, c, d, e,
+    country_default_spread, beta_desendette, gearing_sectoriel, tax_rate, beta_reendette, c, d, e,
     cout_fonds_propres, adjusted_spread, is_adjusted, cout_dette,
     quote_part_equity, quote_part_debt, wacc, inflation_mature, inflation_locale,
     wacc_local
@@ -309,12 +310,15 @@ def generate_wacc_workbook(data: dict, betas_data, erps_data, tax_rates_data, fi
 
     _line(ws, 18, "Taux sans risque", "=D6", "E", "=F6")
 
-    f19 = _line(ws, 19, "Prime de risque pays", "=D7", "G",
-                f"Damodaran - Spread par défaut basé sur la notation de {country}")
+    # La dette prend le spread de défaut du pays, pas la prime de risque pays :
+    # celle-ci le multiplie par la volatilité relative des actions.
+    f19 = _line(ws, 19, "Spread de défaut pays", data["country_default_spread"], "K",
+                f"Damodaran - Spread par défaut basé sur la notation de {country} "
+                f"(ctryprem.xlsx, ERPs by country, Rating-based Default Spread)")
     if erps_idx is not None:
         _hyperlink_internal(f19, "ERPs by country", erps_header_row + 1 + erps_idx)
 
-    _line(ws, 20, "Taux sans risque local", "=SUM(D18:D19)", "I=E+G")
+    _line(ws, 20, "Taux de la dette", "=SUM(D18:D19)", "M=E+K")
 
     spread_source = "Damodaran - Spread de la dette basé sur le secteur d'activité, US (wacc.xls, Industry Averages)"
     if data.get("is_adjusted"):
@@ -325,7 +329,7 @@ def generate_wacc_workbook(data: dict, betas_data, erps_data, tax_rates_data, fi
 
     _line(ws, 22, "Taux d'impôt", "=D11", "C", "=F11")
 
-    _box_row(ws, 24, "Coût de la dette après impôts", '=IFERROR((D20+D21)*(1-D22),"na")', "N=(I+L)*(1-C)",
+    _box_row(ws, 24, "Coût de la dette après impôts", '=IFERROR((D20+D21)*(1-D22),"na")', "N=(M+L)*(1-C)",
               number_format="0.0%")
 
     _line(ws, 26, "Fonds Propres / Valeur d'Entp.", "=1/(1+D10)", "P=1/(1+B)", number_format=RATIO)

@@ -47,9 +47,41 @@ def load_tax_rates_data():
     return data.reset_index(drop=True).dropna(how="all")
 
 
+# Émirats que Damodaran note à part, sans taux d'IS propre dans son fichier
+# fiscal : l'impôt sur les sociétés y est fédéral.
+_IS_EQUIVALENTS = {
+    "Abu Dhabi": "United Arab Emirates",
+    "Ras Al Khaimah (Emirate of)": "United Arab Emirates",
+    "Sharjah": "United Arab Emirates",
+}
+
+
+def taux_is_par_pays(tax_rates) -> dict:
+    """{pays au libellé Damodaran : taux d'IS} lu dans le fichier fiscal.
+
+    Deux pièges dans ce fichier. Il suit la nomenclature des Nations unies
+    (« United States of America », « Republic of Korea ») : on ramène chaque
+    libellé à celui du fichier de primes. Et il se termine par une liste
+    alphabétique de « Tokelau » à « Zimbabwe » qui répète vingt-deux pays avec
+    des taux antérieurs — Royaume-Uni à 19 %, Émirats à 0 %, d'avant leurs
+    réformes de 2023. Seule la première occurrence est donc retenue.
+    """
+    table = {}
+    for _, row in tax_rates.iterrows():
+        name = str(row[tax_rates.columns[0]]).strip()
+        value = _num(row[tax_rates.columns[1]])
+        if name and name.lower() != "nan" and value is not None:
+            table.setdefault(zones.nom_damodaran(name), value)
+    for emirat, federal in _IS_EQUIVALENTS.items():
+        if federal in table:
+            table.setdefault(emirat, table[federal])
+    return table
+
+
 @lru_cache(maxsize=1)
 def load_erps_data():
-    """Primes de risque pays + prime de marché mature (cellule E3)."""
+    """Primes de risque pays, spreads de défaut souverains (colonne D) et prime
+    de marché mature (cellule E3)."""
     df = pd.read_excel(_download(ERPS_URL), sheet_name="ERPs by country", header=None)
     mature_market_premium = float(df.iloc[2, 4])
     headers = df.iloc[7, 0:6].tolist()
@@ -109,9 +141,14 @@ def get_adjusted_spread(cost_of_debt: float, adjustment_table: dict) -> tuple:
     return cost_of_debt, False
 
 
-def calcul_cout_dette(adjusted_spread: float, a: float, tax_rate: float) -> float:
-    """Coût de la dette après impôt = (spread + taux sans risque) × (1 − taux d'IS)."""
-    return (adjusted_spread + a) * (1 - tax_rate)
+def calcul_cout_dette(adjusted_spread: float, a_dette: float, tax_rate: float) -> float:
+    """Coût de la dette après impôt = (spread + taux de la dette) × (1 − taux d'IS).
+
+    Le taux de la dette est le taux US majoré du spread de défaut du pays, et
+    non de la prime de risque pays : celle-ci est ce spread multiplié par la
+    volatilité relative des actions, une grandeur propre aux fonds propres.
+    """
+    return (adjusted_spread + a_dette) * (1 - tax_rate)
 
 
 def calcul_wacc(cout_fonds_propres: float, cout_dette: float, quote_part_equity: float, quote_part_debt: float) -> float:
@@ -181,11 +218,16 @@ def compute(params: dict) -> dict:
     c = mature_market_premium if mature_market_premium is not None else 0.06
 
     country_row, _ = _match_row(erps, erps.columns[0], country)
+    country_default_spread = None
     if country_row is not None and len(country_row) > 0:
         country_risk_premium = float(country_row["Country Risk Premium"].values[0])
+        country_default_spread = _num(country_row["Rating-based Default Spread"].values[0])
     else:
         country_risk_premium = 0.01
         notes.append("Prime de risque pays non trouvée, valeur par défaut utilisée")
+    if country_default_spread is None:
+        country_default_spread = 0.01
+        notes.append("Spread de défaut pays non trouvé, valeur par défaut utilisée")
 
     industry_row, _ = _match_row(betas, betas.columns[0], industry)
     if industry_row is not None and len(industry_row) > 0:
@@ -204,30 +246,34 @@ def compute(params: dict) -> dict:
         cost_of_debt = 0.05
         notes.append("Spread de financement non trouvé, valeur par défaut utilisée")
 
-    tax_row, tax_match = _match_row(tax_rates, tax_rates.columns[0], country)
-    if tax_row is not None and len(tax_row) > 0:
-        tax_rate = float(tax_row[tax_rates.columns[1]].values[0])
-        if tax_match:
-            notes.append(f"Taux d'IS rapproché de « {tax_match} »")
-    else:
-        tax_rate = 0.25
-        notes.append("Taux d'IS non trouvé, valeur par défaut utilisée")
+    tax_rate = taux_is_par_pays(tax_rates).get(zones.nom_damodaran(country))
+    if tax_rate is None:
+        tax_row, tax_match = _match_row(tax_rates, tax_rates.columns[0], country)
+        if tax_row is not None and len(tax_row) > 0:
+            tax_rate = float(tax_row[tax_rates.columns[1]].values[0])
+            if tax_match:
+                notes.append(f"Taux d'IS rapproché de « {tax_match} »")
+        else:
+            tax_rate = 0.25
+            notes.append("Taux d'IS non trouvé, valeur par défaut utilisée")
 
     maturity_code = "30" if maturity == "30Y" else "10"
     avg_rate = risk_free_rate(year, maturity_code)
     if avg_rate is None:
         avg_rate = 0.0
         a = 0.03
+        a_dette = 0.03
         notes.append(f"Taux US {maturity} indisponible pour {year}, valeur par défaut utilisée")
     else:
         a = (avg_rate / 100) + country_risk_premium
+        a_dette = (avg_rate / 100) + country_default_spread
 
     b = calcul_beta_reendeté(beta_desendette, gearing_sectoriel, tax_rate)
     cout_fonds_propres = calcul_cout_fonds_propres(a, b, c, d, e)
     adjusted_spread, is_adjusted = get_adjusted_spread(cost_of_debt, adjustment_table)
     quote_part_equity = 1 / (1 + gearing_sectoriel)
     quote_part_debt = 1 - quote_part_equity
-    cout_dette = calcul_cout_dette(adjusted_spread, a, tax_rate)
+    cout_dette = calcul_cout_dette(adjusted_spread, a_dette, tax_rate)
     wacc = calcul_wacc(cout_fonds_propres, cout_dette, quote_part_equity, quote_part_debt)
     wacc_local = calcul_wacc_monnaie_locale(wacc, inflation_locale, inflation_mature)
 
@@ -238,7 +284,9 @@ def compute(params: dict) -> dict:
         "risk_free_maturity": maturity,
         "avg_30y_rate": avg_rate,
         "country_risk_premium": country_risk_premium,
+        "country_default_spread": country_default_spread,
         "taux_sans_risque_local": a,
+        "taux_dette": a_dette,
         "beta_desendette": beta_desendette,
         "gearing_sectoriel": gearing_sectoriel,
         "tax_rate": tax_rate,
@@ -249,7 +297,7 @@ def compute(params: dict) -> dict:
         "cout_fonds_propres": cout_fonds_propres,
         "adjusted_spread": adjusted_spread,
         "is_adjusted": is_adjusted,
-        "cout_dette_avant_impot": adjusted_spread + a,
+        "cout_dette_avant_impot": adjusted_spread + a_dette,
         "cout_dette": cout_dette,
         "quote_part_equity": quote_part_equity,
         "quote_part_debt": quote_part_debt,
@@ -290,25 +338,27 @@ def build_dataset(years=None, progress=None) -> dict:
     spreads = load_financing_spread_data()
     adjustment = load_spread_adjustment_table()
 
+    # Deux colonnes du même fichier : la prime de risque pays entre dans le
+    # coût des fonds propres, le spread de défaut dans celui de la dette.
     pays = {}
     for _, row in erps.iterrows():
         name = str(row[erps.columns[0]]).strip()
         crp = _num(row["Country Risk Premium"])
         if name and name.lower() != "nan" and crp is not None:
             pays[name] = {"crp": crp}
+            ds = _num(row["Rating-based Default Spread"])
+            if ds is not None:
+                pays[name]["ds"] = ds
 
     # Les libellés diffèrent d'un fichier Damodaran à l'autre : on résout ici
-    # les correspondances approchées, le navigateur n'aura plus qu'à lire la clé.
-    tax_names = {}
-    for _, row in tax_rates.iterrows():
-        name = str(row[tax_rates.columns[0]]).strip()
-        value = _num(row[tax_rates.columns[1]])
-        if name and name.lower() != "nan" and value is not None:
-            tax_names[name.lower()] = value
+    # les correspondances, le navigateur n'aura plus qu'à lire la clé. La table
+    # d'alias d'abord, l'approché ensuite pour ce qu'elle ne couvre pas.
+    taux = taux_is_par_pays(tax_rates)
+    tax_names = {name.lower(): value for name, value in taux.items()}
     for name, entry in pays.items():
         key = name.lower()
-        if key in tax_names:
-            entry["tax"] = tax_names[key]
+        if name in taux:
+            entry["tax"] = taux[name]
         else:
             close = difflib.get_close_matches(key, list(tax_names), n=1, cutoff=0.9)
             if close:

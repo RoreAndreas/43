@@ -35,6 +35,73 @@ MIN_INDUSTRIES = 60
 SEUIL_ECHANTILLON = 3
 
 
+def integrer_comparables(dataset: dict, progress) -> None:
+    """Ajoute l'univers de comparables au jeu de données, sur place.
+
+    Les exports S&P sont déposés à la racine de WACC43, un niveau au-dessus de
+    PFILES. Chaque bêta y est désendetté au taux d'IS de son pays, lu dans la
+    partie Damodaran du jeu de données : celle-ci doit donc être complète avant
+    l'appel.
+    """
+    import comparables as _comparables
+    import zones as _zones
+
+    # Univers de comparables : il donne la nomenclature d'industries, le gearing
+    # sectoriel observé, et une couverture continentale que la seule place
+    # d'Abidjan ne permettait pas.
+    taux_pays = _comparables.taux_pays_damodaran(dataset["pays"], _zones.nom_damodaran)
+    univers = _comparables.construire(RACINE.parent, taux_pays, progress=progress)
+    if univers is None:
+        # Échec franc plutôt qu'avertissement : la nomenclature d'industries, le
+        # gearing sectoriel et les effectifs de la carte en dépendent tous. Sans
+        # cet univers, la page se construit sans erreur mais publie une version
+        # dégradée — ce qui est arrivé, et n'a été vu qu'en inspectant le site.
+        raise SystemExit(
+            f"Aucun export {_comparables.MOTIF_EXPORTS} trouvé autour de "
+            f"{RACINE.parent} — page non écrite."
+        )
+
+    index, orphelins = _comparables.indexer_par_zone(univers, _zones.classer)
+    societes = _comparables.payload_page(univers, _zones.classer)
+    secteurs = _comparables.secteurs_par_perimetre(univers["societes"], _zones.classer)
+    dataset["comparables"] = {
+        "source": univers["source"],
+        "seuil": SEUIL_ECHANTILLON,
+        # La page refait cette sélection sur les mêmes données pour marquer
+        # les sociétés retenues : embarquer les identifiants coûterait trois
+        # cent cinquante kilooctets pour une règle qui tient en une ligne.
+        "echantillon": _comparables.ECHANTILLON_MAX,
+        # Le menu se peuple de tous les secteurs de l'univers, peuplés ou non
+        # dans la zone retenue : masquer ceux qui manquent ici priverait
+        # l'utilisateur de la vue continentale, qui reste calculable.
+        "industries": [{"nom": nom, "societes": stats["univers"]["societes"]}
+                       for nom, stats in sorted(secteurs.items())],
+        # Médianes aux trois échelles : la page prend la plus étroite qui
+        # atteigne le seuil et écrit laquelle a servi.
+        "secteurs": secteurs,
+        "zones": index,
+        # Les sociétés elles-mêmes, et pas seulement leur décompte : c'est
+        # cette population que l'onglet Sociétés doit lister, la même que
+        # celle que chiffre le cadrage.
+        "societes": societes,
+    }
+
+    # Garde-fou : les effectifs de la carte et la liste des sociétés sortent
+    # de deux parcours différents du même univers. S'ils divergent, la page
+    # annoncera des sociétés qu'elle ne sait pas montrer — le défaut qu'on
+    # vient de corriger. Autant que la construction s'arrête ici.
+    attendu = sum(bloc["total"] for bloc in index.values())
+    sans_zone = sum(1 for s in societes.values() if s["zone"] is None)
+    if len(societes) != attendu + sans_zone:
+        raise SystemExit(
+            f"Incohérence : {len(societes)} sociétés embarquées, mais "
+            f"{attendu} comptées en zone et {sans_zone} sans zone — page non écrite."
+        )
+    dataset["zones_societes"] = index
+    if orphelins:
+        print(f"  /!\\ pays de comparables sans zone : {', '.join(orphelins)}")
+
+
 def main():
     parser = argparse.ArgumentParser(description="Génère la page statique du CMPC")
     parser.add_argument("--out", default=str(SITE), help="dossier de sortie (défaut : site/)")
@@ -80,63 +147,7 @@ def main():
         for nom in inclassables:
             print(f"       - {nom}")
 
-    import comparables as _comparables
-    import zones as _zones
-
-    # Univers de comparables : l'export S&P déposé dans le dossier du projet.
-    # Il donne la nomenclature d'industries, le gearing sectoriel observé, et
-    # une couverture continentale que la seule place d'Abidjan ne permettait pas.
-    # L'export est déposé à la racine de WACC43, un niveau au-dessus de PFILES.
-    univers = _comparables.construire(RACINE.parent, progress=progress)
-    if univers is None:
-        # Échec franc plutôt qu'avertissement : la nomenclature d'industries, le
-        # gearing sectoriel et les effectifs de la carte en dépendent tous. Sans
-        # cet univers, la page se construit sans erreur mais publie une version
-        # dégradée — ce qui est arrivé, et n'a été vu qu'en inspectant le site.
-        raise SystemExit(
-            "Aucun export SPGlobal_Export_*.xlsx trouvé autour de "
-            f"{RACINE.parent} — page non écrite."
-        )
-    else:
-        index, orphelins = _comparables.indexer_par_zone(univers, _zones.classer)
-        societes = _comparables.payload_page(univers, _zones.classer)
-        secteurs = _comparables.secteurs_par_perimetre(univers["societes"], _zones.classer)
-        dataset["comparables"] = {
-            "source": univers["source"],
-            "seuil": SEUIL_ECHANTILLON,
-            # La page refait cette sélection sur les mêmes données pour marquer
-            # les sociétés retenues : embarquer les identifiants coûterait trois
-            # cent cinquante kilooctets pour une règle qui tient en une ligne.
-            "echantillon": _comparables.ECHANTILLON_MAX,
-            # Le menu se peuple de tous les secteurs de l'univers, peuplés ou non
-            # dans la zone retenue : masquer ceux qui manquent ici priverait
-            # l'utilisateur de la vue continentale, qui reste calculable.
-            "industries": [{"nom": nom, "societes": stats["univers"]["societes"]}
-                           for nom, stats in sorted(secteurs.items())],
-            # Médianes aux trois échelles : la page prend la plus étroite qui
-            # atteigne le seuil et écrit laquelle a servi.
-            "secteurs": secteurs,
-            "zones": index,
-            # Les sociétés elles-mêmes, et pas seulement leur décompte : c'est
-            # cette population que l'onglet Sociétés doit lister, la même que
-            # celle que chiffre le cadrage.
-            "societes": societes,
-        }
-
-        # Garde-fou : les effectifs de la carte et la liste des sociétés sortent
-        # de deux parcours différents du même univers. S'ils divergent, la page
-        # annoncera des sociétés qu'elle ne sait pas montrer — le défaut qu'on
-        # vient de corriger. Autant que la construction s'arrête ici.
-        attendu = sum(bloc["total"] for bloc in index.values())
-        sans_zone = sum(1 for s in societes.values() if s["zone"] is None)
-        if len(societes) != attendu + sans_zone:
-            raise SystemExit(
-                f"Incohérence : {len(societes)} sociétés embarquées, mais "
-                f"{attendu} comptées en zone et {sans_zone} sans zone — page non écrite."
-            )
-        dataset["zones_societes"] = index
-        if orphelins:
-            print(f"  /!\\ pays de comparables sans zone : {', '.join(orphelins)}")
+    integrer_comparables(dataset, progress)
 
     page = render_page(dataset)
     target = out / "index.html"

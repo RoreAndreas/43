@@ -9,7 +9,7 @@ d'Afrique australe et de l'Est en tête, qui n'en cotent aucune.
 
 import pytest
 
-from conftest import choisir, mode_comparables
+from conftest import choisir, mode_comparables, zone_sans
 
 
 def chips(page):
@@ -108,12 +108,15 @@ def test_une_zone_selectionnee_restreint_le_resume(page, donnees):
 
 
 def test_une_zone_sans_societe_le_dit(page, donnees):
-    """« aucune société » plutôt qu'un tiret qu'on lirait comme une lacune."""
+    """« aucune société » plutôt qu'un tiret qu'on lirait comme une lacune.
+
+    La zone vide se cherche dans les données : voir `zone_sans()`."""
+    vide = zone_sans(donnees, "Afrique", "Banks")
     mode_comparables(page)
     choisir(page, "continent", "Afrique")
     choisir(page, "secteur", "Banks")
 
-    page.click('#paramsMain .zone[data-zone="Afrique du Nord"]')
+    page.click(f'#paramsMain .zone[data-zone="{vide}"]')
     resume = chips(page)[0]
     assert "aucune société" in resume
     assert places(page) == [], "aucune place affichée sur un périmètre vide"
