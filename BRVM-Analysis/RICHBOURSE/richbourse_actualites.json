@@ -1,10 +1,20 @@
 {
-    "last_update": "2026-10-06 16:38:39",
+    "last_update": "2026-10-07 02:12:35",
     "count": 20,
     "weeks": [
         {
             "semaine": "Semaine du 05 Octobre au 11 Octobre 2026",
             "publications": [
+                {
+                    "date": "06/10/2026",
+                    "titre": "BOA SN : Notation Financière",
+                    "url": "https://www.richbourse.com/common/actualite/afficher-fichier/06-10-2026-boa-sn-notation-financiere"
+                },
+                {
+                    "date": "06/10/2026",
+                    "titre": "TRACTAFRIC MOTORS CI : Paiement de dividendes - Exercice 2025",
+                    "url": "https://www.richbourse.com/common/actualite/afficher-fichier/06-10-2026-tractafric-motors-ci-paiement-de-dividendes-exercice-2025"
+                },
                 {
                     "date": "05/10/2026",
                     "titre": "SONATEL : Annulation de transaction",
@@ -27,13 +37,13 @@
                 },
                 {
                     "date": "01/10/2026",
-                    "titre": "BOA CI : Rapport d'examen limité des états financiers - 1er semestre 2026",
-                    "url": "https://www.richbourse.com/common/actualite/afficher-fichier/01-10-2026-boa-ci-rapport-d-examen-limite-des-etats-financiers-1er-semestre-2026"
+                    "titre": "Composition de l'indice BRVM",
+                    "url": "https://www.richbourse.com/common/actualite/afficher-fichier/01-10-2026-composition-de-l-indice-brvm"
                 },
                 {
                     "date": "01/10/2026",
-                    "titre": "Composition de l'indice BRVM",
-                    "url": "https://www.richbourse.com/common/actualite/afficher-fichier/01-10-2026-composition-de-l-indice-brvm"
+                    "titre": "BOA CI : Rapport d'examen limité des états financiers - 1er semestre 2026",
+                    "url": "https://www.richbourse.com/common/actualite/afficher-fichier/01-10-2026-boa-ci-rapport-d-examen-limite-des-etats-financiers-1er-semestre-2026"
                 },
                 {
                     "date": "01/10/2026",
@@ -52,13 +62,13 @@
                 },
                 {
                     "date": "30/09/2026",
-                    "titre": "AMF-UMOA : Communiqué - Souscription à des Offres Publiques de Vente hors du territoire de l'UEMOA",
-                    "url": "https://www.richbourse.com/common/actualite/afficher-fichier/30-09-2026-amf-umoa-communique-souscription-a-des-offres-publiques-de-vente-hors-du-territoire-de-l-uemoa"
+                    "titre": "TotalEnergies Marketing CI : Notation financière",
+                    "url": "https://www.richbourse.com/common/actualite/afficher-fichier/30-09-2026-totalenergies-marketing-ci-notation-financiere"
                 },
                 {
                     "date": "30/09/2026",
-                    "titre": "TotalEnergies Marketing CI : Notation financière",
-                    "url": "https://www.richbourse.com/common/actualite/afficher-fichier/30-09-2026-totalenergies-marketing-ci-notation-financiere"
+                    "titre": "AMF-UMOA : Communiqué - Souscription à des Offres Publiques de Vente hors du territoire de l'UEMOA",
+                    "url": "https://www.richbourse.com/common/actualite/afficher-fichier/30-09-2026-amf-umoa-communique-souscription-a-des-offres-publiques-de-vente-hors-du-territoire-de-l-uemoa"
                 },
                 {
                     "date": "28/09/2026",
@@ -104,16 +114,6 @@
                     "date": "24/09/2026",
                     "titre": "BRIDGE BANK GROUP CI : Rapport d'activités - 1er semestre 2026",
                     "url": "https://www.richbourse.com/common/actualite/afficher-fichier/24-09-2026-bridge-bank-group-ci-rapport-d-activites-1er-semestre-2026"
-                },
-                {
-                    "date": "23/09/2026",
-                    "titre": "BOA MALI : Rapport d'activités - 1er semestre 2026",
-                    "url": "https://www.richbourse.com/common/actualite/afficher-fichier/23-09-2026-boa-mali-rapport-dactivites-1er-semestre-2026"
-                },
-                {
-                    "date": "21/09/2026",
-                    "titre": "SAPH CI : Communiqué - Changement important dans la Direction",
-                    "url": "https://www.richbourse.com/common/actualite/afficher-fichier/21-09-2026-saph-ci-communique-changement-important-dans-la-direction"
                 }
             ]
         }
