@@ -1,10 +1,35 @@
 {
-    "last_update": "2026-10-07 02:12:35",
+    "last_update": "2026-10-09 02:53:14",
     "count": 20,
     "weeks": [
         {
             "semaine": "Semaine du 05 Octobre au 11 Octobre 2026",
             "publications": [
+                {
+                    "date": "08/10/2026",
+                    "titre": "BRVM : Transactions Sur Dossier",
+                    "url": "https://www.richbourse.com/common/actualite/afficher-fichier/08-10-2026-brvm-transactions-sur-dossier"
+                },
+                {
+                    "date": "08/10/2026",
+                    "titre": "ORANGE CI : Rapport d'activités - 1er semestre 2026",
+                    "url": "https://www.richbourse.com/common/actualite/afficher-fichier/08-10-2026-orange-ci-rapport-d-activites-1er-semestre-2026"
+                },
+                {
+                    "date": "08/10/2026",
+                    "titre": "ORANGE CI : Attestation des Commissaires Aux Comptes sur le rapport d'activités - 1er semestre 2026",
+                    "url": "https://www.richbourse.com/common/actualite/afficher-fichier/08-10-2026-orange-ci-attestation-des-commissaires-aux-comptes-sur-le-rapport-d-activites-1er-semestre-2026"
+                },
+                {
+                    "date": "07/10/2026",
+                    "titre": "PALM CI : Rapport d'activités - 1er semestre 2026",
+                    "url": "https://www.richbourse.com/common/actualite/afficher-fichier/07-10-2026-palm-ci-rapport-d-activites-1er-semestre-2026"
+                },
+                {
+                    "date": "07/10/2026",
+                    "titre": "PALM CI : Attestation des Commissaires Aux Comptes sur le rapport d'activités - 1er semestre 2026",
+                    "url": "https://www.richbourse.com/common/actualite/afficher-fichier/07-10-2026-palm-ci-attestation-des-commissaires-aux-comptes-sur-le-rapport-d-activites-1er-semestre-2026"
+                },
                 {
                     "date": "06/10/2026",
                     "titre": "BOA SN : Notation Financière",
@@ -42,13 +67,8 @@
                 },
                 {
                     "date": "01/10/2026",
-                    "titre": "BOA CI : Rapport d'examen limité des états financiers - 1er semestre 2026",
-                    "url": "https://www.richbourse.com/common/actualite/afficher-fichier/01-10-2026-boa-ci-rapport-d-examen-limite-des-etats-financiers-1er-semestre-2026"
-                },
-                {
-                    "date": "01/10/2026",
-                    "titre": "ONATEL BF : Rapport d'activités - 1er semestre 2026",
-                    "url": "https://www.richbourse.com/common/actualite/afficher-fichier/01-10-2026-onatel-bf-rapport-dactivites-1er-semestre-2026"
+                    "titre": "BOA CI : Rapport d'activités - 1er semestre 2026",
+                    "url": "https://www.richbourse.com/common/actualite/afficher-fichier/01-10-2026-boa-ci-rapport-d-activites-1er-semestre-2026"
                 },
                 {
                     "date": "01/10/2026",
@@ -57,8 +77,13 @@
                 },
                 {
                     "date": "01/10/2026",
-                    "titre": "BOA CI : Rapport d'activités - 1er semestre 2026",
-                    "url": "https://www.richbourse.com/common/actualite/afficher-fichier/01-10-2026-boa-ci-rapport-d-activites-1er-semestre-2026"
+                    "titre": "ONATEL BF : Rapport d'activités - 1er semestre 2026",
+                    "url": "https://www.richbourse.com/common/actualite/afficher-fichier/01-10-2026-onatel-bf-rapport-dactivites-1er-semestre-2026"
+                },
+                {
+                    "date": "01/10/2026",
+                    "titre": "BOA CI : Rapport d'examen limité des états financiers - 1er semestre 2026",
+                    "url": "https://www.richbourse.com/common/actualite/afficher-fichier/01-10-2026-boa-ci-rapport-d-examen-limite-des-etats-financiers-1er-semestre-2026"
                 },
                 {
                     "date": "30/09/2026",
@@ -87,33 +112,8 @@
             "publications": [
                 {
                     "date": "25/09/2026",
-                    "titre": "BOA NIGER : Rapport d'activités - 1er semestre 2026",
-                    "url": "https://www.richbourse.com/common/actualite/afficher-fichier/25-09-2026-boa-niger-rapport-dactivites-1er-semestre-2026"
-                },
-                {
-                    "date": "25/09/2026",
                     "titre": "BOA NIGER : Attestation des Commissaires Aux Comptes et Rapport d'activités - 1er semestre 2026",
                     "url": "https://www.richbourse.com/common/actualite/afficher-fichier/25-09-2026-boa-niger-attestation-des-commissaires-aux-comptes-et-rapport-d-activites-1er-semestre-2026"
-                },
-                {
-                    "date": "24/09/2026",
-                    "titre": "TOTALENERGIES MARKETING SN : Changement important dans la Direction",
-                    "url": "https://www.richbourse.com/common/actualite/afficher-fichier/24-09-2026-totalenergies-marketing-sn-changement-important-dans-la-direction"
-                },
-                {
-                    "date": "24/09/2026",
-                    "titre": "BRIDGE BANK GROUP CI : Rapport des Commissaires Aux Comptes - 1er semestre 2026",
-                    "url": "https://www.richbourse.com/common/actualite/afficher-fichier/24-09-2026-bridge-bank-group-ci-rapport-des-commissaires-aux-comptes-1er-semestre-2026"
-                },
-                {
-                    "date": "24/09/2026",
-                    "titre": "BRIDGE BANK GROUP COTE D'IVOIRE (BBGC) : Résultats de première cotation",
-                    "url": "https://www.richbourse.com/common/actualite/afficher-fichier/24-09-2026-cote-d-ivoire-bbgc-resultats-de-premiere-cotation"
-                },
-                {
-                    "date": "24/09/2026",
-                    "titre": "BRIDGE BANK GROUP CI : Rapport d'activités - 1er semestre 2026",
-                    "url": "https://www.richbourse.com/common/actualite/afficher-fichier/24-09-2026-bridge-bank-group-ci-rapport-d-activites-1er-semestre-2026"
                 }
             ]
         }
