@@ -142,14 +142,67 @@ def test_le_spread_des_industries_est_celui_qui_entre_dans_le_kd(page_seule):
 
 # ---------------------------------------------------------- panneau, hors ligne
 
+def ouvrir_assistant(page):
+    if not page.is_visible("#panel-assistant"):
+        page.click('.tabs button[data-groupe="assistant"]')
+
+
 def demander(page, question):
+    ouvrir_assistant(page)
     page.fill("#agentQuestion", question)
     page.click("#agentDemander")
     page.wait_for_timeout(250)
     return page.inner_text("#agentReponse")
 
 
+def test_l_assistant_a_son_onglet_et_quitte_les_parametres(page):
+    assert page.query_selector("#panel-params #agentPanneau") is None
+    assert not page.is_visible("#agentPanneau")
+    ouvrir_assistant(page)
+    assert page.is_visible("#agentQuestion")
+    assert page.evaluate("document.activeElement.id") == "agentQuestion"
+    assert not page.is_visible("#panel-params")
+
+
+def test_l_onglet_rappelle_le_contexte_de_l_ecran(page):
+    ouvrir_assistant(page)
+    contexte = page.inner_text("#agentContexte")
+    assert page.evaluate("params.country") in contexte
+    assert page.evaluate("params.industry") in contexte
+    # « Modifier » ramène aux Paramètres ; au retour, le contexte a suivi.
+    page.click("#agentContexte [data-agent-onglet]")
+    assert page.is_visible("#panel-params")
+    page.evaluate("params.country = 'Ghana'; apply()")
+    ouvrir_assistant(page)
+    assert "Ghana" in page.inner_text("#agentContexte")
+
+
+def test_les_exemples_repondent_tous_hors_ligne(page):
+    ouvrir_assistant(page)
+    exemples = page.eval_on_selector_all("#agentExemples [data-agent-question]", "els => els.map(e => e.dataset.agentQuestion)")
+    assert len(exemples) >= 6
+    for q in exemples:
+        page.click(f'#agentExemples [data-agent-question="{q}"]')
+        page.wait_for_timeout(150)
+        assert page.query_selector("#agentReponse .agent-erreur") is None, q
+        assert "J'ai compris" in page.inner_text("#agentReponse"), q
+        if page.is_visible("#panel-params"):      # le CMPC appliqué ramène aux Paramètres
+            ouvrir_assistant(page)
+
+
+def test_une_ancienne_reponse_se_rouvre_sous_sa_question(page):
+    demander(page, "taux d'IS du Cameroun")
+    demander(page, "Top 5 pays d'Afrique par prime de risque")
+    ancienne = page.query_selector("#agentHistorique details")
+    assert "taux d'IS du Cameroun" in ancienne.inner_text()
+    assert "%" in ancienne.query_selector("summary").inner_text()      # la valeur, pas « 1 résultat »
+    ancienne.query_selector("summary").click()
+    assert ancienne.query_selector(".agent-table") is not None
+    assert ancienne.query_selector(".agent-table").is_visible()
+
+
 def test_depuis_un_fichier_le_panneau_annonce_le_mode_hors_ligne(page):
+    ouvrir_assistant(page)
     assert "Mode hors ligne : gabarits seulement" in page.inner_text("#agentPanneau")
 
 
@@ -198,6 +251,8 @@ def test_appliquer_un_cmpc_le_porte_a_l_ecran(page):
     demander(page, "CMPC d'une cimenterie au Sénégal en 2026")
     page.click("#agentReponse [data-agent-appliquer]")
     assert page.evaluate("[params.country, params.industry]") == ["Senegal", "Construction Supplies"]
+    # On passe aux Paramètres pour voir le CMPC appliqué.
+    assert page.is_visible("#paramsResult")
 
 
 # ------------------------------------------------- en ligne, serveur simulé
@@ -238,6 +293,7 @@ def test_le_serveur_traduit_la_page_execute(page_http):
 def test_une_requete_serveur_invalide_est_refusee_par_la_page(page_http):
     appels = []
     jouer(page_http, 200, {"ok": True, "requete": {"source": "pays", "filtres": [{"champ": "pib", "op": ">", "valeur": 1}]}}, appels)
+    ouvrir_assistant(page_http)
     page_http.fill("#agentQuestion", "question exotique")
     page_http.click("#agentDemander")
     page_http.wait_for_selector("#agentReponse .agent-erreur")
@@ -247,6 +303,7 @@ def test_une_requete_serveur_invalide_est_refusee_par_la_page(page_http):
 def test_le_quota_atteint_bascule_sur_les_gabarits(page_http):
     appels = []
     jouer(page_http, 429, {"ok": False, "code": "quota", "reprise": "2026-10-12T00:00:00.000Z"}, appels)
+    ouvrir_assistant(page_http)
     page_http.fill("#agentQuestion", "question exotique")
     page_http.click("#agentDemander")
     page_http.wait_for_selector("#agentReponse .agent-erreur")
@@ -259,11 +316,13 @@ def test_le_quota_atteint_bascule_sur_les_gabarits(page_http):
 def test_le_plafond_gratuit_epuise_passe_hors_ligne(page_http):
     appels = []
     jouer(page_http, 503, {"ok": False, "code": "plafond"}, appels)
+    ouvrir_assistant(page_http)
     page_http.fill("#agentQuestion", "question exotique")
     page_http.click("#agentDemander")
     page_http.wait_for_selector("#agentReponse .agent-erreur")
     assert "Mode hors ligne" in page_http.inner_text('[data-o="agent-etat"]')
     # Hors ligne, la question suivante ne tente plus le serveur.
+    ouvrir_assistant(page_http)
     page_http.fill("#agentQuestion", "autre question exotique")
     page_http.click("#agentDemander")
     page_http.wait_for_timeout(300)
@@ -273,6 +332,7 @@ def test_le_plafond_gratuit_epuise_passe_hors_ligne(page_http):
 def test_une_page_sans_fonction_serveur_reste_utilisable(page_http):
     """Déploiement sans `functions/` : la route renvoie 404 ou 405."""
     page_http.route("**/api/ask", lambda route: route.fulfill(status=405, body="Method Not Allowed"))
+    ouvrir_assistant(page_http)
     page_http.fill("#agentQuestion", "question exotique")
     page_http.click("#agentDemander")
     page_http.wait_for_selector("#agentReponse .agent-erreur")

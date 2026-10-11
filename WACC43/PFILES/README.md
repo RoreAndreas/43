@@ -165,7 +165,7 @@ n'en publie pas fait retenir le 1 an pour ses sociétés, et la page le signale.
 
 ## Assistant
 
-Un assistant, sous le résultat du CMPC, répond en français aux questions sur
+Un assistant, dans l'onglet du même nom, répond en français aux questions sur
 les données embarquées, et propose des hypothèses de prévision justifiées. Il
 suit le brief du 5 octobre 2026 avec une contrainte de plus : **son cerveau est
 gratuit**. Les deux rôles tournent sur Cloudflare Workers AI, dans l'enveloppe

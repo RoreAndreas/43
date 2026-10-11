@@ -274,10 +274,10 @@ def secteur(donnees: dict, nom: str, perimetre: str = "univers") -> dict:
     raise AssertionError(f"secteur « {nom} » absent du périmètre « {perimetre} »")
 
 
-# Onglets : CMPC (Paramètres, Calcul, Sociétés), Insight, Valorisation.
+# Onglets : CMPC (Paramètres, Calcul, Sociétés), Insight, Valorisation, Assistant.
 # Chaque vue s'atteint par son onglet puis, s'il y en a un, son sous-onglet.
 GROUPES = {"params": "cmpc", "wacc": "cmpc", "societes": "cmpc", "insight": "insight",
-           "valorisation": "valorisation"}
+           "valorisation": "valorisation", "assistant": "assistant"}
 
 
 def ouvrir(page, vue: str) -> None:

@@ -2285,58 +2285,68 @@
     .ins-chiffres { grid-template-columns: 1fr; }
     .ins-table th, .ins-table td { padding: 8px 5px; }
   }
-  /* ---------- Assistant (colonne de droite) ---------- */
-  /* Le résultat et l'assistant partagent la colonne collante : elle défile
-     d'elle-même quand les deux dépassent la hauteur de l'écran, plutôt que de
-     laisser le bas de l'assistant hors d'atteinte. */
-  .params-droite {
-    position: sticky;
-    top: 24px;
-    display: grid;
-    gap: 14px;
-    align-content: start;
-    max-height: calc(100vh - 48px);
-    overflow-y: auto;
-    overscroll-behavior: contain;
-    scrollbar-width: thin;
+  /* ---------- Onglet Assistant ---------- */
+  /* À gauche la conversation, à droite ce qui l'éclaire : le contexte que
+     l'assistant reprend (« son CMPC », « ce secteur »), des exemples, et sa
+     façon de répondre. La colonne de droite reste en vue au défilement. */
+  .assistant {
+    max-width: 1060px;
+    margin: 0 auto;
+    padding: 30px 32px 120px;
   }
-  .params-droite .result { position: static; }
   .agent {
     display: grid;
-    gap: 12px;
+    grid-template-columns: minmax(0, 1fr) 300px;
+    gap: 26px;
+    align-items: start;
+  }
+  .agent-principal, .agent-bloc {
+    display: grid;
+    min-width: 0;
     background: var(--surface);
     border: 1px solid var(--line);
     border-radius: 10px;
-    padding: 18px 20px;
   }
-  .agent-tete { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; flex-wrap: wrap; }
-  .agent-tete h2 {
+  .agent-principal { gap: 16px; padding: 22px 24px 24px; }
+  .agent-cote { display: grid; gap: 14px; position: sticky; top: 24px; }
+  .agent-bloc { gap: 10px; padding: 18px 20px; }
+  .agent-bloc h2 {
     margin: 0;
     font: 400 10px/1 var(--mono);
     letter-spacing: 0.09em;
     text-transform: uppercase;
     color: var(--muted);
   }
-  .agent-etat { font: 400 10.5px/1.35 var(--sans); color: var(--muted-2); }
+  .agent-bloc .result-row { padding: 8px 12px; }
+  .agent-bloc .result-row span:last-child { text-align: right; font-family: var(--sans); }
+  .agent-theme { display: grid; gap: 6px; }
+  .agent-theme h3 { margin: 4px 0 0; font: 500 11px/1.3 var(--sans); color: var(--ink-3); }
+  .agent-etapes { display: grid; gap: 8px; margin: 0; padding-left: 16px; font: 400 11.5px/1.5 var(--sans); color: var(--ink-3); }
+  .agent-tete { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px 18px; flex-wrap: wrap; }
+  .agent-titre { margin: 0; font: 500 19px/1.2 var(--sans); color: var(--ink); }
+  .agent-sous-titre { margin: 5px 0 0; max-width: 520px; font: 400 12.5px/1.45 var(--sans); color: var(--muted); }
+  .agent-etat { padding-top: 4px; font: 400 10.5px/1.35 var(--sans); color: var(--muted-2); }
   .agent-etat.is-hors-ligne { color: var(--warn); }
-  .agent-saisie { display: flex; gap: 6px; }
+  .agent-saisie { display: flex; gap: 8px; }
   .agent-champ {
     flex: 1;
     min-width: 0;
-    padding: 8px 10px;
+    padding: 11px 14px;
     border: 1px solid var(--line);
     border-radius: 8px;
     background: var(--field);
-    font: 400 12.5px/1.3 var(--sans);
+    font: 400 14px/1.3 var(--sans);
     color: var(--ink);
   }
   .agent-champ:focus { outline: none; border-color: var(--accent); background: var(--surface); }
   .agent-reponse { display: grid; gap: 10px; }
-  .agent-question { margin: 0; font: 500 12px/1.45 var(--sans); color: var(--ink-2); }
-  .agent-entete { margin: 0; font: 400 12px/1.5 var(--sans); color: var(--ink-3); }
-  .agent-chiffre { font: 500 24px/1 var(--mono); font-variant-numeric: tabular-nums; color: var(--green); }
-  .agent-table-defile { max-height: 260px; overflow: auto; border: 1px solid var(--line); border-radius: 8px; }
-  .agent-table { width: 100%; border-collapse: collapse; font: 400 11px/1.35 var(--sans); }
+  .agent-reponse:not(:empty) { padding-top: 16px; border-top: 1px solid var(--line); }
+  .agent-reponse:empty, .agent-historique:empty { display: none; }
+  .agent-question { margin: 0; font: 500 13px/1.45 var(--sans); color: var(--ink-2); }
+  .agent-entete { margin: 0; font: 400 12.5px/1.5 var(--sans); color: var(--ink-3); }
+  .agent-chiffre { font: 500 28px/1 var(--mono); font-variant-numeric: tabular-nums; color: var(--green); }
+  .agent-table-defile { max-height: 420px; overflow: auto; border: 1px solid var(--line); border-radius: 8px; }
+  .agent-table { width: 100%; border-collapse: collapse; font: 400 11.5px/1.35 var(--sans); }
   .agent-table th {
     position: sticky;
     top: 0;
@@ -2384,7 +2394,21 @@
     color: var(--warn);
   }
   .agent-erreur .agent-exemples { margin-top: 8px; }
-  .agent-exemples, .agent-historique ul { display: flex; flex-wrap: wrap; gap: 6px; margin: 0; padding: 0; list-style: none; }
+  .agent-exemples { display: flex; flex-wrap: wrap; gap: 6px; margin: 0; padding: 0; list-style: none; }
+  .agent-historique ul { display: grid; gap: 6px; margin: 0; padding: 0; list-style: none; }
+  .agent-ancienne { border: 1px solid var(--line); border-radius: 8px; background: var(--tile); }
+  .agent-ancienne summary {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 8px 12px;
+    font: 400 12px/1.45 var(--sans);
+    color: var(--ink-3);
+    cursor: pointer;
+  }
+  .agent-ancienne summary span:last-child { flex: none; color: var(--muted-2); }
+  .agent-ancienne[open] summary { border-bottom: 1px solid var(--line); }
+  .agent-ancienne-corps { display: grid; gap: 10px; padding: 12px; background: var(--surface); border-radius: 0 0 8px 8px; }
   .agent-puce {
     padding: 5px 9px;
     border: 1px solid var(--line);
@@ -2405,7 +2429,12 @@
   }
   .agent-attente { margin: 0; font: 400 12px/1.5 var(--sans); color: var(--muted); }
   @media (max-width: 940px) {
-    .params-droite { position: static; max-height: none; overflow: visible; }
+    .agent { grid-template-columns: 1fr; }
+    .agent-cote { position: static; }
+  }
+  @media (max-width: 600px) {
+    .assistant { padding: 20px 16px 80px; }
+    .agent-principal { padding: 18px 16px 20px; }
   }
   [hidden] { display: none !important; }
   .is-busy { opacity: .55; transition: opacity 160ms ease; }
@@ -2465,6 +2494,7 @@
       <!-- N'apparaît qu'avec le référentiel Comparables -->
       <button type="button" data-groupe="insight" id="tabInsight" hidden>Insight</button>
       <button type="button" data-groupe="valorisation">Valorisation</button>
+      <button type="button" data-groupe="assistant">Assistant</button>
     </nav>
   </div>
 </header>
@@ -2481,22 +2511,7 @@
 
 <main class="params" id="panel-params">
   <div class="params-main" id="paramsMain"></div>
-  <div class="params-droite">
-    <aside class="result" id="paramsResult"></aside>
-    <section class="agent" id="agentPanneau" aria-label="Assistant">
-      <div class="agent-tete">
-        <h2>Assistant</h2>
-        <span class="agent-etat" data-o="agent-etat"></span>
-      </div>
-      <form class="agent-saisie" id="agentFormulaire">
-        <input type="text" id="agentQuestion" class="agent-champ" maxlength="400" autocomplete="off"
-               placeholder="Une question sur les données…" aria-label="Question à l'assistant">
-        <button type="submit" class="valo-bouton is-plein" id="agentDemander">Demander</button>
-      </form>
-      <div class="agent-reponse" id="agentReponse" aria-live="polite"></div>
-      <div class="agent-historique" id="agentHistorique"></div>
-    </section>
-  </div>
+  <aside class="result" id="paramsResult"></aside>
 </main>
 
 <main class="wacc" id="panel-wacc" hidden>
@@ -2547,6 +2562,42 @@
          accept=".xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet">
   <input type="file" id="valoFichier" hidden
          accept=".xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet">
+</main>
+
+<main class="assistant" id="panel-assistant" hidden>
+  <section class="agent" id="agentPanneau" aria-label="Assistant">
+    <div class="agent-principal">
+      <div class="agent-tete">
+        <div>
+          <h1 class="agent-titre">Assistant</h1>
+          <p class="agent-sous-titre">Une question en français sur les pays, les industries, les sociétés
+          cotées, les taux ou le CMPC : la réponse vient des données de la page.</p>
+        </div>
+        <span class="agent-etat" data-o="agent-etat"></span>
+      </div>
+      <form class="agent-saisie" id="agentFormulaire">
+        <input type="text" id="agentQuestion" class="agent-champ" maxlength="400" autocomplete="off"
+               placeholder="Par exemple : prime de risque du Sénégal" aria-label="Question à l'assistant">
+        <button type="submit" class="valo-bouton is-plein" id="agentDemander">Demander</button>
+      </form>
+      <div class="agent-reponse" id="agentReponse" aria-live="polite"></div>
+      <div class="agent-historique" id="agentHistorique"></div>
+    </div>
+    <aside class="agent-cote">
+      <div class="agent-bloc" id="agentContexte"></div>
+      <div class="agent-bloc" id="agentExemples"></div>
+      <div class="agent-bloc">
+        <h2>Comment il répond</h2>
+        <ul class="agent-etapes">
+          <li>Les questions courantes sont reconnues sur place, sans réseau.</li>
+          <li>Les autres sont traduites en requête par un modèle ouvert et gratuit, qui ne voit
+          jamais les données : la page exécute la requête elle-même.</li>
+          <li>Sous chaque réponse, ce qu'il a compris et la source des chiffres. Corriger reprend
+          la question.</li>
+        </ul>
+      </div>
+    </aside>
+  </section>
 </main>
 
 <main class="aide" id="panel-aide" hidden>
@@ -2756,11 +2807,12 @@
         </svg></span>
         <div>
           <h2>Poser une question à l'assistant</h2>
-          <span class="aide-ou">CMPC › Paramètres — le cadre Assistant, sous le résultat</span>
+          <span class="aide-ou">Onglet Assistant</span>
           <p>« Prime de risque du Sénégal », « médiane des bêtas des banques en Afrique de
           l'Ouest », « CMPC d'une cimenterie à Abidjan » : l'assistant cherche, filtre et
           compile les données de la page, et dit sous chaque réponse ce qu'il a compris —
-          un clic sur Corriger reprend la question.</p>
+          un clic sur Corriger reprend la question. Quand la question ne précise pas le pays
+          ou le secteur, il reprend ceux des Paramètres, rappelés à droite de l'onglet.</p>
           <p>Les questions courantes sont reconnues sur place, sans réseau. Les autres sont
           traduites par un modèle ouvert et gratuit, qui ne voit jamais les données : il
           rédige la requête, la page l'exécute.</p>
@@ -3188,11 +3240,11 @@
   }
 
   /* ================= Onglets =================
-     Trois onglets : CMPC (Paramètres, Calcul, Sociétés), Insight et
-     Valorisation. `tab` retient la vue affichée ; l'onglet du haut s'en
-     déduit, et se rouvre sur la dernière vue visitée. */
-  const GROUPE_ONGLET = { params: "cmpc", wacc: "cmpc", societes: "cmpc", insight: "insight", valorisation: "valorisation" };
-  const DERNIER_ONGLET = { cmpc: "params", insight: "insight", valorisation: "valorisation" };
+     Quatre onglets : CMPC (Paramètres, Calcul, Sociétés), Insight,
+     Valorisation et Assistant. `tab` retient la vue affichée ; l'onglet du
+     haut s'en déduit, et se rouvre sur la dernière vue visitée. */
+  const GROUPE_ONGLET = { params: "cmpc", wacc: "cmpc", societes: "cmpc", insight: "insight", valorisation: "valorisation", assistant: "assistant" };
+  const DERNIER_ONGLET = { cmpc: "params", insight: "insight", valorisation: "valorisation", assistant: "assistant" };
 
   // Le fond noir des sous-onglets glisse, comme celui des vues de la Valorisation.
   function placerCurseursOnglets() {
@@ -3232,6 +3284,7 @@
     $("panel-societes").hidden = tab !== "societes";
     $("panel-insight").hidden = tab !== "insight";
     $("panel-valorisation").hidden = tab !== "valorisation";
+    $("panel-assistant").hidden = tab !== "assistant";
     $("panel-aide").hidden = tab !== "aide";
     // Le bouton du guide est hors de la barre : son etat actif ne suit pas la
     // boucle ci-dessus, qui ne balaie que les onglets.
@@ -3246,6 +3299,8 @@
     }
     // La balance a pu être importée depuis : Insight se relit à chaque ouverture.
     if (tab === "insight") renderInsight();
+    // Le contexte affiché suit les paramètres, qui ont pu changer entre-temps.
+    if (tab === "assistant") rendreAgent();
     if (tab === "wacc" || tab === "societes") requestAnimationFrame(placeArrows);
   }
   // Tout ce qui porte data-tab bascule la vue, dans les sous-onglets ou
@@ -3254,7 +3309,12 @@
     b.addEventListener("click", () => { tab = b.dataset.tab; renderTabs(); });
   });
   document.querySelectorAll(".tabs button[data-groupe]").forEach((b) => {
-    b.addEventListener("click", () => { tab = DERNIER_ONGLET[b.dataset.groupe]; renderTabs(); });
+    b.addEventListener("click", () => {
+      tab = DERNIER_ONGLET[b.dataset.groupe];
+      renderTabs();
+      // On vient à l'assistant pour écrire : la saisie prend la main.
+      if (tab === "assistant") $("agentQuestion").focus();
+    });
   });
   window.addEventListener("resize", placerCurseursOnglets);
 
@@ -10527,13 +10587,14 @@
     enCours: false,
   };
   const AGENT_DELAI = 15000;
+  // Toutes reconnues par les gabarits : elles répondent même hors ligne.
   const EXEMPLES_AGENT = [
-    "Prime de risque de la Côte d'Ivoire",
-    "Top 5 pays d'Afrique par prime de risque",
-    "Médiane des bêtas 3 ans des banques en Afrique de l'Ouest",
-    "CMPC d'une cimenterie au Sénégal en 2026",
-    "Compare le Maroc et l'Égypte",
-    "Taux sans risque 10 ans 2024",
+    ["Pays", ["Prime de risque de la Côte d'Ivoire", "Top 5 pays d'Afrique par prime de risque",
+              "Compare le Maroc et l'Égypte", "Pays de l'UEMOA"]],
+    ["Industries et sociétés", ["Médiane des bêtas 3 ans des banques en Afrique de l'Ouest",
+                                "Les 5 plus grosses banques marocaines", "Bêta de l'industrie Food Processing"]],
+    ["Taux et CMPC", ["CMPC d'une cimenterie au Sénégal en 2026", "Taux sans risque 10 ans 2024",
+                      "Taux d'IS du Cameroun"]],
   ];
   const RAISONS_HORS_LIGNE = {
     absent: "assistant en ligne non déployé",
@@ -10659,12 +10720,12 @@
         ${c.beta != null ? `<span class="result-row"><span>Bêta ré-endetté</span><span>${esc(frNum(c.beta, 3))}</span></span>` : ""}
       </span>
       ${c.perimetre ? `<span class="agent-source">Comparables pris sur ${esc(c.perimetre)}.</span>` : ""}
-      <button type="button" class="valo-bouton" data-agent-appliquer="${esc(JSON.stringify({ referentiel: p.referentiel, pays: p.pays, industrie: p.industrie, annee: p.annee }))}">Appliquer ces paramètres à l'écran</button>`;
+      <button type="button" class="valo-bouton" data-agent-appliquer="${esc(JSON.stringify({ referentiel: p.referentiel, pays: p.pays, industrie: p.industrie, annee: p.annee }))}">Appliquer ces paramètres au CMPC</button>`;
   }
 
-  function reponseHtml(e) {
+  function reponseHtml(e, sansQuestion) {
     const r = e.resultat;
-    const question = `<p class="agent-question">« ${esc(e.question)} »</p>`;
+    const question = sansQuestion ? "" : `<p class="agent-question">« ${esc(e.question)} »</p>`;
     if (!r.ok) {
       const candidats = r.candidats && r.candidats.length ? `
         <span class="agent-exemples">${r.candidats.map((c) => `<button type="button" class="agent-puce" data-agent-candidat="${esc(c)}">${esc(c)}</button>`).join("")}</span>` : "";
@@ -10706,13 +10767,46 @@
     const derniere = AGENT.historique[0];
     $("agentReponse").innerHTML = enCours
       ? `<p class="agent-question">« ${esc(enCours)} »</p><p class="agent-attente">Traduction de la question en requête…</p>`
-      : derniere ? reponseHtml(derniere)
-      : `<p class="agent-entete">Questions sur les pays, les industries, les sociétés cotées, les taux et le CMPC. Par exemple :</p>
-         <span class="agent-exemples">${EXEMPLES_AGENT.map((q) => `<button type="button" class="agent-puce" data-agent-question="${esc(q)}">${esc(q)}</button>`).join("")}</span>`;
+      : derniere ? reponseHtml(derniere) : "";
+    // Les réponses précédentes restent consultables, repliées sous leur question.
     const precedentes = AGENT.historique.slice(1);
     $("agentHistorique").innerHTML = precedentes.length ? `
       <h3>Questions précédentes</h3>
-      <ul>${precedentes.map((e) => `<li><button type="button" class="agent-puce" data-agent-question="${esc(e.question)}">${esc(e.question)}</button></li>`).join("")}</ul>` : "";
+      <ul>${precedentes.map((e) => `<li><details class="agent-ancienne">
+        <summary><span>${esc(e.question)}</span><span>${esc(e.resultat.ok ? enteteCourte(e.resultat) : "sans réponse")}</span></summary>
+        <div class="agent-ancienne-corps">${reponseHtml(e, true)}</div>
+      </details></li>`).join("")}</ul>` : "";
+    $("agentContexte").innerHTML = contexteHtml();
+    $("agentExemples").innerHTML = `<h2>Exemples</h2>` + EXEMPLES_AGENT.map(([theme, questions]) => `
+      <div class="agent-theme">
+        <h3>${esc(theme)}</h3>
+        <span class="agent-exemples">${questions.map((q) => `<button type="button" class="agent-puce" data-agent-question="${esc(q)}">${esc(q)}</button>`).join("")}</span>
+      </div>`).join("");
+  }
+
+  // Le résumé d'une ancienne réponse, à droite de sa question.
+  function enteteCourte(r) {
+    if (r.cmpc) return "CMPC " + frPct(r.cmpc.cmpc_local);
+    if (r.agregat) return r.agregat.fonction === "compte" ? String(r.agregat.valeur) : formaterValeur(r.agregat.champ, r.agregat.valeur);
+    if (r.lignes.length === 1 && r.champs.length === 2 && r.champs[0] === "nom") return formaterValeur(r.champs[1], r.lignes[0][r.champs[1]]);
+    return r.n + " résultat" + (r.n > 1 ? "s" : "");
+  }
+
+  // Ce que l'assistant reprend quand la question ne le précise pas.
+  function contexteHtml() {
+    const c = contexteEcran();
+    const lignes = [
+      ["Référentiel", c.referentiel === "comparables" ? "Comparables" : "Damodaran"],
+      ["Pays", c.pays],
+      [c.referentiel === "comparables" ? "Secteur" : "Industrie", c.referentiel === "comparables" ? c.secteur : c.industrie],
+      ["Année", c.annee],
+      ["Taux sans risque", "US Treasury " + String(c.maturite || "").replace("Y", " ans")],
+    ].filter(([, v]) => v != null && v !== "");
+    return `
+      <h2>Contexte de l'écran</h2>
+      <span class="result-rows">${lignes.map(([l, v]) => `<span class="result-row"><span>${esc(l)}</span><span>${esc(v)}</span></span>`).join("")}</span>
+      <p class="agent-source">Repris quand la question ne précise pas le pays, le secteur ou l'année.
+        <button type="button" class="agent-lien" data-agent-onglet="params">Modifier</button></p>`;
   }
 
   function initAgent() {
@@ -10735,14 +10829,18 @@
       }
       const cand = ev.target.closest("[data-agent-candidat]");
       if (cand) { $("agentQuestion").value = cand.dataset.agentCandidat; $("agentQuestion").focus(); return; }
+      const onglet = ev.target.closest("[data-agent-onglet]");
+      if (onglet) { tab = onglet.dataset.agentOnglet; renderTabs(); return; }
       const app = ev.target.closest("[data-agent-appliquer]");
       if (app) {
-        // Le CMPC demandé devient celui de l'écran : mêmes paramètres, même calcul.
+        // Le CMPC demandé devient celui de l'écran : mêmes paramètres, même
+        // calcul, et l'on passe aux Paramètres pour le voir.
         const p = JSON.parse(app.dataset.agentAppliquer);
         if (p.referentiel === "comparables" && (DATA.comparables || {}).societes) { params.referentiel = "comparables"; params.secteur = p.industrie; }
         else { params.referentiel = "damodaran"; params.industry = p.industrie; }
         params.country = p.pays;
         if (p.annee) params.year = p.annee;
+        tab = "params";
         apply();
       }
     });

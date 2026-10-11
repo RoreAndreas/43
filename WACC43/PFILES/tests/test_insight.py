@@ -35,10 +35,10 @@ def ligne_table(page, libelle):
 # ------------------------------------------------ navigation
 
 def test_trois_onglets(page):
-    assert onglets(page) == ["CMPC", "Valorisation"]                     # Damodaran : ni Insight ni Sociétés
+    assert onglets(page) == ["CMPC", "Valorisation", "Assistant"]        # Damodaran : ni Insight ni Sociétés
     assert sous_onglets(page) == ["Paramètres", "Calcul"]
     mode_comparables(page)
-    assert onglets(page) == ["CMPC", "Insight", "Valorisation"]
+    assert onglets(page) == ["CMPC", "Insight", "Valorisation", "Assistant"]
     assert sous_onglets(page) == ["Paramètres", "Calcul", "Sociétés"]
     ouvrir(page, "societes")
     assert page.is_visible("#panel-societes")
@@ -60,7 +60,7 @@ def test_repasser_en_damodaran_quitte_insight_et_societes(page):
     ouvrir(page, "insight")
     page.evaluate("params.referentiel = 'damodaran'; renderAll()")
     assert page.is_visible("#panel-params")
-    assert onglets(page) == ["CMPC", "Valorisation"]
+    assert onglets(page) == ["CMPC", "Valorisation", "Assistant"]
     page.click('.tabs button[data-groupe="cmpc"]')                         # pas de retour sur Sociétés
     assert page.is_visible("#panel-params")
 
