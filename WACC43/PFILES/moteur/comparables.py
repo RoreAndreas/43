@@ -16,8 +16,8 @@ des colonnes. `43 US.xlsx` n'a pas de bêta à 3 ans, et la dette, qui ouvrait
 Sheet3, y vient désormais après les fonds propres.
 
 Seules les sociétés **complètes** alimentent la plateforme : pays, industrie,
-bêtas, dette, fonds propres positifs, capitalisation, chiffre d'affaires sur
-quatre exercices et résultat net sur trois. Les autres sont conservées dans
+bêta retenu, dette, fonds propres positifs, capitalisation, chiffre d'affaires
+sur quatre exercices et résultat net sur trois. Les autres sont conservées dans
 l'univers mais marquées `visible: False`, et n'entrent ni dans les médianes ni
 dans les effectifs affichés.
 
@@ -40,11 +40,15 @@ L'industrie retenue est la colonne E de Sheet2 (`IQ_INDUSTRY`), soit une
 soixantaine de secteurs. La colonne F (`IQ_PRIMARY_INDUSTRY`) est plus fine mais
 trop éclatée pour servir de maille de comparables.
 
-Le fichier porte les deux bêtas cotés, à un an et à trois ans. C'est le trois ans
-qui alimente le coût des fonds propres : sur des marchés peu liquides, celui à un
-an bouge trop pour servir de base à un coût du capital. Un export qui ne publie
-pas de bêta à 3 ans — `43 US.xlsx` — fait retenir le bêta à 1 an pour toutes
-ses sociétés, et chacune le porte dans `beta_horizon`.
+Des deux bêtas cotés, à un an et à trois ans, c'est le trois ans qui alimente le
+coût des fonds propres : sur des marchés peu liquides, celui à un an bouge trop
+pour servir de base à un coût du capital. Un export qui ne publie pas de bêta à
+3 ans fait retenir le bêta à 1 an pour toutes ses sociétés, et chacune le porte
+dans `beta_horizon`.
+
+Un seul des deux horizons suffit donc, et c'est ce que l'export doit garantir.
+Celui qui ne sert pas est facultatif : l'exiger écartait de l'univers des
+sociétés dont le bêta du calcul était pourtant publié.
 
 Piège d'unités : S&P exporte les comptes, les fonds propres et la dette en
 **milliers** (en-tête `BCEAO000`) mais la capitalisation en **millions**
@@ -251,11 +255,15 @@ def charger(chemin: Path, progress=None) -> dict:
         c1 = _colonnes(wb["Sheet1"], chemin)
         ca, ebitda = c1.serie("IQ_TOTAL_REV", EXERCICES), c1.serie("IQ_EBITDA", EXERCICES)
         rn = c1.serie("IQ_NET_INC_PARENT", EXERCICES[:3])
-        beta_1an = c1.une("SP_BETA1YR")
         # Sans bêta à 3 ans dans l'export, c'est le 1 an qui sert, pour toutes
         # ses sociétés : mêler les deux horizons dans un même fichier ferait
         # dépendre le bêta retenu de ce que S&P a su calculer, société par société.
+        # Le 1 an n'entre dans aucun calcul — il est seulement affiché — et reste
+        # donc facultatif. Encore faut-il qu'un des deux horizons soit là.
+        beta_1an = c1.une("SP_BETA1YR") if c1.a("SP_BETA1YR") else None
         beta_3ans = c1.une("SP_BETA_3YR") if c1.a("SP_BETA_3YR") else None
+        if beta_1an is None and beta_3ans is None:
+            raise ValueError(f"{c1.ou} : ni SP_BETA_3YR ni SP_BETA1YR")
         horizon = "3 ans" if beta_3ans is not None else "1 an"
         if beta_3ans is None:
             dire(f"Comparables : {chemin.name} sans bêta à 3 ans — bêta à 1 an retenu.")
@@ -272,7 +280,7 @@ def charger(chemin: Path, progress=None) -> dict:
                 "ca": {a: _nombre(ligne[i]) for a, i in ca.items()},
                 "ebitda": {a: _nombre(ligne[i]) for a, i in ebitda.items()},
                 "rn": {a: _nombre(ligne[i]) for a, i in rn.items()},
-                "beta_1an": _nombre(ligne[beta_1an]),
+                "beta_1an": None if beta_1an is None else _nombre(ligne[beta_1an]),
                 "beta_3ans": None if beta_3ans is None else _nombre(ligne[beta_3ans]),
                 "beta_horizon": horizon,
                 # Publié en pourcentage, tel quel : S&P le donne au-delà de
@@ -327,16 +335,19 @@ def beta_retenu(s: dict):
 def _est_complete(s: dict) -> bool:
     """La société porte-t-elle toutes les valeurs dont la plateforme se sert ?
 
-    Bêtas, dette et fonds propres alimentent le coût du capital ; la
-    capitalisation classe l'échantillon ; chiffre d'affaires et résultat net
+    Le bêta retenu, la dette et les fonds propres alimentent le coût du capital ;
+    la capitalisation classe l'échantillon ; chiffre d'affaires et résultat net
     alimentent l'affichage. Des fonds propres nuls ou négatifs rendent le gearing
-    sans objet : la société ne peut pas être désendettée. Le taux d'IS effectif
-    est hors critère — il n'entre pas dans le calcul. L'EBITDA aussi, pour la
-    raison exposée en tête de module.
+    sans objet : la société ne peut pas être désendettée.
+
+    Hors critère : le bêta à l'autre horizon, qui n'est qu'affiché — l'exiger
+    écartait des sociétés dont le bêta du calcul était pourtant là. Le taux d'IS
+    effectif, qui n'entre pas dans le calcul. Et l'EBITDA, pour la raison
+    exposée en tête de module.
     """
     if not s.get("pays") or not s.get("industrie"):
         return False
-    if s.get("beta_1an") is None or beta_retenu(s) is None:
+    if beta_retenu(s) is None:
         return False
     if s.get("dette") is None or not s.get("capitalisation"):
         return False
