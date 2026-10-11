@@ -19,7 +19,7 @@ import statistics
 
 import pytest
 
-from conftest import choisir, mode_comparables, zone_sans
+from conftest import choisir, mode_comparables, zone_qui_tient, zone_sans
 from conftest import ouvrir as ouvrir_vue
 
 MARQUEE = "#stackSoc .comp.is-retenue"
@@ -100,7 +100,8 @@ def test_ce_sont_les_plus_grosses_capitalisations(page, donnees):
 
 
 def test_toutes_marquees_quand_le_secteur_tient_dans_l_echantillon(page, donnees):
-    ouvrir(page, "Afrique", "Afrique de l'Ouest", "Banks")
+    zone, secteur_nom = zone_qui_tient(donnees)
+    ouvrir(page, "Afrique", zone, secteur_nom)
     assert len(toutes(page)) <= donnees["comparables"]["echantillon"]
     assert len(marquees(page)) == len(toutes(page))
 

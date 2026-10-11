@@ -13,7 +13,8 @@ voyait qu'il répondait à une autre question.
 
 import pytest
 
-from conftest import choisir, continent_vide, mode_comparables, zone_vide, ouvrir
+from conftest import (choisir, continent_vide, mode_comparables, zone_et_secteur_vide,
+                      zone_vide, ouvrir)
 
 VIDE = "#stackSoc .vide404"
 
@@ -42,18 +43,19 @@ def etat_vide(page):
 
 # ------------------------------------------------ le repli sur une autre industrie
 
-def test_une_industrie_sans_societe_dans_la_zone_n_emprunte_pas_celles_d_une_autre(page):
+def test_une_industrie_sans_societe_dans_la_zone_n_emprunte_pas_celles_d_une_autre(page, donnees):
     """Le repli sur la première industrie de la liste montrait un autre secteur."""
+    zone, vide = zone_et_secteur_vide(donnees)
     mode_comparables(page)
     choisir(page, "continent", "Afrique")
     choisir(page, "secteur", "Banks")
-    page.click('#paramsMain .zone[data-zone="Afrique australe"]')
+    page.click(f'#paramsMain .zone[data-zone="{zone}"]')
     banques = cartes(page)
-    assert banques, "l'Afrique australe compte des banques, le test perdrait son sens"
+    assert banques, f"{zone} compte des banques, le test perdrait son sens"
 
-    # Ce secteur n'a aucune société en Afrique australe : la liste doit se vider,
+    # Ce secteur n'a aucune société dans la zone : la liste doit se vider,
     # et surtout ne pas se remplir de celles d'un autre secteur.
-    choisir(page, "secteur", "Air Freight and Logistics")
+    choisir(page, "secteur", vide)
     assert cartes(page) == []
     assert etat_vide(page)
 

@@ -26,6 +26,24 @@ def deborde(page):
     return page.eval_on_selector(PISTE, "e => e.scrollWidth > e.clientWidth + 1")
 
 
+def secteur_a_une_place(donnees, continent="Afrique"):
+    """Un secteur du continent qui ne cote que sur une place.
+
+    Le rail n'a de sens qu'en regard d'une bande qui tient, et « Banks » ne
+    tient plus : l'univers y compte treize places africaines. On cherche donc
+    le cas étroit dans les données plutôt que de le supposer.
+    """
+    soc = [s for s in donnees["comparables"]["societes"].values()
+           if s["continent"] == continent]
+    places = {}
+    for s in soc:
+        places.setdefault(s["industrie"], set()).add(s["place"])
+    etroits = sorted(nom for nom, p in places.items() if len(p) == 1)
+    if not etroits:
+        pytest.skip(f"aucun secteur à une seule place sur {continent}")
+    return etroits[0]
+
+
 def bouger(page, valeur):
     """Déplace la poignée comme le ferait l'utilisateur, événement compris."""
     page.eval_on_selector(RAIL, """(e, v) => {
@@ -99,8 +117,10 @@ def test_la_page_ne_deborde_pas_horizontalement(page):
 
 # -------------------------------------------------------------------- le rail
 
-def test_pas_de_rail_sans_debordement(page):
-    cadrer(page)
+def test_pas_de_rail_sans_debordement(page, donnees):
+    mode_comparables(page)
+    choisir(page, "continent", "Afrique")
+    choisir(page, "secteur", secteur_a_une_place(donnees))
     assert not deborde(page), "la bande tient en largeur ici, le test perdrait son objet"
     assert page.get_attribute(RAIL, "hidden") is not None
 

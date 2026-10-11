@@ -208,9 +208,13 @@ def test_la_feuille_liste_les_societes_retenues(page, tmp_path):
     """Exactement celles que l'onglet Sociétés marque comme alimentant la
     médiane : le fichier et l'écran ne peuvent pas décrire deux populations."""
     cadrer(page)
-    attendu = nombre_fr(ligne_resultat(page, "Sociétés du secteur"))
+    # Au-delà de l'échantillon, seules les plus grosses capitalisations sont
+    # retenues : les télécoms africains sont passés au-dessus en octobre 2026.
+    secteur_entier = nombre_fr(ligne_resultat(page, "Sociétés du secteur"))
+    attendu = min(secteur_entier, page.evaluate("ECHANTILLON"))
     f, _ = feuille(page, tmp_path)
     assert len(societes(f)) == attendu
+    assert len(societes(f)) == len(page.evaluate("societesRetenues().ids"))
 
 
 def test_orange_ci_et_sonatel_figurent_ensemble(page, tmp_path):

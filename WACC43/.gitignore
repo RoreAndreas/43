@@ -16,3 +16,10 @@ Downloads/
 # Jeu de données lisible, écrit par `build_static.py --keep-data` pour inspection
 # locale. Personne ne le lit : la page porte les mêmes chiffres, minifiés.
 PFILES/donnees/
+
+# Configuration locale de l'assistant (Cloudflare) : le vrai wrangler.toml et
+# les secrets de `wrangler pages dev` ne quittent jamais le poste. Voir
+# PFILES/wrangler.toml.exemple.
+PFILES/wrangler.toml
+PFILES/.dev.vars
+PFILES/.wrangler/

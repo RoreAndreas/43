@@ -1,0 +1,31 @@
+# Configuration de l'assistant pour `wrangler pages dev`, ou pour qui préfère
+# un fichier au tableau de bord Cloudflare.
+#
+# Volontairement pas nommé `wrangler.toml` : présent dans le dépôt sous ce nom,
+# il deviendrait la source de vérité du projet Pages, et l'identifiant KV
+# laissé à remplir ferait échouer le déploiement de la page elle-même.
+#
+# Essai local :
+#   cp wrangler.toml.exemple wrangler.toml      (puis remplir l'identifiant KV)
+#   echo "SEL_IP=une-longue-chaine-aleatoire" > .dev.vars
+#   npx wrangler pages dev site --remote        (Workers AI ne tourne qu'à distance)
+
+name = "43wacc"
+pages_build_output_dir = "./site"
+compatibility_date = "2026-10-01"
+
+[ai]
+binding = "AI"
+
+[[kv_namespaces]]
+binding = "GARDE"
+id = "A_REMPLIR"
+
+[vars]
+MODELE_TRADUCTEUR = "workersai:@cf/qwen/qwen3-30b-a3b-fp8"
+MODELE_ANALYSTE = "workersai:@cf/meta/llama-3.3-70b-instruct-fp8-fast"
+QUOTA_QUESTIONS_IP = "40"
+QUOTA_PREVISIONS_IP = "5"
+PLAFOND_NEURONES_JOUR = "9000"
+
+# SEL_IP est un secret : `npx wrangler pages secret put SEL_IP`, jamais ici.

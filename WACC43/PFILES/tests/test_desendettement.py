@@ -65,11 +65,14 @@ def test_le_taux_effectif_est_conserve_mais_pas_utilise(donnees):
               and abs(s["is_effectif"] - s["is_desendettement"]) > 0.05]
     assert ecarts, "aucune société où les deux taux diffèrent : le test perd son objet"
     # Le bêta désendetté suit le taux légal, pas le taux effectif.
-    for s in ecarts[:50]:
+    # Sur un bêta désendetté minuscule, l'arrondi à six décimales écrase
+    # l'écart entre les deux taux : on le vérifie là où il se lit.
+    lisibles = [s for s in ecarts if s["gearing"] > 0.05 and abs(s["beta_u"]) > 0.05]
+    assert lisibles
+    for s in lisibles[:50]:
         beta = s["beta_3ans"] if s["beta_horizon"] == "3 ans" else s["beta_1an"]
         avec_effectif = beta / (1 + (1 - s["is_effectif"]) * s["gearing"])
-        if s["gearing"] > 0.05:
-            assert s["beta_u"] != pytest.approx(avec_effectif, abs=1e-4), s["nom"]
+        assert s["beta_u"] != pytest.approx(avec_effectif, rel=1e-3), s["nom"]
 
 
 def test_la_page_reendette_la_mediane(page):

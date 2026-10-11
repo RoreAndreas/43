@@ -69,21 +69,36 @@ def test_cliquer_une_zone_peuplee_l_allume(page, donnees):
         assert "is-on" not in apres[autre], "une seule zone à la fois doit être allumée"
 
 
+def zone_et_secteur_vide(donnees):
+    """Une zone peuplée en banques, et un secteur qui n'y compte personne.
+
+    Le couple était codé en dur — Afrique australe et « Air Freight and
+    Logistics » — jusqu'à ce qu'un export y apporte une société. On le cherche
+    donc dans les données.
+    """
+    banques = peuplement(donnees, "Banks")
+    secteurs = sorted({s["industrie"] for s in donnees["comparables"]["societes"].values()})
+    for zone in sorted(z for z, n in banques.items() if n > 0):
+        for secteur in secteurs:
+            if peuplement(donnees, secteur)[zone] == 0:
+                return zone, secteur
+    pytest.skip("aucune zone africaine où un secteur soit vide")
+
+
 def test_la_surbrillance_tombe_quand_l_industrie_vide_la_zone(page, donnees):
     """Le nettoyage se fait au même rafraîchissement que l'onglet Sociétés."""
+    zone, vide = zone_et_secteur_vide(donnees)
     mode_comparables(page)
     choisir(page, "continent", "Afrique")
     choisir(page, "secteur", "Banks")
 
-    zone = "Afrique australe"
     assert peuplement(donnees, "Banks")[zone] > 0
     page.click(f'{ZONES}[data-zone="{zone}"]')
     assert "is-on" in etats(page)[zone]
 
-    # Ce secteur n'a aucune société en Afrique australe : la zone reste le
-    # cadrage retenu, mais plus rien n'y est mis en avant.
-    choisir(page, "secteur", "Air Freight and Logistics")
-    assert peuplement(donnees, "Air Freight and Logistics")[zone] == 0
+    # Ce secteur n'a aucune société dans la zone : elle reste le cadrage
+    # retenu, mais plus rien n'y est mis en avant.
+    choisir(page, "secteur", vide)
 
     classes = etats(page)[zone]
     assert "is-on" not in classes

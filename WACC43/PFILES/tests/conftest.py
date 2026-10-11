@@ -68,6 +68,45 @@ def page(navigateur):
     onglet.close()
 
 
+@pytest.fixture(scope="session")
+def site_http():
+    """La page servie en HTTP, sur un port libre.
+
+    L'assistant appelle /api/ask et /api/forecast en relatif : depuis
+    `file://`, ces appels n'aboutissent jamais. Servie ainsi, la page les émet
+    vraiment, et les tests les interceptent pour jouer le serveur.
+    """
+    import functools
+    import http.server
+    import threading
+
+    if not PAGE.exists():
+        pytest.skip(f"page non construite : {PAGE}")
+
+    class Silencieux(http.server.SimpleHTTPRequestHandler):
+        def log_message(self, *args):
+            pass
+
+    gestionnaire = functools.partial(Silencieux, directory=str(PAGE.parent))
+    serveur = http.server.ThreadingHTTPServer(("127.0.0.1", 0), gestionnaire)
+    fil = threading.Thread(target=serveur.serve_forever, daemon=True)
+    fil.start()
+    yield f"http://127.0.0.1:{serveur.server_address[1]}/index.html"
+    serveur.shutdown()
+
+
+@pytest.fixture
+def page_http(navigateur, site_http):
+    onglet = navigateur.new_page(viewport={"width": 1280, "height": 900})
+    erreurs = []
+    onglet.on("pageerror", lambda e: erreurs.append(str(e)))
+    onglet.goto(site_http, timeout=90000)
+    onglet.wait_for_selector("#paramsMain .card-block")
+    yield onglet
+    assert not erreurs, "erreurs JS pendant le test : " + " | ".join(erreurs)
+    onglet.close()
+
+
 # ---------------------------------------------------------------- utilitaires
 
 def choisir(page, champ: str, valeur: str) -> None:
@@ -151,6 +190,60 @@ def zone_sans(donnees: dict, continent: str, nom_secteur: str) -> str:
         if zone not in peuplees:
             return zone
     pytest.skip(f"toutes les zones de {continent} comptent un « {nom_secteur} »")
+
+
+def effectifs(donnees: dict, continent: str) -> dict:
+    """{(zone, secteur): nombre de sociétés} sur un continent.
+
+    Les tests qui ont besoin d'un cas précis — une zone en repli, une zone qui
+    tient dans l'échantillon, un secteur absent — le cherchent ici. Codés en
+    dur, ces cas ont cassé à chaque export S&P : l'Afrique est passée de 377 à
+    735 sociétés en octobre 2026, et cinq tests ont perdu leur objet d'un coup.
+    """
+    compte = {}
+    for s in (donnees.get("comparables") or {}).get("societes", {}).values():
+        if s["continent"] == continent and s["zone"]:
+            cle = (s["zone"], s["industrie"])
+            compte[cle] = compte.get(cle, 0) + 1
+    return compte
+
+
+def zone_en_repli(donnees: dict, continent: str = "Afrique"):
+    """(zone, secteur, n) : la zone compte des sociétés, mais sous le seuil,
+    alors que le continent l'atteint — la médiane y est donc reprise."""
+    seuil = donnees["comparables"]["seuil"]
+    compte = effectifs(donnees, continent)
+    par_secteur = {}
+    for (_zone, secteur), n in compte.items():
+        par_secteur[secteur] = par_secteur.get(secteur, 0) + n
+    for (zone, secteur), n in sorted(compte.items()):
+        if 0 < n < seuil and par_secteur[secteur] >= seuil:
+            return zone, secteur, n
+    pytest.skip(f"aucune zone de {continent} en repli")
+
+
+def zone_qui_tient(donnees: dict, continent: str = "Afrique"):
+    """(zone, secteur) : assez de sociétés pour la médiane, pas plus que
+    l'échantillon — toutes sont donc retenues."""
+    seuil = donnees["comparables"]["seuil"]
+    plafond = donnees["comparables"]["echantillon"]
+    for (zone, secteur), n in sorted(effectifs(donnees, continent).items(),
+                                     key=lambda kv: -kv[1]):
+        if seuil <= n <= plafond:
+            return zone, secteur
+    pytest.skip(f"aucune zone de {continent} entre {seuil} et {plafond} sociétés")
+
+
+def zone_et_secteur_vide(donnees: dict, continent: str = "Afrique", reference: str = "Banks"):
+    """(zone, secteur) : la zone compte des sociétés du secteur de référence,
+    et aucune du second."""
+    compte = effectifs(donnees, continent)
+    secteurs = sorted({s for (_z, s) in compte})
+    for zone in sorted({z for (z, s) in compte if s == reference}):
+        for secteur in secteurs:
+            if compte.get((zone, secteur), 0) == 0:
+                return zone, secteur
+    pytest.skip(f"aucune zone de {continent} où un secteur soit vide")
 
 
 def zone_vide(donnees: dict, continent: str) -> str:

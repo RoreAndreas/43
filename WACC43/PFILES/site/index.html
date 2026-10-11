@@ -1829,6 +1829,90 @@
   .hyp-table .mini-input { width: 76px; }
   .hyp-corps .note { margin: 0; }
 
+  /* Trois jeux d'hypothèses : onglets, bandeau du jeu, comparaison. */
+  .hyp-onglets { display: inline-flex; gap: 4px; padding: 3px; border: 1px solid var(--accent-chip); border-radius: 999px; background: var(--surface); justify-self: start; }
+  .hyp-onglet {
+    padding: 6px 14px;
+    border: 0;
+    border-radius: 999px;
+    background: none;
+    font: 400 12px/1 var(--sans);
+    color: var(--ink-3);
+    cursor: pointer;
+  }
+  .hyp-onglet.is-actif { background: var(--accent); color: #fff; }
+  .hyp-onglet:disabled { color: var(--muted-2); cursor: default; }
+  .hyp-bandeau {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap;
+    font: 400 12px/1.55 var(--sans);
+    color: var(--ink-3);
+  }
+  .hyp-bandeau > span { flex: 1 1 320px; text-wrap: pretty; }
+  .hyp-sous-titre {
+    margin: 0 0 6px;
+    font: 400 9.5px/1 var(--mono);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--accent);
+  }
+  .hyp-alertes ul { margin: 0; padding-left: 18px; font: 400 12px/1.6 var(--sans); color: var(--ink-3); }
+  .hyp-analyste-demande, .hyp-analyse, .hyp-report, .hyp-comparaison {
+    display: grid;
+    gap: 10px;
+    padding: 14px 16px;
+    border: 1px solid var(--accent-chip);
+    border-radius: 8px;
+    background: var(--surface);
+  }
+  .hyp-analyste-demande .valo-bouton { justify-self: start; }
+  .hyp-analyste-demande .valo-bouton:disabled { opacity: .45; cursor: default; }
+  .hyp-activite { display: grid; gap: 6px; }
+  .hyp-activite textarea {
+    resize: vertical;
+    padding: 8px 10px;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: var(--field);
+    font: 400 12.5px/1.45 var(--sans);
+    color: var(--ink);
+  }
+  .hyp-activite textarea:focus { outline: none; border-color: var(--accent); background: var(--surface); }
+  .hyp-consentement { display: flex; gap: 8px; align-items: flex-start; font: 400 12px/1.5 var(--sans); color: var(--ink-2); }
+  .hyp-consentement input { margin-top: 2px; accent-color: var(--accent); }
+  .hyp-erreur { margin: 0; font: 400 12px/1.5 var(--sans); color: var(--warn); }
+  .hyp-resume { margin: 0; font: 400 13px/1.6 var(--sans); color: var(--ink-2); text-wrap: pretty; }
+  .hyp-justifications { display: grid; grid-template-columns: max-content 1fr; gap: 6px 14px; margin: 0; font: 400 12px/1.55 var(--sans); }
+  .hyp-justifications dt { font-weight: 600; color: var(--accent); }
+  .hyp-justifications dd { margin: 0; color: var(--ink-3); }
+  .hyp-report { grid-template-columns: minmax(170px, 220px) 1fr; align-items: start; }
+  .hyp-report .note { align-self: center; }
+  .hyp-table-comparee th.is-actif, .hyp-table-comparee td.is-actif { color: var(--accent); font-weight: 600; }
+
+  /* Passage VE → fonds propres, dans la Synthèse. */
+  .passage { display: grid; gap: 8px; margin-top: 14px; }
+  .passage-table { width: 100%; border-collapse: collapse; font: 400 12px/1.35 var(--sans); }
+  .passage-table th {
+    padding: 6px 6px 6px 0;
+    border-bottom: 1px solid var(--accent-chip);
+    text-align: left;
+    font: 400 9.5px/1.2 var(--mono);
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+  .passage-table td { padding: 5px 6px 5px 0; border-bottom: 1px solid var(--accent-chip); color: var(--ink-3); vertical-align: middle; }
+  .passage-table td:nth-child(3) { font: 400 11px/1.3 var(--mono); color: var(--muted); white-space: nowrap; }
+  .passage-table th:last-child, .passage-table td:last-child { text-align: right; padding-right: 0; }
+  .passage-table input[type="checkbox"] { accent-color: var(--accent); }
+  .passage-table tr.is-ecarte td:not(:first-child) { color: var(--muted-2); text-decoration: line-through; }
+  .passage-table tr.is-ecarte .mini-input { opacity: .55; }
+  .passage-table tr.is-total td { border-bottom: 0; font-weight: 600; color: var(--accent); font-family: var(--mono); }
+  .passage-table tr.is-total td:nth-child(2) { font-family: var(--sans); }
+
   /* ---------- Fluidité ----------
      Le contenu entre par un léger fondu montant, les barres poussent depuis
      la ligne de base l'une après l'autre, et le bloc graphique / calcul glisse
@@ -2201,6 +2285,128 @@
     .ins-chiffres { grid-template-columns: 1fr; }
     .ins-table th, .ins-table td { padding: 8px 5px; }
   }
+  /* ---------- Assistant (colonne de droite) ---------- */
+  /* Le résultat et l'assistant partagent la colonne collante : elle défile
+     d'elle-même quand les deux dépassent la hauteur de l'écran, plutôt que de
+     laisser le bas de l'assistant hors d'atteinte. */
+  .params-droite {
+    position: sticky;
+    top: 24px;
+    display: grid;
+    gap: 14px;
+    align-content: start;
+    max-height: calc(100vh - 48px);
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    scrollbar-width: thin;
+  }
+  .params-droite .result { position: static; }
+  .agent {
+    display: grid;
+    gap: 12px;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 18px 20px;
+  }
+  .agent-tete { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+  .agent-tete h2 {
+    margin: 0;
+    font: 400 10px/1 var(--mono);
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+  .agent-etat { font: 400 10.5px/1.35 var(--sans); color: var(--muted-2); }
+  .agent-etat.is-hors-ligne { color: var(--warn); }
+  .agent-saisie { display: flex; gap: 6px; }
+  .agent-champ {
+    flex: 1;
+    min-width: 0;
+    padding: 8px 10px;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: var(--field);
+    font: 400 12.5px/1.3 var(--sans);
+    color: var(--ink);
+  }
+  .agent-champ:focus { outline: none; border-color: var(--accent); background: var(--surface); }
+  .agent-reponse { display: grid; gap: 10px; }
+  .agent-question { margin: 0; font: 500 12px/1.45 var(--sans); color: var(--ink-2); }
+  .agent-entete { margin: 0; font: 400 12px/1.5 var(--sans); color: var(--ink-3); }
+  .agent-chiffre { font: 500 24px/1 var(--mono); font-variant-numeric: tabular-nums; color: var(--green); }
+  .agent-table-defile { max-height: 260px; overflow: auto; border: 1px solid var(--line); border-radius: 8px; }
+  .agent-table { width: 100%; border-collapse: collapse; font: 400 11px/1.35 var(--sans); }
+  .agent-table th {
+    position: sticky;
+    top: 0;
+    padding: 6px 8px;
+    border-bottom: 1px solid var(--line);
+    background: var(--tile);
+    text-align: left;
+    font: 400 9.5px/1.2 var(--mono);
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+  .agent-table td { padding: 5px 8px; border-bottom: 1px solid var(--line); color: var(--ink-3); }
+  .agent-table tr:last-child td { border-bottom: 0; }
+  .agent-table .is-nombre { text-align: right; font-family: var(--mono); font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .agent-compris {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 8px;
+    padding: 8px 10px;
+    border-radius: 8px;
+    background: var(--accent-tint);
+    font: 400 11px/1.5 var(--sans);
+    color: var(--ink-3);
+  }
+  .agent-compris b { font-weight: 500; color: var(--accent); }
+  .agent-lien {
+    padding: 0;
+    border: 0;
+    background: none;
+    font: inherit;
+    color: var(--accent);
+    text-decoration: underline;
+    cursor: pointer;
+    white-space: nowrap;
+  }
+  .agent-source { margin: 0; font: 400 10.5px/1.5 var(--sans); color: var(--muted-2); }
+  .agent-erreur {
+    padding: 10px 12px;
+    border: 1px solid var(--warn-soft);
+    border-radius: 8px;
+    background: var(--warn-tint);
+    font: 400 12px/1.5 var(--sans);
+    color: var(--warn);
+  }
+  .agent-erreur .agent-exemples { margin-top: 8px; }
+  .agent-exemples, .agent-historique ul { display: flex; flex-wrap: wrap; gap: 6px; margin: 0; padding: 0; list-style: none; }
+  .agent-puce {
+    padding: 5px 9px;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    background: var(--tile);
+    font: 400 11px/1.25 var(--sans);
+    color: var(--ink-3);
+    text-align: left;
+    cursor: pointer;
+  }
+  .agent-puce:hover { border-color: var(--accent-chip); color: var(--accent); }
+  .agent-historique h3 {
+    margin: 0 0 6px;
+    font: 400 9.5px/1 var(--mono);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--muted-2);
+  }
+  .agent-attente { margin: 0; font: 400 12px/1.5 var(--sans); color: var(--muted); }
+  @media (max-width: 940px) {
+    .params-droite { position: static; max-height: none; overflow: visible; }
+  }
   [hidden] { display: none !important; }
   .is-busy { opacity: .55; transition: opacity 160ms ease; }
   .is-locked { pointer-events: none; }
@@ -2275,7 +2481,22 @@
 
 <main class="params" id="panel-params">
   <div class="params-main" id="paramsMain"></div>
-  <aside class="result" id="paramsResult"></aside>
+  <div class="params-droite">
+    <aside class="result" id="paramsResult"></aside>
+    <section class="agent" id="agentPanneau" aria-label="Assistant">
+      <div class="agent-tete">
+        <h2>Assistant</h2>
+        <span class="agent-etat" data-o="agent-etat"></span>
+      </div>
+      <form class="agent-saisie" id="agentFormulaire">
+        <input type="text" id="agentQuestion" class="agent-champ" maxlength="400" autocomplete="off"
+               placeholder="Une question sur les données…" aria-label="Question à l'assistant">
+        <button type="submit" class="valo-bouton is-plein" id="agentDemander">Demander</button>
+      </form>
+      <div class="agent-reponse" id="agentReponse" aria-live="polite"></div>
+      <div class="agent-historique" id="agentHistorique"></div>
+    </section>
+  </div>
 </main>
 
 <main class="wacc" id="panel-wacc" hidden>
@@ -2483,7 +2704,9 @@
           <span class="aide-ou">Valorisation — vues États financiers, DCF, Comparables et Synthèse</span>
           <p>Tout commence dans la vue États financiers : on y importe la balance générale,
           puis le prévisionnel — un fichier, ou une estimation à partir d'hypothèses. En mode
-          estimation, un boulon sort de derrière le graphique : il ouvre les hypothèses.</p>
+          estimation, un boulon sort de derrière le graphique : il ouvre les hypothèses, en
+          trois jeux comparés côte à côte — Défaut, Règles (normalisation sur trois exercices,
+          convergence vers le secteur) et Analyste, qui relit les règles et justifie chacune.</p>
           <p>Le DCF actualise les flux prévisionnels au CMPC de CMPC › Calcul. La valeur
           terminale part d'un exercice normatif : CapEx égaux aux D&amp;A × (1 + g), BFR
           proportionné à g. Un triangle signale une valeur terminale au-delà de 65 % de la VE. Le
@@ -2495,7 +2718,9 @@
           le référentiel Comparables.</p>
           <p>La vue Synthèse fait la moyenne des VE des deux méthodes, retranche la dette
           nette et donne la valeur des fonds propres, avec sa sensibilité au CMPC et à g.
-          Le cadenas des méthodes permet de leur attribuer des poids.</p>
+          Le cadenas des méthodes permet de leur attribuer des poids. Sous une estimation, le
+          passage de la VE aux fonds propres se confirme ligne à ligne : crédit-bail,
+          provisions, titres de participation, dividendes à payer, intérêts minoritaires.</p>
           <p>Dans les États financiers, chaque compte de la balance est classé selon le plan
           SYSCOHADA pour monter le compte de résultat et l'actif net. Un graphique suit le CA,
           l'EBITDA et l'EBIT, de l'historique au prévisionnel, et l'export Excel rend le modèle
@@ -2517,6 +2742,28 @@
           <p>Vous décidez de joindre ou non la feuille des comparables.</p>
           <p>Le classeur contient les formules, pas seulement les résultats : vous pouvez
           changer une valeur dans Excel et tout se recalcule.</p>
+        </div>
+      </li>
+
+      <li class="aide-etape">
+        <span class="aide-num">8</span>
+        <span class="aide-icon"><svg viewBox="0 0 40 40" fill="none" aria-hidden="true">
+          <rect x="6" y="8" width="28" height="18" rx="4" class="v4-corps"/>
+          <path d="M13 26l-2.5 6 7-6" class="v4-trait" stroke-width="1.3"/>
+          <circle cx="14" cy="17" r="1.6" class="v4-plein"/>
+          <circle cx="20" cy="17" r="1.6" class="v4-plein"/>
+          <circle cx="26" cy="17" r="1.6" class="v4-plein"/>
+        </svg></span>
+        <div>
+          <h2>Poser une question à l'assistant</h2>
+          <span class="aide-ou">CMPC › Paramètres — le cadre Assistant, sous le résultat</span>
+          <p>« Prime de risque du Sénégal », « médiane des bêtas des banques en Afrique de
+          l'Ouest », « CMPC d'une cimenterie à Abidjan » : l'assistant cherche, filtre et
+          compile les données de la page, et dit sous chaque réponse ce qu'il a compris —
+          un clic sur Corriger reprend la question.</p>
+          <p>Les questions courantes sont reconnues sur place, sans réseau. Les autres sont
+          traduites par un modèle ouvert et gratuit, qui ne voit jamais les données : il
+          rédige la requête, la page l'exécute.</p>
         </div>
       </li>
     </ol>
@@ -4665,6 +4912,15 @@
     hyp: null,          // hypothèses d'estimation, posées à la première bascule
     hypOuvert: false,   // panneau des hypothèses déplié
     animerBoulon: false,
+    jeux: null,         // les trois jeux d'hypothèses : défaut, règles, analyste
+    jeu: "defaut",      // celui qui alimente le prévisionnel (VALO.hyp)
+    analyse: null,      // dernière réponse de l'analyste, telle que validée
+    analyseErreur: null,
+    analyseEnCours: false,
+    consentement: false, // case cochée : les chiffres peuvent partir chez l'analyste
+    activite: "",        // description libre jointe au dossier
+    passage: {},         // passage VE → fonds propres : lignes décochées ou corrigées
+    dureeReport: 5,      // report déficitaire, en années
   };
   // Au-delà, la valeur tient surtout à l'hypothèse de croissance à l'infini.
   const SEUIL_VT = 0.65;
@@ -4756,7 +5012,9 @@
     const r = { impot: [], nopat: [], fcff: [], facteur: [], actualise: [], somme: null };
     const valideTaux = Number.isFinite(wacc) && wacc > -1;
     for (let t = 0; t < n; t++) {
-      const imp = -Math.max(0, f.ebit[t]) * impot;
+      // `f.impots`, quand il existe, porte l'impôt de chaque exercice après
+      // report déficitaire ; sans lui, le calcul est celui d'avant, à l'identique.
+      const imp = f.impots && Number.isFinite(f.impots[t]) ? f.impots[t] : -Math.max(0, f.ebit[t]) * impot;
       const fcff = f.ebit[t] + imp + f.da[t] - f.capex[t] + f.bfr[t];
       const facteur = valideTaux ? Math.pow(1 + wacc, -(t + 1)) : null;   // fin d'année
       r.impot.push(imp);
@@ -5632,7 +5890,11 @@
       r.bg.fichier = fichier.name;
       r.bg.etats = calculerEtats(r.bg);
       VALO.bg = r.bg;
-      if (VALO.hyp) VALO.hyp = hypothesesParDefaut(r.bg, VALO.hyp.horizon);
+      if (VALO.hyp) {
+        VALO.hyp = hypothesesParDefaut(r.bg, VALO.hyp.horizon);
+        initialiserJeux(VALO.hyp);
+      }
+      VALO.passage = {};
       VALO.bgErreurs = [];
       VALO.trajActif = null;
       VALO.animer = true;
@@ -6059,6 +6321,13 @@
     h.horizon = horizon;
     h.croissance = h.croissance.slice(0, horizon);
     h.capex = h.capex.slice(0, horizon);
+    // Les jeux par règles ou de l'analyste portent une marge par exercice : un
+    // exercice ajouté reprend celle du précédent.
+    for (const cle of ["margeAn", "capexSurDa"]) {
+      if (!Array.isArray(h[cle])) continue;
+      h[cle] = h[cle].slice(0, horizon);
+      while (h[cle].length < horizon) h[cle].push(h[cle][h[cle].length - 1]);
+    }
     let ca = baseEstimation(bg).ca;
     for (let t = 0; t < horizon; t++) {
       if (h.croissance[t] == null) h.croissance[t] = t ? h.croissance[t - 1] : croissanceDefaut;
@@ -6071,15 +6340,20 @@
     const bg = VALO.bg, h = VALO.hyp;
     if (!bg || !h) return null;
     const b = baseEstimation(bg);
+    // La dette nette est celle du passage VE → fonds propres, confirmé ligne à
+    // ligne dans la Synthèse ; sans correction, elle vaut celle du bilan.
+    const passage = passageVeFp(bg);
     const f = {
       annees: [], ca: [], ebitda: [], da: [], ebit: [], capex: [], bfr: [],
-      g: h.g, detteNette: b.dette, impot: null, historique: null, estime: true,
+      g: h.g, detteNette: passage.dette, passage: passage, impot: null, historique: null, estime: true,
       tauxBfr: h.bfr,   // l'exercice normatif en tire la variation du BFR
     };
     let prec = b.ca;
     for (let t = 0; t < h.horizon; t++) {
       const ca = prec * (1 + h.croissance[t]);
-      const ebitda = ca * h.marge, da = ca * h.da;
+      // Une marge par exercice quand le jeu en porte une (règles, analyste).
+      const marge = Array.isArray(h.margeAn) && Number.isFinite(h.margeAn[t]) ? h.margeAn[t] : h.marge;
+      const ebitda = ca * marge, da = ca * h.da;
       f.annees.push(b.an + 1 + t);
       f.ca.push(ca);
       f.ebitda.push(ebitda);
@@ -6088,6 +6362,14 @@
       f.capex.push(h.capex[t]);
       f.bfr.push(-h.bfr * (ca - prec));   // signé comme un flux : négatif quand le BFR croît
       prec = ca;
+    }
+    // Règle 7 : les déficits que l'historique n'a pas encore imputés réduisent
+    // l'impôt des premiers exercices. Sans déficit, `f.impots` reste absent et
+    // le DCF se calcule comme avant.
+    const deficits = deficitsHistoriques(bg, VALO.dureeReport);
+    if (deficits.length || f.ebit.some((x) => x < 0)) {
+      f.deficits = deficits;
+      f.impots = impotsAvecReport(f, impotAuto(), deficits, VALO.dureeReport);
     }
     return f;
   }
@@ -6127,8 +6409,416 @@
       </section>`;
   }
 
+  /* ---- Hypothèses par règles ----
+     Les valeurs de départ lisent le dernier exercice et le figent sur tout
+     l'horizon. Les règles corrigent ce qui, dans ce départ, tient à
+     l'exercice plutôt qu'à la société, sans aucun appel serveur :
+
+       1. normalisation  marge, D&A / CA et BFR / CA moyens sur trois
+                         exercices, l'exercice atypique écarté (marge à plus
+                         de 50 % de la médiane, et à plus de 3 points) ;
+       2. croissance     TCAM borné à −20 % / +30 %, qui converge
+                         linéairement vers max(g, croissance médiane du secteur) ;
+       3. marge          converge vers la médiane du secteur — à mi-chemin si
+                         l'écart de départ dépasse 10 points : une société
+                         durablement plus rentable ne la rejoint pas en cinq ans ;
+       4. CapEx          D&A × (1 + 3 × croissance), entre 0,8 et 2,5 fois les D&A ;
+       5. g              inflation locale plafonnée à 4 %, jamais au-dessus de
+                         la croissance de la dernière année ;
+       6. classement     un ratio impossible signale un compte mal classé.
+
+     Les règles 7 (report déficitaire) et 8 (passage VE → fonds propres)
+     s'appliquent à tous les jeux d'hypothèses : voir plus bas. */
+
+  const BORNES_PREVISION = {
+    croissance: [-0.2, 0.3], marge: [0, 0.6], g: [0, 0.04],
+    capex_sur_da: [0.8, 2.5], bfr_sur_ca: [-0.2, 0.5], da_sur_ca: [0, 0.3],
+  };
+  const borne = (x, [bas, haut]) => Math.max(bas, Math.min(haut, x));
+  const arrondi4 = (x) => (x == null || !Number.isFinite(x) ? null : Math.round(x * 1e4) / 1e4);
+  // H valeurs de `a` (premier exercice prévisionnel) à `b` (dernier).
+  const lineaire = (a, b, h) => Array.from({ length: h }, (_, t) => (h > 1 ? a + (b - a) * t / (h - 1) : b));
+
+  function normaliserHistorique(bg) {
+    const e = bg.etats;
+    const tous = bg.annees.map((an, t) => {
+      const ca = e.cdr.ca[t] / 1e6, ebitda = e.cdr.ebitda[t] / 1e6, da = -e.cdr.da[t] / 1e6, bfr = e.bilan.bfr[t];
+      return { an: an, ca: ca, ebitda: ebitda, da: da, bfr: bfr, marge: ca > 0 ? ebitda / ca : null };
+    });
+    const exploitables = tous.filter((x) => x.ca > 0 && x.marge != null).slice(-3);
+    const anomalies = [], alertes = [];
+    if (!exploitables.length) {
+      alertes.push("Aucun exercice avec un chiffre d'affaires positif : les ratios restent ceux des valeurs de départ.");
+      return { exercices: [], marge: 0.2, daSurCa: 0.03, bfrSurCa: 0.1, tcam: null, anomalies: anomalies, alertes: alertes };
+    }
+    const med = mediane(exploitables.map((x) => x.marge));
+    // « À plus de 50 % de la médiane », avec un plancher de 3 points : sur une
+    // médiane proche de zéro, un demi-point d'écart suffirait sinon à exclure
+    // un exercice tout à fait ordinaire.
+    const seuil = Math.max(0.5 * Math.abs(med), 0.03);
+    let retenus = exploitables.filter((x) => Math.abs(x.marge - med) <= seuil);
+    for (const x of exploitables) {
+      if (retenus.indexOf(x) >= 0) continue;
+      anomalies.push(`${frFy(x.an)} : marge d'EBITDA de ${frPct(x.marge, 1)}, trop loin de la médiane (${frPct(med, 1)}), exercice exclu de la normalisation`);
+    }
+    if (!retenus.length) retenus = exploitables;
+    if (retenus.length === 1) alertes.push(`Un seul exercice exploitable (${frFy(retenus[0].an)}) : les ratios reposent sur lui seul.`);
+    const moy = (f) => retenus.reduce((s, x) => s + f(x), 0) / retenus.length;
+    const premier = tous.find((x) => x.ca > 0), dernier = tous.slice().reverse().find((x) => x.ca > 0);
+    const tcam = premier && dernier && dernier.an > premier.an ? tcamEntre(premier.ca, dernier.ca, dernier.an - premier.an) : null;
+    return {
+      exercices: retenus.map((x) => x.an),
+      marge: moy((x) => x.marge),
+      daSurCa: moy((x) => Math.max(0, x.da) / x.ca),
+      bfrSurCa: moy((x) => x.bfr / x.ca),
+      tcam: tcam,
+      anomalies: anomalies,
+      alertes: alertes,
+    };
+  }
+
+  // Un ratio impossible trahit presque toujours un compte mal classé : on dit
+  // lequel, avec la classe SYSCOHADA à vérifier.
+  function controleClassement(bg) {
+    const e = bg.etats, alertes = [];
+    bg.annees.forEach((an, t) => {
+      const ca = e.cdr.ca[t] / 1e6, ebitda = e.cdr.ebitda[t] / 1e6, da = -e.cdr.da[t] / 1e6, bfr = e.bilan.bfr[t];
+      if (da <= 0) alertes.push(`${frFy(an)} : D&A nuls ou négatifs, compte probablement mal classé — vérifier les dotations (classe 68) et les reprises (classe 79).`);
+      if (ca > 0 && ebitda > ca) alertes.push(`${frFy(an)} : EBITDA supérieur au chiffre d'affaires, compte probablement mal classé — vérifier les produits hors CA (classes 71 à 78) et les charges (classe 6).`);
+      if (ca > 0 && (bfr / ca > 0.5 || bfr / ca < -0.2)) alertes.push(`${frFy(an)} : BFR à ${frPct(bfr / ca, 0)} du CA, compte probablement mal classé — vérifier les comptes de tiers (classe 4) et les stocks (classe 3).`);
+    });
+    return alertes;
+  }
+
+  // Statistiques du secteur pour la prévision : seulement sous le référentiel
+  // Comparables, qui seul porte un échantillon de sociétés.
+  function secteurPrevision() {
+    if (!estComparables()) return null;
+    const ids = societesRetenues().ids;
+    const sample = ids.map((id) => COMPARABLES[id]).filter(Boolean);
+    if (!sample.length) return null;
+    const an = exerciceReference(sample);
+    const marges = sample.map((s) => {
+      const ca = (s.ca || {})[String(an)], eb = (s.ebitda || {})[String(an)];
+      return ca > 0 && eb != null ? eb / ca : null;
+    });
+    const croissances = sample.map((s) => {
+      const annees = (s.annees || []).filter((a) => (s.ca || {})[String(a)] > 0);
+      if (annees.length < 2) return null;
+      const a0 = annees[0], a1 = annees[annees.length - 1];
+      return tcamEntre(s.ca[String(a0)], s.ca[String(a1)], a1 - a0);
+    });
+    const insight = margeSecteurInsight();
+    const stats = statsSecteur(params.secteur) || {};
+    return {
+      nom: params.secteur, n: sample.length,
+      marge_mediane: arrondi4(mediane(marges.filter((x) => x != null))),
+      marge_tendance_pts_an: arrondi4(insight ? evolutionAnnuelle(insight.points) : null),
+      croissance_mediane: arrondi4(mediane(croissances.filter((x) => x != null))),
+      beta_median: arrondi4(stats.beta_u != null ? stats.beta_u : null),
+    };
+  }
+
+  // CapEx de chaque exercice, en M FCFA, à partir des ratios CapEx / D&A.
+  function capexDepuisRatios(bg, h) {
+    let ca = baseEstimation(bg).ca;
+    return h.croissance.map((c, t) => {
+      ca *= 1 + c;
+      return arrondiM(ca * h.da * h.capexSurDa[t]);
+    });
+  }
+
+  function hypothesesParRegles(bg, horizon) {
+    const n = horizon || 5;
+    const norm = normaliserHistorique(bg);
+    const sect = secteurPrevision();
+    const alertes = norm.alertes.concat(controleClassement(bg));
+    if (!sect) alertes.push("Hors du référentiel Comparables, aucun échantillon de sociétés : la marge reste à son niveau normalisé et la croissance converge vers g.");
+    const inflation = Number(params.inflation_local);
+    let g = borne(Number.isFinite(inflation) ? inflation : 0.02, BORNES_PREVISION.g);
+    const depart = borne(norm.tcam == null ? 0.05 : norm.tcam, BORNES_PREVISION.croissance);
+    const cibleCroissance = Math.max(g, sect && sect.croissance_mediane != null
+      ? borne(sect.croissance_mediane, BORNES_PREVISION.croissance) : g);
+    const croissance = lineaire(depart, cibleCroissance, n).map(arrondi4);
+    g = arrondi4(Math.min(g, croissance[n - 1]));
+    let cibleMarge = norm.marge;
+    if (sect && sect.marge_mediane != null) {
+      const ecart = norm.marge - sect.marge_mediane;
+      cibleMarge = Math.abs(ecart) > 0.1 ? sect.marge_mediane + ecart / 2 : sect.marge_mediane;
+    }
+    const margeAn = lineaire(norm.marge, cibleMarge, n).map((x) => arrondi4(borne(x, BORNES_PREVISION.marge)));
+    const h = {
+      horizon: n, croissance: croissance, margeAn: margeAn, marge: margeAn[0],
+      da: arrondi4(borne(norm.daSurCa, BORNES_PREVISION.da_sur_ca)),
+      bfr: arrondi4(borne(norm.bfrSurCa, BORNES_PREVISION.bfr_sur_ca)),
+      g: g,
+      capexSurDa: croissance.map((c) => arrondi4(borne(1 + 3 * c, BORNES_PREVISION.capex_sur_da))),
+      origine: "regles",
+    };
+    h.capex = capexDepuisRatios(bg, h);
+    h.meta = { normalise: norm, secteur: sect, alertes: alertes, anomalies: norm.anomalies };
+    return h;
+  }
+
+  // Les hypothèses rendues par l'analyste, revalidées ici : le serveur les a
+  // bornées, mais la page ne fait confiance à personne.
+  function hypothesesDepuisAnalyse(bg, analyse, horizon) {
+    const a = analyse.hypotheses;
+    const serie = (v, cle) => Array.from({ length: horizon }, (_, t) => arrondi4(borne(Number(v[Math.min(t, v.length - 1)]) || 0, BORNES_PREVISION[cle])));
+    const h = {
+      horizon: horizon,
+      croissance: serie(a.croissance, "croissance"),
+      margeAn: serie(a.marge, "marge"),
+      da: arrondi4(borne(Number(a.da_sur_ca) || 0, BORNES_PREVISION.da_sur_ca)),
+      bfr: arrondi4(borne(Number(a.bfr_sur_ca) || 0, BORNES_PREVISION.bfr_sur_ca)),
+      g: arrondi4(borne(Number(a.g) || 0, BORNES_PREVISION.g)),
+      capexSurDa: serie(a.capex_sur_da, "capex_sur_da"),
+      origine: "analyste",
+    };
+    h.marge = h.margeAn[0];
+    h.capex = capexDepuisRatios(bg, h);
+    return h;
+  }
+
+  /* ---- Règle 7 : report déficitaire ----
+     Le déficit reportable à l'ouverture est ce que l'historique n'a pas
+     encore imputé : chaque perte d'exploitation forme un millésime, chaque
+     bénéfice impute d'abord les plus anciens, et un millésime expire au bout
+     de la durée de report. La durée suit la loi fiscale du pays ; la base
+     n'en dit rien, d'où le défaut de cinq ans, affiché comme tel. */
+  const REPORT_DEFAUT = 5;
+
+  function imputer(stock, ebit, an, duree) {
+    for (const s of stock) if (an - s.an > duree) s.montant = 0;
+    if (ebit <= 0) { stock.push({ an: an, montant: -ebit }); return 0; }
+    let base = ebit;
+    for (const s of stock) {
+      const u = Math.min(s.montant, base);
+      s.montant -= u;
+      base -= u;
+      if (!base) break;
+    }
+    return base;
+  }
+
+  function deficitsHistoriques(bg, duree) {
+    const stock = [];
+    bg.annees.forEach((an, t) => imputer(stock, bg.etats.cdr.ebit[t] / 1e6, an, duree));
+    return stock.filter((s) => s.montant > 1e-9);
+  }
+
+  // Impôt de chaque exercice prévisionnel, négatif comme un flux : le stock
+  // de déficit est imputé avant que le taux s'applique au reste.
+  function impotsAvecReport(f, taux, deficitInitial, duree) {
+    const stock = (deficitInitial || []).map((s) => ({ an: s.an, montant: s.montant }));
+    return f.ebit.map((ebit, t) => -imputer(stock, ebit, f.annees[t], duree == null ? REPORT_DEFAUT : duree) * taux);
+  }
+
+  /* ---- Règle 8 : passage de la valeur d'entreprise aux fonds propres ----
+     La dette nette du dernier bilan ne suffit pas : crédit-bail, dettes de
+     participations, provisions, titres détenus et dividendes à payer
+     séparent aussi la VE de la valeur des fonds propres. Chaque poste se lit
+     par classe SYSCOHADA dans la balance ; l'utilisateur confirme ligne à
+     ligne. Les soldes étant signés débit positif, la contribution d'un poste
+     à la valeur des fonds propres est son solde lui-même : un actif s'ajoute,
+     une dette se retranche, sans règle de signe par ligne. */
+  // La trésorerie suit le classement de la page, pas un préfixe : le compte
+  // 599 commence par « 59 » mais relève des provisions à court terme. Les
+  // quatre premières lignes ensemble refont exactement la dette nette du bilan.
+  const prefixe = (...liste) => (c) => liste.some((p) => c.nc.indexOf(p) === 0);
+  const LIGNES_PASSAGE = [
+    { cle: "tresorerie", libelle: "Trésorerie et emprunts", classes: "16, 50 à 58", fixe: true,
+      garder: (c) => c.cle === "disponibilites" || c.cle === "credits_tresorerie" || c.nc.indexOf("16") === 0 },
+    { cle: "credit_bail", libelle: "Dettes de crédit-bail", classes: "17", garder: prefixe("17") },
+    { cle: "participations", libelle: "Dettes liées à des participations", classes: "18", garder: prefixe("18") },
+    { cle: "provisions", libelle: "Provisions pour risques et charges", classes: "19", garder: prefixe("19") },
+    { cle: "titres", libelle: "Titres de participation et autres immobilisations financières", classes: "26, 27",
+      garder: prefixe("26", "27", "296", "297") },
+    { cle: "dividendes", libelle: "Dividendes à payer", classes: "465", garder: prefixe("465") },
+    { cle: "minoritaires", libelle: "Intérêts minoritaires (à déduire)", classes: "saisie", manuel: true },
+  ];
+
+  function passageVeFp(bg) {
+    const k = bg.annees.length - 1;
+    const etat = VALO.passage || {};
+    const lignes = LIGNES_PASSAGE.map((l) => {
+      const auto = l.manuel ? 0 : bg.comptes.filter(l.garder).reduce((s, c) => s + c.valeurs[k], 0) / 1e6;
+      const saisi = etat[l.cle] || {};
+      const montant = saisi.montant != null ? saisi.montant : auto;
+      // Une ligne lue dans la balance est retenue d'office ; les minoritaires,
+      // qu'une balance sociale ne porte pas, le sont dès qu'on les saisit.
+      const retenu = l.fixe ? true : saisi.retenu != null ? saisi.retenu : (l.manuel ? montant !== 0 : Math.abs(auto) > 1e-9);
+      return { cle: l.cle, libelle: l.libelle, classes: l.classes, auto: auto, montant: montant,
+               retenu: retenu, fixe: Boolean(l.fixe), manuel: Boolean(l.manuel), modifie: saisi.montant != null };
+    });
+    const total = lignes.reduce((s, l) => s + (l.retenu ? l.montant : 0), 0);
+    return { an: bg.annees[k], lignes: lignes, total: total, dette: -total };
+  }
+
+  /* ---- Trois jeux d'hypothèses : défaut, règles, analyste ----
+     VALO.hyp reste le jeu actif, celui que le prévisionnel et le DCF lisent ;
+     VALO.jeux garde les trois côte à côte pour les comparer. Changer d'onglet
+     change de jeu actif, sans recalcul : chaque jeu garde ses saisies. */
+  const JEUX = [
+    { cle: "defaut", libelle: "Défaut" },
+    { cle: "regles", libelle: "Règles" },
+    { cle: "analyste", libelle: "Analyste" },
+  ];
+
+  function activerJeu(cle) {
+    if (!VALO.jeux || !VALO.jeux[cle]) return;
+    VALO.jeu = cle;
+    VALO.hyp = VALO.jeux[cle];
+  }
+
+  function initialiserJeux(h) {
+    VALO.jeux = { defaut: h, regles: null, analyste: null };
+    VALO.jeu = "defaut";
+    VALO.analyse = null;
+    VALO.analyseErreur = null;
+  }
+
+  // Le prévisionnel et la VE d'un jeu, sans changer le jeu actif.
+  function estimerAvec(h) {
+    const actif = VALO.hyp;
+    VALO.hyp = h;
+    try { return estimerPrevisionnel(); } finally { VALO.hyp = actif; }
+  }
+
+  // CapEx / D&A de chaque exercice, quelle que soit la forme du jeu.
+  function ratiosCapex(h, f) {
+    if (h.capexSurDa) return h.capexSurDa;
+    return f.da.map((da, t) => (da > 0 ? h.capex[t] / da : null));
+  }
+
+  const plage = (v, fmt) => {
+    const finis = v.filter((x) => x != null && Number.isFinite(x));
+    if (!finis.length) return "—";
+    const a = finis[0], b = finis[finis.length - 1];
+    return Math.abs(a - b) < 1e-9 ? fmt(a) : fmt(a) + " → " + fmt(b);
+  };
+  const pct1 = (x) => frPct(x, 1);
+  const fois = (x) => frNum(x, 2) + "×";
+
+  function comparaisonJeux() {
+    const jeux = JEUX.filter((j) => VALO.jeux && VALO.jeux[j.cle]);
+    if (jeux.length < 2) return "";
+    const wacc = cmpcAuto();
+    const colonnes = jeux.map((j) => {
+      const h = VALO.jeux[j.cle];
+      const f = estimerAvec(h);
+      const r = f ? calculDcf(f, wacc, f.g, impotRetenu(f)) : null;
+      return {
+        j: j, croissance: plage(h.croissance, pct1),
+        marge: plage(h.margeAn || [h.marge], pct1), da: pct1(h.da),
+        capex: f ? plage(ratiosCapex(h, f), fois) : "—", bfr: pct1(h.bfr), g: pct1(h.g),
+        ve: r && r.ve != null ? frFlux(r.ve) : "—",
+      };
+    });
+    const ligne = (libelle, cle) => `<tr><td>${libelle}</td>${colonnes.map((c) => `<td class="${c.j.cle === VALO.jeu ? "is-actif" : ""}">${esc(c[cle])}</td>`).join("")}</tr>`;
+    return `
+      <div class="hyp-comparaison">
+        <h3 class="hyp-sous-titre">Comparaison des jeux</h3>
+        <div class="hyp-defile">
+          <table class="hyp-table hyp-table-comparee">
+            <thead><tr><th>Hypothèse</th>${colonnes.map((c) => `<th class="${c.j.cle === VALO.jeu ? "is-actif" : ""}">${esc(c.j.libelle)}</th>`).join("")}</tr></thead>
+            <tbody>
+              ${ligne("Croissance du CA, an 1 → dernier", "croissance")}
+              ${ligne("Marge d'EBITDA, an 1 → dernier", "marge")}
+              ${ligne("D&amp;A / CA", "da")}
+              ${ligne("CapEx / D&amp;A, an 1 → dernier", "capex")}
+              ${ligne("BFR / CA", "bfr")}
+              ${ligne("Croissance à l'infini (g)", "g")}
+              ${ligne("VE du DCF (M FCFA)", "ve")}
+            </tbody>
+          </table>
+        </div>
+      </div>`;
+  }
+
+  const listeAlertes = (titre, items) => items && items.length ? `
+    <div class="hyp-alertes">
+      <h3 class="hyp-sous-titre">${titre}</h3>
+      <ul>${items.map((a) => `<li>${esc(a)}</li>`).join("")}</ul>
+    </div>` : "";
+
+  // Ce que l'onglet actif ajoute sous les champs : règles et demande à
+  // l'analyste, ou justification de l'analyste.
+  function blocJeu() {
+    if (VALO.jeu === "defaut") {
+      return `
+        <div class="hyp-bandeau">
+          <span>Valeurs de départ : les ratios du dernier exercice, figés sur tout l'horizon.</span>
+          <button type="button" class="valo-bouton is-plein" data-action="hyp-regles">Hypothèses par règles</button>
+        </div>`;
+    }
+    if (VALO.jeu === "regles") {
+      const meta = VALO.hyp.meta || {};
+      const s = meta.secteur;
+      const consenti = Boolean(VALO.consentement);
+      return `
+        <div class="hyp-bandeau">
+          <span>Normalisation sur ${meta.normalise && meta.normalise.exercices.length ? meta.normalise.exercices.map(frFy).join(", ") : "les exercices disponibles"}${s
+            ? ` ; convergence vers ${esc(s.nom)} (${s.n} sociétés : marge médiane ${s.marge_mediane == null ? "—" : pct1(s.marge_mediane)}, croissance médiane ${s.croissance_mediane == null ? "—" : pct1(s.croissance_mediane)})` : ""}.</span>
+          <button type="button" class="valo-bouton" data-action="hyp-regles">Recalculer les règles</button>
+        </div>
+        ${listeAlertes("Anomalies écartées", meta.anomalies)}
+        ${listeAlertes("Points de vigilance", meta.alertes)}
+        <div class="hyp-analyste-demande">
+          <h3 class="hyp-sous-titre">Avis de l'analyste</h3>
+          <p class="note">L'analyste relit ces règles comme un senior relit un junior : il garde ce qui tient,
+          corrige le reste dans les bornes de l'outil, et justifie chaque hypothèse. Modèle ouvert et gratuit,
+          hébergé par Cloudflare Workers AI.</p>
+          <label class="hyp-activite">
+            <span class="field-label">Activité de la société (facultatif)</span>
+            <textarea id="hypActivite" maxlength="300" rows="2" placeholder="Ex. transformation de fèves de cacao, deux usines, export vers l'Europe">${esc(VALO.activite || "")}</textarea>
+          </label>
+          <label class="hyp-consentement">
+            <input type="checkbox" id="hypConsentement"${consenti ? " checked" : ""}>
+            <span>Les chiffres de la société seront envoyés à un service externe pour analyse.</span>
+          </label>
+          <button type="button" class="valo-bouton is-plein" data-action="hyp-analyste"${consenti && !VALO.analyseEnCours ? "" : " disabled"}>${VALO.analyseEnCours ? "Analyse en cours…" : "Demander l'avis de l'analyste"}</button>
+          ${VALO.analyseErreur ? `<p class="hyp-erreur" role="alert">${esc(VALO.analyseErreur)}</p>` : ""}
+        </div>`;
+    }
+    const a = VALO.analyse || {};
+    const j = a.justifications || {};
+    const items = [["Croissance", j.croissance], ["Marge", j.marge], ["CapEx", j.capex], ["BFR", j.bfr], ["g", j.g]].filter((x) => x[1]);
+    return `
+      <div class="hyp-analyse">
+        <div class="hyp-bandeau">
+          <span><b>Confiance ${esc(a.confiance || "—")}</b>${a.modele ? " · " + esc(String(a.modele).replace(/^@cf\//, "")) : ""}</span>
+          <button type="button" class="valo-bouton" data-action="hyp-jeu" data-jeu="regles">Revenir aux règles</button>
+        </div>
+        ${a.resume ? `<p class="hyp-resume">${esc(a.resume)}</p>` : ""}
+        <dl class="hyp-justifications">${items.map(([k, v]) => `<dt>${k}</dt><dd>${esc(v)}</dd>`).join("")}</dl>
+        ${listeAlertes("Alertes de l'analyste", a.alertes)}
+        <p class="note">Hypothèses revalidées par la page dans les bornes de l'outil avant application. Elles restent
+        modifiables ci-dessus, comme les autres jeux.</p>
+      </div>`;
+  }
+
+  // Report déficitaire : affiché seulement quand il change quelque chose.
+  function blocReport(f) {
+    if (!f || !f.deficits) return "";
+    const stock = f.deficits.reduce((s, d) => s + d.montant, 0);
+    const economie = f.impots.reduce((s, x, t) => s + (-Math.max(0, f.ebit[t]) * impotRetenu(f) - x), 0);
+    return `
+      <div class="hyp-report">
+        <label class="hyp-champ">
+          <span class="field-label">Report déficitaire</span>
+          <span class="hyp-saisie"><input class="mini-input" data-hyp-report inputmode="numeric" value="${VALO.dureeReport}"
+                 aria-label="Durée de report des déficits, en années"><span>ans</span></span>
+          <span class="field-hint">Durée par défaut de ${REPORT_DEFAUT} ans, faute de donnée fiscale par pays : à ajuster.</span>
+        </label>
+        <p class="note">Déficits reportables à l'ouverture : ${frM(stock)} M FCFA. Ils sont imputés sur l'EBIT avant
+        l'impôt, soit ${frM(-economie)} M FCFA d'impôt en moins sur l'horizon.</p>
+      </div>`;
+  }
+
   function panneauHypotheses() {
     const h = VALO.hyp, f = estimerPrevisionnel(), b = baseEstimation(VALO.bg);
+    const parAn = Array.isArray(h.margeAn);
     const champ = (cle, libelle, aide) => `
       <label class="hyp-champ">
         <span class="field-label">${libelle}</span>
@@ -6137,6 +6827,17 @@
         <span class="field-hint">${aide}</span>
       </label>`;
     const calcul = (cle, valeurs) => valeurs.map((v, t) => `<td data-o="hyp-${cle}-${t}">${frM(v)}</td>`).join("");
+    const saisieAn = (cle, valeurs, libelle, pct) => valeurs.map((v, t) => `
+      <td><input class="mini-input" data-hyp-an="${cle}" data-i="${t}" inputmode="decimal"
+                 value="${frNum(pct ? v * 100 : v, 1)}" aria-label="${libelle} ${frFy(f.annees[t])}${pct ? ", en %" : ", en M FCFA"}"></td>`).join("");
+    const onglets = JEUX.map((j) => {
+      const dispo = j.cle === "defaut" || j.cle === "regles" || (VALO.jeux && VALO.jeux.analyste);
+      return `<button type="button" role="tab" class="hyp-onglet${VALO.jeu === j.cle ? " is-actif" : ""}"
+                data-action="hyp-jeu" data-jeu="${j.cle}" aria-selected="${VALO.jeu === j.cle ? "true" : "false"}"${dispo ? ""
+                : ' disabled title="Demandez d\'abord l\'avis de l\'analyste, depuis l\'onglet Règles."'}>${j.libelle}</button>`;
+    }).join("");
+    const libelleRetour = VALO.jeu === "defaut" ? "Revenir aux valeurs de départ"
+      : VALO.jeu === "regles" ? "Revenir au calcul des règles" : "Revenir à l'avis de l'analyste";
     return `
       <div class="hyp-panneau" id="hypPanneau">
         <div class="hyp-clip">
@@ -6146,11 +6847,13 @@
               <h2>Hypothèses du prévisionnel</h2>
               <div class="chips">
                 <span class="chip">Base ${frFy(b.an)} : CA ${frM(b.ca)} M FCFA</span>
-                <button type="button" class="valo-bouton" data-action="hyp-defaut">Revenir aux valeurs de départ</button>
+                <button type="button" class="valo-bouton" data-action="hyp-defaut">${libelleRetour}</button>
               </div>
             </div>
+            <div class="hyp-onglets" role="tablist" aria-label="Jeu d'hypothèses">${onglets}</div>
+            ${blocJeu()}
             <div class="hyp-globales">
-              ${champ("marge", "Marge d'EBITDA", "% du chiffre d'affaires")}
+              ${parAn ? "" : champ("marge", "Marge d'EBITDA", "% du chiffre d'affaires")}
               ${champ("da", "Dotations aux amortissements", "% du chiffre d'affaires")}
               ${champ("bfr", "Variation du BFR", "% de la variation du CA")}
               ${champ("g", "Croissance à l'infini (g)", "Valeur terminale, Gordon-Shapiro")}
@@ -6168,26 +6871,124 @@
               <table class="hyp-table">
                 <thead><tr><th>M FCFA</th>${f.annees.map((an) => `<th>${frFy(an)}</th>`).join("")}</tr></thead>
                 <tbody>
-                  <tr class="is-saisie"><td>Croissance du CA (%)</td>${h.croissance.map((v, t) => `
-                    <td><input class="mini-input" data-hyp-an="croissance" data-i="${t}" inputmode="decimal"
-                               value="${frNum(v * 100, 1)}" aria-label="Croissance du CA ${frFy(f.annees[t])}, en %"></td>`).join("")}</tr>
+                  <tr class="is-saisie"><td>Croissance du CA (%)</td>${saisieAn("croissance", h.croissance, "Croissance du CA", true)}</tr>
                   <tr class="is-calc"><td>Chiffre d'affaires</td>${calcul("ca", f.ca)}</tr>
+                  ${parAn ? `<tr class="is-saisie"><td>Marge d'EBITDA (%)</td>${saisieAn("marge", h.margeAn, "Marge d'EBITDA", true)}</tr>` : ""}
                   <tr class="is-calc"><td>EBITDA</td>${calcul("ebitda", f.ebitda)}</tr>
                   <tr class="is-calc"><td>D&amp;A</td>${calcul("da", f.da.map((v) => -v))}</tr>
-                  <tr class="is-saisie"><td>CapEx</td>${h.capex.map((v, t) => `
-                    <td><input class="mini-input" data-hyp-an="capex" data-i="${t}" inputmode="decimal"
-                               value="${frNum(v, 1)}" aria-label="CapEx ${frFy(f.annees[t])}, en M FCFA"></td>`).join("")}</tr>
+                  <tr class="is-saisie"><td>CapEx</td>${saisieAn("capex", h.capex, "CapEx", false)}</tr>
                   <tr class="is-calc"><td>Variation du BFR</td>${calcul("bfr", f.bfr)}</tr>
                 </tbody>
               </table>
             </div>
-            <p class="note">Valeurs de départ : les ratios de ${frFy(b.an)}, dernier exercice de la balance ; la
-            croissance du CA part de son TCAM historique, et le CapEx des D&amp;A de chaque exercice. ${b.dette < 0 ? "La trésorerie nette (" + frM(-b.dette) : "La dette nette (" + frM(b.dette)}
-            M FCFA) vient de la balance, le taux d'IS du pays. Variation du BFR signée comme
-            un flux : négative quand le BFR augmente.</p>
+            ${blocReport(f)}
+            ${comparaisonJeux()}
+            <p class="note">Le jeu actif alimente le prévisionnel et le DCF. ${b.dette < 0 ? "La trésorerie nette" : "La dette nette"}
+            vient de la balance, ajustée dans la Synthèse (passage de la VE aux fonds propres) ; le taux d'IS est celui
+            du pays. Variation du BFR signée comme un flux : négative quand le BFR augmente.</p>
           </section>
         </div>
       </div>`;
+  }
+
+  /* ---- Appel à l'analyste ----
+     Le dossier ne porte que ce que l'analyste doit juger : des ratios et des
+     montants agrégés en M FCFA, jamais la balance. Rien ne part sans la case
+     de consentement. */
+  const ANALYSTE_DELAI = 60000;
+
+  function dossierAnalyste() {
+    const bg = VALO.bg, e = bg.etats;
+    const regles = VALO.jeux.regles, defaut = VALO.jeux.defaut;
+    const norm = regles.meta.normalise;
+    const annees = bg.annees.slice(-3);
+    const k0 = bg.annees.length - annees.length;
+    const serie = (f) => annees.map((_, i) => { const v = f(k0 + i); return v == null || !Number.isFinite(v) ? null : Math.round(v * 10) / 10; });
+    const immo = (t) => e.bilan.actifs_immo[t];
+    const r4 = (v) => v.map(arrondi4);
+    return {
+      societe: {
+        pays: String(params.country).slice(0, 80),
+        industrie: String(estComparables() ? params.secteur : params.industry).slice(0, 80),
+        activite: String(VALO.activite || "").slice(0, 300),
+      },
+      historique: {
+        annees: annees,
+        ca: serie((t) => e.cdr.ca[t] / 1e6),
+        ebitda: serie((t) => e.cdr.ebitda[t] / 1e6),
+        da: serie((t) => -e.cdr.da[t] / 1e6),
+        // CapEx déduits : variation des immobilisations plus les D&A de l'exercice.
+        capex: serie((t) => (t > 0 ? immo(t) - immo(t - 1) - e.cdr.da[t] / 1e6 : null)),
+        bfr: serie((t) => e.bilan.bfr[t]),
+        dette_nette: Math.round(baseEstimation(bg).dette * 10) / 10,
+      },
+      normalise: {
+        marge_ebitda_3ans: arrondi4(norm.marge), croissance_tcam: arrondi4(norm.tcam),
+        da_sur_ca: arrondi4(norm.daSurCa), bfr_sur_ca: arrondi4(norm.bfrSurCa),
+        anomalies: norm.anomalies.slice(0, 12).map((x) => x.slice(0, 240)),
+      },
+      secteur: regles.meta.secteur,
+      macro: {
+        inflation_locale: arrondi4(Number(params.inflation_local)), inflation_ref: arrondi4(Number(params.inflation_ref)),
+        cmpc_local: arrondi4(cmpcAuto()), taux_is: arrondi4(impotAuto()),
+      },
+      defauts: {
+        croissance: r4(defaut.croissance), marge: arrondi4(defaut.marge), da: arrondi4(defaut.da),
+        capex: defaut.capex.map((v) => Math.round(v * 10) / 10), bfr: arrondi4(defaut.bfr), g: arrondi4(defaut.g),
+      },
+      regles: {
+        croissance: r4(regles.croissance), marge: r4(regles.margeAn), g: arrondi4(regles.g),
+        capex_sur_da: r4(regles.capexSurDa), da_sur_ca: arrondi4(regles.da), bfr_sur_ca: arrondi4(regles.bfr),
+      },
+      bornes: BORNES_PREVISION,
+    };
+  }
+
+  const MESSAGES_ANALYSTE = {
+    quota: "Quota de prévisions du jour atteint pour votre adresse : les règles restent applicables.",
+    plafond: "Enveloppe gratuite du jour consommée : l'analyste revient demain, les règles restent applicables.",
+    configuration: "L'analyste en ligne n'est pas configuré sur ce déploiement : les règles restent applicables.",
+    absent: "L'analyste en ligne n'est pas déployé ici (page ouverte hors du site) : les règles restent applicables.",
+    analyse: "L'analyste n'a pas rendu de réponse exploitable. Réessayez, ou gardez les règles.",
+    invalide: "Le dossier a été refusé par le serveur. Les règles restent applicables.",
+  };
+
+  async function demanderAnalyste() {
+    if (!VALO.consentement || VALO.analyseEnCours || !VALO.bg) return;
+    if (!VALO.jeux.regles) VALO.jeux.regles = hypothesesParRegles(VALO.bg, VALO.hyp.horizon);
+    VALO.analyseEnCours = true;
+    VALO.analyseErreur = null;
+    renderEtats();
+    const controle = new AbortController();
+    const minuterie = setTimeout(() => controle.abort(), ANALYSTE_DELAI);
+    let reponse = null, code = null, message = null;
+    try {
+      const r = await fetch("/api/forecast", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify(dossierAnalyste()),
+        signal: controle.signal,
+      });
+      let corps = null;
+      try { corps = await r.json(); } catch (e) { corps = null; }
+      if (r.ok && corps && corps.ok && corps.analyse) reponse = corps;
+      else { code = corps && corps.code ? corps.code : (r.status === 404 || r.status === 405 ? "absent" : "indisponible"); message = corps && corps.message; }
+    } catch (err) {
+      code = location.protocol === "file:" ? "absent" : "reseau";
+    } finally {
+      clearTimeout(minuterie);
+      VALO.analyseEnCours = false;
+    }
+    if (reponse) {
+      const horizon = VALO.jeux.regles.horizon;
+      VALO.analyse = Object.assign({}, reponse.analyse, { modele: reponse.modele });
+      VALO.jeux.analyste = hypothesesDepuisAnalyse(VALO.bg, reponse.analyse, horizon);
+      activerJeu("analyste");
+    } else {
+      VALO.analyseErreur = MESSAGES_ANALYSTE[code] || ("L'analyste en ligne ne répond pas" + (message ? " (" + message + ")" : "") + ". Les règles restent applicables.");
+    }
+    VALO.trajActif = null;
+    renderEtats();
   }
 
   // Une saisie met à jour les montants calculés et le graphique sur place :
@@ -6534,7 +7335,8 @@
     if (estime) {
       const b = baseEstimation(VALO.bg);
       hyp("base", "Chiffre d'affaires de base, " + frFy(b.an), b.ca, ST.grisM);
-      hyp("marge", "Marge d'EBITDA", VALO.hyp.marge, ST.grisPct);
+      // Une marge par exercice (règles, analyste) se lit ligne à ligne plus bas.
+      if (!Array.isArray(VALO.hyp.margeAn)) hyp("marge", "Marge d'EBITDA", VALO.hyp.marge, ST.grisPct);
       hyp("tda", "D&A, en % du CA", VALO.hyp.da, ST.grisPct);
       hyp("tbfr", "Variation du BFR, en % de la variation du CA", VALO.hyp.bfr, ST.grisPct);
     }
@@ -6553,7 +7355,12 @@
       ligne("croissance", "Croissance du CA", VALO.hyp.croissance, null, "gris", "Pct");
       ligne("ca", "Chiffre d'affaires", f.ca,
         (t, rr) => (t ? col(t - 1) + rr : fixe("base")) + "*(1+" + c("croissance", t) + ")", "gris");
-      ligne("ebitda", "EBITDA", f.ebitda, (t) => c("ca", t) + "*" + fixe("marge"), "gris");
+      if (Array.isArray(VALO.hyp.margeAn)) {
+        ligne("margeAn", "Marge d'EBITDA", VALO.hyp.margeAn, null, "gris", "Pct");
+        ligne("ebitda", "EBITDA", f.ebitda, (t) => c("ca", t) + "*" + c("margeAn", t), "gris");
+      } else {
+        ligne("ebitda", "EBITDA", f.ebitda, (t) => c("ca", t) + "*" + fixe("marge"), "gris");
+      }
       ligne("da", "D&A", f.da, (t) => c("ca", t) + "*" + fixe("tda"), "gris");
       ligne("ebit", "EBIT", f.ebit, (t) => c("ebitda", t) + "-" + c("da", t), "noirGras");
       ligne("capex", "CapEx", f.capex, null, "gris");
@@ -6566,7 +7373,11 @@
       ligne("bfr", "Variation du BFR (signée comme un flux)", f.bfr, null, "gris");
     }
     w.ajoute(null, []);
-    ligne("impot", "(−) Impôt normatif sur l'EBIT", r.impot, (t) => "-MAX(0," + c("ebit", t) + ")*" + fixe("is"), "noir");
+    // Avec un report déficitaire, l'impôt de chaque exercice dépend du stock
+    // de déficits : il s'écrit en valeurs, celles de la page, plutôt qu'en une
+    // formule au taux plein qui s'écarterait d'elle au premier recalcul.
+    if (f.impots) ligne("impot", "(−) Impôt sur l'EBIT, après report des déficits", r.impot, null, "noir");
+    else ligne("impot", "(−) Impôt normatif sur l'EBIT", r.impot, (t) => "-MAX(0," + c("ebit", t) + ")*" + fixe("is"), "noir");
     ligne("nopat", "NOPAT", r.nopat, (t) => c("ebit", t) + "+" + c("impot", t), "noirGras");
     ligne("fcff", "FCFF = NOPAT + D&A − CapEx + variation du BFR", r.fcff,
       (t) => c("nopat", t) + "+" + c("da", t) + "-" + c("capex", t) + "+" + c("bfr", t), "lavande");
@@ -6719,7 +7530,7 @@
     return poids;
   }
 
-  function feuilleSynthese(refs, dette) {
+  function feuilleSynthese(refs, dette, passage) {
     const ST = ST_ETATS;
     const w = redacteur();
     const methodes = [["dcf", "DCF"], ["comp", "Comparables"]].filter(([k]) => refs[k]);
@@ -6747,7 +7558,96 @@
       refs.dcf ? { f: refs.dcf.refDette, v: dette, s: ST.noirM } : { v: dette, s: ST.noirM }]);
     w.ajoute("vfp", [null, { v: "Valeur des fonds propres", s: ST.grisGras },
       { f: `C${w.rang.ve}-C${w.rang.dette}`, v: dette == null ? null : ve - dette, s: ST.grisGrasM }]);
+    if (passage) {
+      // Le détail de la dette nette retenue, ligne à ligne, tel que confirmé
+      // dans la page : la somme des lignes « Oui » vaut l'opposé de la dette.
+      w.ajoute(null, []);
+      w.ajoute(null, [null, { v: "Passage VE → fonds propres (" + frFy(passage.an) + ")", s: ST.grisGras }]);
+      w.ajoute(null, [null].concat(["Poste", "M FCFA", "Retenu"].map((x, i) => ({ v: x, s: i ? ST.enteteNombre : ST.entete }))));
+      const p0 = w.suivante();
+      for (const l of passage.lignes) {
+        w.ajoute(null, [null, { v: l.libelle + " (" + l.classes + ")", s: ST.gris }, { v: l.montant, s: ST.grisM },
+          { v: l.retenu ? "Oui" : "Non", s: ST.gris }]);
+      }
+      const p1 = w.suivante() - 1;
+      w.ajoute("passage", [null, { v: "Total retenu (= − dette nette)", s: ST.grisGras },
+        { f: `SUMIF(D${p0}:D${p1},"Oui",C${p0}:C${p1})`, v: passage.total, s: ST.grisGrasM }]);
+    }
     return { nom: "Synthèse", xml: feuilleEtatsXml(w.lignes, [3, 32, 16, 12, 16], true) };
+  }
+
+  /* ---- Feuille « Hypothèses » ----
+     Les trois jeux côte à côte, exercice par exercice, puis la justification
+     de l'analyste et les vigilances des règles : le classeur garde la trace
+     de ce qui a fondé le prévisionnel, pas seulement ses chiffres. */
+  function feuilleHypotheses() {
+    const ST = ST_ETATS;
+    const w = redacteur();
+    const jeux = JEUX.filter((j) => VALO.jeux && VALO.jeux[j.cle]);
+    const actif = JEUX.find((j) => j.cle === VALO.jeu);
+    w.ajoute(null, [null, { v: "Hypothèses du prévisionnel", s: ST.titre }]);
+    w.ajoute(null, [null, { v: "Jeu retenu pour le DCF : " + (actif ? actif.libelle : "Défaut")
+      + (jeux.length > 1 ? " · " + jeux.length + " jeux comparés" : ""), s: ST.note }]);
+    for (const j of jeux) {
+      const h = VALO.jeux[j.cle];
+      const f = estimerAvec(h);
+      if (!f) continue;
+      w.ajoute(null, []);
+      w.ajoute(null, [null, { v: "Jeu " + j.libelle + (j.cle === VALO.jeu ? " (retenu)" : ""), s: ST.grisGras }]);
+      w.ajoute(null, [null, { v: "Exercice", s: ST.entete }].concat(f.annees.map((an) => ({ v: frFy(an), s: ST.enteteNombre }))));
+      const marges = h.margeAn || f.annees.map(() => h.marge);
+      w.ajoute(null, [null, { v: "Croissance du CA", s: ST.gris }].concat(h.croissance.map((v) => ({ v: v, s: ST.grisPct }))));
+      w.ajoute(null, [null, { v: "Marge d'EBITDA", s: ST.gris }].concat(marges.map((v) => ({ v: v, s: ST.grisPct }))));
+      w.ajoute(null, [null, { v: "CapEx / D&A", s: ST.gris }].concat(ratiosCapex(h, f).map((v) => ({ v: v, s: ST.grisMult }))));
+      w.ajoute(null, [null, { v: "D&A / CA", s: ST.gris }, { v: h.da, s: ST.grisPct }]);
+      w.ajoute(null, [null, { v: "BFR / CA", s: ST.gris }, { v: h.bfr, s: ST.grisPct }]);
+      w.ajoute(null, [null, { v: "Croissance à l'infini (g)", s: ST.gris }, { v: h.g, s: ST.grisPct }]);
+    }
+    const a = VALO.analyse;
+    if (a) {
+      w.ajoute(null, []);
+      w.ajoute(null, [null, { v: "Avis de l'analyste — confiance " + (a.confiance || "—")
+        + (a.modele ? " · " + String(a.modele).replace(/^@cf\//, "") : ""), s: ST.grisGras }]);
+      if (a.resume) w.ajoute(null, [null, { v: a.resume, s: ST.texte }]);
+      const j = a.justifications || {};
+      for (const [cle, libelle] of [["croissance", "Croissance"], ["marge", "Marge"], ["capex", "CapEx"], ["bfr", "BFR"], ["g", "g"]]) {
+        if (j[cle]) w.ajoute(null, [null, { v: libelle, s: ST.gris }, { v: j[cle], s: ST.texte }]);
+      }
+      for (const x of a.alertes || []) w.ajoute(null, [null, { v: "Alerte", s: ST.gris }, { v: x, s: ST.texte }]);
+    }
+    const meta = VALO.jeux && VALO.jeux.regles && VALO.jeux.regles.meta;
+    if (meta && (meta.anomalies.length || meta.alertes.length)) {
+      w.ajoute(null, []);
+      w.ajoute(null, [null, { v: "Règles : anomalies et vigilances", s: ST.grisGras }]);
+      for (const x of meta.anomalies.concat(meta.alertes)) w.ajoute(null, [null, { v: x, s: ST.texte }]);
+    }
+    return { nom: "Hypothèses", xml: feuilleEtatsXml(w.lignes, [3, 34].concat(Array(10).fill(11)), true) };
+  }
+
+  // Passage de la VE aux fonds propres, dans la Synthèse.
+  function passageHtml(p) {
+    return `
+      <div class="passage">
+        <h2 class="dcf-rubrique">Passage VE → fonds propres</h2>
+        <table class="passage-table">
+          <thead><tr><th>Retenir</th><th>Poste</th><th>Classes</th><th>M FCFA</th></tr></thead>
+          <tbody>
+            ${p.lignes.map((l) => `
+              <tr class="${l.retenu ? "" : "is-ecarte"}" data-passage="${l.cle}">
+                <td><input type="checkbox" data-passage-retenu="${l.cle}"${l.retenu ? " checked" : ""}${l.fixe ? " disabled" : ""}
+                           aria-label="Retenir : ${esc(l.libelle)}"></td>
+                <td>${esc(l.libelle)}</td>
+                <td>${esc(l.classes)}</td>
+                <td><input class="mini-input" data-passage-montant="${l.cle}" inputmode="decimal"
+                           value="${frNum(l.manuel ? -l.montant : l.montant, 1)}" aria-label="Montant : ${esc(l.libelle)}, en M FCFA"></td>
+              </tr>`).join("")}
+            <tr class="is-total"><td></td><td>Total retenu</td><td></td><td data-o="passage-total">${frFlux(p.total)}</td></tr>
+          </tbody>
+        </table>
+        <p class="syn-note">Soldes de ${frFy(p.an)}, dernier exercice de la balance : un actif s'ajoute à la VE, une
+        dette s'en retranche. Décocher une ligne la sort du passage ; les intérêts minoritaires se saisissent en positif
+        et se déduisent.</p>
+      </div>`;
   }
 
   // Ce que l'export peut joindre, et pourquoi pas le reste.
@@ -6782,8 +7682,12 @@
     if (refs.dcf || refs.comp) {
       feuilles.push(feuilleIntercalaire("Valorisation >"));
       if (refs.dcf) feuilles.push(refs.dcf);
+      // Les hypothèses qui ont fondé un prévisionnel estimé, avec leurs
+      // justifications — dès que les règles ou l'analyste ont été sollicités :
+      // seules, les valeurs de départ ne feraient que répéter le DCF.
+      if (refs.dcf && f.estime && VALO.jeux && (VALO.jeux.regles || VALO.jeux.analyste)) feuilles.push(feuilleHypotheses());
       if (refs.comp) feuilles.push(refs.comp);
-      feuilles.push(feuilleSynthese(refs, dette));
+      feuilles.push(feuilleSynthese(refs, dette, f && f.estime ? f.passage : null));
       actif = feuilles.length - 1;
     }
     return paquetXlsx(feuilles.map((x) => ({ nom: x.nom, xml: x.xml })), actif);
@@ -7055,11 +7959,12 @@
             </div>
             <div class="dcf-pont">
               <span><span data-o="ve-lib"></span><b data-o="ve">—</b></span>
-              <span><span>${f.detteNette < 0 ? "(+) Trésorerie nette" : "(−) Dette nette"}</span><b>${frFlux(-f.detteNette)}</b></span>
+              <span><span>${f.detteNette < 0 ? "(+) Trésorerie nette" : "(−) Dette nette"}</span><b data-o="dette-pont">${frFlux(-f.detteNette)}</b></span>
               <span class="is-total"><span>Valeur des fonds propres</span><b data-o="vfp-total">—</b></span>
             </div>
             <span class="syn-note" data-o="note"></span>
           </div>
+          ${f.passage ? passageHtml(f.passage) : ""}
         </aside>
 
         <div class="dcf-principal">
@@ -7121,6 +8026,14 @@
     ecrire("ve", frFlux(ve));
     ecrire("vfp", frFlux(vfp));
     ecrire("vfp-total", frFlux(vfp));
+    ecrire("dette-pont", frFlux(-f.detteNette));
+    if (f.passage) {
+      ecrire("passage-total", frFlux(f.passage.total));
+      for (const l of f.passage.lignes) {
+        const ligne = racine.querySelector(`[data-passage="${l.cle}"]`);
+        if (ligne) ligne.classList.toggle("is-ecarte", !l.retenu);
+      }
+    }
     const absente = methodes.find((m) => m.ve == null);
     ecrire("note", absente && seule.length ? absente.libelle + " écartés : " + absente.indispo.charAt(0).toLowerCase() + absente.indispo.slice(1)
       : !seule.length ? "Aucune méthode disponible." : "");
@@ -7288,7 +8201,10 @@
           VALO.hypOuvert = false;
         } else if (VALO.bg) {
           VALO.prevMode = "estimation";
-          if (!VALO.hyp) VALO.hyp = hypothesesParDefaut(VALO.bg);
+          if (!VALO.hyp) {
+            VALO.hyp = hypothesesParDefaut(VALO.bg);
+            initialiserJeux(VALO.hyp);
+          }
           VALO.animerBoulon = true;
         }
         VALO.trajActif = null;
@@ -7301,8 +8217,26 @@
       } else if (a === "hypotheses") {
         basculerHypotheses();
       } else if (a === "hyp-defaut" && VALO.bg && VALO.hyp) {
-        VALO.hyp = hypothesesParDefaut(VALO.bg, VALO.hyp.horizon);
+        // Chaque jeu revient à son propre calcul d'origine.
+        if (!VALO.jeux) initialiserJeux(VALO.hyp);
+        const n = VALO.hyp.horizon;
+        if (VALO.jeu === "regles") VALO.jeux.regles = hypothesesParRegles(VALO.bg, n);
+        else if (VALO.jeu === "analyste" && VALO.analyse) VALO.jeux.analyste = hypothesesDepuisAnalyse(VALO.bg, VALO.analyse, n);
+        else VALO.jeux.defaut = hypothesesParDefaut(VALO.bg, n);
+        if (!VALO.jeux[VALO.jeu]) VALO.jeu = "defaut";
+        VALO.hyp = VALO.jeux[VALO.jeu];
         renderEtats();
+      } else if ((a === "hyp-jeu" || a === "hyp-regles") && VALO.bg && VALO.hyp) {
+        if (!VALO.jeux) initialiserJeux(VALO.hyp);
+        const cle = a === "hyp-regles" ? "regles" : action.dataset.jeu;
+        if (cle === "regles" && (a === "hyp-regles" || !VALO.jeux.regles)) {
+          VALO.jeux.regles = hypothesesParRegles(VALO.bg, VALO.hyp.horizon);
+        }
+        activerJeu(cle);
+        VALO.trajActif = null;
+        renderEtats();
+      } else if (a === "hyp-analyste") {
+        demanderAnalyste();
       } else if (a === "poids") {
         // Refermer le cadenas revient à la moyenne arithmétique et oublie
         // les poids choisis, comme pour le gearing cible.
@@ -7383,8 +8317,48 @@
       if (v == null) return;
       if (cleHyp) VALO.hyp[cleHyp] = v / 100;
       else if (cleAn === "croissance") VALO.hyp.croissance[Number(cible.dataset.i)] = v / 100;
-      else VALO.hyp.capex[Number(cible.dataset.i)] = v;
+      else if (cleAn === "marge" && Array.isArray(VALO.hyp.margeAn)) VALO.hyp.margeAn[Number(cible.dataset.i)] = v / 100;
+      else {
+        VALO.hyp.capex[Number(cible.dataset.i)] = v;
+        // Un CapEx saisi en montant n'obéit plus au ratio des règles.
+        delete VALO.hyp.capexSurDa;
+      }
       majEstimation();
+      return;
+    }
+    if (cible.hasAttribute("data-hyp-report")) {
+      const v = Math.round(Number(String(cible.value).replace(",", ".")));
+      const valide = Number.isFinite(v) && v >= 1 && v <= 20;
+      cible.classList.toggle("is-invalide", !valide);
+      if (valide) { VALO.dureeReport = v; majEstimation(); }
+      return;
+    }
+    if (cible.id === "hypConsentement") {
+      VALO.consentement = cible.checked;
+      const bouton = $("valoEtats").querySelector('[data-action="hyp-analyste"]');
+      if (bouton) bouton.disabled = !cible.checked || VALO.analyseEnCours;
+      return;
+    }
+    if (cible.id === "hypActivite") { VALO.activite = String(cible.value).slice(0, 300); return; }
+    if (cible.dataset.passageRetenu) {
+      const cle = cible.dataset.passageRetenu;
+      VALO.passage[cle] = Object.assign({}, VALO.passage[cle], { retenu: cible.checked });
+      renderSynthese();
+      return;
+    }
+    if (cible.dataset.passageMontant) {
+      const cle = cible.dataset.passageMontant;
+      const v = lireMontant(cible.value);
+      cible.classList.toggle("is-invalide", v == null);
+      if (v == null) return;
+      const manuel = (LIGNES_PASSAGE.find((l) => l.cle === cle) || {}).manuel;
+      const avant = VALO.passage[cle] || {};
+      // Les minoritaires se saisissent en positif : ils se déduisent toujours,
+      // et une saisie non nulle les retient tant qu'on ne les décoche pas.
+      const suite = Object.assign({}, avant, { montant: manuel ? -Math.abs(v) : v });
+      if (manuel && avant.retenu == null) suite.retenu = v !== 0;
+      VALO.passage[cle] = suite;
+      majSynthese();
       return;
     }
     if (cible.dataset.pas) VALO[cible.dataset.pas] = Number(cible.value) / 100;
@@ -8666,6 +9640,1115 @@
   });
   window.addEventListener("resize", () => { if (tab === "insight") dessinerInsight(); });
 
+  /* ================= Agent : moteur de requêtes (niveau 0) =================
+     Une question en français est d'abord confrontée aux gabarits ci-dessous,
+     qui produisent directement une requête structurée — sans réseau ni
+     modèle. Au-delà, la fonction serveur /api/ask traduit la question dans le
+     même format ; la page l'exécute, elle, sur ses propres données. Le modèle
+     ne lit jamais DATA ni COMPARABLES.
+
+     Contrat de requête, identique côté serveur (agent/schemas.js) :
+
+       { source: "pays" | "industries" | "societes" | "taux" | "cmpc",
+         filtres: [{ champ, op, valeur }], tri: { champ, sens }, limite,
+         champs: [...], agregat: { fonction, champ }, parametres: {...} }
+
+     Un seul exécuteur, executerRequete(q), sert les gabarits et le serveur. */
+
+  const OPERATEURS_AGENT = ["=", "!=", ">", ">=", "<", "<=", "contient", "dans"];
+  const AGREGATS_AGENT = ["mediane", "moyenne", "min", "max", "compte"];
+  const ANNEES_COMPTES = [2022, 2023, 2024, 2025];
+
+  // Forme de comparaison : minuscules, sans accents ni ponctuation.
+  const cleNom = (s) => normalize(s == null ? "" : String(s)).replace(/[^a-z0-9]+/g, " ").trim();
+
+  // Distance d'édition, coupée à 3 : au-delà, deux noms ne se ressemblent plus.
+  function distanceNoms(a, b) {
+    if (Math.abs(a.length - b.length) > 2) return 3;
+    const ligne = Array.from({ length: b.length + 1 }, (_, j) => j);
+    for (let i = 1; i <= a.length; i++) {
+      let diag = ligne[0];
+      ligne[0] = i;
+      for (let j = 1; j <= b.length; j++) {
+        const haut = ligne[j];
+        ligne[j] = Math.min(haut + 1, ligne[j - 1] + 1, diag + (a[i - 1] === b[j - 1] ? 0 : 1));
+        diag = haut;
+      }
+    }
+    return ligne[b.length];
+  }
+
+  /* ---- Lexiques ----
+     Damodaran et S&P écrivent en anglais, l'utilisateur en français. Ces
+     tables couvrent les pays et les secteurs que l'on nomme le plus ; pour le
+     reste, la correspondance approchée prend le relais, et le serveur traduit
+     ce qu'aucune table ne connaît. */
+  const PAYS_FR = {
+    "afrique du sud": "South Africa", "albanie": "Albania", "allemagne": "Germany",
+    "andorre": "Andorra (Principality of)", "arabie saoudite": "Saudi Arabia", "argentine": "Argentina",
+    "armenie": "Armenia", "australie": "Australia", "autriche": "Austria", "azerbaidjan": "Azerbaijan",
+    "bahrein": "Bahrain", "barbade": "Barbados", "belgique": "Belgium", "bermudes": "Bermuda",
+    "bielorussie": "Belarus", "bolivie": "Bolivia", "bosnie herzegovine": "Bosnia and Herzegovina",
+    "bresil": "Brazil", "bulgarie": "Bulgaria", "burkina": "Burkina Faso", "cambodge": "Cambodia",
+    "cameroun": "Cameroon", "cap vert": "Cape Verde", "iles caimans": "Cayman Islands", "chili": "Chile",
+    "chine": "China", "chypre": "Cyprus", "colombie": "Colombia", "rdc": "Congo (Democratic Republic of)",
+    "republique democratique du congo": "Congo (Democratic Republic of)", "congo kinshasa": "Congo (Democratic Republic of)",
+    "congo brazzaville": "Congo (Republic of)", "republique du congo": "Congo (Republic of)", "congo": "Congo (Republic of)",
+    "coree du sud": "Korea", "coree": "Korea", "croatie": "Croatia", "rci": "Côte d'Ivoire",
+    "danemark": "Denmark", "republique dominicaine": "Dominican Republic", "equateur": "Ecuador",
+    "egypte": "Egypt", "emirats arabes unis": "United Arab Emirates", "emirats": "United Arab Emirates",
+    "espagne": "Spain", "estonie": "Estonia", "eswatini": "Swaziland", "etats unis": "United States",
+    "usa": "United States", "ethiopie": "Ethiopia", "fidji": "Fiji", "finlande": "Finland",
+    "georgie": "Georgia", "grece": "Greece", "guernesey": "Guernsey (States of)", "hongrie": "Hungary",
+    "ile de man": "Isle of Man", "inde": "India", "indonesie": "Indonesia", "irak": "Iraq", "irlande": "Ireland",
+    "islande": "Iceland", "italie": "Italy", "jamaique": "Jamaica", "japon": "Japan", "jordanie": "Jordan",
+    "kirghizistan": "Kyrgyzstan", "koweit": "Kuwait", "lettonie": "Latvia", "liban": "Lebanon",
+    "lituanie": "Lithuania", "macedoine du nord": "Macedonia", "macedoine": "Macedonia", "malaisie": "Malaysia",
+    "malte": "Malta", "maroc": "Morocco", "ile maurice": "Mauritius", "maurice": "Mauritius", "mexique": "Mexico",
+    "moldavie": "Moldova", "mongolie": "Mongolia", "namibie": "Namibia", "norvege": "Norway",
+    "nouvelle zelande": "New Zealand", "ouganda": "Uganda", "ouzbekistan": "Uzbekistan",
+    "papouasie nouvelle guinee": "Papua New Guinea", "pays bas": "Netherlands", "hollande": "Netherlands",
+    "perou": "Peru", "pologne": "Poland", "roumanie": "Romania", "royaume uni": "United Kingdom",
+    "angleterre": "United Kingdom", "grande bretagne": "United Kingdom", "serbie": "Serbia",
+    "singapour": "Singapore", "slovaquie": "Slovakia", "slovenie": "Slovenia", "iles salomon": "Solomon Islands",
+    "suede": "Sweden", "suisse": "Switzerland", "tadjikistan": "Tajikistan", "tanzanie": "Tanzania",
+    "thailande": "Thailand", "trinite et tobago": "Trinidad and Tobago", "tunisie": "Tunisia", "turquie": "Turkey",
+    "viet nam": "Vietnam", "zambie": "Zambia", "republique tcheque": "Czech Republic", "tchequie": "Czech Republic",
+    "abou dhabi": "Abu Dhabi", "charjah": "Sharjah", "ras al khaimah": "Ras Al Khaimah (Emirate of)",
+    "salvador": "El Salvador", "saint vincent et les grenadines": "St. Vincent & the Grenadines",
+    "saint martin": "St. Maarten", "iles cook": "Cook Islands", "iles turques et caiques": "Turks and Caicos Islands",
+    "russie": "Russia", "malawi": "Malawi", "zimbabwe": "Zimbabwe", "palestine": "Palestine",
+    // Adjectifs : « les banques marocaines », « une société ivoirienne ».
+    "marocain": "Morocco", "marocaine": "Morocco", "marocains": "Morocco", "marocaines": "Morocco",
+    "ivoirien": "Côte d'Ivoire", "ivoirienne": "Côte d'Ivoire", "ivoiriens": "Côte d'Ivoire", "ivoiriennes": "Côte d'Ivoire",
+    "senegalais": "Senegal", "senegalaise": "Senegal", "senegalaises": "Senegal",
+    "nigerian": "Nigeria", "nigeriane": "Nigeria", "nigerians": "Nigeria", "nigerianes": "Nigeria",
+    "sud africain": "South Africa", "sud africaine": "South Africa", "sud africains": "South Africa", "sud africaines": "South Africa",
+    "egyptien": "Egypt", "egyptienne": "Egypt", "egyptiens": "Egypt", "egyptiennes": "Egypt",
+    "kenyan": "Kenya", "kenyane": "Kenya", "kenyans": "Kenya", "kenyanes": "Kenya",
+    "ghaneen": "Ghana", "ghaneenne": "Ghana", "ghaneens": "Ghana", "ghaneennes": "Ghana",
+    "camerounais": "Cameroon", "camerounaise": "Cameroon", "camerounaises": "Cameroon",
+    "tunisien": "Tunisia", "tunisienne": "Tunisia", "tunisiens": "Tunisia", "tunisiennes": "Tunisia",
+    "beninois": "Benin", "beninoise": "Benin", "beninoises": "Benin", "togolais": "Togo", "togolaise": "Togo",
+    "togolaises": "Togo", "burkinabe": "Burkina Faso", "burkinabes": "Burkina Faso", "malien": "Mali",
+    "malienne": "Mali", "maliens": "Mali", "maliennes": "Mali", "gabonais": "Gabon", "gabonaise": "Gabon",
+    "gabonaises": "Gabon", "francais": "France", "francaise": "France", "francaises": "France",
+    "allemand": "Germany", "allemande": "Germany", "allemands": "Germany", "allemandes": "Germany",
+    "britannique": "United Kingdom", "britanniques": "United Kingdom", "americain": "United States",
+    "americaine": "United States", "americains": "United States", "americaines": "United States",
+    "saoudien": "Saudi Arabia", "saoudienne": "Saudi Arabia", "saoudiens": "Saudi Arabia", "saoudiennes": "Saudi Arabia",
+    "emirati": "United Arab Emirates", "emiraties": "United Arab Emirates", "emiratis": "United Arab Emirates",
+    "mauricien": "Mauritius", "mauricienne": "Mauritius", "mauriciens": "Mauritius", "mauriciennes": "Mauritius",
+    "rwandais": "Rwanda", "rwandaise": "Rwanda", "ougandais": "Uganda", "ougandaise": "Uganda",
+    "zambien": "Zambia", "zambienne": "Zambia", "botswanais": "Botswana", "namibien": "Namibia",
+  };
+  // S&P écrit trois pays autrement que Damodaran.
+  const PAYS_SP = { "United States": "USA", "Turkey": "Türkiye", "Macedonia": "North Macedonia" };
+
+  // Groupements monétaires, exprimés comme une liste de pays.
+  const GROUPEMENTS = {
+    "uemoa": ["Benin", "Burkina Faso", "Côte d'Ivoire", "Guinea-Bissau", "Mali", "Niger", "Senegal", "Togo"],
+    "cemac": ["Cameroon", "Central African Republic", "Chad", "Congo (Republic of)", "Equatorial Guinea", "Gabon"],
+  };
+
+  // Secteur → industries Damodaran (une ou plusieurs) et secteur S&P.
+  const SECTEURS_FR = {
+    "banque": { d: ["Banks (Regional)", "Bank (Money Center)"], s: "Banks" },
+    "banques": { d: ["Banks (Regional)", "Bank (Money Center)"], s: "Banks" },
+    "bancaire": { d: ["Banks (Regional)", "Bank (Money Center)"], s: "Banks" },
+    "assurance": { d: ["Insurance (General)", "Insurance (Life)", "Insurance (Prop/Cas.)"], s: "Insurance" },
+    "assurances": { d: ["Insurance (General)", "Insurance (Life)", "Insurance (Prop/Cas.)"], s: "Insurance" },
+    "assureur": { d: ["Insurance (General)"], s: "Insurance" }, "assureurs": { d: ["Insurance (General)"], s: "Insurance" },
+    "telecom": { d: ["Telecom. Services", "Telecom (Wireless)"], s: "Telecommunication Services" },
+    "telecoms": { d: ["Telecom. Services", "Telecom (Wireless)"], s: "Telecommunication Services" },
+    "telecommunications": { d: ["Telecom. Services", "Telecom (Wireless)"], s: "Telecommunication Services" },
+    "operateur telecom": { d: ["Telecom. Services"], s: "Telecommunication Services" },
+    "agroalimentaire": { d: ["Food Processing"], s: "Food Products" },
+    "alimentaire": { d: ["Food Processing"], s: "Food Products" },
+    "agriculture": { d: ["Farming/Agriculture"], s: "Food Products" },
+    "agricole": { d: ["Farming/Agriculture"], s: "Food Products" },
+    "cacao": { d: ["Food Processing"], s: "Food Products" },
+    "boisson": { d: ["Beverage (Soft)", "Beverage (Alcoholic)"], s: "Beverages" },
+    "boissons": { d: ["Beverage (Soft)", "Beverage (Alcoholic)"], s: "Beverages" },
+    "brasserie": { d: ["Beverage (Alcoholic)"], s: "Beverages" },
+    "petrole": { d: ["Oil/Gas (Integrated)", "Oil/Gas (Production and Exploration)", "Oil/Gas Distribution"], s: "Oil, Gas and Consumable Fuels" },
+    "petrolier": { d: ["Oil/Gas (Integrated)", "Oil/Gas (Production and Exploration)", "Oil/Gas Distribution"], s: "Oil, Gas and Consumable Fuels" },
+    "petrolieres": { d: ["Oil/Gas (Integrated)", "Oil/Gas (Production and Exploration)", "Oil/Gas Distribution"], s: "Oil, Gas and Consumable Fuels" },
+    "petrolieres et gazieres": { d: ["Oil/Gas (Integrated)", "Oil/Gas (Production and Exploration)", "Oil/Gas Distribution"], s: "Oil, Gas and Consumable Fuels" },
+    "gaz": { d: ["Oil/Gas Distribution"], s: "Gas Utilities" },
+    "electricite": { d: ["Power"], s: "Electric Utilities" },
+    "energie": { d: ["Power"], s: "Electric Utilities" },
+    "energies renouvelables": { d: ["Green & Renewable Energy"], s: "Independent Power and Renewable Electricity Producers" },
+    "solaire": { d: ["Green & Renewable Energy"], s: "Independent Power and Renewable Electricity Producers" },
+    "eau": { d: ["Utility (Water)"], s: "Water Utilities" },
+    "immobilier": { d: ["Real Estate (Development)", "Real Estate (General/Diversified)", "Real Estate (Operations & Services)"], s: "Real Estate Management and Development" },
+    "immobiliere": { d: ["Real Estate (Development)"], s: "Real Estate Management and Development" },
+    "fonciere": { d: ["R.E.I.T."], s: "Diversified REITs" }, "foncieres": { d: ["R.E.I.T."], s: "Diversified REITs" },
+    "btp": { d: ["Engineering/Construction"], s: "Construction and Engineering" },
+    "construction": { d: ["Engineering/Construction"], s: "Construction and Engineering" },
+    "ciment": { d: ["Construction Supplies"], s: "Construction Materials" },
+    "cimenterie": { d: ["Construction Supplies"], s: "Construction Materials" },
+    "cimentiers": { d: ["Construction Supplies"], s: "Construction Materials" },
+    "materiaux de construction": { d: ["Construction Supplies", "Building Materials"], s: "Construction Materials" },
+    "mines": { d: ["Metals & Mining"], s: "Metals and Mining" },
+    "minier": { d: ["Metals & Mining"], s: "Metals and Mining" },
+    "miniere": { d: ["Metals & Mining"], s: "Metals and Mining" },
+    "minieres": { d: ["Metals & Mining"], s: "Metals and Mining" },
+    "mines d or": { d: ["Precious Metals"], s: "Metals and Mining" },
+    "acier": { d: ["Steel"], s: "Metals and Mining" }, "siderurgie": { d: ["Steel"], s: "Metals and Mining" },
+    "chimie": { d: ["Chemical (Basic)", "Chemical (Diversified)", "Chemical (Specialty)"], s: "Chemicals" },
+    "pharmacie": { d: ["Drugs (Pharmaceutical)"], s: "Pharmaceuticals" },
+    "pharmaceutique": { d: ["Drugs (Pharmaceutical)"], s: "Pharmaceuticals" },
+    "biotechnologie": { d: ["Drugs (Biotechnology)"], s: "Biotechnology" },
+    "sante": { d: ["Hospitals/Healthcare Facilities", "Healthcare Products"], s: "Health Care Providers and Services" },
+    "hopitaux": { d: ["Hospitals/Healthcare Facilities"], s: "Health Care Providers and Services" },
+    "hotellerie": { d: ["Hotel/Gaming"], s: "Hotels, Restaurants and Leisure" },
+    "hotels": { d: ["Hotel/Gaming"], s: "Hotels, Restaurants and Leisure" },
+    "restauration": { d: ["Restaurant/Dining"], s: "Hotels, Restaurants and Leisure" },
+    "tourisme": { d: ["Hotel/Gaming"], s: "Hotels, Restaurants and Leisure" },
+    "logiciel": { d: ["Software (System & Application)"], s: "Software" },
+    "logiciels": { d: ["Software (System & Application)"], s: "Software" },
+    "informatique": { d: ["Computer Services"], s: "IT Services" },
+    "services informatiques": { d: ["Computer Services"], s: "IT Services" },
+    "transport": { d: ["Transportation"], s: "Ground Transportation" },
+    "transports": { d: ["Transportation"], s: "Ground Transportation" },
+    "logistique": { d: ["Transportation"], s: "Air Freight and Logistics" },
+    "transport aerien": { d: ["Air Transport"], s: "Passenger Airlines" },
+    "compagnie aerienne": { d: ["Air Transport"], s: "Passenger Airlines" },
+    "maritime": { d: ["Shipbuilding & Marine"], s: "Marine Transportation" },
+    "portuaire": { d: ["Transportation"], s: "Transportation Infrastructure" },
+    "ferroviaire": { d: ["Transportation (Railroads)"], s: "Ground Transportation" },
+    "distribution": { d: ["Retail (General)", "Retail (Grocery and Food)"], s: "Consumer Staples Distribution and Retail" },
+    "grande distribution": { d: ["Retail (Grocery and Food)"], s: "Consumer Staples Distribution and Retail" },
+    "commerce de detail": { d: ["Retail (General)"], s: "Specialty Retail" },
+    "automobile": { d: ["Auto & Truck"], s: "Automobiles" },
+    "medias": { d: ["Broadcasting"], s: "Media" }, "publicite": { d: ["Advertising"], s: "Media" },
+    "tabac": { d: ["Tobacco"], s: "Tobacco" },
+    "textile": { d: ["Apparel"], s: "Textiles, Apparel and Luxury Goods" },
+    "habillement": { d: ["Apparel"], s: "Textiles, Apparel and Luxury Goods" },
+    "papier": { d: ["Paper/Forest Products"], s: "Paper and Forest Products" },
+    "emballage": { d: ["Packaging & Container"], s: "Containers and Packaging" },
+    "education": { d: ["Education"], s: "Diversified Consumer Services" },
+    "microfinance": { d: ["Financial Svcs. (Non-bank & Insurance)"], s: "Consumer Finance" },
+    "credit a la consommation": { d: ["Financial Svcs. (Non-bank & Insurance)"], s: "Consumer Finance" },
+    "courtage": { d: ["Brokerage & Investment Banking"], s: "Capital Markets" },
+    "gestion d actifs": { d: ["Investments & Asset Management"], s: "Capital Markets" },
+    "machines": { d: ["Machinery"], s: "Machinery" },
+    "semi conducteurs": { d: ["Semiconductor"], s: "Semiconductors and Semiconductor Equipment" },
+  };
+
+  // Index des noms cherchables dans une question : clé normalisée → valeur.
+  // Les plus longues d'abord, pour que « Afrique de l'Ouest » passe avant
+  // « Afrique » et « Nigeria » avant « Niger ».
+  function indexer(paires) {
+    return paires.filter(([cle]) => cle && cle.length >= 2).sort((a, b) => b[0].length - a[0].length);
+  }
+  let INDEX_AGENT = null;
+  function indexAgent() {
+    if (INDEX_AGENT) return INDEX_AGENT;
+    const secteurs = ((DATA.comparables || {}).industries || []).map((i) => i.nom);
+    const zones = [];
+    for (const [continent, liste] of Object.entries((DATA.options || {}).zones_par_continent || {})) {
+      zones.push([cleNom(continent), { champ: "continent", valeur: continent }]);
+      for (const [zone] of liste) zones.push([cleNom(zone), { champ: "zone", valeur: zone }]);
+    }
+    zones.push(["amerique", { champ: "continent", valeur: "Amériques" }],
+               ["africain", { champ: "continent", valeur: "Afrique" }], ["africaine", { champ: "continent", valeur: "Afrique" }],
+               ["africains", { champ: "continent", valeur: "Afrique" }], ["africaines", { champ: "continent", valeur: "Afrique" }],
+               ["europeen", { champ: "continent", valeur: "Europe" }], ["europeenne", { champ: "continent", valeur: "Europe" }],
+               ["europeens", { champ: "continent", valeur: "Europe" }], ["europeennes", { champ: "continent", valeur: "Europe" }],
+               ["asiatique", { champ: "continent", valeur: "Asie" }], ["asiatiques", { champ: "continent", valeur: "Asie" }],
+               ["moyen orient", { champ: "zone", valeur: "Moyen-Orient" }]);
+    for (const [cle, liste] of Object.entries(GROUPEMENTS)) zones.push([cle, { champ: "groupement", valeur: cle, pays: liste }]);
+    INDEX_AGENT = {
+      pays: indexer(Object.keys(DATA.pays).map((n) => [cleNom(n), n])
+        .concat(Object.entries(PAYS_FR).map(([k, v]) => [cleNom(k), v]))),
+      zones: indexer(zones),
+      industries: indexer(Object.keys(DATA.industries).map((n) => [cleNom(n), [n]])
+        .concat(Object.entries(SECTEURS_FR).map(([k, v]) => [cleNom(k), v.d]))),
+      secteurs: indexer(secteurs.map((n) => [cleNom(n), n])
+        .concat(Object.entries(SECTEURS_FR).map(([k, v]) => [cleNom(k), v.s]))),
+    };
+    return INDEX_AGENT;
+  }
+
+  // Toutes les entrées de l'index présentes dans le texte, dans l'ordre où
+  // elles apparaissent ; un passage déjà reconnu n'est pas relu par une clé
+  // plus courte.
+  function trouverDans(texte, index) {
+    let reste = " " + texte + " ";
+    const trouves = [];
+    for (const [cle, valeur] of index) {
+      const motif = " " + cle + " ";
+      const i = reste.indexOf(motif);
+      if (i < 0) continue;
+      trouves.push({ i: i, valeur: valeur });
+      reste = reste.slice(0, i) + " " + "#".repeat(motif.length - 2) + " " + reste.slice(i + motif.length);
+    }
+    return trouves.sort((a, b) => a.i - b.i).map((t) => t.valeur);
+  }
+
+  /* ---- Résolution des noms ----
+     Insensible à la casse et aux accents, puis par les lexiques, puis par
+     inclusion, puis par distance d'édition ≤ 2. Deux candidats qui restent
+     font une erreur « ambigu » : on demande plutôt que deviner. */
+  function resoudreNom(texte, liste) {
+    const cible = cleNom(texte);
+    if (!cible) return { ok: false, code: "inconnu", message: "Nom vide." };
+    const formes = liste.map((nom) => ({ nom: nom, cle: cleNom(nom) }));
+    const exact = formes.find((f) => f.cle === cible);
+    if (exact) return { ok: true, valeur: exact.nom };
+    // Lexiques : pays en français, secteurs en français, libellés S&P.
+    const traduits = [];
+    if (PAYS_FR[cible]) traduits.push(PAYS_FR[cible]);
+    if (SECTEURS_FR[cible]) traduits.push(...SECTEURS_FR[cible].d, SECTEURS_FR[cible].s);
+    for (const t of traduits.slice()) if (PAYS_SP[t]) traduits.push(PAYS_SP[t]);
+    const parLexique = formes.filter((f) => traduits.some((t) => cleNom(t) === f.cle));
+    if (parLexique.length === 1) return { ok: true, valeur: parLexique[0].nom };
+    if (parLexique.length > 1) {
+      return { ok: false, code: "ambigu", message: `« ${texte} » correspond à plusieurs noms.`, candidats: parLexique.map((f) => f.nom) };
+    }
+    if (cible.length >= 3) {
+      const inclus = formes.filter((f) => f.cle.indexOf(cible) >= 0 || (f.cle.length >= 4 && cible.indexOf(f.cle) >= 0));
+      if (inclus.length === 1) return { ok: true, valeur: inclus[0].nom };
+      if (inclus.length > 1) {
+        // Un nom qui commence par le texte l'emporte s'il est seul à le faire.
+        const debut = inclus.filter((f) => f.cle.indexOf(cible) === 0);
+        if (debut.length === 1) return { ok: true, valeur: debut[0].nom };
+        return { ok: false, code: "ambigu", message: `« ${texte} » correspond à plusieurs noms.`,
+                 candidats: inclus.slice(0, 8).map((f) => f.nom) };
+      }
+    }
+    let meilleure = 3, candidats = [];
+    for (const f of formes) {
+      const d = distanceNoms(cible, f.cle);
+      if (d < meilleure) { meilleure = d; candidats = [f.nom]; }
+      else if (d === meilleure) candidats.push(f.nom);
+    }
+    if (meilleure <= 2 && candidats.length === 1) return { ok: true, valeur: candidats[0] };
+    if (meilleure <= 2) {
+      return { ok: false, code: "ambigu", message: `« ${texte} » correspond à plusieurs noms.`, candidats: candidats.slice(0, 8) };
+    }
+    return { ok: false, code: "inconnu", message: `« ${texte} » ne correspond à aucun nom connu.` };
+  }
+
+  /* ---- Sources ----
+     Chaque source décrit ses lignes, ses champs et la façon de les afficher.
+     Les champs des comptes de sociétés (ca_2025, marge_ebitda_2024…) se
+     dérivent à la volée, pour l'exercice demandé. */
+  const FORMATS_AGENT = {
+    nom: { lib: "Nom" }, ticker: { lib: "Ticker" }, place: { lib: "Place" }, pays: { lib: "Pays" },
+    continent: { lib: "Continent" }, zone: { lib: "Zone" }, industrie: { lib: "Industrie" }, activite: { lib: "Activité" },
+    crp: { lib: "Prime de risque pays", fmt: "pct" }, spread_defaut: { lib: "Spread de défaut", fmt: "pct" },
+    tax: { lib: "Taux d'IS", fmt: "pct" }, beta: { lib: "Bêta désendetté", fmt: "num3" },
+    de: { lib: "Gearing (D/E)", fmt: "num2" }, spread: { lib: "Spread de dette", fmt: "pct" },
+    beta_1an: { lib: "Bêta 1 an", fmt: "num3" }, beta_3ans: { lib: "Bêta 3 ans", fmt: "num3" },
+    beta_u: { lib: "Bêta désendetté", fmt: "num3" }, gearing: { lib: "Dette / fonds propres", fmt: "num2" },
+    capitalisation: { lib: "Capitalisation (M FCFA)", fmt: "montant" }, dette: { lib: "Dette totale (M FCFA)", fmt: "montant" },
+    fonds_propres: { lib: "Fonds propres (M FCFA)", fmt: "montant" },
+    annee: { lib: "Année", fmt: "entier" }, maturite: { lib: "Maturité" }, valeur: { lib: "Taux", fmt: "pctBrut" },
+  };
+  for (const an of ANNEES_COMPTES) {
+    FORMATS_AGENT["ca_" + an] = { lib: "CA " + an + " (M FCFA)", fmt: "montant" };
+    FORMATS_AGENT["ebitda_" + an] = { lib: "EBITDA " + an + " (M FCFA)", fmt: "montant" };
+    FORMATS_AGENT["rn_" + an] = { lib: "Résultat net " + an + " (M FCFA)", fmt: "montant" };
+    FORMATS_AGENT["marge_ebitda_" + an] = { lib: "Marge d'EBITDA " + an, fmt: "pct" };
+  }
+  // Les noms se résolvent contre les valeurs présentes ; « nom », « pays »…
+  const CHAMPS_NOMMES = ["nom", "pays", "industrie", "zone", "continent", "place", "maturite"];
+
+  let LIGNES_SOCIETES = null;
+  const SOURCES_AGENT = {
+    pays: {
+      libelle: "Damodaran (NYU Stern), primes de risque et taux d'IS",
+      champs: ["nom", "crp", "spread_defaut", "tax", "continent", "zone"],
+      parDefaut: ["nom", "crp", "spread_defaut", "tax", "zone"],
+      lignes: () => Object.entries(DATA.pays).map(([nom, p]) => ({
+        nom: nom, crp: p.crp, spread_defaut: p.ds, tax: p.tax, continent: p.continent, zone: p.zone,
+      })),
+    },
+    industries: {
+      libelle: "Damodaran (NYU Stern), bêtas sectoriels",
+      champs: ["nom", "beta", "de", "spread"],
+      parDefaut: ["nom", "beta", "de", "spread"],
+      // Damodaran publie l'écart-type du cours ; la grille de notation le
+      // convertit en spread de dette — c'est ce spread-là qui entre dans le Kd.
+      lignes: () => Object.entries(DATA.industries).map(([nom, i]) => ({
+        nom: nom, beta: i.beta, de: i.de, spread: i.spread == null ? null : adjustedSpread(i.spread).value,
+      })),
+    },
+    societes: {
+      libelle: "S&P Capital IQ" + ((DATA.comparables || {}).source ? " (" + DATA.comparables.source + ")" : ""),
+      champs: ["nom", "ticker", "place", "pays", "continent", "zone", "industrie", "activite", "beta_1an", "beta_3ans",
+               "beta_u", "gearing", "capitalisation", "dette", "fonds_propres"]
+        .concat(...ANNEES_COMPTES.map((an) => ["ca_" + an, "ebitda_" + an, "rn_" + an, "marge_ebitda_" + an])),
+      parDefaut: ["nom", "pays", "industrie", "capitalisation", "beta_3ans", "beta_u", "gearing"],
+      lignes: () => {
+        if (LIGNES_SOCIETES) return LIGNES_SOCIETES;
+        LIGNES_SOCIETES = Object.values(COMPARABLES).map((s) => {
+          const l = {
+            nom: s.nom, ticker: s.ticker, place: s.place, pays: s.pays, continent: s.continent, zone: s.zone,
+            industrie: s.industrie, activite: s.activite, beta_1an: s.beta_1an, beta_3ans: s.beta_3ans,
+            beta_u: s.beta_u, gearing: s.gearing, capitalisation: s.capitalisation, dette: s.dette,
+            fonds_propres: s.fonds_propres,
+          };
+          for (const an of ANNEES_COMPTES) {
+            const ca = (s.ca || {})[String(an)], eb = (s.ebitda || {})[String(an)];
+            l["ca_" + an] = ca == null ? null : ca;
+            l["ebitda_" + an] = eb == null ? null : eb;
+            l["rn_" + an] = (s.rn || {})[String(an)] == null ? null : s.rn[String(an)];
+            l["marge_ebitda_" + an] = ca > 0 && eb != null ? eb / ca : null;
+          }
+          return l;
+        });
+        return LIGNES_SOCIETES;
+      },
+    },
+    taux: {
+      libelle: "US Treasury, moyennes annuelles",
+      champs: ["annee", "maturite", "valeur"],
+      parDefaut: ["annee", "maturite", "valeur"],
+      lignes: () => Object.entries(DATA.rf).map(([cle, v]) => {
+        const [an, code] = cle.split("-");
+        return { annee: Number(an), maturite: code + "Y", valeur: v };
+      }),
+    },
+  };
+
+  // « __contexte__ » renvoie à la sélection de l'écran.
+  function valeurContexte(champ, source) {
+    if (champ === "nom" && source === "industries") return params.industry;
+    if (champ === "nom" && source === "societes") return null;
+    if (champ === "pays" || champ === "nom") return params.country;
+    if (champ === "industrie") return estComparables() ? params.secteur : params.industry;
+    if (champ === "annee") return params.year;
+    if (champ === "zone") return params.zone;
+    if (champ === "continent") return params.continent;
+    if (champ === "maturite") return params.maturity;
+    return null;
+  }
+
+  const erreurAgent = (code, message, candidats) => ({ ok: false, code: code, message: message, candidats: candidats || null });
+
+  function comparer(v, op, cible) {
+    if (op === "contient") return v != null && cleNom(v).indexOf(cleNom(cible)) >= 0;
+    if (op === "dans") return cible.some((c) => (typeof c === "number" ? v === c : cleNom(v) === cleNom(c)));
+    if (typeof cible === "number") {
+      if (v == null || !Number.isFinite(Number(v))) return false;
+      const x = Number(v);
+      return op === "=" ? Math.abs(x - cible) < 1e-12 : op === "!=" ? Math.abs(x - cible) >= 1e-12
+        : op === ">" ? x > cible : op === ">=" ? x >= cible : op === "<" ? x < cible : x <= cible;
+    }
+    const egal = cleNom(v) === cleNom(cible);
+    return op === "=" ? egal : op === "!=" ? !egal : false;
+  }
+
+  function agreger(fonction, valeurs) {
+    if (fonction === "compte") return valeurs.length;
+    const v = valeurs.filter((x) => Number.isFinite(x));
+    if (!v.length) return null;
+    if (fonction === "mediane") return mediane(v);
+    if (fonction === "moyenne") return v.reduce((a, b) => a + b, 0) / v.length;
+    return fonction === "min" ? Math.min(...v) : Math.max(...v);
+  }
+
+  /**
+   * Exécute une requête du contrat sur les données embarquées. Rend
+   * { ok, lignes, champs, agregat, n, requete, source_donnees } ou une erreur
+   * { ok: false, code: "ambigu" | "inconnu" | "invalide", message, candidats }.
+   */
+  function executerRequete(q) {
+    if (!q || typeof q !== "object") return erreurAgent("invalide", "Requête absente.");
+    if (q.source === "cmpc") return executerCmpc(q.parametres || {});
+    const source = SOURCES_AGENT[q.source];
+    if (!source) return erreurAgent("invalide", `Source inconnue : « ${q.source} ».`);
+    const connu = (champ) => source.champs.indexOf(champ) >= 0;
+    let lignes = source.lignes();
+    const resolue = Object.assign({}, q, { filtres: [] });
+
+    for (const f of q.filtres || []) {
+      if (!f || !connu(f.champ)) {
+        return erreurAgent("invalide", `Champ inconnu pour la source ${q.source} : « ${f && f.champ} ». Champs : ${source.champs.slice(0, 12).join(", ")}…`);
+      }
+      if (OPERATEURS_AGENT.indexOf(f.op) < 0) return erreurAgent("invalide", `Opérateur inconnu : « ${f.op} ».`);
+      let valeur = f.valeur === "__contexte__" ? valeurContexte(f.champ, q.source) : f.valeur;
+      if (valeur == null || valeur === "") {
+        return erreurAgent("invalide", `Le filtre sur « ${f.champ} » renvoie à la sélection de l'écran, qui ne la précise pas.`);
+      }
+      if (f.op === "dans" && !Array.isArray(valeur)) valeur = [valeur];
+      // Un nom se résout contre les valeurs présentes : « Maroc », « cote d'ivoire ».
+      if (CHAMPS_NOMMES.indexOf(f.champ) >= 0 && (f.op === "=" || f.op === "!=" || f.op === "dans")) {
+        const presentes = [...new Set(lignes.map((l) => l[f.champ]).filter((x) => x != null))];
+        const resoudre = (texte) => {
+          const r = resoudreNom(texte, presentes.map(String));
+          if (!r.ok && f.champ === "pays" && q.source === "societes") {
+            // Le nom Damodaran d'un pays que S&P écrit autrement.
+            const d = resoudreNom(texte, Object.keys(DATA.pays));
+            if (d.ok && PAYS_SP[d.valeur]) return { ok: true, valeur: PAYS_SP[d.valeur] };
+          }
+          return r;
+        };
+        if (f.op === "dans") {
+          const sortie = [];
+          for (const v of valeur) {
+            const r = resoudre(v);
+            if (r.ok) sortie.push(r.valeur);
+            else if (r.code === "ambigu") return erreurAgent("ambigu", r.message, r.candidats);
+          }
+          if (!sortie.length) return erreurAgent("inconnu", `Aucune valeur de « ${f.champ} » ne correspond à la liste demandée.`);
+          valeur = sortie;
+        } else {
+          const r = resoudre(valeur);
+          if (!r.ok) return erreurAgent(r.code, r.message, r.candidats);
+          valeur = r.valeur;
+        }
+      } else if (f.op !== "contient" && f.op !== "dans" && typeof valeur === "string" && /^-?\d+([.,]\d+)?$/.test(valeur.trim())) {
+        valeur = Number(valeur.replace(",", "."));
+      }
+      lignes = lignes.filter((l) => comparer(l[f.champ], f.op, valeur));
+      resolue.filtres.push({ champ: f.champ, op: f.op, valeur: valeur });
+    }
+
+    if (q.tri) {
+      if (!connu(q.tri.champ)) return erreurAgent("invalide", `Tri sur un champ inconnu : « ${q.tri.champ} ».`);
+      const signe = q.tri.sens === "asc" ? 1 : -1;
+      lignes = lignes.slice().sort((a, b) => {
+        const x = a[q.tri.champ], y = b[q.tri.champ];
+        if (x == null) return 1;
+        if (y == null) return -1;
+        return typeof x === "number" ? signe * (x - y) : signe * String(x).localeCompare(String(y), "fr");
+      });
+    }
+
+    let agregat = null;
+    if (q.agregat) {
+      if (AGREGATS_AGENT.indexOf(q.agregat.fonction) < 0) return erreurAgent("invalide", `Agrégat inconnu : « ${q.agregat.fonction} ».`);
+      if (q.agregat.fonction !== "compte" && !connu(q.agregat.champ)) {
+        return erreurAgent("invalide", `Agrégat sur un champ inconnu : « ${q.agregat.champ} ».`);
+      }
+      const valeurs = q.agregat.fonction === "compte" ? lignes : lignes.map((l) => l[q.agregat.champ]);
+      const retenues = q.agregat.fonction === "compte" ? valeurs : valeurs.filter((x) => Number.isFinite(x));
+      agregat = { fonction: q.agregat.fonction, champ: q.agregat.champ, valeur: agreger(q.agregat.fonction, valeurs), n: retenues.length };
+    }
+
+    let champs = (q.champs && q.champs.length ? q.champs : source.parDefaut).filter(connu);
+    if (q.agregat && q.agregat.champ && connu(q.agregat.champ) && champs.indexOf(q.agregat.champ) < 0) champs.push(q.agregat.champ);
+    if (q.tri && champs.indexOf(q.tri.champ) < 0) champs.push(q.tri.champ);
+    if (champs.indexOf("nom") < 0 && connu("nom")) champs.unshift("nom");
+    const limite = Math.max(1, Math.min(200, Number(q.limite) || (q.agregat ? 20 : 50)));
+    return {
+      ok: true,
+      lignes: lignes.slice(0, limite).map((l) => { const o = {}; for (const c of champs) o[c] = l[c]; return o; }),
+      champs: champs,
+      agregat: agregat,
+      n: lignes.length,
+      requete: resolue,
+      source_donnees: source.libelle,
+    };
+  }
+
+  /* ---- CMPC à la demande ----
+     Les fonctions de calcul lisent la sélection de l'écran (`params`) : on la
+     remplace le temps du calcul, puis on la rend telle quelle. Aucun rendu
+     n'est déclenché. */
+  function executerCmpc(p) {
+    const ctx = (v, champ) => (v === "__contexte__" ? valeurContexte(champ) : v);
+    let referentiel = String(p.referentiel || params.referentiel || "damodaran").toLowerCase();
+    const secteursComparables = ((DATA.comparables || {}).industries || []).map((i) => i.nom);
+    const pays = resoudreNom(ctx(p.pays, "pays") || params.country, Object.keys(DATA.pays));
+    if (!pays.ok) return erreurAgent(pays.code, "Pays : " + pays.message, pays.candidats);
+    const texteIndustrie = ctx(p.industrie, "industrie")
+      || (referentiel === "comparables" ? params.secteur : params.industry);
+    let industrie = resoudreNom(texteIndustrie, referentiel === "comparables" ? secteursComparables : Object.keys(DATA.industries));
+    // Une industrie qui n'existe que dans l'autre nomenclature fait basculer le référentiel.
+    if (!industrie.ok && !p.referentiel && secteursComparables.length) {
+      const autre = referentiel === "comparables" ? Object.keys(DATA.industries) : secteursComparables;
+      const r = resoudreNom(texteIndustrie, autre);
+      if (r.ok) { industrie = r; referentiel = referentiel === "comparables" ? "damodaran" : "comparables"; }
+    }
+    if (!industrie.ok) return erreurAgent(industrie.code, "Industrie : " + industrie.message, industrie.candidats);
+    if (referentiel === "comparables" && !(DATA.comparables || {}).societes) {
+      return erreurAgent("invalide", "Le référentiel Comparables n'est pas chargé dans cette page.");
+    }
+    const annee = Number(ctx(p.annee, "annee")) || params.year;
+    const maturite = p.maturite || params.maturity;
+    const nouveaux = {
+      referentiel: referentiel, country: pays.valeur, year: annee, maturity: maturite,
+      d: p.prime_taille != null ? Number(p.prime_taille) : params.d,
+      e: p.prime_specifique != null ? Number(p.prime_specifique) : params.e,
+      inflation_ref: p.inflation_ref != null ? Number(p.inflation_ref) : params.inflation_ref,
+      inflation_local: p.inflation_locale != null ? Number(p.inflation_locale) : params.inflation_local,
+    };
+    if (referentiel === "comparables") nouveaux.secteur = industrie.valeur; else nouveaux.industry = industrie.valeur;
+    const sauve = params;
+    let res = null;
+    try {
+      params = Object.assign({}, sauve, nouveaux);
+      if (referentiel === "comparables") {
+        const cc = cmpcComparables();
+        if (cc) res = { cmpc: cc.wacc, cmpc_local: cc.waccLocal, ke: cc.ke, kd: cc.kd, we: cc.we, wd: cc.wd,
+                        perimetre: cc.perimetre, beta: cc.beta };
+      } else {
+        const m = computeModel(params);
+        const b = m && m.brut;
+        if (b) res = { cmpc: b.wacc, cmpc_local: b.waccLocal, ke: b.ke, kd: b.kd, we: b.we, wd: b.wd, beta: b.betaReendette };
+      }
+    } finally {
+      params = sauve;
+    }
+    if (!res) return erreurAgent("invalide", "Le CMPC n'est pas calculable pour ces paramètres (taux sans risque ou gearing indisponible).");
+    const parametres = { referentiel: referentiel, pays: pays.valeur, industrie: industrie.valeur, annee: annee, maturite: maturite,
+                         prime_taille: nouveaux.d, prime_specifique: nouveaux.e,
+                         inflation_ref: nouveaux.inflation_ref, inflation_locale: nouveaux.inflation_local };
+    return {
+      ok: true, cmpc: Object.assign(res, { parametres: parametres }),
+      lignes: [], champs: [], agregat: null, n: 1,
+      requete: { source: "cmpc", parametres: parametres },
+      source_donnees: referentiel === "comparables" ? "Damodaran, US Treasury et S&P Capital IQ" : "Damodaran et US Treasury",
+    };
+  }
+
+  /* ---- Reformulation ----
+     « J'ai compris : … » se compose à partir de la requête exécutée, jamais du
+     texte du modèle : elle dit exactement ce que la page a calculé. */
+  const NOMS_SOURCES = { pays: "les pays", industries: "les industries Damodaran", societes: "les sociétés cotées", taux: "les taux US Treasury" };
+  const NOMS_AGREGATS = { mediane: "la médiane", moyenne: "la moyenne", min: "le minimum", max: "le maximum", compte: "le nombre" };
+  const NOMS_OPS = { "=": "est", "!=": "n'est pas", ">": "dépasse", ">=": "atteint au moins", "<": "est inférieur à", "<=": "ne dépasse pas", contient: "contient", dans: "est l'un de" };
+  const libChamp = (c) => {
+    const l = FORMATS_AGENT[c] ? FORMATS_AGENT[c].lib.replace(/ \(M FCFA\)$/, "") : c;
+    return /^[A-Z]{2}/.test(l) ? l : l.charAt(0).toLowerCase() + l.slice(1);
+  };
+
+  function formaterValeur(champ, v) {
+    if (v == null || v === "") return "—";
+    const fmt = (FORMATS_AGENT[champ] || {}).fmt;
+    if (typeof v !== "number") return String(v);
+    if (fmt === "pct") return frPct(v);
+    if (fmt === "pctBrut") return frPct(v / 100);
+    if (fmt === "num3") return frNum(v, 3);
+    if (fmt === "num2") return frNum(v, 2);
+    if (fmt === "montant") return frMontant(v);
+    if (fmt === "entier") return String(v);
+    return frNum(v, 2);
+  }
+  const formaterCible = (champ, v) => (Array.isArray(v) ? v.map((x) => formaterValeur(champ, x)).join(", ") : formaterValeur(champ, v));
+
+  function reformuler(q) {
+    if (!q) return "";
+    if (q.source === "cmpc") {
+      const p = q.parametres || {};
+      return `le CMPC, référentiel ${p.referentiel === "comparables" ? "Comparables" : "Damodaran"}, pour ${p.industrie || "le secteur de l'écran"} en ${p.pays || "pays de l'écran"}, exercice ${p.annee || params.year}, taux sans risque ${p.maturite || params.maturity}`
+        + (p.prime_taille != null ? `, prime de taille ${frPct(p.prime_taille)}` : "")
+        + (p.prime_specifique ? `, prime spécifique ${frPct(p.prime_specifique)}` : "");
+    }
+    if (q.source === "comparaison") {
+      const sujets = (q.requetes || []).map((r) => (r.filtres || []).map((f) => formaterCible(f.champ, f.valeur)).join(", "));
+      const champs = [...new Set((q.requetes || []).flatMap((r) => (r.champs || []).filter((c) => c !== "nom")))];
+      return "la comparaison de " + sujets.join(" et ") + (champs.length ? " : " + champs.map(libChamp).join(", ") : "");
+    }
+    // Un seul nom demandé : « la prime de risque pays de Senegal ».
+    const filtres0 = q.filtres || [];
+    if (!q.agregat && !q.tri && filtres0.length === 1 && filtres0[0].champ === "nom" && filtres0[0].op === "=" && q.champs) {
+      const champs = q.champs.filter((c) => c !== "nom");
+      if (champs.length) return champs.map(libChamp).join(", ") + " de " + formaterCible("nom", filtres0[0].valeur);
+    }
+    const morceaux = [];
+    if (q.agregat) {
+      const source = NOMS_SOURCES[q.source] || q.source;
+      morceaux.push(q.agregat.fonction === "compte" ? "le nombre " + source.replace(/^les /, "des ")
+        : NOMS_AGREGATS[q.agregat.fonction] + " de « " + libChamp(q.agregat.champ) + " » sur " + source);
+    } else {
+      morceaux.push((q.limite ? `les ${q.limite} premiers parmi ` : "") + (NOMS_SOURCES[q.source] || q.source));
+    }
+    const filtres = (q.filtres || []).map((f) => `« ${libChamp(f.champ)} » ${NOMS_OPS[f.op] || f.op} ${formaterCible(f.champ, f.valeur)}`);
+    if (filtres.length) morceaux.push("dont " + filtres.join(" et "));
+    if (q.tri && !q.agregat) morceaux.push(`classés par « ${libChamp(q.tri.champ)} » ${q.tri.sens === "asc" ? "croissant" : "décroissant"}`);
+    if (!q.agregat && q.champs && q.champs.length) morceaux.push("avec " + q.champs.filter((c) => c !== "nom").map(libChamp).join(", "));
+    return morceaux.join(", ");
+  }
+
+  /* ---- Gabarits ----
+     Chaque gabarit lit les entités repérées dans la question — pays, zone,
+     industrie Damodaran, secteur S&P, année, maturité, nombre, seuil — et rend
+     une requête du contrat, ou null. Ils sont essayés dans l'ordre : le premier
+     qui répond l'emporte. */
+  const motsCles = (t, motifs) => motifs.some((m) => t.indexOf(" " + m + " ") >= 0);
+
+  function entitesQuestion(question) {
+    // « l'impôt sur les sociétés » parle d'impôt, pas de sociétés cotées.
+    const t = cleNom(question).replace(/\bimpots? sur les (societes|benefices)\b/g, "impot");
+    const ix = indexAgent();
+    const pct = /(\d+(?:[.,]\d+)?) ?(?:%|pour ?cent|pct)/.exec(normalize(question));
+    const nombre = /(?:top|les|des|premiers?|premieres?) (\d{1,3})\b|(\d{1,3}) (?:premiers?|premieres?|plus|pays|societes|entreprises|banques|industries)\b/.exec(t);
+    return {
+      t: " " + t + " ",
+      pays: [...new Set(trouverDans(t, ix.pays))],
+      zones: trouverDans(t, ix.zones),
+      industries: trouverDans(t, ix.industries),
+      secteurs: [...new Set(trouverDans(t, ix.secteurs))],
+      annee: (/ (20[12]\d) /.exec(" " + t + " ") || [])[1] ? Number(/ (20[12]\d) /.exec(" " + t + " ")[1]) : null,
+      maturite: / 10 ans | 10y | 10 years? /.test(" " + t + " ") ? "10Y" : / 30 ans | 30y | 30 years? /.test(" " + t + " ") ? "30Y" : null,
+      n: nombre ? Number(nombre[1] || nombre[2]) : null,
+      seuil: pct ? Number(pct[1].replace(",", ".")) / 100 : null,
+    };
+  }
+
+  // Filtre géographique d'une source : zone, continent ou groupement.
+  function filtreGeo(e, champPays) {
+    const z = e.zones[0];
+    if (!z) return null;
+    if (z.champ === "groupement") return { champ: champPays, op: "dans", valeur: z.pays };
+    return { champ: z.champ, op: "=", valeur: z.valeur };
+  }
+
+  const croissant = (t) => motsCles(t, ["plus faible", "plus faibles", "plus bas", "plus basse", "plus legere", "plus leger", "plus douce", "plus doux", "moins",
+    "moins eleve", "moins elevee", "minimum", "min", "plus petit", "plus petite"]);
+  const classement = (t) => motsCles(t, ["top", "plus", "classement", "premiers", "premieres", "maximum", "max", "minimum", "min", "moins"]);
+  const comparateur = (t) => (motsCles(t, ["superieur", "superieure", "superieures", "superieurs", "plus de", "au dessus", "depasse", "depassent", "au moins"]) ? ">"
+    : motsCles(t, ["inferieur", "inferieure", "inferieures", "inferieurs", "moins de", "en dessous", "sous"]) ? "<" : null);
+
+  function metriquePays(t) {
+    if (motsCles(t, ["spread de defaut", "default spread", "spread souverain", "spreads de defaut", "defaut souverain"])) return "spread_defaut";
+    if (motsCles(t, ["prime de risque", "primes de risque", "crp", "risque pays", "prime pays"])) return "crp";
+    if (motsCles(t, ["taux d is", "is", "impot", "impots", "imposition", "taux d imposition", "impot sur les societes", "fiscalite"])) return "tax";
+    return null;
+  }
+  function metriqueIndustrie(t) {
+    if (motsCles(t, ["beta", "betas"])) return "beta";
+    if (motsCles(t, ["gearing", "endettement", "levier", "d e"])) return "de";
+    if (motsCles(t, ["spread", "spreads"]) && !motsCles(t, ["defaut"])) return "spread";
+    return null;
+  }
+  function metriqueSociete(t, annee) {
+    const an = annee && ANNEES_COMPTES.indexOf(annee) >= 0 ? annee : 2025;
+    if (motsCles(t, ["marge", "marges", "marge d ebitda", "marges d ebitda"])) return "marge_ebitda_" + an;
+    if (motsCles(t, ["beta desendette", "betas desendettes", "beta d actif"])) return "beta_u";
+    if (motsCles(t, ["beta 1 an", "betas 1 an", "beta a 1 an", "betas a 1 an"])) return "beta_1an";
+    if (motsCles(t, ["beta", "betas"])) return "beta_3ans";
+    if (motsCles(t, ["gearing", "gearings", "endettement", "levier"])) return "gearing";
+    if (motsCles(t, ["capitalisation", "capitalisations", "capi"])) return "capitalisation";
+    if (motsCles(t, ["chiffre d affaires", "ca", "revenus", "ventes"])) return "ca_" + an;
+    if (motsCles(t, ["resultat net", "benefice", "benefices"])) return "rn_" + an;
+    if (motsCles(t, ["ebitda"])) return "ebitda_" + an;
+    return null;
+  }
+  function fonctionAgregat(texte) {
+    const t = texte.replace(/ moyen orient /g, " ");
+    if (motsCles(t, ["mediane", "median", "medianes"])) return "mediane";
+    if (motsCles(t, ["moyenne", "moyen", "moyens", "moyennes"])) return "moyenne";
+    if (motsCles(t, ["combien", "nombre"])) return "compte";
+    if (motsCles(t, ["minimum", "min", "plus bas", "plus basse", "plus faible"])) return "min";
+    if (motsCles(t, ["maximum", "max", "plus haut", "plus haute", "plus eleve", "plus elevee", "plus fort", "plus forte"])) return "max";
+    return null;
+  }
+  const parleDeSocietes = (t) => motsCles(t, ["societe", "societes", "entreprise", "entreprises", "cotee", "cotees", "comparables",
+    "comparable", "similaires", "acteurs", "groupes", "banques", "assureurs", "operateurs", "emetteurs", "valeurs"]);
+
+  const GABARITS = [
+    // 1. « compare X et Y » : deux pays, ou deux industries.
+    function comparaison(e) {
+      if (!motsCles(e.t, ["compare", "comparer", "comparaison", "versus", "vs", "contre", "entre"])) return null;
+      if (e.pays.length >= 2) {
+        return { source: "comparaison", requetes: e.pays.slice(0, 4).map((p) => ({
+          source: "pays", filtres: [{ champ: "nom", op: "=", valeur: p }], champs: ["nom", "crp", "spread_defaut", "tax", "zone"] })) };
+      }
+      if (e.industries.length >= 2) {
+        return { source: "comparaison", requetes: e.industries.slice(0, 4).map((liste) => ({
+          source: "industries", filtres: [{ champ: "nom", op: liste.length > 1 ? "dans" : "=", valeur: liste.length > 1 ? liste : liste[0] }],
+          champs: ["nom", "beta", "de", "spread"] })) };
+      }
+      return null;
+    },
+    // 2. CMPC d'un secteur dans un pays.
+    function cmpc(e) {
+      if (!motsCles(e.t, ["cmpc", "wacc", "cout moyen pondere", "cout du capital", "cout moyen pondere du capital", "taux d actualisation"])) return null;
+      const comparables = motsCles(e.t, ["comparables", "comparable"]) || (e.secteurs.length && !e.industries.length);
+      const p = { pays: e.pays[0] || "__contexte__" };
+      const ind = comparables ? e.secteurs[0] : (e.industries[0] || [])[0];
+      p.industrie = ind || "__contexte__";
+      if (comparables) p.referentiel = "comparables";
+      else if (motsCles(e.t, ["damodaran"])) p.referentiel = "damodaran";
+      if (e.annee) p.annee = e.annee;
+      if (e.maturite) p.maturite = e.maturite;
+      const taille = /prime de taille (?:de )?(\d+(?:[.,]\d+)?) ?%/.exec(normalize(e.t));
+      if (taille) p.prime_taille = Number(taille[1].replace(",", ".")) / 100;
+      const specifique = /prime specifique (?:de )?(\d+(?:[.,]\d+)?) ?%/.exec(normalize(e.t));
+      if (specifique) p.prime_specifique = Number(specifique[1].replace(",", ".")) / 100;
+      return { source: "cmpc", parametres: p };
+    },
+    // 3. Taux sans risque US.
+    function tauxSansRisque(e) {
+      if (!motsCles(e.t, ["taux sans risque", "us bond", "us bonds", "treasury", "obligation americaine", "obligations americaines",
+                          "taux a 10 ans", "taux a 30 ans", "taux 10 ans", "taux 30 ans", "rendement des obligations"])) return null;
+      const filtres = [];
+      if (e.annee) filtres.push({ champ: "annee", op: "=", valeur: e.annee });
+      if (e.maturite) filtres.push({ champ: "maturite", op: "=", valeur: e.maturite });
+      return { source: "taux", filtres: filtres, tri: { champ: "annee", sens: "desc" }, champs: ["annee", "maturite", "valeur"],
+               limite: e.annee ? null : 20 };
+    },
+    // 4. Agrégat sur les sociétés : médiane, moyenne, nombre…
+    function agregatSocietes(e) {
+      const fonction = fonctionAgregat(e.t);
+      if (!fonction) return null;
+      const champ = fonction === "compte" ? "nom" : metriqueSociete(e.t, e.annee);
+      if (!champ) return null;
+      // Une industrie Damodaran nommée sans société ni géographie : c'est la source industries.
+      if (!parleDeSocietes(e.t) && !e.zones.length && !e.pays.length && !e.secteurs.length) return null;
+      if (!parleDeSocietes(e.t) && !e.zones.length && !e.pays.length && e.industries.length && /^(beta|de|spread)$/.test(metriqueIndustrie(e.t) || "")) return null;
+      if (fonction === "compte" && !parleDeSocietes(e.t) && !e.secteurs.length) return null;
+      const filtres = [];
+      if (e.secteurs[0]) filtres.push({ champ: "industrie", op: "=", valeur: e.secteurs[0] });
+      const geo = filtreGeo(e, "pays");
+      if (e.pays[0] && !geo) filtres.push({ champ: "pays", op: "=", valeur: e.pays[0] });
+      if (geo) filtres.push(geo);
+      if (!filtres.length) return null;
+      return { source: "societes", filtres: filtres, agregat: { fonction: fonction, champ: champ },
+               tri: { champ: "capitalisation", sens: "desc" },
+               champs: ["nom", "pays", "capitalisation"].concat(champ !== "nom" && champ !== "capitalisation" ? [champ] : []) };
+    },
+    // 5. Liste de sociétés : « les 5 plus grosses banques marocaines », « sociétés comparables à … ».
+    function listeSocietes(e) {
+      if (!parleDeSocietes(e.t)) return null;
+      // « le bêta des banques », sans géographie ni mot « société » : c'est
+      // l'industrie Damodaran qu'on demande, pas une liste de cotations.
+      const explicite = motsCles(e.t, ["societe", "societes", "entreprise", "entreprises", "cotee", "cotees", "comparables",
+        "comparable", "similaires", "acteurs", "groupes", "emetteurs", "valeurs", "plus grosses", "plus grandes", "principales"]);
+      if (!explicite && !e.zones.length && !e.pays.length) return null;
+      const filtres = [];
+      if (e.secteurs[0]) filtres.push({ champ: "industrie", op: "=", valeur: e.secteurs[0] });
+      else {
+        const m = /(?:comparables?|similaires?|semblables?|comme|du type|de type) (?:a |au |aux |de |d )?(.+)$/.exec(cleNom(e.t));
+        if (m && m[1].length >= 3) filtres.push({ champ: "activite", op: "contient", valeur: m[1].replace(/ (en|au|aux|dans) .*$/, "").trim() });
+      }
+      const geo = filtreGeo(e, "pays");
+      if (e.pays[0] && !geo) filtres.push({ champ: "pays", op: "=", valeur: e.pays[0] });
+      if (geo) filtres.push(geo);
+      if (!filtres.length) return null;
+      const metrique = metriqueSociete(e.t, e.annee);
+      const tri = metrique && metrique !== "capitalisation" && motsCles(e.t, ["plus", "top", "classement"])
+        ? { champ: metrique, sens: croissant(e.t) ? "asc" : "desc" } : { champ: "capitalisation", sens: "desc" };
+      const champs = ["nom", "pays", "place", "industrie", "capitalisation", "beta_3ans", "beta_u"];
+      if (metrique && champs.indexOf(metrique) < 0) champs.push(metrique);
+      return { source: "societes", filtres: filtres, tri: tri, limite: e.n || 10, champs: champs };
+    },
+    // 6. Prime de risque, taux d'IS, spread de défaut : d'un pays, ou classement d'une zone.
+    function metriquesPays(e) {
+      const champ = metriquePays(e.t);
+      if (!champ) return null;
+      if (e.pays.length === 1 && !classement(e.t)) {
+        return { source: "pays", filtres: [{ champ: "nom", op: "=", valeur: e.pays[0] }], champs: ["nom", champ] };
+      }
+      if (e.pays.length > 1) {
+        return { source: "pays", filtres: [{ champ: "nom", op: "dans", valeur: e.pays }], tri: { champ: champ, sens: "desc" },
+                 champs: ["nom", champ] };
+      }
+      const filtres = [];
+      const geo = filtreGeo(e, "nom");
+      if (geo) filtres.push(geo);
+      const comp = comparateur(e.t);
+      if (comp && e.seuil != null) filtres.push({ champ: champ, op: comp, valeur: e.seuil });
+      if (!filtres.length && !classement(e.t)) return null;
+      return { source: "pays", filtres: filtres, tri: { champ: champ, sens: croissant(e.t) && !comp ? "asc" : "desc" },
+               limite: e.n || (classement(e.t) && !comp ? 10 : null), champs: ["nom", champ, "zone"] };
+    },
+    // 7. Bêta, gearing, spread d'une industrie Damodaran, ou classement des industries.
+    function metriquesIndustrie(e) {
+      const champ = metriqueIndustrie(e.t);
+      if (!champ) return null;
+      const fonction = fonctionAgregat(e.t);
+      if (e.industries.length) {
+        const liste = e.industries[0];
+        const filtre = liste.length > 1 ? { champ: "nom", op: "dans", valeur: liste } : { champ: "nom", op: "=", valeur: liste[0] };
+        const q = { source: "industries", filtres: [filtre], champs: ["nom", "beta", "de", "spread"] };
+        if (fonction && fonction !== "compte" && liste.length > 1) q.agregat = { fonction: fonction, champ: champ };
+        return q;
+      }
+      if (classement(e.t) && motsCles(e.t, ["industrie", "industries", "secteur", "secteurs"])) {
+        return { source: "industries", tri: { champ: champ, sens: croissant(e.t) ? "asc" : "desc" }, limite: e.n || 10,
+                 champs: ["nom", champ] };
+      }
+      return null;
+    },
+    // 8. Pays d'une zone.
+    function paysDeLaZone(e) {
+      if (!motsCles(e.t, ["pays", "liste des pays", "quels pays"]) || !e.zones.length) return null;
+      return { source: "pays", filtres: [filtreGeo(e, "nom")], tri: { champ: "nom", sens: "asc" },
+               champs: ["nom", "crp", "spread_defaut", "tax"] };
+    },
+    // 9. Fiche d'un pays nommé seul.
+    function fichePays(e) {
+      if (e.pays.length !== 1 || e.secteurs.length || e.industries.length) return null;
+      return { source: "pays", filtres: [{ champ: "nom", op: "=", valeur: e.pays[0] }], champs: ["nom", "crp", "spread_defaut", "tax", "continent", "zone"] };
+    },
+    // 10. Fiche d'une industrie Damodaran nommée seule.
+    function ficheIndustrie(e) {
+      if (e.industries.length !== 1 || e.pays.length || e.zones.length || parleDeSocietes(e.t)) return null;
+      const liste = e.industries[0];
+      return { source: "industries", filtres: [liste.length > 1 ? { champ: "nom", op: "dans", valeur: liste } : { champ: "nom", op: "=", valeur: liste[0] }],
+               champs: ["nom", "beta", "de", "spread"] };
+    },
+  ];
+
+  function reconnaitreGabarit(question) {
+    const e = entitesQuestion(question);
+    for (const g of GABARITS) {
+      const q = g(e);
+      if (q) return { requete: q, gabarit: g.name };
+    }
+    return null;
+  }
+
+  // Une comparaison est une suite de requêtes : on les exécute toutes.
+  function executerReponse(q) {
+    if (q && q.source === "comparaison") {
+      const resultats = (q.requetes || []).slice(0, 4).map(executerRequete);
+      const echec = resultats.find((r) => !r.ok);
+      if (echec) return echec;
+      const champs = [...new Set(resultats.flatMap((r) => r.champs))];
+      return { ok: true, comparaison: true, lignes: resultats.flatMap((r) => r.lignes), champs: champs, agregat: null,
+               n: resultats.reduce((t, r) => t + r.n, 0),
+               requete: { source: "comparaison", requetes: resultats.map((r) => r.requete) },
+               source_donnees: [...new Set(resultats.map((r) => r.source_donnees))].join(" ; ") };
+    }
+    if (q && (q.source === "hors_perimetre" || q.source === "clarification")) {
+      return { ok: false, code: q.source, message: q.reformulation || "" };
+    }
+    return executerRequete(q);
+  }
+
+  /* ================= Agent : panneau ================= */
+  // L'historique vit en mémoire, pour la session : la page n'a jamais écrit
+  // dans le stockage du navigateur, et l'agent ne commence pas.
+  const AGENT = {
+    historique: [],
+    horsLigne: location.protocol === "file:",
+    raison: location.protocol === "file:" ? "page ouverte depuis un fichier" : null,
+    quota: null,
+    enCours: false,
+  };
+  const AGENT_DELAI = 15000;
+  const EXEMPLES_AGENT = [
+    "Prime de risque de la Côte d'Ivoire",
+    "Top 5 pays d'Afrique par prime de risque",
+    "Médiane des bêtas 3 ans des banques en Afrique de l'Ouest",
+    "CMPC d'une cimenterie au Sénégal en 2026",
+    "Compare le Maroc et l'Égypte",
+    "Taux sans risque 10 ans 2024",
+  ];
+  const RAISONS_HORS_LIGNE = {
+    absent: "assistant en ligne non déployé",
+    reseau: "serveur injoignable",
+    configuration: "assistant en ligne non configuré",
+    plafond: "enveloppe gratuite du jour consommée",
+  };
+
+  function contexteEcran() {
+    const c = {
+      annee: params.year, maturite: params.maturity,
+      referentiel: params.referentiel === "comparables" ? "comparables" : "damodaran",
+      pays: params.country, industrie: params.industry,
+      continent: params.continent, zone: params.zone || null,
+    };
+    if (params.secteur) c.secteur = params.secteur;
+    return c;
+  }
+
+  async function demanderAuServeur(question) {
+    const controle = new AbortController();
+    const minuterie = setTimeout(() => controle.abort(), AGENT_DELAI);
+    try {
+      const r = await fetch("/api/ask", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ question: question, contexte: contexteEcran() }),
+        signal: controle.signal,
+      });
+      let corps = null;
+      try { corps = await r.json(); } catch (e) { corps = null; }
+      if (r.ok && corps && corps.ok && corps.requete) {
+        return { ok: true, requete: corps.requete, modele: corps.modele, cache: Boolean(corps.cache) };
+      }
+      // Une page servie sans fonction répond 404 ou 405 : l'assistant n'est pas là.
+      const code = corps && corps.code ? corps.code : (r.status === 404 || r.status === 405 ? "absent" : "indisponible");
+      return { ok: false, code: code, message: corps && corps.message, reprise: corps && corps.reprise };
+    } catch (err) {
+      return { ok: false, code: "reseau" };
+    } finally {
+      clearTimeout(minuterie);
+    }
+  }
+
+  function messageServeur(s) {
+    if (s.code === "quota") {
+      return "Quota de questions du jour atteint pour votre adresse. Les questions reconnues par les gabarits restent servies"
+        + (typeof s.reprise === "string" ? " ; reprise le " + new Date(s.reprise).toLocaleString("fr-FR", { dateStyle: "short", timeStyle: "short" }) + "." : ".");
+    }
+    if (s.code === "traduction") return "L'assistant n'a pas su traduire cette question en requête. Reformulez-la, ou partez d'un exemple.";
+    if (RAISONS_HORS_LIGNE[s.code]) {
+      return "Question non reconnue par les gabarits, et l'assistant en ligne ne répond pas (" + RAISONS_HORS_LIGNE[s.code]
+        + "). Reformulez-la sur le modèle des exemples.";
+    }
+    return "L'assistant en ligne n'a pas répondu. Réessayez dans un instant, ou reformulez sur le modèle des exemples.";
+  }
+
+  async function poserQuestion(texte) {
+    const question = String(texte || "").trim().slice(0, 400);
+    if (!question || AGENT.enCours) return;
+    let entree;
+    const gabarit = reconnaitreGabarit(question);
+    if (gabarit) {
+      entree = { question: question, origine: "gabarit", resultat: executerReponse(gabarit.requete) };
+    } else if (AGENT.horsLigne || AGENT.quota) {
+      entree = { question: question, origine: "aucune",
+                 resultat: erreurAgent(AGENT.quota ? "quota" : "hors_ligne",
+                   messageServeur({ code: AGENT.quota ? "quota" : "absent", reprise: AGENT.quota })) };
+    } else {
+      AGENT.enCours = true;
+      rendreAgent(question);
+      const s = await demanderAuServeur(question);
+      AGENT.enCours = false;
+      if (s.ok) {
+        entree = { question: question, origine: "assistant", modele: s.modele, cache: s.cache, resultat: executerReponse(s.requete) };
+      } else {
+        // Une panne passagère ne fait pas basculer la session hors ligne.
+        if (RAISONS_HORS_LIGNE[s.code]) { AGENT.horsLigne = true; AGENT.raison = RAISONS_HORS_LIGNE[s.code]; }
+        if (s.code === "quota") AGENT.quota = s.reprise || true;
+        entree = { question: question, origine: "aucune", resultat: erreurAgent(s.code, messageServeur(s)) };
+      }
+    }
+    AGENT.historique = [entree].concat(AGENT.historique).slice(0, 10);
+    rendreAgent();
+  }
+
+  function enteteReponse(r) {
+    if (r.cmpc) return "CMPC en monnaie locale";
+    if (r.agregat) {
+      const a = r.agregat;
+      return a.fonction === "compte" ? "Nombre de résultats"
+        : (NOMS_AGREGATS[a.fonction].charAt(0).toUpperCase() + NOMS_AGREGATS[a.fonction].slice(1)) + " de « " + libChamp(a.champ) + " »";
+    }
+    if (r.lignes.length === 1 && r.champs.length === 2 && r.champs[0] === "nom") {
+      const c = r.champs[1];
+      return `${r.lignes[0].nom} : ${libChamp(c)} ${formaterValeur(c, r.lignes[0][c])}`;
+    }
+    if (!r.n) return "Aucun résultat ne répond à ces critères.";
+    return r.n + " résultat" + (r.n > 1 ? "s" : "") + (r.n > r.lignes.length ? `, les ${r.lignes.length} premiers affichés` : "");
+  }
+
+  function tableAgent(r) {
+    if (!r.lignes.length) return "";
+    const nombre = (c) => ["pct", "pctBrut", "num3", "num2", "montant", "entier"].indexOf((FORMATS_AGENT[c] || {}).fmt) >= 0;
+    return `
+      <div class="agent-table-defile">
+        <table class="agent-table">
+          <thead><tr>${r.champs.map((c) => `<th class="${nombre(c) ? "is-nombre" : ""}">${esc(FORMATS_AGENT[c] ? FORMATS_AGENT[c].lib : c)}</th>`).join("")}</tr></thead>
+          <tbody>${r.lignes.map((l) => `<tr>${r.champs.map((c) => `<td class="${nombre(c) ? "is-nombre" : ""}">${esc(formaterValeur(c, l[c]))}</td>`).join("")}</tr>`).join("")}</tbody>
+        </table>
+      </div>`;
+  }
+
+  function cmpcAgentHtml(c) {
+    const p = c.parametres;
+    return `
+      <span class="agent-chiffre">${esc(frPct(c.cmpc_local))}</span>
+      <span class="result-rows">
+        <span class="result-row"><span>CMPC en dollar</span><span>${esc(frPct(c.cmpc))}</span></span>
+        <span class="result-row"><span>Coût des fonds propres</span><span>${esc(frPct(c.ke))}</span></span>
+        <span class="result-row"><span>Coût de la dette après IS</span><span>${esc(frPct(c.kd))}</span></span>
+        <span class="result-row"><span>Fonds propres / dette</span><span>${esc(frPct(c.we, 0))} / ${esc(frPct(c.wd, 0))}</span></span>
+        ${c.beta != null ? `<span class="result-row"><span>Bêta ré-endetté</span><span>${esc(frNum(c.beta, 3))}</span></span>` : ""}
+      </span>
+      ${c.perimetre ? `<span class="agent-source">Comparables pris sur ${esc(c.perimetre)}.</span>` : ""}
+      <button type="button" class="valo-bouton" data-agent-appliquer="${esc(JSON.stringify({ referentiel: p.referentiel, pays: p.pays, industrie: p.industrie, annee: p.annee }))}">Appliquer ces paramètres à l'écran</button>`;
+  }
+
+  function reponseHtml(e) {
+    const r = e.resultat;
+    const question = `<p class="agent-question">« ${esc(e.question)} »</p>`;
+    if (!r.ok) {
+      const candidats = r.candidats && r.candidats.length ? `
+        <span class="agent-exemples">${r.candidats.map((c) => `<button type="button" class="agent-puce" data-agent-candidat="${esc(c)}">${esc(c)}</button>`).join("")}</span>` : "";
+      const classe = r.code === "hors_perimetre" || r.code === "clarification" ? "agent-entete" : "agent-erreur";
+      return question + `<div class="${classe}">${esc(r.message || "Pas de réponse.")}${candidats}</div>` + corrigerHtml(e, null);
+    }
+    let corps = "";
+    if (r.cmpc) corps = cmpcAgentHtml(r.cmpc);
+    else if (r.agregat) {
+      const a = r.agregat;
+      corps = `<span class="agent-chiffre">${esc(a.fonction === "compte" ? String(a.valeur) : formaterValeur(a.champ, a.valeur))}</span>
+        <span class="agent-source">${a.fonction === "compte" ? "" : "Sur " + a.n + " valeur" + (a.n > 1 ? "s" : "") + " renseignée" + (a.n > 1 ? "s" : "") + "."}</span>`
+        + (a.fonction === "compte" && a.valeur === 0 ? "" : tableAgent(r));
+    } else corps = tableAgent(r);
+    return question + `<p class="agent-entete">${esc(enteteReponse(r))}</p>` + corps + corrigerHtml(e, r);
+  }
+
+  function corrigerHtml(e, r) {
+    const compris = r ? reformuler(r.requete) : "";
+    const origine = e.origine === "gabarit" ? "gabarit local, sans appel réseau"
+      : e.origine === "assistant" ? "assistant en ligne" + (e.modele ? " (" + e.modele.replace(/^@cf\//, "") + ")" : "") + (e.cache ? ", réponse en cache" : "")
+      : "";
+    return `
+      ${compris ? `<div class="agent-compris"><span><b>J'ai compris :</b> ${esc(compris.charAt(0).toUpperCase() + compris.slice(1))}.</span>
+        <button type="button" class="agent-lien" data-agent-corriger="${esc(e.question)}">Corriger</button></div>` : ""}
+      ${r ? `<p class="agent-source">Source : ${esc(r.source_donnees)}${origine ? " · " + esc(origine) : ""}.</p>` : ""}`;
+  }
+
+  function rendreAgent(enCours) {
+    const racine = $("agentPanneau");
+    if (!racine) return;
+    const etat = racine.querySelector('[data-o="agent-etat"]');
+    const horsLigne = AGENT.horsLigne || AGENT.quota;
+    etat.textContent = AGENT.horsLigne ? "Mode hors ligne : gabarits seulement" + (AGENT.raison ? " — " + AGENT.raison : "")
+      : AGENT.quota ? "Quota du jour atteint : gabarits seulement"
+      : "Gabarits locaux, puis assistant en ligne";
+    etat.classList.toggle("is-hors-ligne", Boolean(horsLigne));
+    $("agentDemander").disabled = Boolean(AGENT.enCours);
+    const derniere = AGENT.historique[0];
+    $("agentReponse").innerHTML = enCours
+      ? `<p class="agent-question">« ${esc(enCours)} »</p><p class="agent-attente">Traduction de la question en requête…</p>`
+      : derniere ? reponseHtml(derniere)
+      : `<p class="agent-entete">Questions sur les pays, les industries, les sociétés cotées, les taux et le CMPC. Par exemple :</p>
+         <span class="agent-exemples">${EXEMPLES_AGENT.map((q) => `<button type="button" class="agent-puce" data-agent-question="${esc(q)}">${esc(q)}</button>`).join("")}</span>`;
+    const precedentes = AGENT.historique.slice(1);
+    $("agentHistorique").innerHTML = precedentes.length ? `
+      <h3>Questions précédentes</h3>
+      <ul>${precedentes.map((e) => `<li><button type="button" class="agent-puce" data-agent-question="${esc(e.question)}">${esc(e.question)}</button></li>`).join("")}</ul>` : "";
+  }
+
+  function initAgent() {
+    const racine = $("agentPanneau");
+    if (!racine) return;
+    $("agentFormulaire").addEventListener("submit", (ev) => {
+      ev.preventDefault();
+      poserQuestion($("agentQuestion").value);
+    });
+    racine.addEventListener("click", (ev) => {
+      const q = ev.target.closest("[data-agent-question]");
+      if (q) { $("agentQuestion").value = q.dataset.agentQuestion; poserQuestion(q.dataset.agentQuestion); return; }
+      const c = ev.target.closest("[data-agent-corriger]");
+      if (c) {
+        const champ = $("agentQuestion");
+        champ.value = c.dataset.agentCorriger;
+        champ.focus();
+        champ.setSelectionRange(champ.value.length, champ.value.length);
+        return;
+      }
+      const cand = ev.target.closest("[data-agent-candidat]");
+      if (cand) { $("agentQuestion").value = cand.dataset.agentCandidat; $("agentQuestion").focus(); return; }
+      const app = ev.target.closest("[data-agent-appliquer]");
+      if (app) {
+        // Le CMPC demandé devient celui de l'écran : mêmes paramètres, même calcul.
+        const p = JSON.parse(app.dataset.agentAppliquer);
+        if (p.referentiel === "comparables" && (DATA.comparables || {}).societes) { params.referentiel = "comparables"; params.secteur = p.industrie; }
+        else { params.referentiel = "damodaran"; params.industry = p.industrie; }
+        params.country = p.pays;
+        if (p.annee) params.year = p.annee;
+        apply();
+      }
+    });
+    rendreAgent();
+  }
+
   function renderAll() {
     majBoutonClasseur();
     renderParams();
@@ -8692,6 +10775,7 @@
   model = computeModel(params);
   renderTabs();
   renderAll();
+  initAgent();
 </script>
 </body>
 </html>

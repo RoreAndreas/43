@@ -14,7 +14,8 @@ zone hors UMOA, du temps où ce taux venait d'une courbe souveraine locale.
 
 import pytest
 
-from conftest import choisir, ligne_resultat, mode_comparables, nombre_fr, secteur, zone_sans
+from conftest import (choisir, ligne_resultat, mode_comparables, nombre_fr, secteur,
+                      zone_en_repli, zone_sans)
 
 ZONES = ["Afrique de l'Ouest", "Afrique de l'Est", "Afrique australe"]
 
@@ -81,13 +82,14 @@ def test_une_zone_trop_mince_replie_sur_le_continent(page, donnees):
     assert n == secteur(donnees, "Consumer Finance", "Afrique")["societes"]
 
 
-def test_le_repli_est_annonce_a_l_ecran(page):
+def test_le_repli_est_annonce_a_l_ecran(page, donnees):
     """Un repli muet ferait passer une médiane continentale pour une de zone."""
-    cadrer(page, "Afrique australe", "Consumer Finance")
+    zone, secteur_nom, n = zone_en_repli(donnees)
+    cadrer(page, zone, secteur_nom)
     encadre = page.inner_text("#paramsResult")
 
-    assert "sous le seuil de 3" in encadre
-    assert "Afrique australe ne compte 1 société" in encadre
+    assert f"sous le seuil de {donnees['comparables']['seuil']}" in encadre
+    assert f"{zone} ne compte {n} société" in encadre
     assert "médiane reprise sur Afrique" in encadre
 
 

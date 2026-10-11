@@ -6,7 +6,9 @@ courbe des taux US Treasury.
 La plateforme est **une page statique** : les données de marché (~21 Ko) sont
 embarquées dans le fichier HTML et les formules s'appliquent dans le navigateur.
 Aucun serveur à faire tourner, donc aucun coût d'hébergement et rien à
-surveiller.
+surveiller. Seul l'assistant, facultatif, passe par deux fonctions Cloudflare,
+sur un modèle gratuit : sans elles, la page fonctionne à l'identique et
+l'assistant répond par ses gabarits (voir « Assistant », plus bas).
 
 ## Organisation
 
@@ -15,6 +17,8 @@ PFILES/
 ├── moteur/          le code Python : téléchargement, calcul, construction, export
 ├── presentation/    le gabarit — CSS, markup et formules en JavaScript
 ├── site/            le livrable publié par Cloudflare Pages (index.html)
+├── functions/       les deux routes de l'assistant (Cloudflare Pages Functions)
+├── agent/           les modules qu'elles importent : garde-fous, modèle, instructions
 ├── donnees/         le jeu de données extrait, lisible, hors du dossier publié
 ├── requirements.txt
 └── README.md
@@ -31,6 +35,9 @@ PFILES/
 | `moteur/export_wacc.py` | Génération du classeur Excel |
 | `moteur/serve.py` | Aperçu local et export Excel |
 | `presentation/wacc_value_tab.html` | Présentation **et** formules en JavaScript |
+| `functions/api/ask.js` | Assistant, niveau 1 : une question devient une requête |
+| `functions/api/forecast.js` | Assistant, niveau 2 : l'analyste relit le prévisionnel |
+| `agent/` | Garde-fous, adaptateur Workers AI, instructions, schémas — hors de `functions/`, qui ne porte que des routes |
 
 Le dossier `site/` porte ce nom parce qu'il est déclaré tel quel dans Cloudflare
 Pages (répertoire de sortie et filtre de reconstruction) : le renommer casse le
@@ -155,3 +162,92 @@ n'en publie pas fait retenir le 1 an pour ses sociétés, et la page le signale.
 > Les formules existent en deux exemplaires : en JavaScript dans le gabarit,
 > pour la page, et en Python dans `moteur/wacc_core.py`, pour l'export Excel.
 > Toute modification de la méthode doit être portée des deux côtés.
+
+## Assistant
+
+Un assistant, sous le résultat du CMPC, répond en français aux questions sur
+les données embarquées, et propose des hypothèses de prévision justifiées. Il
+suit le brief du 5 octobre 2026 avec une contrainte de plus : **son cerveau est
+gratuit**. Les deux rôles tournent sur Cloudflare Workers AI, dans l'enveloppe
+offerte de 10 000 neurones par jour, chez l'hébergeur qui sert déjà la page.
+
+| Niveau | Où | Rôle | Coût |
+|---|---|---|---|
+| 0 | navigateur | trente gabarits de questions, exécutés sur `DATA` et `COMPARABLES` | 0 |
+| 1 | `/api/ask` | traduit une question libre en requête structurée | ≈ 12 neurones (Qwen 3 30B) |
+| 2 | `/api/forecast` | l'analyste relit le prévisionnel, dans des bornes | ≈ 400 neurones (Llama 3.3 70B) |
+
+**Le modèle ne lit jamais les données.** Il traduit une question en requête,
+que la page exécute elle-même ; ou il juge un dossier de ratios agrégés en
+millions de FCFA, jamais la balance. Toute réponse est validée deux fois, par
+le serveur puis par la page, et une valeur hors bornes est ramenée à la borne.
+
+**La page reste autonome.** Ouverte depuis un fichier, déployée sans
+`functions/`, ou quand l'enveloppe du jour est consommée, elle calcule, exporte
+et répond à ses gabarits ; le panneau dit qu'il est hors ligne.
+
+**Rien ne part sans le dire.** La question quitte le navigateur au niveau 1 ;
+les chiffres de la société au niveau 2, et seulement une fois cochée la case
+« Les chiffres de la société seront envoyés à un service externe pour analyse ».
+
+### Règles de prévision, sans IA
+
+Le panneau d'hypothèses porte trois onglets — Défaut, Règles, Analyste — et un
+tableau qui compare les trois jeux, valeur d'entreprise comprise. Les règles :
+normalisation sur trois exercices (l'exercice atypique écarté), croissance et
+marge qui convergent vers le secteur, CapEx lié à la croissance, g plafonné par
+l'inflation locale, alerte sur un compte mal classé. Pour tous les jeux :
+report des déficits (`calculDcf` accepte un `f.impots` optionnel, seule
+modification d'une fonction de calcul, sans effet quand il est absent) et
+passage de la VE aux fonds propres, ligne à ligne par classe SYSCOHADA, dans la
+Synthèse. L'export joint une feuille « Hypothèses » dès que les règles ou
+l'analyste ont servi.
+
+### Déployer les fonctions
+
+Cloudflare Pages cherche `functions/` dans le **répertoire racine du projet**,
+pas dans le répertoire de sortie. Pour que celui-ci soit trouvé, le projet doit
+avoir pour répertoire racine `WACC43/PFILES` et pour répertoire de sortie
+`site` (Settings › Builds). Sans cela, la page se déploie comme avant et
+l'assistant reste en mode gabarits.
+
+Puis, dans Settings › Functions et Settings › Variables :
+
+| Élément | Type | Valeur |
+|---|---|---|
+| `AI` | liaison Workers AI | — |
+| `GARDE` | liaison KV | un espace de noms créé pour l'occasion |
+| `SEL_IP` | secret | une chaîne aléatoire longue ; sans elle, les routes refusent de tourner |
+| `MODELE_TRADUCTEUR` | variable, facultative | `workersai:@cf/qwen/qwen3-30b-a3b-fp8` |
+| `MODELE_ANALYSTE` | variable, facultative | `workersai:@cf/meta/llama-3.3-70b-instruct-fp8-fast` |
+| `QUOTA_QUESTIONS_IP` | variable, facultative | 40 par jour |
+| `QUOTA_PREVISIONS_IP` | variable, facultative | 5 par jour |
+| `PLAFOND_NEURONES_JOUR` | variable, facultative | 9 000 |
+
+`wrangler.toml.exemple` donne la même configuration pour `wrangler pages dev`.
+Il n'est pas versionné sous son vrai nom : un `wrangler.toml` présent dans le
+dépôt devient la source de vérité de Cloudflare, et un identifiant KV laissé à
+remplir y ferait échouer le déploiement de la page.
+
+### Pourquoi c'est gratuit, et le reste
+
+Deux verrous. Sur le plan Workers Free, Cloudflare refuse l'appel au-delà de
+10 000 neurones par jour au lieu de le facturer. Et la fonction s'arrête
+d'elle-même à 9 000, comptés appel par appel aux tarifs relevés le
+2026-10-11 (`agent/fournisseurs.js`). Un autre fournisseur que Workers
+AI est refusé : brancher un modèle payant doit être une décision, pas une
+variable.
+
+KV n'écrit que deux fois par appel — quota et comptabilité, journal compris —
+parce que le plan gratuit plafonne à mille écritures par jour ; le cache des
+réponses vit dans l'API Cache, gratuite et sans quota d'écriture. L'adresse IP
+n'est jamais stockée, seulement son empreinte salée.
+
+### Tests
+
+`tests/test_agent.py` vérifie les trente questions de niveau 0, le moteur et le
+panneau, en ligne compris face à un serveur simulé ; `tests/test_regles.py`
+les règles, le report déficitaire et le passage VE → fonds propres ;
+`tests/test_fonctions.py` lance les tests Node des fonctions serveur — le Node
+embarqué par Playwright suffit. La mesure des modèles réels se fait sur le site
+déployé : `python tests/mesurer_agent.py`, résultats dans `tests/RESULTATS.md`.
