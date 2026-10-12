@@ -1,4 +1,4 @@
-"""L'assistant : gabarits, moteur de requêtes et panneau.
+"""HARES, questions sur les données : gabarits, moteur de requêtes et panneau.
 
 Critère d'acceptation du brief : les trente premières questions de
 `questions.json` passent au niveau 0, sans serveur. Le reste vérifie le moteur
@@ -140,96 +140,54 @@ def test_le_spread_des_industries_est_celui_qui_entre_dans_le_kd(page_seule):
     assert r["affiche"] < 0.1
 
 
-# ---------------------------------------------------------- panneau, hors ligne
+# ------------------------------------------- HARES : questions sur les données
+# Les questions qui ne portent pas sur l'échantillon (pays, taux, CMPC)
+# gardent leurs réponses, dans l'onglet HARES. L'échantillon a ses propres
+# tests : test_hares.py.
 
-def ouvrir_assistant(page):
-    if not page.is_visible("#panel-assistant"):
-        page.click('.tabs button[data-groupe="assistant"]')
+def ouvrir_hares(page):
+    if not page.is_visible("#panel-hares"):
+        page.click('.tabs button[data-groupe="hares"]')
 
 
 def demander(page, question):
-    ouvrir_assistant(page)
-    page.fill("#agentQuestion", question)
-    page.click("#agentDemander")
+    ouvrir_hares(page)
+    page.fill("#haresQuestion", question)
+    page.click("#haresDemander")
     page.wait_for_timeout(250)
-    return page.inner_text("#agentReponse")
-
-
-def test_l_assistant_a_son_onglet_et_quitte_les_parametres(page):
-    assert page.query_selector("#panel-params #agentPanneau") is None
-    assert not page.is_visible("#agentPanneau")
-    ouvrir_assistant(page)
-    assert page.is_visible("#agentQuestion")
-    assert page.evaluate("document.activeElement.id") == "agentQuestion"
-    assert not page.is_visible("#panel-params")
-
-
-def test_l_onglet_rappelle_le_contexte_de_l_ecran(page):
-    ouvrir_assistant(page)
-    contexte = page.inner_text("#agentContexte")
-    assert page.evaluate("params.country") in contexte
-    assert page.evaluate("params.industry") in contexte
-    # « Modifier » ramène aux Paramètres ; au retour, le contexte a suivi.
-    page.click("#agentContexte [data-agent-onglet]")
-    assert page.is_visible("#panel-params")
-    page.evaluate("params.country = 'Ghana'; apply()")
-    ouvrir_assistant(page)
-    assert "Ghana" in page.inner_text("#agentContexte")
-
-
-def test_les_exemples_repondent_tous_hors_ligne(page):
-    ouvrir_assistant(page)
-    exemples = page.eval_on_selector_all("#agentExemples [data-agent-question]", "els => els.map(e => e.dataset.agentQuestion)")
-    assert len(exemples) >= 6
-    for q in exemples:
-        page.click(f'#agentExemples [data-agent-question="{q}"]')
-        page.wait_for_timeout(150)
-        assert page.query_selector("#agentReponse .agent-erreur") is None, q
-        assert "J'ai compris" in page.inner_text("#agentReponse"), q
-        if page.is_visible("#panel-params"):      # le CMPC appliqué ramène aux Paramètres
-            ouvrir_assistant(page)
-
-
-def test_une_ancienne_reponse_se_rouvre_sous_sa_question(page):
-    demander(page, "taux d'IS du Cameroun")
-    demander(page, "Top 5 pays d'Afrique par prime de risque")
-    ancienne = page.query_selector("#agentHistorique details")
-    assert "taux d'IS du Cameroun" in ancienne.inner_text()
-    assert "%" in ancienne.query_selector("summary").inner_text()      # la valeur, pas « 1 résultat »
-    ancienne.query_selector("summary").click()
-    assert ancienne.query_selector(".agent-table") is not None
-    assert ancienne.query_selector(".agent-table").is_visible()
+    return page.inner_text("#haresReponse")
 
 
 def test_depuis_un_fichier_le_panneau_annonce_le_mode_hors_ligne(page):
-    ouvrir_assistant(page)
-    assert "Mode hors ligne : gabarits seulement" in page.inner_text("#agentPanneau")
+    ouvrir_hares(page)
+    assert "Mode hors ligne : gabarits seulement" in page.inner_text("#panel-hares")
 
 
 def test_une_question_reconnue_s_affiche_avec_sa_reformulation(page):
     texte = demander(page, "Top 5 pays d'Afrique par prime de risque")
     assert "J'ai compris" in texte
-    assert len(page.query_selector_all("#agentReponse .agent-table tbody tr")) == 5
+    assert len(page.query_selector_all("#haresReponse .agent-table tbody tr")) == 5
     assert "Damodaran" in texte
+    assert "L'échantillon de travail n'est pas modifié" in texte
 
 
-def test_une_question_inconnue_dit_que_l_assistant_ne_repond_pas(page):
+def test_une_question_sur_un_pays_ne_touche_pas_l_echantillon(page):
+    ouvrir_hares(page)
+    avant = page.evaluate("idsHares().length")
+    demander(page, "Prime de risque de la Côte d'Ivoire")
+    assert page.evaluate("[idsHares().length, HARES.etapes.length]") == [avant, 0]
+
+
+def test_une_question_inconnue_dit_que_la_traduction_ne_repond_pas(page):
     texte = demander(page, "Quelle est la météo à Abidjan demain ?")
     assert "ne répond pas" in texte
 
 
 def test_corriger_preremplit_la_saisie(page):
     demander(page, "taux d'IS du Sénégal")
-    page.fill("#agentQuestion", "")
-    page.click("#agentReponse [data-agent-corriger]")
-    assert page.input_value("#agentQuestion") == "taux d'IS du Sénégal"
-
-
-def test_l_historique_garde_les_dix_dernieres_questions(page):
-    for i in range(12):
-        demander(page, f"taux d'IS du Sénégal {i}")
-    # La dernière est affichée, les neuf précédentes sont listées.
-    assert len(page.query_selector_all("#agentHistorique li")) == 9
+    page.fill("#haresQuestion", "")
+    page.click("#haresReponse [data-agent-corriger]")
+    assert page.input_value("#haresQuestion") == "taux d'IS du Sénégal"
 
 
 def test_le_panneau_n_ecrit_rien_dans_le_navigateur(navigateur):
@@ -242,6 +200,7 @@ def test_le_panneau_n_ecrit_rien_dans_le_navigateur(navigateur):
     onglet.goto(PAGE.resolve().as_uri(), timeout=90000)
     onglet.wait_for_selector("#paramsMain .card-block")
     demander(onglet, "Prime de risque de la Côte d'Ivoire")
+    demander(onglet, "Fais ressortir uniquement les groupes")
     demander(onglet, "question sans gabarit")
     assert onglet.evaluate("window.__ecritures") == 0
     onglet.close()
@@ -249,7 +208,7 @@ def test_le_panneau_n_ecrit_rien_dans_le_navigateur(navigateur):
 
 def test_appliquer_un_cmpc_le_porte_a_l_ecran(page):
     demander(page, "CMPC d'une cimenterie au Sénégal en 2026")
-    page.click("#agentReponse [data-agent-appliquer]")
+    page.click("#haresReponse [data-agent-appliquer]")
     assert page.evaluate("[params.country, params.industry]") == ["Senegal", "Construction Supplies"]
     # On passe aux Paramètres pour voir le CMPC appliqué.
     assert page.is_visible("#paramsResult")
@@ -269,10 +228,17 @@ def jouer(page, statut, corps, appels):
     page.route("**/api/ask", repondre)
 
 
+def exotique(page, question="question exotique"):
+    ouvrir_hares(page)
+    page.fill("#haresQuestion", question)
+    page.click("#haresDemander")
+
+
 def test_une_question_reconnue_ne_sollicite_pas_le_serveur(page_http):
     appels = []
     jouer(page_http, 200, {"ok": True, "requete": REQUETE_SERVEUR}, appels)
     demander(page_http, "Prime de risque de la Côte d'Ivoire")
+    demander(page_http, "Fais ressortir uniquement les groupes")
     assert appels == []
 
 
@@ -280,34 +246,60 @@ def test_le_serveur_traduit_la_page_execute(page_http):
     appels = []
     jouer(page_http, 200, {"ok": True, "requete": REQUETE_SERVEUR, "modele": "@cf/qwen/qwen3-30b-a3b-fp8"}, appels)
     demander(page_http, "Quels marchés de l'est du continent sont les plus avantageux ?")
-    page_http.wait_for_selector("#agentReponse .agent-table")
-    texte = page_http.inner_text("#agentReponse")
+    page_http.wait_for_selector("#haresReponse .agent-table")
+    texte = page_http.inner_text("#haresReponse")
     assert len(appels) == 1
-    # Le contexte de l'écran part avec la question, jamais les données.
+    # Le contexte de l'écran part avec la question, jamais les données : de
+    # l'échantillon, seulement l'effectif et les étapes.
     assert set(appels[0]) == {"question", "contexte"}
     assert appels[0]["contexte"]["pays"] == page_http.evaluate("params.country")
-    assert "assistant en ligne" in texte
-    assert len(page_http.query_selector_all("#agentReponse .agent-table tbody tr")) == 3
+    assert set(appels[0]["contexte"]["echantillon"]) == {"n", "depart", "etapes"}
+    assert appels[0]["contexte"]["echantillon"]["n"] == page_http.evaluate("idsHares().length")
+    assert "traduite en ligne" in texte
+    assert len(page_http.query_selector_all("#haresReponse .agent-table tbody tr")) == 3
+
+
+def test_le_serveur_peut_traduire_en_operations_sur_l_echantillon(page_http):
+    appels = []
+    operations = {"source": "echantillon", "reformulation": "…", "operations": [
+        {"type": "filtrer", "champ": "continent", "op": "=", "valeur": "Afrique"},
+        {"type": "filtrer", "champ": "marge_ebitda", "op": ">", "valeur": "mediane"}]}
+    jouer(page_http, 200, {"ok": True, "requete": operations, "modele": "@cf/qwen/qwen3-30b-a3b-fp8"}, appels)
+    exotique(page_http, "celles qui surperforment leurs pairs")
+    page_http.wait_for_selector("#haresReponse .hares-etape-tete")
+    r = page_http.evaluate("""() => {
+        const e = HARES.etapes[0];
+        const lignes = e.ids.map(ligneHares);
+        return { n: e.ids.length, afrique: lignes.every((l) => l.continent === 'Afrique'), origine: e.origine };
+    }""")
+    assert r["n"] > 0 and r["afrique"] and r["origine"] == "en_ligne"
+    assert "Médiane de l'échantillon avant ce filtre" in page_http.inner_text("#haresReponse")
 
 
 def test_une_requete_serveur_invalide_est_refusee_par_la_page(page_http):
     appels = []
     jouer(page_http, 200, {"ok": True, "requete": {"source": "pays", "filtres": [{"champ": "pib", "op": ">", "valeur": 1}]}}, appels)
-    ouvrir_assistant(page_http)
-    page_http.fill("#agentQuestion", "question exotique")
-    page_http.click("#agentDemander")
-    page_http.wait_for_selector("#agentReponse .agent-erreur")
-    assert "Champ inconnu" in page_http.inner_text("#agentReponse")
+    exotique(page_http)
+    page_http.wait_for_selector("#haresReponse .agent-erreur")
+    assert "Champ inconnu" in page_http.inner_text("#haresReponse")
+
+
+def test_une_operation_serveur_invalide_n_ajoute_pas_d_etape(page_http):
+    appels = []
+    jouer(page_http, 200, {"ok": True, "requete": {"source": "echantillon", "operations": [
+        {"type": "filtrer", "champ": "pib", "op": ">", "valeur": 1}]}}, appels)
+    exotique(page_http)
+    page_http.wait_for_selector("#haresReponse .agent-erreur")
+    assert "Champ inconnu" in page_http.inner_text("#haresReponse")
+    assert page_http.evaluate("HARES.etapes.length") == 0
 
 
 def test_le_quota_atteint_bascule_sur_les_gabarits(page_http):
     appels = []
     jouer(page_http, 429, {"ok": False, "code": "quota", "reprise": "2026-10-12T00:00:00.000Z"}, appels)
-    ouvrir_assistant(page_http)
-    page_http.fill("#agentQuestion", "question exotique")
-    page_http.click("#agentDemander")
-    page_http.wait_for_selector("#agentReponse .agent-erreur")
-    assert "Quota" in page_http.inner_text("#agentReponse")
+    exotique(page_http)
+    page_http.wait_for_selector("#haresReponse .agent-erreur")
+    assert "Quota" in page_http.inner_text("#haresReponse")
     assert "Quota du jour atteint" in page_http.inner_text('[data-o="agent-etat"]')
     # Les gabarits restent servis.
     assert "J'ai compris" in demander(page_http, "taux d'IS du Sénégal")
@@ -316,15 +308,11 @@ def test_le_quota_atteint_bascule_sur_les_gabarits(page_http):
 def test_le_plafond_gratuit_epuise_passe_hors_ligne(page_http):
     appels = []
     jouer(page_http, 503, {"ok": False, "code": "plafond"}, appels)
-    ouvrir_assistant(page_http)
-    page_http.fill("#agentQuestion", "question exotique")
-    page_http.click("#agentDemander")
-    page_http.wait_for_selector("#agentReponse .agent-erreur")
+    exotique(page_http)
+    page_http.wait_for_selector("#haresReponse .agent-erreur")
     assert "Mode hors ligne" in page_http.inner_text('[data-o="agent-etat"]')
     # Hors ligne, la question suivante ne tente plus le serveur.
-    ouvrir_assistant(page_http)
-    page_http.fill("#agentQuestion", "autre question exotique")
-    page_http.click("#agentDemander")
+    exotique(page_http, "autre question exotique")
     page_http.wait_for_timeout(300)
     assert len(appels) == 1
 
@@ -332,9 +320,7 @@ def test_le_plafond_gratuit_epuise_passe_hors_ligne(page_http):
 def test_une_page_sans_fonction_serveur_reste_utilisable(page_http):
     """Déploiement sans `functions/` : la route renvoie 404 ou 405."""
     page_http.route("**/api/ask", lambda route: route.fulfill(status=405, body="Method Not Allowed"))
-    ouvrir_assistant(page_http)
-    page_http.fill("#agentQuestion", "question exotique")
-    page_http.click("#agentDemander")
-    page_http.wait_for_selector("#agentReponse .agent-erreur")
-    assert "non déployé" in page_http.inner_text("#agentReponse")
+    exotique(page_http)
+    page_http.wait_for_selector("#haresReponse .agent-erreur")
+    assert "non déployée" in page_http.inner_text("#haresReponse")
     assert "J'ai compris" in demander(page_http, "taux d'IS du Sénégal")

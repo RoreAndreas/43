@@ -94,15 +94,52 @@ const MESSAGE = (source) => ({
   properties: { source: { const: source }, reformulation: TEXTE(300) },
 });
 
+// HARES : des opérations sur l'échantillon de travail de la page, appliquées
+// à la suite des précédentes. Même contrat que `executerOperations` côté page.
+export const OPERATIONS_ECHANTILLON = ["filtrer", "trier", "limiter", "statistiques", "aberrantes", "retirer", "garder", "repartir"];
+export const OPERATEURS_ECHANTILLON = OPERATEURS.concat(["entre", "hors"]);
+const OPERATION = {
+  type: "object",
+  additionalProperties: false,
+  required: ["type"],
+  properties: {
+    type: { enum: OPERATIONS_ECHANTILLON },
+    champ: TEXTE(40),
+    op: { enum: OPERATEURS_ECHANTILLON },
+    valeur: {
+      type: ["string", "number", "array"],
+      maxLength: 120,
+      maxItems: 40,
+      items: { type: ["string", "number"], maxLength: 120 },
+    },
+    sens: { enum: ["asc", "desc"] },
+    nombre: { type: "integer", minimum: 1, maximum: 1000 },
+    champs: { type: "array", items: TEXTE(40), maxItems: 6 },
+    noms: { type: "array", items: TEXTE(120), maxItems: 20 },
+    depart: { enum: ["depart", "base", "comparables"] },
+  },
+};
+const ECHANTILLON = {
+  type: "object",
+  additionalProperties: false,
+  required: ["source", "operations"],
+  properties: {
+    source: { const: "echantillon" },
+    operations: { type: "array", items: OPERATION, minItems: 1, maxItems: 8 },
+    reformulation: TEXTE(300),
+  },
+};
+
 export const REPONSE_TRADUCTEUR = {
-  oneOf: [REQUETE, COMPARAISON, MESSAGE("hors_perimetre"), MESSAGE("clarification")],
+  oneOf: [REQUETE, COMPARAISON, ECHANTILLON, MESSAGE("hors_perimetre"), MESSAGE("clarification")],
 };
 
 // Forme demandée au modèle : l'enveloppe seulement, sans oneOf.
 export const FORMAT_TRADUCTEUR = {
   type: "object",
   properties: {
-    source: { type: "string", enum: SOURCES.concat(["comparaison", "hors_perimetre", "clarification"]) },
+    source: { type: "string", enum: SOURCES.concat(["comparaison", "echantillon", "hors_perimetre", "clarification"]) },
+    operations: { type: "array", items: { type: "object" } },
     filtres: { type: "array", items: { type: "object" } },
     tri: { type: "object" },
     limite: { type: "integer" },
@@ -133,6 +170,16 @@ export const QUESTION = {
         secteur: TEXTE(80),
         continent: TEXTE(40),
         zone: { type: ["string", "null"], maxLength: 60 },
+        // L'état de l'échantillon de HARES, jamais ses sociétés.
+        echantillon: {
+          type: ["object", "null"],
+          additionalProperties: false,
+          properties: {
+            n: { type: "integer", minimum: 0 },
+            depart: TEXTE(160),
+            etapes: { type: "array", items: TEXTE(160), maxItems: 12 },
+          },
+        },
       },
     },
   },

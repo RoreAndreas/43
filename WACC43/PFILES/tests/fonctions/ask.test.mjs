@@ -61,6 +61,43 @@ test("une comparaison et un hors-périmètre passent le schéma strict", async (
   assert.equal(r.corps.requete.source, "hors_perimetre");
 });
 
+const ECHANTILLON = {
+  source: "echantillon",
+  operations: [
+    { type: "filtrer", champ: "marge_ebitda", op: "entre", valeur: [0.2, 0.35] },
+    { type: "trier", champ: "ca", sens: "desc" },
+    { type: "statistiques", champs: ["ve_ebitda", "ve_ca", "pe"] },
+  ],
+  reformulation: "Marge entre 20 et 35 %, classées par CA, statistiques des multiples",
+};
+const CONTEXTE_HARES = { pays: "Benin", echantillon: { n: 23, depart: "23 sociétés — Telecommunication Services, Afrique", etapes: ["Groupes"] } };
+
+test("HARES : des opérations sur l'échantillon passent le schéma strict", async () => {
+  const ai = new AiScripte([reponseQwen(JSON.stringify(ECHANTILLON))]);
+  const r = await appel(environnement({ AI: ai }), { question: "garde la marge entre 20 et 35 %", contexte: CONTEXTE_HARES });
+  assert.equal(r.statut, 200);
+  assert.equal(r.corps.requete.source, "echantillon");
+  assert.deepEqual(r.corps.requete.operations[0].valeur, [0.2, 0.35]);
+  // Le modèle reçoit l'état de l'échantillon, jamais ses sociétés.
+  assert.match(ai.appels[0].corps.messages[1].content, /"echantillon":\{"n":23/);
+});
+
+test("HARES : une opération inventée est refusée", async () => {
+  const fautive = Object.assign({}, ECHANTILLON, { operations: [{ type: "deviner", champ: "ca" }] });
+  const ai = new AiScripte([reponseQwen(JSON.stringify(fautive))]);
+  const r = await appel(environnement({ AI: ai }), { question: "fais quelque chose", contexte: CONTEXTE_HARES });
+  assert.equal(r.statut, 502);
+  assert.equal(r.corps.code, "traduction");
+  assert.equal(ai.appels.length, 2);
+});
+
+test("HARES : un contexte d'échantillon mal formé est refusé avant tout appel", async () => {
+  const ai = new AiScripte([]);
+  const r = await appel(environnement({ AI: ai }), { question: "groupes", contexte: { echantillon: { n: 3, societes: ["Sonatel"] } } });
+  assert.equal(r.statut, 400);
+  assert.equal(ai.appels.length, 0);
+});
+
 test("une requête invalide est redemandée une fois, puis refusée", async () => {
   // Un opérateur inventé : le schéma strict doit le refuser.
   const fautive = Object.assign({}, REQUETE_PAYS, { filtres: [{ champ: "crp", op: "environ", valeur: 0.05 }] });

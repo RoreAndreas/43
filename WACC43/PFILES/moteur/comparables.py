@@ -106,6 +106,42 @@ EXERCICES = ["FY2025", "FY2024", "FY2023", "FY2022"]
 # S&P écrit « NA » quand la donnée manque, et parfois « NM » (non significatif).
 _ABSENT = {"NA", "NM", "NC", "-", ""}
 
+# Place d'une société dans son groupe. Aucun export ne la donne en colonne : on
+# la lit dans la description intégrale, où S&P la dit presque toujours en fin
+# de texte — « Absa Bank Kenya PLC operates as a subsidiary of Absa Group
+# Limited. » La page n'embarque que la première phrase : c'est donc ici, et
+# non dans le navigateur, que la filiation peut être lue.
+#
+# Le nom de la mère court jusqu'au point qui ouvre une nouvelle phrase, pas
+# jusqu'au premier point : « Société Générale S.A. » s'arrêterait sinon à « S ».
+_FILIALE = re.compile(
+    r"\b(?:operates as|is) an? (?:(?:wholly|majority|partially)[- ]owned |direct |indirect |consolidated )?"
+    r"subsidiary of (.+?)\.(?=\s+[A-Z][a-z]|\s*$)")
+# Une tête de groupe : la description parle de filiales ou d'une activité
+# découpée en segments, ou le nom le dit. Les segments rattrapent les grands
+# groupes que S&P décrit sans le mot « subsidiaries » — AT&T, Comcast.
+_GROUPE_DESCRIPTION = re.compile(
+    r"\bsubsidiar(?:ies|y)\b|\boperates? (?:in|through) (?:\w+ ){0,2}(?:segments|divisions)\b", re.I)
+_GROUPE_NOM = re.compile(r"\b(?:group|groupe|grupo|gruppe|groep|holding|holdings)\b", re.I)
+# Code S&P de la trésorerie, absent des exports d'octobre 2026. Quand il y
+# figure, la dette nette remplace la dette brute dans les ratios de HARES.
+CODE_TRESORERIE = "IQ_CASH_ST_INVEST"
+
+
+def statut_groupe(nom, description) -> tuple:
+    """("filiale", mère), ("groupe", None), ou (None, None) faute de signal.
+
+    Filiale l'emporte : une banque peut décrire ses propres filiales et appartenir
+    elle-même à un groupe — Absa Bank Kenya fait les deux.
+    """
+    texte = " ".join(str(description or "").split())
+    m = _FILIALE.search(texte)
+    if m:
+        return "filiale", m.group(1).strip()[:120]
+    if _GROUPE_DESCRIPTION.search(texte) or _GROUPE_NOM.search(str(nom or "")):
+        return "groupe", None
+    return None, None
+
 
 def _nombre(valeur):
     if valeur is None:
@@ -292,17 +328,21 @@ def charger(chemin: Path, progress=None) -> dict:
         c3 = _colonnes(wb["Sheet3"], chemin)
         p_id, fp, dette, capi = (c3.une(code) for code in
                                  ("SP_ENTITY_ID", "IQ_TOTAL_EQUITY", "IQ_TOTAL_DEBT", "SP_MARKETCAP"))
+        # Facultative : sans elle, HARES calcule ses ratios sur la dette brute.
+        p_tresorerie = c3.une(CODE_TRESORERIE) if c3.a(CODE_TRESORERIE) else None
         marche = {}
         for ligne in wb["Sheet3"].iter_rows(min_row=PREMIERE_LIGNE, values_only=True):
             ident = ligne[p_id]
             if not ident:
                 continue
             fonds_propres, montant = _nombre(ligne[fp]), _nombre(ligne[dette])
+            tresorerie = None if p_tresorerie is None else _nombre(ligne[p_tresorerie])
             marche[str(ident)] = {
                 # Fonds propres et dette en milliers, capitalisation en millions :
                 # on ramène tout en millions pour que les rapports aient un sens.
                 "fonds_propres": None if fonds_propres is None else fonds_propres / 1000.0,
                 "dette": None if montant is None else montant / 1000.0,
+                "tresorerie": None if tresorerie is None else tresorerie / 1000.0,
                 "capitalisation": _nombre(ligne[capi]),
             }
     finally:
@@ -599,6 +639,15 @@ def payload_page(univers: dict, classer) -> dict:
             "ebitda": {a[2:]: millions(ebitda.get(a)) for a in EXERCICES},
             "rn": {a[2:]: millions(rn.get(a)) for a in EXERCICES[:3]},
         }
+        # Embarqués seulement quand ils disent quelque chose : sur huit mille
+        # sociétés, des clés nulles pèseraient pour rien.
+        statut, mere = statut_groupe(s["nom"], s.get("description"))
+        if statut:
+            sortie[ident]["statut"] = statut
+        if mere:
+            sortie[ident]["mere"] = mere
+        if s.get("tresorerie") is not None:
+            sortie[ident]["tresorerie"] = round(s["tresorerie"], 1)
     return sortie
 
 

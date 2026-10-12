@@ -72,7 +72,7 @@ def page(navigateur):
 def site_http():
     """La page servie en HTTP, sur un port libre.
 
-    L'assistant appelle /api/ask et /api/forecast en relatif : depuis
+    HARES et l'analyste appellent /api/ask et /api/forecast en relatif : depuis
     `file://`, ces appels n'aboutissent jamais. Servie ainsi, la page les émet
     vraiment, et les tests les interceptent pour jouer le serveur.
     """
@@ -274,10 +274,10 @@ def secteur(donnees: dict, nom: str, perimetre: str = "univers") -> dict:
     raise AssertionError(f"secteur « {nom} » absent du périmètre « {perimetre} »")
 
 
-# Onglets : CMPC (Paramètres, Calcul, Sociétés), Insight, Valorisation, Assistant.
+# Onglets : CMPC (Paramètres, Calcul, Sociétés), Insight, Valorisation, HARES.
 # Chaque vue s'atteint par son onglet puis, s'il y en a un, son sous-onglet.
 GROUPES = {"params": "cmpc", "wacc": "cmpc", "societes": "cmpc", "insight": "insight",
-           "valorisation": "valorisation", "assistant": "assistant"}
+           "valorisation": "valorisation", "hares": "hares"}
 
 
 def ouvrir(page, vue: str) -> None:

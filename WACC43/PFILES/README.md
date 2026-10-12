@@ -6,9 +6,10 @@ courbe des taux US Treasury.
 La plateforme est **une page statique** : les données de marché (~21 Ko) sont
 embarquées dans le fichier HTML et les formules s'appliquent dans le navigateur.
 Aucun serveur à faire tourner, donc aucun coût d'hébergement et rien à
-surveiller. Seul l'assistant, facultatif, passe par deux fonctions Cloudflare,
-sur un modèle gratuit : sans elles, la page fonctionne à l'identique et
-l'assistant répond par ses gabarits (voir « Assistant », plus bas).
+surveiller. Seuls HARES et l'analyste de prévision, facultatifs, passent par
+deux fonctions Cloudflare, sur un modèle gratuit : sans elles, la page
+fonctionne à l'identique et HARES lit les demandes courantes sur place (voir
+« HARES », plus bas).
 
 ## Organisation
 
@@ -17,7 +18,7 @@ PFILES/
 ├── moteur/          le code Python : téléchargement, calcul, construction, export
 ├── presentation/    le gabarit — CSS, markup et formules en JavaScript
 ├── site/            le livrable publié par Cloudflare Pages (index.html)
-├── functions/       les deux routes de l'assistant (Cloudflare Pages Functions)
+├── functions/       les deux routes de HARES et de l'analyste (Cloudflare Pages Functions)
 ├── agent/           les modules qu'elles importent : garde-fous, modèle, instructions
 ├── donnees/         le jeu de données extrait, lisible, hors du dossier publié
 ├── requirements.txt
@@ -35,8 +36,8 @@ PFILES/
 | `moteur/export_wacc.py` | Génération du classeur Excel |
 | `moteur/serve.py` | Aperçu local et export Excel |
 | `presentation/wacc_value_tab.html` | Présentation **et** formules en JavaScript |
-| `functions/api/ask.js` | Assistant, niveau 1 : une question devient une requête |
-| `functions/api/forecast.js` | Assistant, niveau 2 : l'analyste relit le prévisionnel |
+| `functions/api/ask.js` | HARES, niveau 1 : une demande devient une requête ou des opérations sur l'échantillon |
+| `functions/api/forecast.js` | Niveau 2 : l'analyste relit le prévisionnel |
 | `agent/` | Garde-fous, adaptateur Workers AI, instructions, schémas — hors de `functions/`, qui ne porte que des routes |
 
 Le dossier `site/` porte ce nom parce qu'il est déclaré tel quel dans Cloudflare
@@ -163,30 +164,65 @@ n'en publie pas fait retenir le 1 an pour ses sociétés, et la page le signale.
 > pour la page, et en Python dans `moteur/wacc_core.py`, pour l'export Excel.
 > Toute modification de la méthode doit être portée des deux côtés.
 
-## Assistant
+## HARES
 
-Un assistant, dans l'onglet du même nom, répond en français aux questions sur
-les données embarquées, et propose des hypothèses de prévision justifiées. Il
-suit le brief du 5 octobre 2026 avec une contrainte de plus : **son cerveau est
-gratuit**. Les deux rôles tournent sur Cloudflare Workers AI, dans l'enveloppe
-offerte de 10 000 neurones par jour, chez l'hébergeur qui sert déjà la page.
+HARES vit dans son propre onglet, sur toute la zone de contenu, sans panneau
+latéral ni filtre classique. Il affine et analyse en langage naturel un
+**échantillon de travail** de sociétés cotées :
+
+- **Départ.** L'échantillon des comparables quand le référentiel Comparables en
+  définit un — les sociétés retenues du CMPC, annoncées en tête de page —,
+  sinon la base complète. Un bouton repart de la base complète. HARES suit
+  l'échantillon des comparables tant qu'aucune demande n'a été appliquée ; au
+  delà, il signale qu'il a changé sans l'écraser.
+- **Demandes cumulatives.** Chaque demande s'applique au résultat de la
+  précédente : filtrer (secteur, lieu, statut, seuils sur la marge, le levier,
+  les multiples…), classer, garder les N premières, médiane et quartiles,
+  valeurs aberrantes (règle de Tukey, chaque retrait expliqué), retirer des
+  sociétés nommées. Le fil des étapes permet d'annuler ou de reprendre plus
+  haut ; « repars de zéro » revient au départ.
+- **Cloisonné.** Rien de ce que HARES filtre ne touche les autres onglets. Seul
+  « Envoyer vers comparaison » transmet l'échantillon, et seulement aux
+  multiples de Valorisation › Comparables — donc à la valorisation par les
+  comparables, à la Synthèse et à l'export. Le bêta du CMPC reste celui des
+  sociétés retenues.
+
+Deux données manquent aux exports S&P, et HARES le dit quand il s'en sert :
+
+- **Groupe ou filiale.** Aucun export ne le donne en colonne. Le build le lit
+  dans la description intégrale (`statut_groupe()` dans `comparables.py`) :
+  filiale quand S&P la dit « subsidiary of » une autre société, dont le nom
+  est gardé ; groupe quand la description parle de filiales ou d'une activité
+  découpée en segments, ou que le nom porte Group ou Holding. Sur 8 118
+  sociétés : 3 311 groupes, 828 filiales, 3 979 sans signal.
+- **Trésorerie.** Absente des exports : le levier est la dette totale (brute) /
+  EBITDA. Ajouter la colonne `IQ_CASH_ST_INVEST` à l'onglet des données de
+  marché suffit pour que le build la lise et que HARES passe en dette nette.
+
+HARES suit le brief du 5 octobre 2026 avec une contrainte de plus : **son
+cerveau est gratuit**. HARES et l'analyste de prévision tournent sur Cloudflare
+Workers AI, dans l'enveloppe offerte de 10 000 neurones par jour, chez
+l'hébergeur qui sert déjà la page. Les questions qui ne portent pas sur
+l'échantillon — un pays, un taux, le CMPC — gardent leurs réponses, dans le
+même onglet.
 
 | Niveau | Où | Rôle | Coût |
 |---|---|---|---|
-| 0 | navigateur | trente gabarits de questions, exécutés sur `DATA` et `COMPARABLES` | 0 |
-| 1 | `/api/ask` | traduit une question libre en requête structurée | ≈ 12 neurones (Qwen 3 30B) |
+| 0 | navigateur | gabarits de demandes et de questions, exécutés sur `DATA` et `COMPARABLES` | 0 |
+| 1 | `/api/ask` | traduit une demande libre en requête ou en opérations sur l'échantillon | ≈ 12 neurones (Qwen 3 30B) |
 | 2 | `/api/forecast` | l'analyste relit le prévisionnel, dans des bornes | ≈ 400 neurones (Llama 3.3 70B) |
 
-**Le modèle ne lit jamais les données.** Il traduit une question en requête,
-que la page exécute elle-même ; ou il juge un dossier de ratios agrégés en
+**Le modèle ne lit jamais les données.** Il traduit une demande en requête ou
+en opérations, que la page exécute elle-même — de l'échantillon, il ne reçoit
+que l'effectif et les étapes ; ou il juge un dossier de ratios agrégés en
 millions de FCFA, jamais la balance. Toute réponse est validée deux fois, par
 le serveur puis par la page, et une valeur hors bornes est ramenée à la borne.
 
 **La page reste autonome.** Ouverte depuis un fichier, déployée sans
 `functions/`, ou quand l'enveloppe du jour est consommée, elle calcule, exporte
-et répond à ses gabarits ; le panneau dit qu'il est hors ligne.
+et HARES lit les demandes courantes sur place ; l'onglet dit qu'il est hors ligne.
 
-**Rien ne part sans le dire.** La question quitte le navigateur au niveau 1 ;
+**Rien ne part sans le dire.** La demande quitte le navigateur au niveau 1 ;
 les chiffres de la société au niveau 2, et seulement une fois cochée la case
 « Les chiffres de la société seront envoyés à un service externe pour analyse ».
 
@@ -209,7 +245,7 @@ Cloudflare Pages cherche `functions/` dans le **répertoire racine du projet**,
 pas dans le répertoire de sortie. Pour que celui-ci soit trouvé, le projet doit
 avoir pour répertoire racine `WACC43/PFILES` et pour répertoire de sortie
 `site` (Settings › Builds). Sans cela, la page se déploie comme avant et
-l'assistant reste en mode gabarits.
+HARES reste en mode gabarits.
 
 Puis, dans Settings › Functions et Settings › Variables :
 

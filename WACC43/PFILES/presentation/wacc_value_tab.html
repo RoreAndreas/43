@@ -2285,49 +2285,35 @@
     .ins-chiffres { grid-template-columns: 1fr; }
     .ins-table th, .ins-table td { padding: 8px 5px; }
   }
-  /* ---------- Onglet Assistant ---------- */
-  /* À gauche la conversation, à droite ce qui l'éclaire : le contexte que
-     l'assistant reprend (« son CMPC », « ce secteur »), des exemples, et sa
-     façon de répondre. La colonne de droite reste en vue au défilement. */
-  .assistant {
-    max-width: 1060px;
-    margin: 0 auto;
-    padding: 30px 32px 120px;
-  }
-  .agent {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) 300px;
-    gap: 26px;
-    align-items: start;
-  }
-  .agent-principal, .agent-bloc {
-    display: grid;
-    min-width: 0;
-    background: var(--surface);
-    border: 1px solid var(--line);
-    border-radius: 10px;
-  }
-  .agent-principal { gap: 16px; padding: 22px 24px 24px; }
-  .agent-cote { display: grid; gap: 14px; position: sticky; top: 24px; }
-  .agent-bloc { gap: 10px; padding: 18px 20px; }
-  .agent-bloc h2 {
-    margin: 0;
-    font: 400 10px/1 var(--mono);
-    letter-spacing: 0.09em;
-    text-transform: uppercase;
-    color: var(--muted);
-  }
-  .agent-bloc .result-row { padding: 8px 12px; }
-  .agent-bloc .result-row span:last-child { text-align: right; font-family: var(--sans); }
-  .agent-theme { display: grid; gap: 6px; }
-  .agent-theme h3 { margin: 4px 0 0; font: 500 11px/1.3 var(--sans); color: var(--ink-3); }
-  .agent-etapes { display: grid; gap: 8px; margin: 0; padding-left: 16px; font: 400 11.5px/1.5 var(--sans); color: var(--ink-3); }
-  .agent-tete { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px 18px; flex-wrap: wrap; }
-  .agent-titre { margin: 0; font: 500 19px/1.2 var(--sans); color: var(--ink); }
-  .agent-sous-titre { margin: 5px 0 0; max-width: 520px; font: 400 12.5px/1.45 var(--sans); color: var(--muted); }
+  /* ---------- Onglet HARES ---------- */
+  /* HARES occupe toute la zone de contenu sous la navigation : ni colonne
+     latérale ni filtre classique, seulement la saisie, le fil des étapes et
+     l'échantillon. Le tableau compte douze colonnes : il prend toute la
+     largeur, sans le plafond de 1060 px des autres onglets. */
+  .hares { padding: 26px 32px 120px; }
+  .hares-cadre { display: grid; gap: 16px; min-width: 0; }
+  .hares-tete { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px 18px; flex-wrap: wrap; }
+  .hares-titre { margin: 0; font: 600 21px/1.15 var(--sans); letter-spacing: 0.06em; color: var(--ink); }
+  .hares-sous-titre { margin: 5px 0 0; max-width: 680px; font: 400 12.5px/1.45 var(--sans); color: var(--muted); }
   .agent-etat { padding-top: 4px; font: 400 10.5px/1.35 var(--sans); color: var(--muted-2); }
   .agent-etat.is-hors-ligne { color: var(--warn); }
-  .agent-saisie { display: flex; gap: 8px; }
+  .hares-depart {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 8px 16px;
+    flex-wrap: wrap;
+    padding: 12px 16px;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    background: var(--surface);
+    font: 400 12.5px/1.45 var(--sans);
+    color: var(--ink-3);
+  }
+  .hares-depart b { font-weight: 500; color: var(--ink); }
+  .hares-depart-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+  .hares-alerte { flex-basis: 100%; margin: 0; color: var(--warn); }
+  .hares-saisie { display: flex; gap: 8px; }
   .agent-champ {
     flex: 1;
     min-width: 0;
@@ -2339,9 +2325,84 @@
     color: var(--ink);
   }
   .agent-champ:focus { outline: none; border-color: var(--accent); background: var(--surface); }
-  .agent-reponse { display: grid; gap: 10px; }
-  .agent-reponse:not(:empty) { padding-top: 16px; border-top: 1px solid var(--line); }
-  .agent-reponse:empty, .agent-historique:empty { display: none; }
+  .hares-exemples:empty, .hares-fil:empty, .hares-reponse:empty { display: none; }
+  .hares-fil { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin: 0; padding: 0; list-style: none; }
+  .hares-fil li { display: flex; align-items: center; gap: 6px; }
+  .hares-fil li + li::before { content: "→"; font: 400 12px/1 var(--sans); color: var(--muted-2); }
+  .hares-pas {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 6px;
+    padding: 5px 10px;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    background: var(--tile);
+    font: 400 11.5px/1.25 var(--sans);
+    color: var(--ink-3);
+    cursor: pointer;
+  }
+  .hares-pas b { font: 500 11.5px/1 var(--mono); color: var(--ink); }
+  .hares-pas:hover { border-color: var(--accent-chip); }
+  .hares-pas.is-actif { border-color: var(--accent); background: var(--accent-tint); color: var(--accent); }
+  .hares-reponse, .hares-echantillon {
+    display: grid;
+    gap: 10px;
+    min-width: 0;
+    padding: 18px 20px 20px;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    background: var(--surface);
+  }
+  .hares-etape-tete { display: flex; align-items: baseline; gap: 6px 12px; flex-wrap: wrap; }
+  .hares-etape-num { font: 400 10px/1 var(--mono); letter-spacing: 0.09em; text-transform: uppercase; color: var(--muted); }
+  .hares-effectif { margin-left: auto; font: 500 12px/1 var(--mono); color: var(--ink-2); white-space: nowrap; }
+  .hares-notes, .hares-retirees ul { display: grid; gap: 4px; margin: 0; padding-left: 16px; font: 400 12px/1.5 var(--sans); color: var(--ink-3); }
+  .hares-intertitre { margin: 4px 0 6px; font: 400 9.5px/1 var(--mono); letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted-2); }
+  .hares-retirees b { font-weight: 500; color: var(--ink-2); }
+  .hares-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+  .hares-defile { overflow-x: auto; }
+  .hares-table-tete { display: flex; align-items: center; gap: 8px 16px; flex-wrap: wrap; }
+  .hares-table-tete h2 { margin: 0; font: 500 14px/1.2 var(--sans); color: var(--ink); }
+  .hares-table-tete h2 b { font: 500 14px/1 var(--mono); color: var(--green); }
+  .hares-table-note { font: 400 11px/1.4 var(--sans); color: var(--muted); }
+  .hares-table-tete .valo-bouton { margin-left: auto; }
+  .hares-envoye { margin: 0; font: 400 12px/1.5 var(--sans); color: var(--green); }
+  .hares-table-defile { overflow: auto; max-height: 70vh; border: 1px solid var(--line); border-radius: 8px; }
+  .hares-table { width: 100%; border-collapse: collapse; font: 400 12px/1.35 var(--sans); }
+  .hares-table th {
+    position: sticky;
+    top: 0;
+    z-index: 1;
+    padding: 8px 10px;
+    border-bottom: 1px solid var(--line);
+    background: var(--tile);
+    text-align: left;
+    font: 400 9.5px/1.2 var(--mono);
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: var(--muted);
+    white-space: nowrap;
+  }
+  .hares-table th.is-tri { color: var(--accent); }
+  .hares-table td { padding: 7px 10px; border-bottom: 1px solid var(--line); color: var(--ink-3); vertical-align: top; }
+  .hares-table tr:last-child td { border-bottom: 0; }
+  .hares-table .is-nombre { text-align: right; font-family: var(--mono); font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .hares-nom { display: block; font-weight: 500; color: var(--ink); }
+  .hares-sous { display: block; font-size: 11px; color: var(--muted); }
+  .hares-vide { margin: 0; padding: 18px; text-align: center; font: 400 12.5px/1.5 var(--sans); color: var(--muted); }
+  .notice-hares {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 6px 16px;
+    flex-wrap: wrap;
+    padding: 12px 16px;
+    border-radius: 10px;
+    background: var(--accent-tint);
+    font: 400 12.5px/1.5 var(--sans);
+    color: var(--ink-3);
+  }
+  .notice-hares b { font-weight: 500; color: var(--accent); }
   .agent-question { margin: 0; font: 500 13px/1.45 var(--sans); color: var(--ink-2); }
   .agent-entete { margin: 0; font: 400 12.5px/1.5 var(--sans); color: var(--ink-3); }
   .agent-chiffre { font: 500 28px/1 var(--mono); font-variant-numeric: tabular-nums; color: var(--green); }
@@ -2395,20 +2456,6 @@
   }
   .agent-erreur .agent-exemples { margin-top: 8px; }
   .agent-exemples { display: flex; flex-wrap: wrap; gap: 6px; margin: 0; padding: 0; list-style: none; }
-  .agent-historique ul { display: grid; gap: 6px; margin: 0; padding: 0; list-style: none; }
-  .agent-ancienne { border: 1px solid var(--line); border-radius: 8px; background: var(--tile); }
-  .agent-ancienne summary {
-    display: flex;
-    justify-content: space-between;
-    gap: 12px;
-    padding: 8px 12px;
-    font: 400 12px/1.45 var(--sans);
-    color: var(--ink-3);
-    cursor: pointer;
-  }
-  .agent-ancienne summary span:last-child { flex: none; color: var(--muted-2); }
-  .agent-ancienne[open] summary { border-bottom: 1px solid var(--line); }
-  .agent-ancienne-corps { display: grid; gap: 10px; padding: 12px; background: var(--surface); border-radius: 0 0 8px 8px; }
   .agent-puce {
     padding: 5px 9px;
     border: 1px solid var(--line);
@@ -2420,21 +2467,11 @@
     cursor: pointer;
   }
   .agent-puce:hover { border-color: var(--accent-chip); color: var(--accent); }
-  .agent-historique h3 {
-    margin: 0 0 6px;
-    font: 400 9.5px/1 var(--mono);
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    color: var(--muted-2);
-  }
   .agent-attente { margin: 0; font: 400 12px/1.5 var(--sans); color: var(--muted); }
-  @media (max-width: 940px) {
-    .agent { grid-template-columns: 1fr; }
-    .agent-cote { position: static; }
-  }
   @media (max-width: 600px) {
-    .assistant { padding: 20px 16px 80px; }
-    .agent-principal { padding: 18px 16px 20px; }
+    .hares { padding: 18px 16px 80px; }
+    .hares-reponse, .hares-echantillon { padding: 14px 14px 16px; }
+    .hares-table-tete .valo-bouton { margin-left: 0; }
   }
   [hidden] { display: none !important; }
   .is-busy { opacity: .55; transition: opacity 160ms ease; }
@@ -2494,7 +2531,7 @@
       <!-- N'apparaît qu'avec le référentiel Comparables -->
       <button type="button" data-groupe="insight" id="tabInsight" hidden>Insight</button>
       <button type="button" data-groupe="valorisation">Valorisation</button>
-      <button type="button" data-groupe="assistant">Assistant</button>
+      <button type="button" data-groupe="hares">HARES</button>
     </nav>
   </div>
 </header>
@@ -2564,40 +2601,27 @@
          accept=".xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet">
 </main>
 
-<main class="assistant" id="panel-assistant" hidden>
-  <section class="agent" id="agentPanneau" aria-label="Assistant">
-    <div class="agent-principal">
-      <div class="agent-tete">
-        <div>
-          <h1 class="agent-titre">Assistant</h1>
-          <p class="agent-sous-titre">Une question en français sur les pays, les industries, les sociétés
-          cotées, les taux ou le CMPC : la réponse vient des données de la page.</p>
-        </div>
-        <span class="agent-etat" data-o="agent-etat"></span>
+<main class="hares" id="panel-hares" hidden>
+  <div class="hares-cadre" id="haresPanneau" aria-label="HARES">
+    <div class="hares-tete">
+      <div>
+        <h1 class="hares-titre">HARES</h1>
+        <p class="hares-sous-titre">Affinez et analysez un échantillon de sociétés cotées en langage naturel.
+        Chaque demande s'applique au résultat de la précédente ; les autres onglets n'en sont pas modifiés.</p>
       </div>
-      <form class="agent-saisie" id="agentFormulaire">
-        <input type="text" id="agentQuestion" class="agent-champ" maxlength="400" autocomplete="off"
-               placeholder="Par exemple : prime de risque du Sénégal" aria-label="Question à l'assistant">
-        <button type="submit" class="valo-bouton is-plein" id="agentDemander">Demander</button>
-      </form>
-      <div class="agent-reponse" id="agentReponse" aria-live="polite"></div>
-      <div class="agent-historique" id="agentHistorique"></div>
+      <span class="agent-etat" data-o="agent-etat"></span>
     </div>
-    <aside class="agent-cote">
-      <div class="agent-bloc" id="agentContexte"></div>
-      <div class="agent-bloc" id="agentExemples"></div>
-      <div class="agent-bloc">
-        <h2>Comment il répond</h2>
-        <ul class="agent-etapes">
-          <li>Les questions courantes sont reconnues sur place, sans réseau.</li>
-          <li>Les autres sont traduites en requête par un modèle ouvert et gratuit, qui ne voit
-          jamais les données : la page exécute la requête elle-même.</li>
-          <li>Sous chaque réponse, ce qu'il a compris et la source des chiffres. Corriger reprend
-          la question.</li>
-        </ul>
-      </div>
-    </aside>
-  </section>
+    <div class="hares-depart" id="haresDepart"></div>
+    <form class="hares-saisie" id="haresFormulaire">
+      <input type="text" id="haresQuestion" class="agent-champ" maxlength="400" autocomplete="off"
+             placeholder="Par exemple : fais ressortir uniquement les groupes" aria-label="Demande à HARES">
+      <button type="submit" class="valo-bouton is-plein" id="haresDemander">Demander</button>
+    </form>
+    <div class="agent-exemples hares-exemples" id="haresExemples"></div>
+    <ol class="hares-fil" id="haresFil"></ol>
+    <div class="hares-reponse" id="haresReponse" aria-live="polite"></div>
+    <section class="hares-echantillon" id="haresEchantillon"></section>
+  </div>
 </main>
 
 <main class="aide" id="panel-aide" hidden>
@@ -2806,16 +2830,17 @@
           <circle cx="26" cy="17" r="1.6" class="v4-plein"/>
         </svg></span>
         <div>
-          <h2>Poser une question à l'assistant</h2>
-          <span class="aide-ou">Onglet Assistant</span>
-          <p>« Prime de risque du Sénégal », « médiane des bêtas des banques en Afrique de
-          l'Ouest », « CMPC d'une cimenterie à Abidjan » : l'assistant cherche, filtre et
-          compile les données de la page, et dit sous chaque réponse ce qu'il a compris —
-          un clic sur Corriger reprend la question. Quand la question ne précise pas le pays
-          ou le secteur, il reprend ceux des Paramètres, rappelés à droite de l'onglet.</p>
-          <p>Les questions courantes sont reconnues sur place, sans réseau. Les autres sont
-          traduites par un modèle ouvert et gratuit, qui ne voit jamais les données : il
-          rédige la requête, la page l'exécute.</p>
+          <h2>Affiner l'échantillon avec HARES</h2>
+          <span class="aide-ou">Onglet HARES</span>
+          <p>HARES part de l'échantillon des comparables, ou de la base complète, et l'affine
+          en langage naturel : « fais ressortir uniquement les groupes », « marge d'EBITDA
+          entre 20 % et 35 % », « médiane et quartiles des multiples », « retire les valeurs
+          aberrantes ». Chaque demande s'applique au résultat de la précédente, et dit ce
+          qu'elle a compris — Corriger la reprend, Annuler la retire.</p>
+          <p>Rien de ce que HARES filtre ne touche les autres onglets : seul « Envoyer vers
+          comparaison » transmet l'échantillon aux multiples de Valorisation › Comparables.
+          Les demandes courantes se lisent sur place ; les autres sont traduites par un
+          modèle ouvert et gratuit, qui ne voit jamais les données.</p>
         </div>
       </li>
     </ol>
@@ -3251,10 +3276,10 @@
 
   /* ================= Onglets =================
      Quatre onglets : CMPC (Paramètres, Calcul, Sociétés), Insight,
-     Valorisation et Assistant. `tab` retient la vue affichée ; l'onglet du
-     haut s'en déduit, et se rouvre sur la dernière vue visitée. */
-  const GROUPE_ONGLET = { params: "cmpc", wacc: "cmpc", societes: "cmpc", insight: "insight", valorisation: "valorisation", assistant: "assistant" };
-  const DERNIER_ONGLET = { cmpc: "params", insight: "insight", valorisation: "valorisation", assistant: "assistant" };
+     Valorisation et HARES. `tab` retient la vue affichée ; l'onglet du haut
+     s'en déduit, et se rouvre sur la dernière vue visitée. */
+  const GROUPE_ONGLET = { params: "cmpc", wacc: "cmpc", societes: "cmpc", insight: "insight", valorisation: "valorisation", hares: "hares" };
+  const DERNIER_ONGLET = { cmpc: "params", insight: "insight", valorisation: "valorisation", hares: "hares" };
 
   // Le fond noir des sous-onglets glisse, comme celui des vues de la Valorisation.
   function placerCurseursOnglets() {
@@ -3294,7 +3319,7 @@
     $("panel-societes").hidden = tab !== "societes";
     $("panel-insight").hidden = tab !== "insight";
     $("panel-valorisation").hidden = tab !== "valorisation";
-    $("panel-assistant").hidden = tab !== "assistant";
+    $("panel-hares").hidden = tab !== "hares";
     $("panel-aide").hidden = tab !== "aide";
     // Le bouton du guide est hors de la barre : son etat actif ne suit pas la
     // boucle ci-dessus, qui ne balaie que les onglets.
@@ -3309,8 +3334,8 @@
     }
     // La balance a pu être importée depuis : Insight se relit à chaque ouverture.
     if (tab === "insight") renderInsight();
-    // Le contexte affiché suit les paramètres, qui ont pu changer entre-temps.
-    if (tab === "assistant") rendreAgent();
+    // HARES reprend l'échantillon des comparables à l'ouverture.
+    if (tab === "hares") ouvrirHares();
     if (tab === "wacc" || tab === "societes") requestAnimationFrame(placeArrows);
   }
   // Tout ce qui porte data-tab bascule la vue, dans les sous-onglets ou
@@ -3322,8 +3347,8 @@
     b.addEventListener("click", () => {
       tab = DERNIER_ONGLET[b.dataset.groupe];
       renderTabs();
-      // On vient à l'assistant pour écrire : la saisie prend la main.
-      if (tab === "assistant") $("agentQuestion").focus();
+      // On vient à HARES pour écrire : la saisie prend la main.
+      if (tab === "hares") $("haresQuestion").focus();
     });
   });
   window.addEventListener("resize", placerCurseursOnglets);
@@ -4792,10 +4817,22 @@
     corps.style.minHeight = mesure > 0 ? mesure + "px" : pose;
   }
 
+  // L'échantillon des multiples : celui que HARES a envoyé, sinon les sociétés
+  // retenues du CMPC. Le bêta du CMPC, lui, reste sur les sociétés retenues :
+  // HARES ne transmet qu'à la comparaison.
+  let ENVOI_HARES = null;
+  function echantillonComparaison() {
+    if (ENVOI_HARES) return { ids: ENVOI_HARES.ids, hares: ENVOI_HARES, stats: null };
+    if (!estComparables()) return null;
+    const r = societesRetenues();
+    return { ids: r.ids, hares: null, stats: r.stats };
+  }
+  const comparaisonActive = () => Boolean(ENVOI_HARES) || estComparables();
+
   function chargerComparables() {
     const main = $("comparablesMain");
-    const retenues = societesRetenues();
-    const sample = retenues.ids.map((id) => COMPARABLES[id]).filter(Boolean);
+    const retenues = echantillonComparaison();
+    const sample = retenues ? retenues.ids.map((id) => COMPARABLES[id]).filter(Boolean) : [];
 
     if (!sample.length) {
       main.innerHTML = `
@@ -4885,12 +4922,15 @@
                        : Math.max(0, obsBox.length * 25 - 8);
 
     main.innerHTML = `
+      ${retenues.hares ? `<div class="notice-hares" id="noticeHares"><span><b>Échantillon envoyé par HARES</b> — ${esc(retenues.hares.libelle)}.</span>
+        <button type="button" class="agent-lien" data-action="hares-oublier">${estComparables() ? "Revenir à l'échantillon du CMPC" : "Retirer l'échantillon de HARES"}</button></div>` : ""}
       <section class="card-block">
         <div class="block-head">
           <h2>Multiples de l'échantillon</h2>
           <div class="chips">
-            <span class="chip is-accent">${esc(params.secteur || "")}</span>
-            <span class="chip">${esc(retenues.stats.perimetre)}</span>
+            ${retenues.hares
+              ? `<span class="chip is-accent">HARES</span><span class="chip">${sample.length} société${sample.length > 1 ? "s" : ""}</span>`
+              : `<span class="chip is-accent">${esc(params.secteur || "")}</span><span class="chip">${esc(retenues.stats.perimetre)}</span>`}
             <span class="chip">exercice ${an}</span>
           </div>
         </div>
@@ -7546,7 +7586,7 @@
     const w = redacteur();
     const societes = m.mc.societes;
     w.ajoute(null, [null, { v: "Comparables — VE / EBITDA", s: ST.titre }]);
-    w.ajoute(null, [null, { v: "Secteur " + (params.secteur || "") + " · médiane de " + societes.length + " sociétés à EBITDA positif, exercice "
+    w.ajoute(null, [null, { v: (m.mc.hares ? "Échantillon HARES (" + m.mc.hares + ")" : "Secteur " + (params.secteur || "")) + " · médiane de " + societes.length + " sociétés à EBITDA positif, exercice "
       + m.mc.an + " · VE = capitalisation + dette", s: ST.note }]);
     w.ajoute(null, []);
     w.ajoute(null, [null].concat(["Société", "Capitalisation (M FCFA)", "Dette (M FCFA)", "VE (M FCFA)", "EBITDA " + m.mc.an + " (M FCFA)", "VE / EBITDA"]
@@ -7862,8 +7902,9 @@
   // Même médiane que l'onglet Comparables : mêmes sociétés, même exercice de
   // référence, même filtre sur l'EBITDA positif.
   function multipleComparables() {
-    if (!estComparables()) return null;
-    const sample = societesRetenues().ids.map((id) => COMPARABLES[id]).filter(Boolean);
+    const echantillon = echantillonComparaison();
+    if (!echantillon) return null;
+    const sample = echantillon.ids.map((id) => COMPARABLES[id]).filter(Boolean);
     if (!sample.length) return null;
     const an = exerciceReference(sample);
     const cle = String(an);
@@ -7873,7 +7914,8 @@
       return eb > 0 ? { nom: s.nom, cap: s.capitalisation, dette: s.dette, eb: eb, v: (s.capitalisation + s.dette) / eb } : null;
     }).filter((o) => o && Number.isFinite(o.v));
     const med = mediane(societes.map((o) => o.v));
-    return med == null ? null : { med: med, an: an, n: societes.length, societes: societes };
+    return med == null ? null : { med: med, an: an, n: societes.length, societes: societes,
+                                  hares: echantillon.hares ? echantillon.hares.libelle : null };
   }
 
   // EBITDA de la dernière année historique : celui de la balance générale si
@@ -7912,7 +7954,7 @@
     const mc = multipleComparables();
     const eb = ebitdaHistorique(f);   // la balance suffit, même sans classeur
     let indispo = null;
-    if (!estComparables()) indispo = "Référentiel Comparables requis, dans CMPC › Paramètres.";
+    if (!comparaisonActive()) indispo = "Référentiel Comparables requis, dans CMPC › Paramètres, ou un échantillon envoyé par HARES.";
     else if (!mc) indispo = "Aucun multiple VE / EBITDA dans l'échantillon.";
     else if (!f && !VALO.bg) indispo = "Aucun classeur ni balance importés.";
     else if (!eb) indispo = "Pas de partie historique dans le classeur.";
@@ -7938,7 +7980,7 @@
 
   function renderComparablesVe() {
     const el = $("valoCompVe");
-    if (!estComparables()) { el.hidden = true; el.innerHTML = ""; return; }
+    if (!comparaisonActive()) { el.hidden = true; el.innerHTML = ""; return; }
     el.hidden = false;
     const f = fluxActif();
     const m = methodeComparables(f);
@@ -8182,8 +8224,8 @@
       b.setAttribute("aria-selected", actif ? "true" : "false");
     });
     for (const vue of Object.keys(VUES_VALO)) $(VUES_VALO[vue]).hidden = VALO.vue !== vue;
-    $("comparablesAbsents").hidden = estComparables();
-    $("comparablesMain").hidden = !estComparables();
+    $("comparablesAbsents").hidden = comparaisonActive();
+    $("comparablesMain").hidden = !comparaisonActive();
     renderValo();
     placerCurseurVues();
     if (VALO.vue === "etats") dessinerTrajectoire(Boolean(anime));
@@ -8251,6 +8293,7 @@
     if (action) {
       const a = action.dataset.action;
       if (a === "importer") $("valoFichier").click();
+      else if (a === "hares-oublier") { ENVOI_HARES = null; chargerComparables(); chargerValorisation(); }
       else if (a === "modele") telechargerBlob(modeleDcfXlsx(), "modele_dcf.xlsx");
       else if (a === "importer-bg") $("valoBgFichier").click();
       else if (a === "modele-bg") telechargerBlob(modeleBalanceXlsx(), "modele_balance.xlsx");
@@ -10586,30 +10629,22 @@
     return executerRequete(q);
   }
 
-  /* ================= Agent : panneau ================= */
-  // L'historique vit en mémoire, pour la session : la page n'a jamais écrit
-  // dans le stockage du navigateur, et l'agent ne commence pas.
+  /* ================= Questions sur les données : réponse =================
+     Les questions qui ne portent pas sur l'échantillon (pays, industries
+     Damodaran, taux, CMPC) gardent leurs réponses d'avant HARES. L'état du
+     serveur vit en mémoire, pour la session : la page n'écrit jamais dans le
+     stockage du navigateur. */
   const AGENT = {
-    historique: [],
     horsLigne: location.protocol === "file:",
     raison: location.protocol === "file:" ? "page ouverte depuis un fichier" : null,
     quota: null,
     enCours: false,
   };
   const AGENT_DELAI = 15000;
-  // Toutes reconnues par les gabarits : elles répondent même hors ligne.
-  const EXEMPLES_AGENT = [
-    ["Pays", ["Prime de risque de la Côte d'Ivoire", "Top 5 pays d'Afrique par prime de risque",
-              "Compare le Maroc et l'Égypte", "Pays de l'UEMOA"]],
-    ["Industries et sociétés", ["Médiane des bêtas 3 ans des banques en Afrique de l'Ouest",
-                                "Les 5 plus grosses banques marocaines", "Bêta de l'industrie Food Processing"]],
-    ["Taux et CMPC", ["CMPC d'une cimenterie au Sénégal en 2026", "Taux sans risque 10 ans 2024",
-                      "Taux d'IS du Cameroun"]],
-  ];
   const RAISONS_HORS_LIGNE = {
-    absent: "assistant en ligne non déployé",
+    absent: "traduction en ligne non déployée",
     reseau: "serveur injoignable",
-    configuration: "assistant en ligne non configuré",
+    configuration: "traduction en ligne non configurée",
     plafond: "enveloppe gratuite du jour consommée",
   };
 
@@ -10624,14 +10659,14 @@
     return c;
   }
 
-  async function demanderAuServeur(question) {
+  async function demanderAuServeur(question, contexte) {
     const controle = new AbortController();
     const minuterie = setTimeout(() => controle.abort(), AGENT_DELAI);
     try {
       const r = await fetch("/api/ask", {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ question: question, contexte: contexteEcran() }),
+        body: JSON.stringify({ question: question, contexte: contexte || contexteEcran() }),
         signal: controle.signal,
       });
       let corps = null;
@@ -10639,7 +10674,7 @@
       if (r.ok && corps && corps.ok && corps.requete) {
         return { ok: true, requete: corps.requete, modele: corps.modele, cache: Boolean(corps.cache) };
       }
-      // Une page servie sans fonction répond 404 ou 405 : l'assistant n'est pas là.
+      // Une page servie sans fonction répond 404 ou 405 : la traduction n'est pas là.
       const code = corps && corps.code ? corps.code : (r.status === 404 || r.status === 405 ? "absent" : "indisponible");
       return { ok: false, code: code, message: corps && corps.message, reprise: corps && corps.reprise };
     } catch (err) {
@@ -10651,44 +10686,15 @@
 
   function messageServeur(s) {
     if (s.code === "quota") {
-      return "Quota de questions du jour atteint pour votre adresse. Les questions reconnues par les gabarits restent servies"
+      return "Quota de demandes du jour atteint pour votre adresse. Les demandes reconnues sur place restent servies"
         + (typeof s.reprise === "string" ? " ; reprise le " + new Date(s.reprise).toLocaleString("fr-FR", { dateStyle: "short", timeStyle: "short" }) + "." : ".");
     }
-    if (s.code === "traduction") return "L'assistant n'a pas su traduire cette question en requête. Reformulez-la, ou partez d'un exemple.";
+    if (s.code === "traduction") return "HARES n'a pas su traduire cette demande. Reformulez-la, ou partez d'un exemple.";
     if (RAISONS_HORS_LIGNE[s.code]) {
-      return "Question non reconnue par les gabarits, et l'assistant en ligne ne répond pas (" + RAISONS_HORS_LIGNE[s.code]
+      return "Demande non reconnue sur place, et la traduction en ligne ne répond pas (" + RAISONS_HORS_LIGNE[s.code]
         + "). Reformulez-la sur le modèle des exemples.";
     }
-    return "L'assistant en ligne n'a pas répondu. Réessayez dans un instant, ou reformulez sur le modèle des exemples.";
-  }
-
-  async function poserQuestion(texte) {
-    const question = String(texte || "").trim().slice(0, 400);
-    if (!question || AGENT.enCours) return;
-    let entree;
-    const gabarit = reconnaitreGabarit(question);
-    if (gabarit) {
-      entree = { question: question, origine: "gabarit", resultat: executerReponse(gabarit.requete) };
-    } else if (AGENT.horsLigne || AGENT.quota) {
-      entree = { question: question, origine: "aucune",
-                 resultat: erreurAgent(AGENT.quota ? "quota" : "hors_ligne",
-                   messageServeur({ code: AGENT.quota ? "quota" : "absent", reprise: AGENT.quota })) };
-    } else {
-      AGENT.enCours = true;
-      rendreAgent(question);
-      const s = await demanderAuServeur(question);
-      AGENT.enCours = false;
-      if (s.ok) {
-        entree = { question: question, origine: "assistant", modele: s.modele, cache: s.cache, resultat: executerReponse(s.requete) };
-      } else {
-        // Une panne passagère ne fait pas basculer la session hors ligne.
-        if (RAISONS_HORS_LIGNE[s.code]) { AGENT.horsLigne = true; AGENT.raison = RAISONS_HORS_LIGNE[s.code]; }
-        if (s.code === "quota") AGENT.quota = s.reprise || true;
-        entree = { question: question, origine: "aucune", resultat: erreurAgent(s.code, messageServeur(s)) };
-      }
-    }
-    AGENT.historique = [entree].concat(AGENT.historique).slice(0, 10);
-    rendreAgent();
+    return "La traduction en ligne n'a pas répondu. Réessayez dans un instant, ou reformulez sur le modèle des exemples.";
   }
 
   function enteteReponse(r) {
@@ -10733,9 +10739,9 @@
       <button type="button" class="valo-bouton" data-agent-appliquer="${esc(JSON.stringify({ referentiel: p.referentiel, pays: p.pays, industrie: p.industrie, annee: p.annee }))}">Appliquer ces paramètres au CMPC</button>`;
   }
 
-  function reponseHtml(e, sansQuestion) {
+  function reponseHtml(e) {
     const r = e.resultat;
-    const question = sansQuestion ? "" : `<p class="agent-question">« ${esc(e.question)} »</p>`;
+    const question = `<p class="agent-question">« ${esc(e.question)} »</p>`;
     if (!r.ok) {
       const candidats = r.candidats && r.candidats.length ? `
         <span class="agent-exemples">${r.candidats.map((c) => `<button type="button" class="agent-puce" data-agent-candidat="${esc(c)}">${esc(c)}</button>`).join("")}</span>` : "";
@@ -10750,97 +10756,897 @@
         <span class="agent-source">${a.fonction === "compte" ? "" : "Sur " + a.n + " valeur" + (a.n > 1 ? "s" : "") + " renseignée" + (a.n > 1 ? "s" : "") + "."}</span>`
         + (a.fonction === "compte" && a.valeur === 0 ? "" : tableAgent(r));
     } else corps = tableAgent(r);
-    return question + `<p class="agent-entete">${esc(enteteReponse(r))}</p>` + corps + corrigerHtml(e, r);
+    return question + `<p class="agent-entete">${esc(enteteReponse(r))}</p>` + corps
+      + corrigerHtml(e, r) + `<p class="agent-source">L'échantillon de travail n'est pas modifié.</p>`;
   }
+
+  const origineDemande = (e) => (e.origine === "gabarit" ? "reconnue sur place, sans appel réseau"
+    : e.origine === "en_ligne" ? "traduite en ligne" + (e.modele ? " (" + e.modele.replace(/^@cf\//, "") + ")" : "") + (e.cache ? ", réponse en cache" : "")
+    : "");
 
   function corrigerHtml(e, r) {
     const compris = r ? reformuler(r.requete) : "";
-    const origine = e.origine === "gabarit" ? "gabarit local, sans appel réseau"
-      : e.origine === "assistant" ? "assistant en ligne" + (e.modele ? " (" + e.modele.replace(/^@cf\//, "") + ")" : "") + (e.cache ? ", réponse en cache" : "")
-      : "";
+    const origine = origineDemande(e);
     return `
       ${compris ? `<div class="agent-compris"><span><b>J'ai compris :</b> ${esc(compris.charAt(0).toUpperCase() + compris.slice(1))}.</span>
         <button type="button" class="agent-lien" data-agent-corriger="${esc(e.question)}">Corriger</button></div>` : ""}
       ${r ? `<p class="agent-source">Source : ${esc(r.source_donnees)}${origine ? " · " + esc(origine) : ""}.</p>` : ""}`;
   }
 
-  function rendreAgent(enCours) {
-    const racine = $("agentPanneau");
-    if (!racine) return;
+  /* ================= HARES : l'échantillon de travail =================
+     HARES travaille sur un échantillon qui lui appartient. Il part de celui
+     des comparables quand le référentiel Comparables en définit un — les
+     sociétés retenues du CMPC —, sinon de la base complète ; chaque demande
+     s'applique au résultat de la précédente. Ses filtres ne touchent aucun
+     autre onglet : seul « Envoyer vers comparaison » transmet l'échantillon,
+     et seulement aux multiples de Valorisation › Comparables.
+
+     Une demande devient une liste d'opérations, au contrat que le serveur
+     produit aussi (source « echantillon », voir agent/schemas.js) :
+       filtrer      { champ, op, valeur }   op : = != > >= < <= entre hors contient dans
+       trier        { champ, sens }
+       limiter      { nombre }
+       statistiques { champs }
+       aberrantes   { champs }
+       retirer      { noms }     garder { noms }
+       repartir     { depart }   depart : depart | base | comparables
+     Les ratios se calculent sur un exercice commun à tout l'échantillon, fixé
+     au départ : un multiple n'a de sens qu'entre sociétés du même exercice. */
+  const CHAMPS_HARES = {
+    nom: { lib: "Société" }, pays: { lib: "Pays" }, continent: { lib: "Continent" }, zone: { lib: "Zone" },
+    place: { lib: "Place" }, industrie: { lib: "Industrie" }, activite: { lib: "Activité" },
+    statut: { lib: "Statut" }, mere: { lib: "Maison mère" },
+    capitalisation: { lib: "Capitalisation", fmt: "montant" }, dette: { lib: "Dette totale", fmt: "montant" },
+    dette_nette: { lib: "Dette nette", fmt: "montant" }, ve: { lib: "Valeur d'entreprise", fmt: "montant" },
+    ca: { lib: "Chiffre d'affaires", fmt: "montant" }, ebitda: { lib: "EBITDA", fmt: "montant" },
+    rn: { lib: "Résultat net", fmt: "montant" },
+    marge_ebitda: { lib: "Marge d'EBITDA", fmt: "pct" }, croissance_ca: { lib: "Croissance du CA", fmt: "pct" },
+    dette_ebitda: { lib: "Dette / EBITDA", fmt: "mult" },
+    ve_ca: { lib: "VE / CA", fmt: "mult" }, ve_ebitda: { lib: "VE / EBITDA", fmt: "mult" }, pe: { lib: "P/E", fmt: "mult" },
+    beta: { lib: "Bêta coté", fmt: "num2" }, beta_u: { lib: "Bêta désendetté", fmt: "num2" },
+    gearing: { lib: "Dette / fonds propres", fmt: "num2" },
+  };
+  const estNumeriqueHares = (c) => Boolean((CHAMPS_HARES[c] || {}).fmt);
+  const libHares = (c) => (CHAMPS_HARES[c] || {}).lib || c;
+  const MULTIPLES_HARES = ["ve_ebitda", "ve_ca", "pe"];
+  const OPS_HARES = ["=", "!=", ">", ">=", "<", "<=", "entre", "hors", "contient", "dans"];
+  const TRI_HARES = { champ: "capitalisation", sens: "desc" };
+  const AFFICHAGE_HARES = 100;
+  const COLONNES_HARES = ["nom", "industrie", "statut", "capitalisation", "ca", "marge_ebitda", "croissance_ca",
+                          "dette_ebitda", "ve_ebitda", "ve_ca", "pe", "beta_u"];
+  // S&P ne livre pas la trésorerie dans les exports d'octobre 2026 : le levier
+  // se calcule alors sur la dette brute, et HARES le dit à chaque usage.
+  const TRESORERIE_HARES = Object.values(COMPARABLES).some((s) => s.tresorerie != null);
+  if (TRESORERIE_HARES) CHAMPS_HARES.dette_ebitda.lib = "Dette nette / EBITDA";
+  const frEntier = (n) => String(n).replace(/\B(?=(\d{3})+(?!\d))/g, " ");
+  const pluriel = (n, mot) => frEntier(n) + " " + mot + (n > 1 ? "s" : "");
+
+  const HARES = {
+    depart: null,     // { type: "comparables" | "base", ids, libelle, signature, auto }
+    an: null,         // exercice commun des ratios
+    etapes: [],       // une par demande appliquée, cumulatives
+    vue: null,        // étape détaillée ; null = la dernière
+    reponse: null,    // réponse à une question hors échantillon, ou erreur
+    info: null,       // message ponctuel (retour au départ…)
+    envoi: null,      // dernier échantillon envoyé vers comparaison
+  };
+
+  function formaterHares(champ, v) {
+    if (v == null || v === "") return "—";
+    if (typeof v !== "number") return String(v);
+    const fmt = (CHAMPS_HARES[champ] || {}).fmt;
+    if (fmt === "pct") return frPct(v, 1);
+    if (fmt === "mult") return frMult(v);
+    if (fmt === "montant") return frMontant(v);
+    if (fmt === "num2") return frNum(v, 2);
+    return String(v);
+  }
+  const statutHares = (l) => (l.statut === "groupe" ? "Groupe" : l.statut === "filiale" ? "Filiale" : "—");
+
+  function exerciceHares(ids) {
+    for (const an of ANNEES_COMPTES.slice().reverse()) {
+      const publient = ids.filter((id) => ((COMPARABLES[id] || {}).ca || {})[String(an)] != null).length;
+      if (publient * 2 >= ids.length) return an;
+    }
+    return ANNEES_COMPTES[ANNEES_COMPTES.length - 1];
+  }
+
+  function calculerLigneHares(id, an) {
+    const s = COMPARABLES[id];
+    if (!s) return null;
+    const lire = (serie, a) => { const v = (serie || {})[String(a)]; return v == null ? null : v; };
+    const ca = lire(s.ca, an), eb = lire(s.ebitda, an), rn = lire(s.rn, an), caAvant = lire(s.ca, an - 1);
+    const nette = s.tresorerie != null && s.dette != null ? s.dette - s.tresorerie : null;
+    const endettement = nette != null ? nette : s.dette;
+    // VE = capitalisation + dette totale, comme Valorisation › Comparables.
+    const ve = s.capitalisation != null && s.dette != null ? s.capitalisation + s.dette : null;
+    const ratio = (num, den) => (num != null && den != null && den > 0 ? num / den : null);
+    return {
+      id: id, nom: s.nom, pays: s.pays, continent: s.continent, zone: s.zone, place: s.place,
+      industrie: s.industrie, activite: s.activite, statut: s.statut || null, mere: s.mere || null,
+      capitalisation: s.capitalisation, dette: s.dette, dette_nette: nette, ve: ve,
+      ca: ca, ebitda: eb, rn: rn,
+      marge_ebitda: ratio(eb, ca), croissance_ca: ca != null && caAvant > 0 ? ca / caAvant - 1 : null,
+      dette_ebitda: ratio(endettement, eb), ve_ca: ratio(ve, ca), ve_ebitda: ratio(ve, eb), pe: ratio(s.capitalisation, rn),
+      beta: s.beta_horizon === "1 an" ? s.beta_1an : s.beta_3ans, beta_u: s.beta_u, gearing: s.gearing,
+    };
+  }
+
+  let CACHE_HARES = { an: null, lignes: {} };
+  function ligneHares(id) {
+    if (CACHE_HARES.an !== HARES.an) CACHE_HARES = { an: HARES.an, lignes: {} };
+    if (!(id in CACHE_HARES.lignes)) CACHE_HARES.lignes[id] = calculerLigneHares(id, HARES.an);
+    return CACHE_HARES.lignes[id];
+  }
+
+  function departComparables() {
+    if (!estComparables()) return null;
+    const r = societesRetenues();
+    if (!r.ids.length) return null;
+    return { type: "comparables", ids: r.ids.slice(), signature: r.ids.join(","),
+             libelle: `${pluriel(r.ids.length, "société")} — ${params.secteur}, ${r.stats.perimetre}` };
+  }
+  function departBase() {
+    const ids = Object.keys(COMPARABLES);
+    return { type: "base", ids: ids, signature: "base", libelle: `base complète, ${pluriel(ids.length, "société")}` };
+  }
+  function initialiserDepart(depart, auto) {
+    HARES.depart = Object.assign({ auto: Boolean(auto) }, depart);
+    HARES.an = exerciceHares(depart.ids);
+    HARES.etapes = [];
+    HARES.vue = null;
+    HARES.reponse = null;
+  }
+  const idsHares = () => (HARES.etapes.length ? HARES.etapes[HARES.etapes.length - 1].ids : HARES.depart.ids);
+  const triHares = () => (HARES.etapes.length ? HARES.etapes[HARES.etapes.length - 1].tri : TRI_HARES);
+
+  // À l'ouverture, HARES reprend l'échantillon des comparables (état partagé),
+  // tant qu'aucune demande n'a été appliquée et que l'utilisateur n'a pas
+  // choisi lui-même son départ. Au-delà, il ne l'écrase pas : il signale.
+  function ouvrirHares() {
+    const comp = departComparables();
+    const attendu = comp || departBase();
+    if (!HARES.depart || (HARES.depart.auto && !HARES.etapes.length && attendu.signature !== HARES.depart.signature)) {
+      initialiserDepart(attendu, true);
+    }
+    rendreHares();
+  }
+
+  function trierHares(lignes, tri) {
+    const signe = tri.sens === "asc" ? 1 : -1;
+    return lignes.slice().sort((a, b) => {
+      const x = a[tri.champ], y = b[tri.champ];
+      if (x == null && y == null) return 0;
+      if (x == null) return 1;
+      if (y == null) return -1;
+      return typeof x === "number" ? signe * (x - y) : signe * String(x).localeCompare(String(y), "fr");
+    });
+  }
+
+  // Quantile par interpolation linéaire, comme QUARTILE.INCLURE d'Excel.
+  function quantile(triees, p) {
+    if (!triees.length) return null;
+    const h = (triees.length - 1) * p, b = Math.floor(h);
+    return b + 1 < triees.length ? triees[b] + (h - b) * (triees[b + 1] - triees[b]) : triees[b];
+  }
+
+  function statistiquesHares(lignes, champ) {
+    const v = lignes.map((l) => l[champ]).filter((x) => Number.isFinite(x)).sort((a, b) => a - b);
+    if (!v.length) return { champ: champ, n: 0 };
+    return { champ: champ, n: v.length, min: v[0], q1: quantile(v, 0.25), mediane: quantile(v, 0.5),
+             q3: quantile(v, 0.75), max: v[v.length - 1], moyenne: v.reduce((a, b) => a + b, 0) / v.length };
+  }
+
+  // Valeurs d'un champ texte dans la base, pour résoudre « télécoms » ou « Maroc ».
+  const VALEURS_HARES = {};
+  function valeursHares(champ) {
+    if (!VALEURS_HARES[champ]) {
+      VALEURS_HARES[champ] = [...new Set(Object.values(COMPARABLES).map((s) => s[champ]).filter((x) => x != null).map(String))];
+    }
+    return VALEURS_HARES[champ];
+  }
+
+  function resoudreValeurHares(champ, texte) {
+    if (champ === "statut") {
+      const c = cleNom(texte);
+      if (/^(groupe|groupes|tete de groupe|tetes de groupe)$/.test(c)) return { ok: true, valeur: "groupe" };
+      if (/^(filiale|filiales)$/.test(c)) return { ok: true, valeur: "filiale" };
+      return { ok: false, code: "inconnu", message: `Statut inconnu : « ${texte} ». Statuts : groupe, filiale.` };
+    }
+    const r = resoudreNom(texte, valeursHares(champ));
+    if (!r.ok && champ === "pays") {
+      // Le nom Damodaran d'un pays que S&P écrit autrement.
+      const d = resoudreNom(texte, Object.keys(DATA.pays));
+      if (d.ok && PAYS_SP[d.valeur]) return { ok: true, valeur: PAYS_SP[d.valeur] };
+      if (d.ok && valeursHares("pays").indexOf(d.valeur) >= 0) return d;
+    }
+    return r;
+  }
+
+  function testerHares(v, op, cible) {
+    if (op === "entre") return Number.isFinite(v) && v >= cible[0] && v <= cible[1];
+    if (op === "hors") return Number.isFinite(v) && (v < cible[0] || v > cible[1]);
+    // Une société sans statut connu n'est pas une filiale.
+    if (op === "!=" && v == null) return true;
+    return comparer(v, op, cible);
+  }
+
+  const RAISON_AMPLIFIEE = (l, champ) => (champ === "ve_ebitda" || champ === "dette_ebitda") && l.marge_ebitda != null && l.marge_ebitda < 0.05
+    ? ` — marge d'EBITDA de ${frPct(l.marge_ebitda, 1)} : un EBITDA écrasé gonfle le ratio`
+    : champ === "pe" && l.rn != null && l.capitalisation && l.rn / l.capitalisation < 0.02
+      ? " — résultat net presque nul au regard de la capitalisation" : "";
+
+  /**
+   * Applique des opérations à un échantillon { ids, tri }. Rend
+   * { ok, ids, tri, operations (résolues), notes, stats, retirees } ou une
+   * erreur au format de erreurAgent.
+   */
+  function executerOperations(operations, courant) {
+    let lignes = courant.ids.map(ligneHares).filter(Boolean);
+    let tri = courant.tri;
+    const resolues = [], notes = [], stats = [], retirees = [];
+    for (const op of operations) {
+      if (!op || typeof op !== "object") return erreurAgent("invalide", "Opération absente.");
+      if (op.type === "filtrer") {
+        const champ = op.champ;
+        if (!CHAMPS_HARES[champ]) return erreurAgent("invalide", `Champ inconnu : « ${champ} ». Champs : ${Object.keys(CHAMPS_HARES).join(", ")}.`);
+        if (OPS_HARES.indexOf(op.op) < 0) return erreurAgent("invalide", `Opérateur inconnu : « ${op.op} ».`);
+        let valeur = op.valeur, relatif = null;
+        if (estNumeriqueHares(champ)) {
+          if (op.op === "entre" || op.op === "hors") {
+            const bornes = Array.isArray(valeur) ? valeur.map((x) => Number(String(x).replace(",", "."))) : [];
+            if (bornes.length !== 2 || !bornes.every(Number.isFinite)) return erreurAgent("invalide", `« ${op.op} » attend deux bornes numériques.`);
+            valeur = bornes.sort((a, b) => a - b);
+          } else if (valeur === "mediane" || valeur === "moyenne") {
+            const s = statistiquesHares(lignes, champ);
+            if (!s.n) return erreurAgent("invalide", `Aucune valeur de « ${libHares(champ)} » dans l'échantillon pour en tirer la ${valeur}.`);
+            relatif = valeur === "mediane" ? "médiane" : "moyenne";
+            valeur = valeur === "mediane" ? s.mediane : s.moyenne;
+          } else {
+            valeur = Number(String(valeur).replace(",", "."));
+            if (!Number.isFinite(valeur)) return erreurAgent("invalide", `Seuil non numérique pour « ${libHares(champ)} ».`);
+          }
+        } else if (op.op !== "contient") {
+          const liste = Array.isArray(valeur) ? valeur : [valeur];
+          const sortie = [];
+          for (const v of liste) {
+            const r = resoudreValeurHares(champ, v);
+            if (r.ok) sortie.push(r.valeur);
+            else if (r.code === "ambigu" || liste.length === 1) return erreurAgent(r.code, r.message, r.candidats);
+          }
+          if (!sortie.length) return erreurAgent("inconnu", `Aucune valeur de « ${libHares(champ)} » ne correspond à la liste demandée.`);
+          valeur = op.op === "dans" ? sortie : sortie[0];
+        }
+        const avant = lignes;
+        lignes = lignes.filter((l) => testerHares(l[champ], op.op, valeur));
+        resolues.push({ type: "filtrer", champ: champ, op: op.op, valeur: valeur, relatif: relatif });
+        if (estNumeriqueHares(champ) && op.op !== "!=") {
+          const sans = avant.filter((l) => l[champ] == null).length;
+          if (sans) notes.push(`${pluriel(sans, "société")} sans ${libHares(champ).toLowerCase()} calculable ${sans > 1 ? "ont" : "a"} été ${sans > 1 ? "écartées" : "écartée"}.`);
+        }
+        if (relatif) notes.push(`${relatif.charAt(0).toUpperCase() + relatif.slice(1)} de l'échantillon avant ce filtre : ${formaterHares(champ, valeur)}.`);
+        if (champ === "dette_ebitda" && !TRESORERIE_HARES) {
+          notes.push("Les exports S&P ne contiennent pas la trésorerie : le ratio est calculé sur la dette totale (brute). Ajouter la colonne IQ_CASH_ST_INVEST à l'export suffit pour passer en dette nette.");
+        }
+        if (champ === "statut") {
+          const ecartees = avant.filter((l) => !testerHares(l.statut, op.op, valeur));
+          const filiales = ecartees.filter((l) => l.statut === "filiale").length;
+          const sansSignal = ecartees.filter((l) => !l.statut).length;
+          notes.push("Groupe : la description S&P mentionne des filiales ou une activité découpée en segments, ou le nom porte Group ou Holding. Filiale : la description la dit filiale d'une autre société, qui l'emporte.");
+          if (ecartees.length) {
+            notes.push("Écartées : " + [filiales ? pluriel(filiales, "filiale") : "", sansSignal ? pluriel(sansSignal, "société") + " sans signal de groupe dans leur description" : "",
+              ecartees.length - filiales - sansSignal ? pluriel(ecartees.length - filiales - sansSignal, "groupe") : ""].filter(Boolean).join(", ") + ".");
+          }
+        }
+      } else if (op.type === "trier") {
+        if (!CHAMPS_HARES[op.champ]) return erreurAgent("invalide", `Tri sur un champ inconnu : « ${op.champ} ».`);
+        tri = { champ: op.champ, sens: op.sens === "asc" ? "asc" : "desc" };
+        resolues.push({ type: "trier", champ: tri.champ, sens: tri.sens });
+      } else if (op.type === "limiter") {
+        const n = Math.max(1, Math.min(1000, Math.round(Number(op.nombre)) || 0));
+        if (!n) return erreurAgent("invalide", "Nombre de sociétés à garder absent.");
+        lignes = trierHares(lignes, tri).slice(0, n);
+        resolues.push({ type: "limiter", nombre: n, tri: tri });
+      } else if (op.type === "statistiques") {
+        const champs = (op.champs && op.champs.length ? op.champs : MULTIPLES_HARES).filter(estNumeriqueHares).slice(0, 6);
+        if (!champs.length) return erreurAgent("invalide", "Statistiques demandées sur aucun indicateur chiffré.");
+        for (const c of champs) stats.push(statistiquesHares(lignes, c));
+        resolues.push({ type: "statistiques", champs: champs });
+      } else if (op.type === "aberrantes") {
+        const champs = (op.champs && op.champs.length ? op.champs : ["ve_ebitda"]).filter(estNumeriqueHares).slice(0, 6);
+        if (!champs.length) return erreurAgent("invalide", "Valeurs aberrantes demandées sur aucun indicateur chiffré.");
+        notes.push("Règle de Tukey : une valeur est aberrante quand elle s'écarte de plus d'1,5 écart interquartile (EI = Q3 − Q1) au-delà du premier ou du troisième quartile.");
+        const motifs = new Map();
+        for (const c of champs) {
+          const v = lignes.map((l) => l[c]).filter((x) => Number.isFinite(x)).sort((a, b) => a - b);
+          if (v.length < 5) {
+            notes.push(`${libHares(c)} : ${pluriel(v.length, "valeur")} seulement, trop peu pour juger des valeurs aberrantes.`);
+            continue;
+          }
+          const q1 = quantile(v, 0.25), q3 = quantile(v, 0.75), ei = q3 - q1, bas = q1 - 1.5 * ei, haut = q3 + 1.5 * ei;
+          const f = (x) => formaterHares(c, x);
+          // Une borne que nulle valeur n'approche ne se lit pas : un VE / CA
+          // « admis dès −1,6x » ne dit rien d'utile.
+          const plage = bas <= v[0] ? "jusqu'à " + f(haut) : haut >= v[v.length - 1] ? "à partir de " + f(bas) : "de " + f(bas) + " à " + f(haut);
+          notes.push(`${libHares(c)} : Q1 ${f(q1)}, Q3 ${f(q3)}, EI ${f(ei)} ; valeurs admises ${plage}.`);
+          const sans = lignes.filter((l) => !Number.isFinite(l[c])).length;
+          if (sans) notes.push(`${pluriel(sans, "société")} sans ${libHares(c)} calculable ${sans > 1 ? "ne sont pas jugées" : "n'est pas jugée"} sur ce ratio.`);
+          for (const l of lignes) {
+            const x = l[c];
+            if (!Number.isFinite(x) || (x >= bas && x <= haut)) continue;
+            const raison = `${libHares(c)} de ${f(x)}, ${x > haut ? "au-dessus de la borne haute " + f(haut) : "sous la borne basse " + f(bas)}${RAISON_AMPLIFIEE(l, c)}`;
+            motifs.set(l.id, (motifs.has(l.id) ? motifs.get(l.id) + " ; " : "") + raison);
+          }
+        }
+        for (const l of lignes) if (motifs.has(l.id)) retirees.push({ nom: l.nom, raison: motifs.get(l.id) });
+        lignes = lignes.filter((l) => !motifs.has(l.id));
+        if (!motifs.size) notes.push("Aucune valeur aberrante : l'échantillon est inchangé.");
+        resolues.push({ type: "aberrantes", champs: champs });
+      } else if (op.type === "retirer" || op.type === "garder") {
+        const noms = (op.noms || []).filter(Boolean).slice(0, 20);
+        const presentes = lignes.map((l) => l.nom);
+        const trouves = new Set(), inconnus = [];
+        for (const n of noms) {
+          const r = resoudreNom(n, presentes);
+          if (r.ok) trouves.add(r.valeur); else inconnus.push(n);
+        }
+        if (!trouves.size) return erreurAgent("inconnu", `Aucune société de l'échantillon ne correspond à « ${noms.join(", ")} ».`);
+        lignes = lignes.filter((l) => (op.type === "retirer") !== trouves.has(l.nom));
+        if (inconnus.length) notes.push(`Introuvable${inconnus.length > 1 ? "s" : ""} dans l'échantillon : ${inconnus.join(", ")}.`);
+        resolues.push({ type: op.type, noms: [...trouves] });
+      } else if (op.type === "repartir") {
+        return erreurAgent("invalide", "« Repartir » ne peut venir qu'en tête de la demande.");
+      } else {
+        return erreurAgent("invalide", `Opération inconnue : « ${op.type} ».`);
+      }
+    }
+    return { ok: true, ids: lignes.map((l) => l.id), tri: tri, operations: resolues, notes: notes, stats: stats, retirees: retirees };
+  }
+
+  /* ---- Reformulation ---- */
+  const OPS_HARES_TEXTE = { "=": "est", "!=": "n'est pas", ">": "dépasse", ">=": "atteint au moins", "<": "est inférieur à",
+    "<=": "ne dépasse pas", entre: "est compris entre", hors: "sort de l'intervalle", contient: "contient", dans: "est l'un de" };
+  const SYMBOLES_HARES = { ">": ">", ">=": "≥", "<": "<", "<=": "≤", "=": "=", "!=": "≠" };
+  const cibleHares = (o) => (o.op === "entre" || o.op === "hors" ? formaterHares(o.champ, o.valeur[0]) + " et " + formaterHares(o.champ, o.valeur[1])
+    : Array.isArray(o.valeur) ? o.valeur.join(", ") : o.relatif ? "la " + o.relatif + " (" + formaterHares(o.champ, o.valeur) + ")" : formaterHares(o.champ, o.valeur));
+
+  const ARTICLES_HARES = { industrie: ["le secteur", "les secteurs"], pays: ["le pays", "les pays"], continent: ["le continent", "les continents"],
+    zone: ["la zone", "les zones"], place: ["la place de cotation", "les places de cotation"], activite: ["l'activité", "les activités"],
+    nom: ["la société", "les sociétés"], mere: ["la maison mère", "les maisons mères"] };
+  const articleHares = (o) => (ARTICLES_HARES[o.champ] || ["« " + libHares(o.champ) + " »", "« " + libHares(o.champ) + " »"])[Array.isArray(o.valeur) && o.valeur.length > 1 ? 1 : 0];
+
+  function phraseOperation(o) {
+    if (o.type === "filtrer") {
+      if (o.champ === "statut") return o.op === "!=" ? "écarter les filiales" : o.valeur === "groupe" ? "ne garder que les groupes" : "ne garder que les filiales";
+      if (!estNumeriqueHares(o.champ) && (o.op === "=" || o.op === "dans")) return `ne garder que ${articleHares(o)} « ${cibleHares(o)} »`;
+      if (!estNumeriqueHares(o.champ) && o.op === "!=") return `écarter ${articleHares(o)} « ${cibleHares(o)} »`;
+      if (o.op === "contient") return `ne garder que ${articleHares(o)} contenant « ${cibleHares(o)} »`;
+      return `garder les sociétés dont « ${libHares(o.champ)} » ${OPS_HARES_TEXTE[o.op]} ${cibleHares(o)}`;
+    }
+    if (o.type === "trier") return `classer par ${libHares(o.champ).toLowerCase()}, ${o.sens === "desc" ? "du plus élevé au plus faible" : "du plus faible au plus élevé"}`;
+    if (o.type === "limiter") return `garder les ${o.nombre} premières selon ${libHares(o.tri.champ).toLowerCase()}`;
+    if (o.type === "statistiques") return `calculer médiane, quartiles et moyenne de ${o.champs.map(libHares).join(", ")}`;
+    if (o.type === "aberrantes") return `retirer les valeurs aberrantes de ${o.champs.map(libHares).join(", ")}, règle de Tukey`;
+    if (o.type === "retirer") return `retirer ${o.noms.join(", ")}`;
+    if (o.type === "garder") return `ne garder que ${o.noms.join(", ")}`;
+    return o.type;
+  }
+  const reformulerHares = (ops) => ops.map(phraseOperation).join(", puis ");
+
+  function etiquetteOperation(o) {
+    if (o.type === "filtrer") {
+      if (o.champ === "statut") return o.op === "!=" ? "Hors filiales" : o.valeur === "groupe" ? "Groupes" : "Filiales";
+      if (!estNumeriqueHares(o.champ)) return (o.op === "!=" ? "Sans " : "") + cibleHares(o);
+      if (o.op === "entre") return `${libHares(o.champ)} ${formaterHares(o.champ, o.valeur[0])}–${formaterHares(o.champ, o.valeur[1])}`;
+      if (o.op === "hors") return `${libHares(o.champ)} hors ${formaterHares(o.champ, o.valeur[0])}–${formaterHares(o.champ, o.valeur[1])}`;
+      return `${libHares(o.champ)} ${SYMBOLES_HARES[o.op] || o.op} ${o.relatif || formaterHares(o.champ, o.valeur)}`;
+    }
+    if (o.type === "trier") return "Tri : " + libHares(o.champ);
+    if (o.type === "limiter") return o.nombre + " premières";
+    if (o.type === "statistiques") return "Statistiques";
+    if (o.type === "aberrantes") return "Sans aberrantes";
+    if (o.type === "retirer") return "Retrait de " + o.noms.length;
+    if (o.type === "garder") return "Sélection de " + o.noms.length;
+    return o.type;
+  }
+  const etiquetteEtape = (e) => {
+    const t = e.operations.map(etiquetteOperation).join(" · ");
+    return t.length > 60 ? t.slice(0, 58).replace(/\s+\S*$/, "") + "…" : t;
+  };
+
+  /* ---- Lecture des demandes, sur place ----
+     Les demandes courantes se lisent sans réseau. Le texte de travail garde
+     les chiffres, les décimales, « % » et « x » ; les mots sont ceux de
+     cleNom, sans accents ni ponctuation. */
+  const METRIQUES_HARES = [
+    ["dette_ebitda", ["dette nette ebitda", "dette nette sur ebitda", "endettement net ebitda", "endettement net sur ebitda",
+                      "dette ebitda", "dette sur ebitda", "endettement ebitda", "endettement sur ebitda", "levier"]],
+    ["ve_ebitda", ["valeur d entreprise ebitda", "valeur d entreprise sur ebitda", "ve ebitda", "ev ebitda", "ve sur ebitda",
+                   "multiple d ebitda", "multiples d ebitda"]],
+    ["ve_ca", ["valeur d entreprise chiffre d affaires", "ve chiffre d affaires", "ve sur chiffre d affaires", "ve ca", "ev ca",
+               "ev sales", "ve sur ca", "multiple de chiffre d affaires", "multiple de ca"]],
+    ["pe", ["price earnings", "p e", "per", "multiple de resultat", "multiple de benefice"]],
+    ["marge_ebitda", ["marge d ebitda", "marges d ebitda", "marge ebitda", "marges ebitda", "marge", "marges"]],
+    ["croissance_ca", ["croissance du chiffre d affaires", "croissance du ca", "croissance", "progression du chiffre d affaires"]],
+    ["dette_nette", ["dette nette", "endettement net"]],
+    ["capitalisation", ["capitalisation boursiere", "capitalisations boursieres", "capitalisation", "capitalisations", "taille"]],
+    ["ca", ["chiffre d affaires", "chiffres d affaires", "ca", "revenus", "ventes"]],
+    ["ebitda", ["ebitda"]],
+    ["rn", ["resultat net", "resultats nets", "benefice net", "benefices nets"]],
+    ["beta_u", ["beta desendette", "betas desendettes", "beta u"]],
+    ["beta", ["beta", "betas"]],
+    ["gearing", ["gearing", "dette fonds propres", "dette sur fonds propres"]],
+    ["dette", ["dette", "dettes", "endettement"]],
+    ["ve", ["valeur d entreprise", "ve"]],
+  ];
+  const MOTIFS_METRIQUES = METRIQUES_HARES.flatMap(([champ, formes]) => formes.map((f) => [f, champ]))
+    .sort((a, b) => b[0].length - a[0].length);
+
+  function texteHares(texte) {
+    return " " + normalize(texte)
+      .replace(/[’'`"«»]/g, " ")
+      .replace(/(\d)[\s  ](?=\d{3}(?!\d))/g, "$1")
+      .replace(/(\d),(\d)/g, "$1.$2")
+      .replace(/(\d)\s*(x|%)(?![a-z])/g, "$1 $2")
+      .replace(/\.(?!\d)/g, " ")
+      .replace(/(^|\D)\./g, "$1 ")
+      .replace(/[^a-z0-9.%<>= ]+/g, " ")
+      .replace(/\s+/g, " ")
+      .trim() + " ";
+  }
+
+  function mentionsHares(t) {
+    const pris = [], trouvees = [];
+    for (const [forme, champ] of MOTIFS_METRIQUES) {
+      let i = t.indexOf(" " + forme + " ");
+      while (i >= 0) {
+        const debut = i + 1, fin = debut + forme.length;
+        if (!pris.some(([a, b]) => debut < b && fin > a)) { pris.push([debut, fin]); trouvees.push({ champ: champ, debut: debut, fin: fin }); }
+        i = t.indexOf(" " + forme + " ", i + 1);
+      }
+    }
+    return trouvees.sort((a, b) => a.debut - b.debut);
+  }
+
+  const NOMBRE_HARES = "(-?\\d+(?:\\.\\d+)?) ?(%|x|fois|pts|pt|points|point|milliards|milliard|mds|md|millions|million|m)?(?![a-z0-9])";
+  const COMPARATEURS_HARES = [
+    [">=", "(?:au moins|minimum|pas moins de|superieure?s? ou egale?s? a|>=)"],
+    ["<=", "(?:au plus|maximum|pas plus de|ne depass\\w* pas|inferieure?s? ou egale?s? a|<=)"],
+    [">", "(?:superieure?s? a|plus (?:grande?s? |elevee?s? |forte?s? )?(?:de|que)|au dessus de|depass\\w*|excede\\w*|>)"],
+    ["<", "(?:inferieure?s? a|moins (?:de|que)|en dessous de|sous|<)"],
+    ["=", "(?:egale?s? a|=)"],
+  ];
+
+  function seuilHares(segment, avant) {
+    if (!avant) {
+      const m = new RegExp("(?:^| )(?:entre|de) " + NOMBRE_HARES + " (?:et|a) " + NOMBRE_HARES).exec(segment);
+      if (m) return { op: "entre", valeurs: [[m[1], m[2]], [m[3], m[4]]] };
+    }
+    for (const [op, motif] of COMPARATEURS_HARES) {
+      const fin = avant ? " (?:de |d |en )?$" : "";
+      let m = new RegExp("(?:^| )" + motif + " ?" + NOMBRE_HARES + fin).exec(segment);
+      if (m) return { op: op, valeurs: [[m[1], m[2]]] };
+      if (!avant) {
+        m = new RegExp("(?:^| )" + motif + " (?:a )?(?:la |sa )?(mediane|moyenne)(?![a-z])").exec(segment);
+        if (m) return { op: op, relatif: m[1] };
+      }
+    }
+    return null;
+  }
+
+  function valeurSeuilHares(champ, nombre, unite) {
+    const v = Number(nombre), u = unite || "";
+    const fmt = (CHAMPS_HARES[champ] || {}).fmt;
+    if (fmt === "pct") return u === "%" || /^p/.test(u) || Math.abs(v) > 1 ? v / 100 : v;
+    if (fmt === "montant") return /^(milliard|md)/.test(u) ? v * 1000 : v;
+    return v;
+  }
+
+  const INVERSE_HARES = { "=": "!=", "!=": "=", ">": "<=", ">=": "<", "<": ">=", "<=": ">", entre: "hors", hors: "entre" };
+  const NEGATION_HARES = /(?:^| )(?:retire|retirez|retirer|enleve|enlevez|enlever|exclus|excluez|exclure|ecarte|ecartez|ecarter|supprime|supprimez|supprimer|elimine|eliminez|eliminer|sauf|hors)(?= )/;
+
+  // Une société de l'échantillon désignée par son nom : exact, ou par le
+  // début de son nom quand il est seul à commencer ainsi et ne désigne ni un
+  // secteur ni un lieu — « retire les banques » vise un secteur, « retire
+  // Sonatel » une société.
+  function societeNommee(partie, lignes) {
+    const c = partie.replace(/^(?:la |le |les |l )/, "").trim();
+    if (c.length < 3) return null;
+    const exact = lignes.filter((l) => cleNom(l.nom) === c);
+    if (exact.length === 1) return exact[0].nom;
+    const e = entitesQuestion(c);
+    if (e.secteurs.length || e.pays.length || e.zones.length) return null;
+    const debut = lignes.filter((l) => cleNom(l.nom).indexOf(c + " ") === 0);
+    return debut.length === 1 ? debut[0].nom : null;
+  }
+
+  /** Rend { operations } ou null quand la demande n'est pas reconnue. */
+  function reconnaitreOperations(texte) {
+    const t = texteHares(texte);
+    const e = entitesQuestion(texte);
+    const ops = [];
+    const negatif = NEGATION_HARES.test(t);
+
+    // Des sociétés nommées d'abord : leur nom peut contenir un mot de secteur
+    // (« Shenandoah Telecommunications ») qu'il ne faut pas lire comme tel.
+    const verbe = / (retire|retirez|retirer|enleve|enlevez|enlever|exclus|excluez|exclure|ecarte|ecartez|ecarter|supprime|supprimez|elimine|eliminez|sors|garde uniquement|ne garde que|garde seulement|conserve uniquement) (.+)$/
+      .exec(" " + cleNom(String(texte).replace(/,/g, " et ")) + " ");
+    if (verbe && HARES.depart) {
+      const lignes = idsHares().map(ligneHares).filter(Boolean);
+      const parties = verbe[2].split(/ et /).map((x) => x.trim()).filter(Boolean);
+      const noms = parties.map((x) => societeNommee(x, lignes));
+      if (parties.length && noms.every(Boolean)) {
+        return { operations: [{ type: /garde|conserve/.test(verbe[1]) ? "garder" : "retirer", noms: noms }] };
+      }
+    }
+
+    // Repartir : seulement en tête, et seulement quand c'est dit.
+    if (/ (?:repars|repartir|repartons|repartez|reprends|reprenez|recommence|recommencez|recommencer|reinitialise|reinitialiser|remets a zero|remise a zero|reset)(?= )| de zero /.test(t)) {
+      const depart = / (?:base complete|toute la base|base entiere|toutes les societes|univers complet) /.test(t) ? "base"
+        : / comparables? /.test(t) ? "comparables" : "depart";
+      ops.push({ type: "repartir", depart: depart });
+    } else if (/ (?:base complete|toute la base) /.test(t) && / (?:depuis|partir|pars|part) /.test(t)) {
+      ops.push({ type: "repartir", depart: "base" });
+    }
+
+    // Statut dans le groupe.
+    const groupes = / (?:groupes?|tetes? de groupes?) /.test(t) && !/ filiales? (?:de|du|d) /.test(t);
+    const sansFiliales = / (?:exclu\w*|retire\w*|enleve\w*|sans|hors|ecarte\w*|elimine\w*|supprime\w*) (?:les |des |toutes les )?filiales /.test(t);
+    const queFiliales = / (?:uniquement|que|seulement|garde\w*|conserve\w*|isole\w*) (?:les |des )?filiales /.test(t);
+    if (groupes) ops.push({ type: "filtrer", champ: "statut", op: "=", valeur: "groupe" });
+    else if (sansFiliales) ops.push({ type: "filtrer", champ: "statut", op: "!=", valeur: "filiale" });
+    else if (queFiliales) ops.push({ type: "filtrer", champ: "statut", op: "=", valeur: "filiale" });
+
+    // Secteur et géographie, avec les lexiques du moteur.
+    const categories = [];
+    if (e.secteurs.length) categories.push({ type: "filtrer", champ: "industrie", op: "=", valeur: e.secteurs[0] });
+    if (e.pays.length) categories.push(e.pays.length > 1 ? { type: "filtrer", champ: "pays", op: "dans", valeur: e.pays }
+                                                          : { type: "filtrer", champ: "pays", op: "=", valeur: e.pays[0] });
+    else {
+      const geo = filtreGeo(e, "pays");
+      if (geo) categories.push(Object.assign({ type: "filtrer" }, geo));
+    }
+
+    // Seuils : chaque métrique mentionnée, puis le comparateur qui la suit
+    // (« marge comprise entre 20 % et 35 % ») ou qui la précède (« plus de
+    // 20 % de marge »).
+    const mentions = mentionsHares(t);
+    const seuils = [], utilisees = new Set();
+    mentions.forEach((m, i) => {
+      const apres = t.slice(m.fin, i + 1 < mentions.length ? mentions[i + 1].debut : t.length);
+      const avant = t.slice(i ? mentions[i - 1].fin : 0, m.debut);
+      const s = seuilHares(apres, false) || seuilHares(avant, true);
+      if (!s) return;
+      utilisees.add(i);
+      if (s.relatif) seuils.push({ type: "filtrer", champ: m.champ, op: s.op, valeur: s.relatif });
+      else if (s.op === "entre") seuils.push({ type: "filtrer", champ: m.champ, op: "entre", valeur: s.valeurs.map(([n, u]) => valeurSeuilHares(m.champ, n, u || s.valeurs[1][1])) });
+      else seuils.push({ type: "filtrer", champ: m.champ, op: s.op, valeur: valeurSeuilHares(m.champ, s.valeurs[0][0], s.valeurs[0][1]) });
+    });
+    // « Retire les sociétés dont la marge est inférieure à 10 % » garde les autres.
+    const filtres = categories.concat(seuils).map((f) => (negatif && !sansFiliales ? Object.assign({}, f, { op: INVERSE_HARES[f.op] || f.op }) : f));
+    ops.push(...filtres);
+
+    // Tri, et nombre à garder.
+    let tri = null;
+    const classe = / (?:classe|classes|classez|classer|trie|tries|triez|trier|ordonne|ordonnez|ordonner|range|rangez|ranger)(?= )/.exec(t);
+    if (classe) {
+      const par = t.indexOf(" par ", classe.index);
+      const m = mentions.find((x, i) => !utilisees.has(i) && x.debut > (par >= 0 ? par : classe.index));
+      if (m) tri = { type: "trier", champ: m.champ, sens: / (?:croissant|ascendant|du plus petit|du plus faible|du moins)/.test(t) ? "asc" : "desc" };
+    }
+    const nombre = / (?:top|les|garde|garder|conserve|ne garde que) (\d{1,3}) (?:plus|premieres?|premiers?|principales?|principaux|meilleures?|meilleurs|societes)?/.exec(t)
+      || / top (\d{1,3}) /.exec(t);
+    const superlatif = / plus (grosses?|grands?|grandes?|importantes?|importants?|rentables?|endettees?|endettes?|petites?|petits?|faibles?) /.exec(t);
+    if (!tri && superlatif) {
+      const mot = superlatif[1];
+      const champ = /^rentable/.test(mot) ? "marge_ebitda" : /^endette/.test(mot) ? "dette_ebitda" : "capitalisation";
+      tri = { type: "trier", champ: champ, sens: /^(petit|faible)/.test(mot) ? "asc" : "desc" };
+    }
+    if (tri) ops.push(tri);
+    // Sans tri nommé, « garde les 10 premières » suit le tri en cours.
+    if (nombre && (superlatif || tri || / (?:premieres?|premiers?|top) /.test(t))) {
+      ops.push({ type: "limiter", nombre: Number(nombre[1]) });
+    }
+
+    // Statistiques : « médiane et quartiles des multiples ».
+    const tStats = t.replace(/ (?:a|que) (?:la|sa) (?:mediane|moyenne) /g, " ");
+    if (/ (?:mediane|medianes|quartiles?|moyenne|moyennes|statistiques?|distribution|dispersion|ecart type) /.test(tStats)) {
+      const libres = mentions.filter((m, i) => !utilisees.has(i) && !(tri && m.champ === tri.champ && tri.type === "trier")).map((m) => m.champ);
+      const champs = / multiples? /.test(t) ? MULTIPLES_HARES : libres.length ? [...new Set(libres)] : MULTIPLES_HARES;
+      ops.push({ type: "statistiques", champs: champs });
+    }
+
+    // Valeurs aberrantes, sur les indicateurs nommés, sinon sur ceux des
+    // dernières statistiques, sinon sur VE / EBITDA.
+    if (/ (?:aberrant\w*|outliers?|extremes?|atypiques?|anormales?|hors normes?) /.test(t)) {
+      const nommes = mentions.map((m) => m.champ).filter((c) => estNumeriqueHares(c));
+      const derniere = HARES.etapes.slice().reverse().map((x) => x.operations.find((o) => o.type === "statistiques")).find(Boolean);
+      const champs = / multiples? /.test(t) ? MULTIPLES_HARES : nommes.length ? [...new Set(nommes)] : derniere ? derniere.champs : ["ve_ebitda"];
+      ops.push({ type: "aberrantes", champs: champs });
+    }
+
+    return ops.length ? { operations: ops } : null;
+  }
+
+  // Questions sur les autres données : pays, industries Damodaran, taux, CMPC.
+  // Elles gardent leurs réponses ; tout ce qui parle de sociétés va à l'échantillon.
+  // Un verbe d'action sur l'échantillon l'emporte : « isole les télécoms » ou
+  // « retire Shenandoah Telecommunications » filtrent, sans devenir une fiche
+  // d'industrie Damodaran — sauf si la demande nomme une donnée pays, un taux
+  // ou le CMPC. Une industrie Damodaran ne répond que si elle est dite telle.
+  const ACTION_HARES = / (?:isole\w*|garde\w*|conserve\w*|retire\w*|enleve\w*|exclu\w*|ecarte\w*|filtre\w*|parmi|classe\w*|trie\w*|ordonne\w*|range\w*|ressortir|selectionne\w*|limite\w*|repar\w*|reprend\w*|recommence\w*|aberrant\w*|elimine\w*|supprime\w*) /;
+  function questionDonnees(texte) {
+    const t = " " + cleNom(texte) + " ";
+    const explicite = metriquePays(t) || / (?:cmpc|wacc|taux sans risque|us bonds?|treasury) /.test(t);
+    if (ACTION_HARES.test(t) && !explicite) return null;
+    const g = reconnaitreGabarit(texte);
+    if (!g) return null;
+    const source = g.requete.source;
+    if (source === "industries") return / (?:industrie|industries|damodaran) /.test(t) ? g : null;
+    return ["pays", "taux", "cmpc", "comparaison"].indexOf(source) >= 0 ? g : null;
+  }
+
+  function contexteHares() {
+    return Object.assign(contexteEcran(), {
+      echantillon: {
+        n: idsHares().length,
+        depart: HARES.depart.libelle.slice(0, 160),
+        etapes: HARES.etapes.map(etiquetteEtape).slice(-12),
+      },
+    });
+  }
+
+  /* ---- Application ---- */
+  function appliquerPlan(plan, demande, meta) {
+    let ops = (plan.operations || []).slice();
+    let retour = null;
+    while (ops.length && ops[0] && ops[0].type === "repartir") {
+      const depart = ops.shift().depart || "depart";
+      if (depart === "base") { initialiserDepart(departBase(), false); retour = "la base complète"; }
+      else if (depart === "comparables") {
+        const c = departComparables();
+        initialiserDepart(c || departBase(), false);
+        retour = c ? "l'échantillon des comparables" : "la base complète, faute d'échantillon de comparables (référentiel Damodaran)";
+      } else { HARES.etapes = []; HARES.vue = null; retour = "l'échantillon de départ"; }
+    }
+    HARES.reponse = null;
+    HARES.info = retour ? `Retour à ${retour} : ${HARES.depart.libelle}.` : null;
+    if (!ops.length) { rendreHares(); return; }
+    const courant = { ids: idsHares(), tri: triHares() };
+    const r = executerOperations(ops, courant);
+    if (!r.ok) {
+      HARES.reponse = Object.assign({ question: demande, resultat: r }, meta);
+      rendreHares();
+      return;
+    }
+    HARES.etapes.push(Object.assign({
+      demande: demande, operations: r.operations, reformulation: reformulerHares(r.operations),
+      avant: courant.ids.length, apres: r.ids.length, ids: r.ids, tri: r.tri,
+      notes: r.notes, stats: r.stats, retirees: r.retirees,
+    }, meta));
+    HARES.vue = null;
+    rendreHares();
+  }
+
+  async function demanderHares(texte) {
+    const demande = String(texte || "").trim().slice(0, 400);
+    if (!demande || AGENT.enCours) return;
+    if (!HARES.depart) ouvrirHares();
+    HARES.info = null;
+    const donnees = questionDonnees(demande);
+    if (donnees) {
+      HARES.reponse = { question: demande, origine: "gabarit", resultat: executerReponse(donnees.requete), donnees: true };
+      rendreHares();
+      return;
+    }
+    const plan = reconnaitreOperations(demande);
+    if (plan) { appliquerPlan(plan, demande, { origine: "gabarit" }); return; }
+    if (AGENT.horsLigne || AGENT.quota) {
+      HARES.reponse = { question: demande, origine: "aucune",
+                        resultat: erreurAgent(AGENT.quota ? "quota" : "hors_ligne", messageServeur({ code: AGENT.quota ? "quota" : "absent", reprise: AGENT.quota })) };
+      rendreHares();
+      return;
+    }
+    AGENT.enCours = true;
+    rendreHares(demande);
+    const s = await demanderAuServeur(demande, contexteHares());
+    AGENT.enCours = false;
+    if (!s.ok) {
+      // Une panne passagère ne fait pas basculer la session hors ligne.
+      if (RAISONS_HORS_LIGNE[s.code]) { AGENT.horsLigne = true; AGENT.raison = RAISONS_HORS_LIGNE[s.code]; }
+      if (s.code === "quota") AGENT.quota = s.reprise || true;
+      HARES.reponse = { question: demande, origine: "aucune", resultat: erreurAgent(s.code, messageServeur(s)) };
+      rendreHares();
+      return;
+    }
+    const meta = { origine: "en_ligne", modele: s.modele, cache: s.cache };
+    if (s.requete.source === "echantillon") { appliquerPlan(s.requete, demande, meta); return; }
+    HARES.reponse = Object.assign({ question: demande, resultat: executerReponse(s.requete), donnees: true }, meta);
+    rendreHares();
+  }
+
+  function envoyerVersComparaison() {
+    const ids = idsHares();
+    if (!ids.length) return;
+    const etapes = HARES.etapes.map(etiquetteEtape);
+    ENVOI_HARES = {
+      ids: ids.slice(),
+      libelle: [pluriel(ids.length, "société"), "départ : " + HARES.depart.libelle].concat(etapes).join(" · "),
+    };
+    HARES.envoi = ENVOI_HARES;
+    chargerComparables();
+    chargerValorisation();
+    rendreHares();
+  }
+
+  /* ---- Affichage ---- */
+  const EXEMPLES_HARES = [
+    "Isole les sociétés de télécom en Afrique",
+    "Garde uniquement les sociétés dont la marge d'EBITDA est comprise entre 20 % et 35 %",
+    "Fais ressortir uniquement les groupes",
+    "Parmi elles, lesquelles ont un endettement net / EBITDA inférieur à 2x ?",
+    "Classe-les par chiffre d'affaires et donne-moi la médiane et les quartiles des multiples",
+    "Retire les valeurs aberrantes et explique pourquoi",
+  ];
+
+  function departHtml() {
+    const d = HARES.depart;
+    const comp = departComparables();
+    const actions = [];
+    if (d.type !== "base") actions.push(`<button type="button" class="valo-bouton" data-hares-depart="base">Repartir de la base complète</button>`);
+    if (d.type === "base" && comp) actions.push(`<button type="button" class="valo-bouton" data-hares-depart="comparables">Repartir de l'échantillon des comparables</button>`);
+    const change = comp && d.type === "comparables" && comp.signature !== d.signature;
+    return `
+      <span><b>Échantillon de départ :</b> ${esc(d.libelle)}</span>
+      <span class="hares-depart-actions">${actions.join("")}</span>
+      ${change ? `<p class="hares-alerte">L'échantillon des comparables a changé depuis : ${esc(comp.libelle)}.
+        <button type="button" class="agent-lien" data-hares-depart="comparables">Repartir de celui-ci</button></p>` : ""}`;
+  }
+
+  function filHtml() {
+    if (!HARES.etapes.length) return "";
+    const actif = HARES.vue == null ? HARES.etapes.length - 1 : HARES.vue;
+    return `<li><span class="hares-pas">Départ <b>${esc(frEntier(HARES.depart.ids.length))}</b></span></li>`
+      + HARES.etapes.map((e, i) => `<li><button type="button" class="hares-pas${i === actif ? " is-actif" : ""}" data-hares-etape="${i}"
+          title="${esc(e.demande)}">${esc(etiquetteEtape(e))} <b>${esc(frEntier(e.apres))}</b></button></li>`).join("");
+  }
+
+  function statsHtml(stats) {
+    if (!stats.length) return "";
+    const f = (s, cle) => (s.n ? formaterHares(s.champ, s[cle]) : "—");
+    return `
+      <p class="hares-intertitre">Statistiques de l'échantillon, après cette étape</p>
+      <div class="hares-defile"><table class="agent-table hares-stats">
+        <thead><tr><th>Indicateur</th><th class="is-nombre">Sociétés</th><th class="is-nombre">Min</th><th class="is-nombre">Q1</th>
+          <th class="is-nombre">Médiane</th><th class="is-nombre">Q3</th><th class="is-nombre">Max</th><th class="is-nombre">Moyenne</th></tr></thead>
+        <tbody>${stats.map((s) => `<tr data-hares-stat="${esc(s.champ)}"><td>${esc(libHares(s.champ))}</td><td class="is-nombre">${s.n}</td>
+          <td class="is-nombre">${esc(f(s, "min"))}</td><td class="is-nombre">${esc(f(s, "q1"))}</td><td class="is-nombre"><b>${esc(f(s, "mediane"))}</b></td>
+          <td class="is-nombre">${esc(f(s, "q3"))}</td><td class="is-nombre">${esc(f(s, "max"))}</td><td class="is-nombre">${esc(f(s, "moyenne"))}</td></tr>`).join("")}</tbody>
+      </table></div>`;
+  }
+
+  function etapeHtml(e, i) {
+    const derniere = i === HARES.etapes.length - 1;
+    const origine = origineDemande(e);
+    return `
+      <div class="hares-etape-tete">
+        <span class="hares-etape-num">Étape ${i + 1}</span>
+        <p class="agent-question">« ${esc(e.demande)} »</p>
+        <span class="hares-effectif">${esc(frEntier(e.avant))} → ${esc(pluriel(e.apres, "société"))}</span>
+      </div>
+      <div class="agent-compris"><span><b>J'ai compris :</b> ${esc(e.reformulation.charAt(0).toUpperCase() + e.reformulation.slice(1))}.</span>
+        <button type="button" class="agent-lien" data-agent-corriger="${esc(e.demande)}">Corriger</button></div>
+      ${e.notes.length ? `<ul class="hares-notes">${e.notes.map((n) => `<li>${esc(n)}</li>`).join("")}</ul>` : ""}
+      ${statsHtml(e.stats)}
+      ${e.retirees.length ? `<div class="hares-retirees"><p class="hares-intertitre">Retirées, et pourquoi</p>
+        <ul>${e.retirees.map((x) => `<li><b>${esc(x.nom)}</b> : ${esc(x.raison)}.</li>`).join("")}</ul></div>` : ""}
+      <p class="agent-source">Source : S&amp;P Capital IQ, exercice ${HARES.an}${origine ? " · " + esc(origine) : ""}.</p>
+      <span class="hares-actions">${derniere
+        ? `<button type="button" class="valo-bouton" data-hares-annuler>Annuler cette étape</button>`
+        : `<button type="button" class="valo-bouton" data-hares-reprendre="${i}">Reprendre à partir d'ici</button>`}</span>`;
+  }
+
+  function reponseHaresHtml(enCours) {
+    if (enCours) return `<p class="agent-question">« ${esc(enCours)} »</p><p class="agent-attente">Traduction de la demande…</p>`;
+    if (HARES.reponse) return reponseHtml(HARES.reponse);
+    const info = HARES.info ? `<p class="agent-entete">${esc(HARES.info)}</p>` : "";
+    if (!HARES.etapes.length) return info;
+    const i = HARES.vue == null ? HARES.etapes.length - 1 : HARES.vue;
+    return info + etapeHtml(HARES.etapes[i], i);
+  }
+
+  function tableHaresHtml() {
+    const ids = idsHares(), tri = triHares();
+    const lignes = trierHares(ids.map(ligneHares).filter(Boolean), tri);
+    const envoye = HARES.envoi && ENVOI_HARES === HARES.envoi && HARES.envoi.ids.join(",") === ids.join(",");
+    const nombre = (c) => estNumeriqueHares(c);
+    const cellule = (l, c) => {
+      if (c === "nom") return `<td><span class="hares-nom">${esc(l.nom)}</span><span class="hares-sous">${esc(l.pays || "")}${l.place ? " · " + esc(l.place) : ""}</span></td>`;
+      if (c === "statut") return `<td${l.mere ? ` title="Filiale de ${esc(l.mere)}"` : ""}>${esc(statutHares(l))}${l.mere ? `<span class="hares-sous">de ${esc(l.mere)}</span>` : ""}</td>`;
+      return `<td class="${nombre(c) ? "is-nombre" : ""}">${esc(formaterHares(c, l[c]))}</td>`;
+    };
+    return `
+      <div class="hares-table-tete">
+        <h2>Échantillon actuel : <b>${esc(frEntier(lignes.length))}</b> société${lignes.length > 1 ? "s" : ""}</h2>
+        <span class="hares-table-note">exercice ${HARES.an} · montants en M FCFA · VE = capitalisation + dette totale${TRESORERIE_HARES ? "" : " · levier sur dette brute"}</span>
+        <button type="button" class="valo-bouton is-plein" data-hares-envoyer${lignes.length ? "" : " disabled"}>Envoyer vers comparaison</button>
+      </div>
+      ${envoye ? `<p class="hares-envoye">Échantillon envoyé vers Valorisation › Comparables.
+        <button type="button" class="agent-lien" data-hares-voir>Voir la comparaison</button></p>` : ""}
+      ${lignes.length ? `
+      <div class="hares-table-defile">
+        <table class="hares-table">
+          <thead><tr>${COLONNES_HARES.map((c) => `<th class="${nombre(c) ? "is-nombre" : ""}${c === tri.champ ? " is-tri" : ""}">${esc(libHares(c))}${c === tri.champ ? (tri.sens === "desc" ? " ↓" : " ↑") : ""}</th>`).join("")}</tr></thead>
+          <tbody>${lignes.slice(0, AFFICHAGE_HARES).map((l) => `<tr data-hares-id="${esc(l.id)}">${COLONNES_HARES.map((c) => cellule(l, c)).join("")}</tr>`).join("")}</tbody>
+        </table>
+      </div>
+      ${lignes.length > AFFICHAGE_HARES ? `<p class="agent-source">Les ${AFFICHAGE_HARES} premières selon le tri en cours, sur ${esc(frEntier(lignes.length))}. Affinez l'échantillon pour voir le reste.</p>` : ""}`
+      : `<p class="hares-vide">Aucune société ne répond à ces critères. Annulez la dernière étape, ou repartez du départ.</p>`}`;
+  }
+
+  function rendreHares(enCours) {
+    const racine = $("panel-hares");
+    if (!racine || !HARES.depart) return;
     const etat = racine.querySelector('[data-o="agent-etat"]');
-    const horsLigne = AGENT.horsLigne || AGENT.quota;
     etat.textContent = AGENT.horsLigne ? "Mode hors ligne : gabarits seulement" + (AGENT.raison ? " — " + AGENT.raison : "")
       : AGENT.quota ? "Quota du jour atteint : gabarits seulement"
-      : "Gabarits locaux, puis assistant en ligne";
-    etat.classList.toggle("is-hors-ligne", Boolean(horsLigne));
-    $("agentDemander").disabled = Boolean(AGENT.enCours);
-    const derniere = AGENT.historique[0];
-    $("agentReponse").innerHTML = enCours
-      ? `<p class="agent-question">« ${esc(enCours)} »</p><p class="agent-attente">Traduction de la question en requête…</p>`
-      : derniere ? reponseHtml(derniere) : "";
-    // Les réponses précédentes restent consultables, repliées sous leur question.
-    const precedentes = AGENT.historique.slice(1);
-    $("agentHistorique").innerHTML = precedentes.length ? `
-      <h3>Questions précédentes</h3>
-      <ul>${precedentes.map((e) => `<li><details class="agent-ancienne">
-        <summary><span>${esc(e.question)}</span><span>${esc(e.resultat.ok ? enteteCourte(e.resultat) : "sans réponse")}</span></summary>
-        <div class="agent-ancienne-corps">${reponseHtml(e, true)}</div>
-      </details></li>`).join("")}</ul>` : "";
-    $("agentContexte").innerHTML = contexteHtml();
-    $("agentExemples").innerHTML = `<h2>Exemples</h2>` + EXEMPLES_AGENT.map(([theme, questions]) => `
-      <div class="agent-theme">
-        <h3>${esc(theme)}</h3>
-        <span class="agent-exemples">${questions.map((q) => `<button type="button" class="agent-puce" data-agent-question="${esc(q)}">${esc(q)}</button>`).join("")}</span>
-      </div>`).join("");
+      : "Demandes courantes lues sur place, les autres traduites en ligne";
+    etat.classList.toggle("is-hors-ligne", Boolean(AGENT.horsLigne || AGENT.quota));
+    $("haresDemander").disabled = Boolean(AGENT.enCours);
+    $("haresDepart").innerHTML = departHtml();
+    $("haresExemples").innerHTML = HARES.etapes.length || HARES.reponse ? ""
+      : EXEMPLES_HARES.map((q) => `<button type="button" class="agent-puce" data-agent-question="${esc(q)}">${esc(q)}</button>`).join("");
+    $("haresFil").innerHTML = filHtml();
+    $("haresReponse").innerHTML = reponseHaresHtml(enCours);
+    $("haresEchantillon").innerHTML = tableHaresHtml();
   }
 
-  // Le résumé d'une ancienne réponse, à droite de sa question.
-  function enteteCourte(r) {
-    if (r.cmpc) return "CMPC " + frPct(r.cmpc.cmpc_local);
-    if (r.agregat) return r.agregat.fonction === "compte" ? String(r.agregat.valeur) : formaterValeur(r.agregat.champ, r.agregat.valeur);
-    if (r.lignes.length === 1 && r.champs.length === 2 && r.champs[0] === "nom") return formaterValeur(r.champs[1], r.lignes[0][r.champs[1]]);
-    return r.n + " résultat" + (r.n > 1 ? "s" : "");
-  }
-
-  // Ce que l'assistant reprend quand la question ne le précise pas.
-  function contexteHtml() {
-    const c = contexteEcran();
-    const lignes = [
-      ["Référentiel", c.referentiel === "comparables" ? "Comparables" : "Damodaran"],
-      ["Pays", c.pays],
-      [c.referentiel === "comparables" ? "Secteur" : "Industrie", c.referentiel === "comparables" ? c.secteur : c.industrie],
-      ["Année", c.annee],
-      ["Taux sans risque", "US Treasury " + String(c.maturite || "").replace("Y", " ans")],
-    ].filter(([, v]) => v != null && v !== "");
-    return `
-      <h2>Contexte de l'écran</h2>
-      <span class="result-rows">${lignes.map(([l, v]) => `<span class="result-row"><span>${esc(l)}</span><span>${esc(v)}</span></span>`).join("")}</span>
-      <p class="agent-source">Repris quand la question ne précise pas le pays, le secteur ou l'année.
-        <button type="button" class="agent-lien" data-agent-onglet="params">Modifier</button></p>`;
-  }
-
-  function initAgent() {
-    const racine = $("agentPanneau");
+  function initHares() {
+    const racine = $("panel-hares");
     if (!racine) return;
-    $("agentFormulaire").addEventListener("submit", (ev) => {
+    $("haresFormulaire").addEventListener("submit", (ev) => {
       ev.preventDefault();
-      poserQuestion($("agentQuestion").value);
+      demanderHares($("haresQuestion").value);
     });
     racine.addEventListener("click", (ev) => {
+      const champ = $("haresQuestion");
       const q = ev.target.closest("[data-agent-question]");
-      if (q) { $("agentQuestion").value = q.dataset.agentQuestion; poserQuestion(q.dataset.agentQuestion); return; }
+      if (q) { champ.value = q.dataset.agentQuestion; demanderHares(q.dataset.agentQuestion); return; }
       const c = ev.target.closest("[data-agent-corriger]");
       if (c) {
-        const champ = $("agentQuestion");
         champ.value = c.dataset.agentCorriger;
         champ.focus();
         champ.setSelectionRange(champ.value.length, champ.value.length);
         return;
       }
       const cand = ev.target.closest("[data-agent-candidat]");
-      if (cand) { $("agentQuestion").value = cand.dataset.agentCandidat; $("agentQuestion").focus(); return; }
-      const onglet = ev.target.closest("[data-agent-onglet]");
-      if (onglet) { tab = onglet.dataset.agentOnglet; renderTabs(); return; }
+      if (cand) { champ.value = cand.dataset.agentCandidat; champ.focus(); return; }
+      const etape = ev.target.closest("[data-hares-etape]");
+      if (etape) { HARES.vue = Number(etape.dataset.haresEtape); HARES.reponse = null; HARES.info = null; rendreHares(); return; }
+      if (ev.target.closest("[data-hares-annuler]")) {
+        HARES.etapes.pop(); HARES.vue = null; HARES.reponse = null; HARES.info = null; rendreHares(); return;
+      }
+      const reprendre = ev.target.closest("[data-hares-reprendre]");
+      if (reprendre) {
+        HARES.etapes = HARES.etapes.slice(0, Number(reprendre.dataset.haresReprendre) + 1);
+        HARES.vue = null; HARES.reponse = null; HARES.info = null; rendreHares(); return;
+      }
+      const depart = ev.target.closest("[data-hares-depart]");
+      if (depart) {
+        const c = depart.dataset.haresDepart === "comparables" ? departComparables() : null;
+        initialiserDepart(c || departBase(), false);
+        HARES.info = null;
+        rendreHares();
+        return;
+      }
+      if (ev.target.closest("[data-hares-envoyer]")) { envoyerVersComparaison(); return; }
+      if (ev.target.closest("[data-hares-voir]")) {
+        VALO.vue = "comparables";
+        tab = "valorisation";
+        renderTabs();
+        chargerValorisation(true);
+        return;
+      }
       const app = ev.target.closest("[data-agent-appliquer]");
       if (app) {
         // Le CMPC demandé devient celui de l'écran : mêmes paramètres, même
@@ -10854,7 +11660,6 @@
         apply();
       }
     });
-    rendreAgent();
   }
 
   function renderAll() {
@@ -10883,7 +11688,7 @@
   model = computeModel(params);
   renderTabs();
   renderAll();
-  initAgent();
+  initHares();
 </script>
 </body>
 </html>
