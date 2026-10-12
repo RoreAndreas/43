@@ -1,10 +1,40 @@
 {
-    "last_update": "2026-10-09 02:53:14",
+    "last_update": "2026-10-12 19:44:21",
     "count": 20,
     "weeks": [
         {
+            "semaine": "Semaine du 12 Octobre au 18 Octobre 2026",
+            "publications": [
+                {
+                    "date": "12/10/2026",
+                    "titre": "SONATEL SN : Fractionnement de l'action",
+                    "url": "https://www.richbourse.com/common/actualite/afficher-fichier/12-10-2026-sonatel-sn-fractionnement-de-l-action"
+                },
+                {
+                    "date": "12/10/2026",
+                    "titre": "SONATEL SN : Communiqué",
+                    "url": "https://www.richbourse.com/common/actualite/afficher-fichier/12-10-2026-sonatel-sn-communique"
+                },
+                {
+                    "date": "12/10/2026",
+                    "titre": "Flottant des sociétés cotées à la BRVM",
+                    "url": "https://www.richbourse.com/common/actualite/afficher-fichier/12-10-2026-flottant-des-societes-cotees-a-la-brvm"
+                }
+            ]
+        },
+        {
             "semaine": "Semaine du 05 Octobre au 11 Octobre 2026",
             "publications": [
+                {
+                    "date": "09/10/2026",
+                    "titre": "ORAGROUP TG : Rapport d'activités - 1er semestre 2026",
+                    "url": "https://www.richbourse.com/common/actualite/afficher-fichier/09-10-2026-oragroup-tg-rapport-d-activites-1er-semestre-2026"
+                },
+                {
+                    "date": "09/10/2026",
+                    "titre": "AFRICA GLOBAL LOGISTICS CI : Paiement de dividendes - Exercice 2025",
+                    "url": "https://www.richbourse.com/common/actualite/afficher-fichier/09-10-2026-africa-global-logistics-ci-paiement-de-dividendes-exercice-2025"
+                },
                 {
                     "date": "08/10/2026",
                     "titre": "BRVM : Transactions Sur Dossier",
@@ -12,13 +42,13 @@
                 },
                 {
                     "date": "08/10/2026",
-                    "titre": "ORANGE CI : Rapport d'activités - 1er semestre 2026",
-                    "url": "https://www.richbourse.com/common/actualite/afficher-fichier/08-10-2026-orange-ci-rapport-d-activites-1er-semestre-2026"
+                    "titre": "ORANGE CI : Attestation des Commissaires Aux Comptes sur le rapport d'activités - 1er semestre 2026",
+                    "url": "https://www.richbourse.com/common/actualite/afficher-fichier/08-10-2026-orange-ci-attestation-des-commissaires-aux-comptes-sur-le-rapport-d-activites-1er-semestre-2026"
                 },
                 {
                     "date": "08/10/2026",
-                    "titre": "ORANGE CI : Attestation des Commissaires Aux Comptes sur le rapport d'activités - 1er semestre 2026",
-                    "url": "https://www.richbourse.com/common/actualite/afficher-fichier/08-10-2026-orange-ci-attestation-des-commissaires-aux-comptes-sur-le-rapport-d-activites-1er-semestre-2026"
+                    "titre": "ORANGE CI : Rapport d'activités - 1er semestre 2026",
+                    "url": "https://www.richbourse.com/common/actualite/afficher-fichier/08-10-2026-orange-ci-rapport-d-activites-1er-semestre-2026"
                 },
                 {
                     "date": "07/10/2026",
@@ -32,13 +62,13 @@
                 },
                 {
                     "date": "06/10/2026",
-                    "titre": "BOA SN : Notation Financière",
-                    "url": "https://www.richbourse.com/common/actualite/afficher-fichier/06-10-2026-boa-sn-notation-financiere"
+                    "titre": "TRACTAFRIC MOTORS CI : Paiement de dividendes - Exercice 2025",
+                    "url": "https://www.richbourse.com/common/actualite/afficher-fichier/06-10-2026-tractafric-motors-ci-paiement-de-dividendes-exercice-2025"
                 },
                 {
                     "date": "06/10/2026",
-                    "titre": "TRACTAFRIC MOTORS CI : Paiement de dividendes - Exercice 2025",
-                    "url": "https://www.richbourse.com/common/actualite/afficher-fichier/06-10-2026-tractafric-motors-ci-paiement-de-dividendes-exercice-2025"
+                    "titre": "BOA SN : Notation Financière",
+                    "url": "https://www.richbourse.com/common/actualite/afficher-fichier/06-10-2026-boa-sn-notation-financiere"
                 },
                 {
                     "date": "05/10/2026",
@@ -84,36 +114,6 @@
                     "date": "01/10/2026",
                     "titre": "BOA CI : Rapport d'examen limité des états financiers - 1er semestre 2026",
                     "url": "https://www.richbourse.com/common/actualite/afficher-fichier/01-10-2026-boa-ci-rapport-d-examen-limite-des-etats-financiers-1er-semestre-2026"
-                },
-                {
-                    "date": "30/09/2026",
-                    "titre": "TotalEnergies Marketing CI : Notation financière",
-                    "url": "https://www.richbourse.com/common/actualite/afficher-fichier/30-09-2026-totalenergies-marketing-ci-notation-financiere"
-                },
-                {
-                    "date": "30/09/2026",
-                    "titre": "AMF-UMOA : Communiqué - Souscription à des Offres Publiques de Vente hors du territoire de l'UEMOA",
-                    "url": "https://www.richbourse.com/common/actualite/afficher-fichier/30-09-2026-amf-umoa-communique-souscription-a-des-offres-publiques-de-vente-hors-du-territoire-de-l-uemoa"
-                },
-                {
-                    "date": "28/09/2026",
-                    "titre": "SIB CI : Rapport d'activités - 1er semestre 2026",
-                    "url": "https://www.richbourse.com/common/actualite/afficher-fichier/28-09-2026-sib-ci-rapport-d-activites-1er-semestre-2026"
-                },
-                {
-                    "date": "28/09/2026",
-                    "titre": "SIB CI : Attestation des Commissaires Aux Comptes - 1er semestre 2026",
-                    "url": "https://www.richbourse.com/common/actualite/afficher-fichier/28-09-2026-sib-ci-attestation-des-commissaires-aux-comptes-1er-semestre-2026"
-                }
-            ]
-        },
-        {
-            "semaine": "Semaine du 21 Septembre au 27 Septembre 2026",
-            "publications": [
-                {
-                    "date": "25/09/2026",
-                    "titre": "BOA NIGER : Attestation des Commissaires Aux Comptes et Rapport d'activités - 1er semestre 2026",
-                    "url": "https://www.richbourse.com/common/actualite/afficher-fichier/25-09-2026-boa-niger-attestation-des-commissaires-aux-comptes-et-rapport-d-activites-1er-semestre-2026"
                 }
             ]
         }
