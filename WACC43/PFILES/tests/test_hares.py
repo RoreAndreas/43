@@ -89,6 +89,9 @@ def test_sous_comparables_hares_reprend_l_echantillon_et_le_dit(page):
     assert r[0] == "comparables" and r[1] == r[2]
     texte = page.inner_text("#haresDepart")
     assert "Échantillon de départ" in texte and r[3] in texte
+    # Le départ vit dans le panneau de l'échantillon, fermé tant qu'aucune demande ne l'ouvre.
+    assert "is-ouvert" not in page.get_attribute("#haresEspace", "class")
+    page.click("#haresRouvrir")
     page.click('[data-hares-depart="base"]')
     assert page.evaluate("HARES.depart.type") == "base"
 

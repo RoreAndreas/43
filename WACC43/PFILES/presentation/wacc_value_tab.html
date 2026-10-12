@@ -12163,7 +12163,7 @@
     nHistorique: 0,   // nombre de messages jamais archivés : le fil ne se redessine qu'à son changement
     question: null,   // la demande en cours, au-dessus de la réponse vivante
     exemples: [],     // les cinq exemples tirés pour la réponse en cours
-    panneauOuvert: true,
+    panneauOuvert: false,   // fermé d'office : seul le résultat d'une demande l'ouvre
     confirmCmpc: null,
   };
   // Au-delà de cinq sociétés, le tableau ne tient plus dans le fil : il
@@ -12237,7 +12237,6 @@
     HARES.vue = null;
     HARES.reponse = null;
     HARES.confirmCmpc = null;
-    HARES.panneauOuvert = depart.ids.length > LIGNES_DANS_LE_FIL;
   }
   const idsHares = () => (HARES.etapes.length ? HARES.etapes[HARES.etapes.length - 1].ids : HARES.depart.ids);
   const triHares = () => (HARES.etapes.length ? HARES.etapes[HARES.etapes.length - 1].tri : TRI_HARES);
@@ -12960,6 +12959,7 @@
     HARES.exemples = [];
     HARES.info = null;
     HARES.depart = null;
+    HARES.panneauOuvert = false;
     ouvrirHares();
   }
 
@@ -13268,14 +13268,14 @@
       if (etape) { HARES.vue = Number(etape.dataset.haresEtape); HARES.reponse = null; HARES.info = null; rendreHares(); return; }
       if (ev.target.closest("[data-hares-annuler]")) {
         HARES.etapes.pop(); HARES.vue = null; HARES.reponse = null; HARES.info = null;
-        HARES.panneauOuvert = idsHares().length > LIGNES_DANS_LE_FIL;
+        HARES.panneauOuvert = HARES.etapes.length > 0 && idsHares().length > LIGNES_DANS_LE_FIL;
         rendreHares(); return;
       }
       const reprendre = ev.target.closest("[data-hares-reprendre]");
       if (reprendre) {
         HARES.etapes = HARES.etapes.slice(0, Number(reprendre.dataset.haresReprendre) + 1);
         HARES.vue = null; HARES.reponse = null; HARES.info = null;
-        HARES.panneauOuvert = idsHares().length > LIGNES_DANS_LE_FIL;
+        HARES.panneauOuvert = HARES.etapes.length > 0 && idsHares().length > LIGNES_DANS_LE_FIL;
         rendreHares(); return;
       }
       const depart = ev.target.closest("[data-hares-depart]");
