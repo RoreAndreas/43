@@ -7,6 +7,8 @@ par an — face à la société évaluée. Les moyennes sont recalculées ici de
 les données de la page.
 """
 
+import pytest
+
 from conftest import mode_comparables, ouvrir
 from test_etats_financiers import ANNEES, CA, EBITDA, balance, importer_balance
 
@@ -38,13 +40,13 @@ def test_trois_onglets(page):
     assert onglets(page) == ["CMPC", "Valorisation", "HARES"]        # Damodaran : ni Insight ni Sociétés
     assert sous_onglets(page) == ["Paramètres", "Calcul"]
     mode_comparables(page)
-    assert onglets(page) == ["CMPC", "Insight", "Valorisation", "HARES"]
+    assert onglets(page) == ["CMPC", "Valorisation", "HARES"]          # Insight est retiré de la navigation
     assert sous_onglets(page) == ["Paramètres", "Calcul", "Sociétés"]
     ouvrir(page, "societes")
     assert page.is_visible("#panel-societes")
-    ouvrir(page, "insight")
-    assert sous_onglets(page) == []
-    assert page.is_visible("#panel-insight")
+    # Un lien qui viserait encore Insight ouvre les Paramètres.
+    page.evaluate("tab = 'insight'; renderTabs()")
+    assert not page.is_visible("#panel-insight") and page.is_visible("#panel-params")
 
 
 def test_un_onglet_se_rouvre_sur_sa_derniere_vue(page):
@@ -57,7 +59,6 @@ def test_un_onglet_se_rouvre_sur_sa_derniere_vue(page):
 def test_repasser_en_damodaran_quitte_insight_et_societes(page):
     mode_comparables(page)
     ouvrir(page, "societes")
-    ouvrir(page, "insight")
     page.evaluate("params.referentiel = 'damodaran'; renderAll()")
     assert page.is_visible("#panel-params")
     assert onglets(page) == ["CMPC", "Valorisation", "HARES"]
@@ -82,6 +83,7 @@ def moyennes_secteur(page, donnees):
     return annees, [sum(marge(s, a) for s in completes) / len(completes) for a in annees]
 
 
+@pytest.mark.skip(reason="Onglet Insight retiré de la navigation ; son code est conservé")
 def test_deux_blocs_seulement(page):
     mode_comparables(page)
     ouvrir(page, "insight")
@@ -89,6 +91,7 @@ def test_deux_blocs_seulement(page):
     assert page.query_selector("#insightGraphe svg path.ins-med") is not None
 
 
+@pytest.mark.skip(reason="Onglet Insight retiré de la navigation ; son code est conservé")
 def test_marge_moyenne_du_secteur_et_son_evolution(page, donnees):
     mode_comparables(page)
     ouvrir(page, "insight")
@@ -102,6 +105,7 @@ def test_marge_moyenne_du_secteur_et_son_evolution(page, donnees):
     assert abs(pourcent(page.text_content("#insightCorps .ins-chiffre.is-secteur strong")) - niveau) < 0.0006
 
 
+@pytest.mark.skip(reason="Onglet Insight retiré de la navigation ; son code est conservé")
 def test_la_societe_evaluee_face_au_secteur(page, tmp_path, donnees):
     mode_comparables(page)
     ouvrir(page, "insight")
@@ -123,6 +127,7 @@ def test_la_societe_evaluee_face_au_secteur(page, tmp_path, donnees):
     assert len(page.query_selector_all("#insightGraphe .ins-cible-point")) == len(ANNEES)
 
 
+@pytest.mark.skip(reason="Onglet Insight retiré de la navigation ; son code est conservé")
 def test_insight_suit_le_secteur_choisi(page, donnees):
     mode_comparables(page)
     ouvrir(page, "insight")

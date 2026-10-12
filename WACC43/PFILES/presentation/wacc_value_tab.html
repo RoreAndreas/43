@@ -2332,7 +2332,6 @@
   .hares-agent { display: flex; align-items: flex-end; gap: 12px; margin: 34px 0 10px; }
   .hares-agent-nom { font-weight: 600; font-size: 14.5px; }
   .hares-agent-sous { color: var(--hares-gris); font-size: 11.5px; }
-  .hares-session { margin-left: auto; color: var(--hares-gris); font-size: 11px; }
   .agent-etat { font: 400 10.5px/1.35 var(--hares-sans); color: #a1a1aa; }
   .agent-etat.is-hors-ligne { color: var(--warn); }
 
@@ -3005,7 +3004,7 @@
     </div>
     <nav class="tabs">
       <button type="button" data-groupe="cmpc" class="is-active">CMPC</button>
-      <!-- N'apparaît qu'avec le référentiel Comparables -->
+      <!-- Insight est retiré de la navigation : son code reste, l'onglet ne s'affiche plus. -->
       <button type="button" data-groupe="insight" id="tabInsight" hidden>Insight</button>
       <button type="button" data-groupe="valorisation">Valorisation</button>
       <button type="button" data-groupe="hares" class="onglet-hares" title="HARES — code analyste requis">HARES<span class="onglet-cadenas" aria-hidden="true"><svg width="11" height="12" viewBox="0 0 11 12" fill="none"><path class="anse-fermee" d="M3 5.4V3.7a2.5 2.5 0 015 0v1.7" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/><path class="anse-ouverte" d="M3 5.4V3.7a2.5 2.5 0 014.9-.8" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/><rect x="1.5" y="5.4" width="8" height="5.6" rx="1.4" fill="currentColor"/></svg></span></button>
@@ -3117,7 +3116,6 @@
         <span class="hares-agent-nom" data-t="agentNom"></span><br>
         <span class="hares-agent-sous" data-t="agentSous"></span>
       </span>
-      <span class="hares-session" id="haresSession"></span>
     </div>
 
     <div class="hares-espace" id="haresEspace">
@@ -3201,8 +3199,8 @@
           <ul>
             <li><strong>Damodaran</strong> : des moyennes de secteur publiées une fois par an.</li>
             <li><strong>Comparables</strong> : le bêta calculé sur de vraies sociétés cotées. Ce
-            choix fait apparaître le sous-onglet Sociétés du CMPC, l'onglet Insight et la
-            vue Comparables de la Valorisation.</li>
+            choix fait apparaître le sous-onglet Sociétés du CMPC et la vue Comparables de
+            la Valorisation.</li>
           </ul>
           <p>Le menu <strong>Pays de valorisation</strong>, à côté de la carte, sert à
           fixer la prime de risque du pays, le taux d'impôt, et la devise du résultat.</p>
@@ -3284,14 +3282,11 @@
           <circle cx="30.5" cy="25.6" r="2" class="v4-accent-point"/>
         </svg></span>
         <div>
-          <h2>Sociétés et Insight</h2>
-          <span class="aide-ou">CMPC › Sociétés, et onglet Insight — référentiel Comparables</span>
-          <p>Sociétés : la liste des sociétés qui servent au calcul, de la plus grosse à la
+          <h2>Sociétés</h2>
+          <span class="aide-ou">CMPC › Sociétés — référentiel Comparables</span>
+          <p>La liste des sociétés qui servent au calcul, de la plus grosse à la
           plus petite. Une carte par société : pays, bourse, bêta, capitalisation, dette, et
           les comptes des quatre derniers exercices.</p>
-          <p>Insight : la marge d'EBITDA moyenne de ces sociétés, exercice par exercice, face
-          à celle de la société évaluée, et l'évolution moyenne de chacune en points par an —
-          une base pour caler la marge du prévisionnel.</p>
         </div>
       </li>
 
@@ -4436,11 +4431,13 @@
   function renderTabs() {
     // HARES ne s'ouvre qu'au code analyste, même par un lien qui le viserait.
     if (tab === "hares" && !ACCES_HARES.ouvert) tab = DERNIER_ONGLET.cmpc;
-    // Sociétés et Insight n'existent que sous référentiel Comparables.
+    // Sociétés n'existe que sous référentiel Comparables. Insight est retiré de
+    // la navigation : un lien qui y mènerait ouvre les Paramètres.
     // Valorisation reste toujours là : son DCF ne dépend pas du référentiel.
-    if (!estComparables() && (tab === "societes" || tab === "insight")) tab = "params";
+    if (tab === "insight") tab = "params";
+    if (!estComparables() && tab === "societes") tab = "params";
     if (!estComparables() && DERNIER_ONGLET.cmpc === "societes") DERNIER_ONGLET.cmpc = "params";
-    $("tabInsight").hidden = !estComparables();
+    $("tabInsight").hidden = true;
     $("tabSocietes").hidden = !estComparables();
     const groupe = GROUPE_ONGLET[tab] || null;
     if (groupe) DERNIER_ONGLET[groupe] = tab;
@@ -12142,8 +12139,6 @@
   const OPS_HARES = ["=", "!=", ">", ">=", "<", "<=", "entre", "hors", "contient", "dans"];
   const TRI_HARES = { champ: "capitalisation", sens: "desc" };
   const AFFICHAGE_HARES = 100;
-  const COLONNES_HARES = ["nom", "industrie", "statut", "capitalisation", "ca", "marge_ebitda", "croissance_ca",
-                          "dette_ebitda", "ve_ebitda", "ve_ca", "pe", "beta_u"];
   // S&P ne livre pas la trésorerie dans les exports d'octobre 2026 : le levier
   // se calcule alors sur la dette brute, et HARES le dit à chaque usage.
   const TRESORERIE_HARES = Object.values(COMPARABLES).some((s) => s.tresorerie != null);
@@ -12836,7 +12831,6 @@
       accroche: "Votre fidèle soldat, prêt pour la bataille !",
       analyste: "Analyste : accès déverrouillé", nouvelle: "Nouvelle session",
       agentNom: "Analyste", agentSous: "Assistant conversationnel",
-      session: (s, p) => `Session : CMPC ${s || "—"}, ${p || "—"} —`,
       placeholder: "Affinez l'échantillon avec HARES (ex. « fais ressortir uniquement les groupes »)",
       envoyer: "Envoyer",
       astuce: "Astuce : écrivez naturellement — HARES comprend les contraintes, les groupes et les classements.",
@@ -12879,7 +12873,6 @@
       accroche: "Your loyal soldier, ready for battles!",
       analyste: "Analyst: unlocked", nouvelle: "New Session",
       agentNom: "Analyst", agentSous: "Conversational assistant",
-      session: (s, p) => `Session: WACC ${s || "—"}, ${p || "—"} —`,
       placeholder: 'Ask HARES to refine the sample (e.g. "show only groups")',
       envoyer: "Send",
       astuce: "Tip: Use natural language — HARES understands constraints, groups, and ranking preferences.",
@@ -13052,8 +13045,25 @@
     const ids = idsHares();
     if (!ids.length || ids.length > LIGNES_DANS_LE_FIL || HARES.reponse) return "";
     const lignes = trierHares(ids.map(ligneHares).filter(Boolean), triHares());
-    return `<ul class="hares-liste">${lignes.map((l) => `<li><b>${esc(l.nom)}</b><span>${esc(l.pays || "")}</span>`
-      + `<span>${esc(formaterHares("capitalisation", l.capitalisation))}</span></li>`).join("")}</ul>`;
+    return `<ul class="hares-liste">${lignes.map((l) => `<li><b>${esc(l.nom)}</b>`
+      + COLONNES_DEFAUT_HARES.slice(1).map((c) => `<span title="${esc(libHares(c))}">${esc(formaterHares(c, l[c]))}</span>`).join("")
+      + `</li>`).join("")}</ul>`;
+  }
+
+  /* Les colonnes du tableau. Sans demande qui porte sur une donnée, trois
+     valeurs suffisent à situer une société : capitalisation, marge d'EBITDA,
+     VE / EBITDA. Chaque champ qu'une demande a filtré, trié, résumé ou passé
+     au crible des aberrantes s'y ajoute, dans l'ordre où il est apparu. */
+  const COLONNES_DEFAUT_HARES = ["nom", "capitalisation", "marge_ebitda", "ve_ebitda"];
+  function colonnesHares() {
+    const colonnes = COLONNES_DEFAUT_HARES.slice();
+    const ajouter = (c) => { if (c && CHAMPS_HARES[c] && colonnes.indexOf(c) < 0) colonnes.push(c); };
+    HARES.etapes.forEach((e) => (e.operations || []).forEach((op) => {
+      ajouter(op.champ);
+      (op.champs || []).forEach(ajouter);
+    }));
+    ajouter(triHares().champ);
+    return colonnes;
   }
 
   function exemplesHtml() {
@@ -13152,11 +13162,12 @@
       return `<td class="${nombre(c) ? "is-nombre" : ""}">${esc(formaterHares(c, l[c]))}</td>`;
     };
     if (!lignes.length) return `<p class="hares-vide">${esc(X.vide)}</p>`;
+    const colonnes = colonnesHares();
     return `
       <div class="hares-table-defile">
         <table class="hares-table">
-          <thead><tr>${COLONNES_HARES.map((c) => `<th class="${nombre(c) ? "is-nombre" : ""}${c === tri.champ ? " is-tri" : ""}">${esc(libHares(c))}${c === tri.champ ? (tri.sens === "desc" ? " ↓" : " ↑") : ""}</th>`).join("")}</tr></thead>
-          <tbody>${lignes.slice(0, AFFICHAGE_HARES).map((l, k) => `<tr data-hares-id="${esc(l.id)}" style="animation-delay:${Math.min(k, 20) * 18}ms">${COLONNES_HARES.map((c) => cellule(l, c)).join("")}</tr>`).join("")}</tbody>
+          <thead><tr>${colonnes.map((c) => `<th class="${nombre(c) ? "is-nombre" : ""}${c === tri.champ ? " is-tri" : ""}">${esc(libHares(c))}${c === tri.champ ? (tri.sens === "desc" ? " ↓" : " ↑") : ""}</th>`).join("")}</tr></thead>
+          <tbody>${lignes.slice(0, AFFICHAGE_HARES).map((l, k) => `<tr data-hares-id="${esc(l.id)}" style="animation-delay:${Math.min(k, 20) * 18}ms">${colonnes.map((c) => cellule(l, c)).join("")}</tr>`).join("")}</tbody>
         </table>
       </div>
       <p class="agent-source">${lignes.length > AFFICHAGE_HARES ? esc(X.premieres(AFFICHAGE_HARES, frEntier(lignes.length))) + " " : ""}${esc(X.note(HARES.an, !TRESORERIE_HARES))}</p>`;
@@ -13186,7 +13197,6 @@
       : AGENT.quota ? "Quota du jour atteint : gabarits seulement"
       : "Demandes courantes lues sur place, les autres traduites en ligne";
     etat.classList.toggle("is-hors-ligne", Boolean(AGENT.horsLigne || AGENT.quota));
-    $("haresSession").textContent = X.session(estComparables() ? params.secteur : params.industry, params.country);
     $("haresDemander").disabled = Boolean(AGENT.enCours);
     $("haresDepart").innerHTML = departHtml();
     $("haresFil").innerHTML = filHtml();
