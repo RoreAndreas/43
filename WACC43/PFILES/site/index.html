@@ -2286,273 +2286,220 @@
     .ins-table th, .ins-table td { padding: 8px 5px; }
   }
   /* ---------- Onglet HARES ---------- */
-  /* HARES est un chat : le fil des messages et sa barre de saisie à gauche ;
-     quand une réponse ne tient plus dans le fil — plus de cinq sociétés —, le
-     tableau de l'échantillon s'ouvre dans un panneau qui glisse depuis la
-     droite. L'onglet prend toute la largeur, sans le plafond de 1060 px des
-     autres : le tableau compte douze colonnes. Le violet de la barre est aussi
-     celui de l'onglet du haut. */
+  /* HARES reprend la maquette de hares-buddy/demo.html : un en-tête (pastille,
+     accroche, FR / ENG, nouvelle session), un chat — cartes de messages, barre
+     violette, soldat derrière — et, quand une réponse ne tient plus dans le
+     fil (plus de cinq sociétés), le tableau dans un panneau qui glisse depuis
+     la droite. Typographie système et couleurs de la maquette, à l'intérieur
+     de l'onglet seulement ; le violet de la barre est aussi celui de l'onglet. */
   :root {
-    --hares: #5b21b6;
+    --hares: #6d28d9;
     --hares-fonce: #3b1782;
+    --hares-texte: #5b21b6;
     --hares-tint: #f6f2fd;
     --hares-chip: #d9ccf5;
+    --hares-orange: #ea580c;
+    --hares-ligne: #e5e7eb;
+    --hares-gris: #6b7280;
+    --hares-sans: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
   }
-  .hares { padding: 26px 32px 48px; }
-  .hares-cadre { display: grid; gap: 14px; min-width: 0; }
-  .hares-tete { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px 18px; flex-wrap: wrap; }
-  .hares-titre { margin: 0; font: 600 21px/1.15 var(--sans); letter-spacing: 0.06em; color: var(--ink); }
-  .hares-sous-titre { margin: 5px 0 0; max-width: 720px; font: 400 12.5px/1.45 var(--sans); color: var(--muted); }
-  .agent-etat { padding-top: 4px; font: 400 10.5px/1.35 var(--sans); color: var(--muted-2); }
+  .hares { padding: 28px 32px 40px; background: #fff; font: 400 14px/1.5 var(--hares-sans); color: #1f2937; }
+  .sous-barre[hidden] ~ .hares { min-height: calc(100vh - 128px); }
+  .hares button { font-family: var(--hares-sans); }
+  .hares-cadre { min-width: 0; }
+
+  .hares-entete { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
+  .hares-pastille {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 7px 14px; border: 1px solid var(--hares-ligne); border-radius: 10px; background: #fff;
+    font-weight: 600; letter-spacing: .02em;
+  }
+  .hares-pastille svg { display: block; }
+  .hares-accroche { color: var(--hares-gris); font-size: 13px; }
+  .hares-entete-droite { margin-left: auto; display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
+  .hares-analyste { color: var(--hares-gris); font-size: 12.5px; }
+  .hares-nouvelle {
+    padding: 9px 18px; border: 0; border-radius: 8px;
+    background: var(--hares); color: #fff; font: 600 13px/1 var(--hares-sans); cursor: pointer;
+  }
+  .hares-langues { display: inline-flex; padding: 2px; border: 1px solid var(--hares-ligne); border-radius: 8px; background: #fff; }
+  .hares-langues button {
+    padding: 5px 9px; border: 0; border-radius: 6px; background: none;
+    font: 600 11px/1 var(--hares-sans); letter-spacing: .04em; color: var(--hares-gris); cursor: pointer;
+  }
+  .hares-langues button[aria-pressed="true"] { background: var(--hares); color: #fff; }
+
+  .hares-agent { display: flex; align-items: flex-end; gap: 12px; margin: 34px 0 10px; }
+  .hares-agent-nom { font-weight: 600; font-size: 14.5px; }
+  .hares-agent-sous { color: var(--hares-gris); font-size: 11.5px; }
+  .hares-session { margin-left: auto; color: var(--hares-gris); font-size: 11px; }
+  .agent-etat { font: 400 10.5px/1.35 var(--hares-sans); color: #a1a1aa; }
   .agent-etat.is-hors-ligne { color: var(--warn); }
+
   .hares-espace {
     display: grid;
     grid-template-columns: minmax(0, 1fr) minmax(0, 0fr);
     gap: 0;
     transition: grid-template-columns 460ms cubic-bezier(.2, .8, .2, 1), gap 460ms;
   }
-  .hares-espace.is-ouvert { grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr); gap: 20px; }
+  .hares-espace.is-ouvert { grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr); gap: 24px; }
+
+  /* Le chat. */
   .hares-chat {
     position: relative;
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-    min-width: 0;
-    height: clamp(500px, calc(100vh - 220px), 860px);
-    padding: 14px 14px 12px;
-    border: 1px solid var(--line);
-    border-radius: 12px;
-    background: var(--tile);
+    display: flex; flex-direction: column; gap: 12px; min-width: 0;
+    height: 600px; padding: 16px 16px 14px;
+    border: 1px solid var(--hares-ligne); border-radius: 12px; background: #f8f8fa;
   }
-  .hares-depart {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: 6px 12px;
-    flex-wrap: wrap;
-    padding: 8px 12px;
-    border: 1px solid var(--line);
-    border-radius: 8px;
-    background: var(--surface);
-    font: 400 12px/1.45 var(--sans);
-    color: var(--ink-3);
-  }
-  .hares-depart b { font-weight: 500; color: var(--ink); }
-  .hares-depart-actions { display: flex; gap: 6px; flex-wrap: wrap; }
-  .hares-depart .valo-bouton { padding: 5px 10px; font-size: 11.5px; }
-  .hares-alerte { flex-basis: 100%; margin: 0; color: var(--warn); }
-  .hares-fil:empty, .hares-exemples:empty { display: none; }
-  .hares-fil { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin: 0; padding: 0; list-style: none; }
-  .hares-fil li { display: flex; align-items: center; gap: 6px; }
-  .hares-fil li + li::before { content: "→"; font: 400 12px/1 var(--sans); color: var(--muted-2); }
-  .hares-pas {
-    display: inline-flex;
-    align-items: baseline;
-    gap: 6px;
-    padding: 5px 10px;
-    border: 1px solid var(--line);
-    border-radius: 999px;
-    background: var(--surface);
-    font: 400 11.5px/1.25 var(--sans);
-    color: var(--ink-3);
-    cursor: pointer;
-  }
-  .hares-pas b { font: 500 11.5px/1 var(--mono); color: var(--ink); }
-  .hares-pas:hover { border-color: var(--hares-chip); }
-  .hares-pas.is-actif { border-color: var(--hares); background: var(--hares-tint); color: var(--hares); }
-
-  /* Le fil : les échanges passés, figés, puis la question en cours et la
-     réponse vivante (#haresReponse), enfin cinq exemples en bulles grises. */
-  .hares-messages {
-    flex: 1;
-    min-height: 0;
-    overflow-y: auto;
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-    padding: 2px 2px 34px;
-  }
+  .hares-messages { flex: 1; min-height: 0; display: flex; flex-direction: column; gap: 10px; overflow-y: auto; padding: 2px 2px 40px; }
   .hares-historique { display: contents; }
   .hares-msg {
-    flex: none;
-    display: grid;
-    gap: 9px;
-    min-width: 0;
-    padding: 12px 14px;
-    border: 1px solid var(--line);
-    border-radius: 10px;
-    background: var(--surface);
+    flex: none; min-width: 0;
+    padding: 12px 14px; border: 1px solid var(--hares-ligne); border-radius: 10px; background: #fff;
     animation: hares-entree 260ms ease-out;
   }
   .hares-msg[hidden], .hares-msg:empty { display: none; }
   .hares-msg.is-archive { animation: none; }
-  .hares-qui { font: 500 10px/1 var(--mono); letter-spacing: 0.1em; text-transform: uppercase; color: var(--hares); }
-  .hares-msg.is-moi .hares-qui { color: #c2410c; }
-  .hares-msg.is-moi p { margin: 0; font: 400 13px/1.45 var(--sans); color: var(--ink-2); }
-  .hares-liste { margin: 0; padding: 0; list-style: none; border-top: 1px solid var(--line); }
-  .hares-liste li { display: flex; gap: 10px; padding: 6px 0; border-bottom: 1px solid var(--line); font: 400 12px/1.35 var(--sans); color: var(--muted); }
-  .hares-liste b { flex: 1; font-weight: 500; color: var(--ink); }
-  .hares-liste span:last-child { font-family: var(--mono); font-variant-numeric: tabular-nums; }
-  .hares-exemples { display: flex; flex-wrap: wrap; gap: 5px; }
-  .hares-exemples .agent-puce {
-    padding: 4px 9px;
-    border: 0;
-    border-radius: 999px;
-    background: #ececf0;
-    font: 400 11px/1.3 var(--sans);
-    color: var(--muted);
+  .hares-qui { display: block; margin-bottom: 4px; font: 700 12px/1 Georgia, "Times New Roman", serif; letter-spacing: .03em; color: var(--hares); }
+  .hares-msg.is-moi .hares-qui { color: var(--hares-orange); font-weight: 600; letter-spacing: 0; }
+  .hares-msg p { margin: 0; font-size: 13.5px; }
+  .hares-msg p + p, .hares-msg p + div, .hares-msg div + p { margin-top: 6px; }
+  .hares-msg .hares-exemple { font-size: 12.5px; color: #374151; }
+  .hares-renvoi { padding: 0; border: 0; background: none; font: 600 13.5px/1.5 var(--hares-sans); color: var(--hares); cursor: pointer; }
+  .hares-renvoi:hover { text-decoration: underline; }
+  .hares-msg .agent-lien { font-size: 12px; }
+  .hares-msg .agent-source { margin-top: 8px; font-size: 11px; color: var(--hares-gris); }
+  .hares-liste { margin: 8px 0 0; padding: 0; list-style: none; border-top: 1px solid var(--hares-ligne); }
+  .hares-liste li { display: flex; gap: 10px; padding: 6px 0; border-bottom: 1px solid var(--hares-ligne); font-size: 12.5px; }
+  .hares-liste b { font-weight: 600; flex: 1; }
+  .hares-liste span { color: var(--hares-gris); font-variant-numeric: tabular-nums; }
+  .hares-puces { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+  .hares-puce {
+    padding: 7px 12px; border: 1px solid var(--hares-ligne); border-radius: 8px; background: #fff;
+    font: 500 12px/1 var(--hares-sans); color: #1f2937; cursor: pointer;
   }
-  .hares-exemples .agent-puce:hover { background: #e2e2e8; color: var(--ink); }
+  .hares-puce:first-child { border-color: var(--hares); background: var(--hares); color: #fff; }
+  .hares-puce:disabled { opacity: .45; cursor: default; }
+  .hares-exemples:empty { display: none; }
+  .hares-exemples { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 10px; }
+  .hares-exemples .agent-puce {
+    padding: 4px 9px; border: 0; border-radius: 999px; background: #f0f0f3;
+    font: 400 11px/1.3 var(--hares-sans); color: var(--hares-gris); cursor: pointer;
+  }
+  .hares-exemples .agent-puce:hover { background: #e4e4ea; color: #1f2937; }
+  .hares-envoye { margin: 8px 0 0; font-size: 12.5px; color: var(--green); }
+  .hares-envoye.is-hares { color: var(--hares); }
   @keyframes hares-entree { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
 
-  /* La barre de saisie, violette, et le soldat qui se tient derrière elle. */
+  /* Les détails du moteur, sous la réponse : notes, statistiques, retirées. */
+  .hares-notes, .hares-retirees ul { display: grid; gap: 4px; margin: 6px 0 0; padding-left: 16px; font-size: 12px; color: #374151; }
+  .hares-intertitre { margin: 10px 0 6px; font: 600 10.5px/1 var(--hares-sans); letter-spacing: .04em; text-transform: uppercase; color: var(--hares-gris); }
+  .hares-retirees b { font-weight: 600; }
+  .hares-defile { overflow-x: auto; }
+
+  /* La barre : violette, le soldat derrière. */
   .hares-saisie-zone { position: relative; }
   .hares-saisie {
-    position: relative;
-    z-index: 2;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    padding: 7px 7px 7px 16px;
-    border-radius: 10px;
-    background: var(--hares);
+    position: relative; z-index: 2;
+    display: flex; align-items: center; gap: 12px;
+    padding: 10px 10px 10px 18px; border-radius: 10px; background: var(--hares);
   }
-  .hares-saisie .agent-champ { padding: 6px 0; border: 0; background: none; color: #fff; }
+  .hares-saisie .agent-champ {
+    flex: 1; min-width: 0; padding: 0; border: 0; background: none; outline: none;
+    color: #fff; font: 400 13.5px/1.4 var(--hares-sans);
+  }
   .hares-saisie .agent-champ:focus { background: none; }
-  .hares-saisie .agent-champ::placeholder { color: #d9cdf6; }
+  .hares-saisie .agent-champ::placeholder { color: #d8ccf7; }
   .hares-envoyer {
-    padding: 9px 18px;
-    border: 0;
-    border-radius: 7px;
-    background: #fff;
-    font: 600 12.5px/1 var(--sans);
-    color: var(--hares);
-    cursor: pointer;
+    padding: 9px 20px; border: 0; border-radius: 8px;
+    background: #fff; color: var(--hares-texte); font: 600 13px/1 var(--hares-sans); cursor: pointer;
   }
-  .hares-envoyer:disabled { opacity: 0.6; cursor: default; }
+  .hares-envoyer:disabled { opacity: .6; cursor: default; }
+  .hares-astuce { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 2px 12px; margin: 0 2px; color: var(--hares-gris); font-size: 11px; }
   .hares-rouvrir {
-    position: absolute;
-    top: -12px;
-    right: 16px;
-    z-index: 3;
-    padding: 5px 11px;
-    border: 0;
-    border-radius: 999px;
-    background: var(--hares-fonce);
-    font: 500 11px/1.2 var(--sans);
-    color: #fff;
-    cursor: pointer;
-    box-shadow: 0 2px 6px rgba(59, 23, 130, 0.25);
+    position: absolute; top: -13px; right: 16px; z-index: 3;
+    padding: 5px 11px; border: 0; border-radius: 999px; background: var(--hares-fonce);
+    font: 600 11px/1.2 var(--hares-sans); color: #fff; cursor: pointer;
+    box-shadow: 0 2px 6px rgba(59, 23, 130, .25);
+    animation: hares-entree 240ms ease-out;
   }
   .hares-rouvrir:hover { background: var(--hares); }
 
-  /* Le panneau de l'échantillon : ouvert, il glisse depuis la droite ;
-     fermé, il ne garde aucune largeur. */
-  .hares-echantillon {
-    display: flex;
-    flex-direction: column;
-    min-width: 0;
-    height: clamp(500px, calc(100vh - 220px), 860px);
-    overflow: hidden;
-    border: 1px solid var(--line);
-    border-radius: 12px;
-    background: var(--surface);
-    opacity: 0;
-    transform: translateX(24px);
+  /* Le panneau de l'échantillon. */
+  .hares-resultats {
+    display: flex; flex-direction: column; min-width: 0; height: 600px; overflow: hidden;
+    border: 1px solid var(--hares-ligne); border-radius: 12px; background: #fff;
+    opacity: 0; transform: translateX(24px);
     transition: opacity 360ms ease, transform 460ms cubic-bezier(.2, .8, .2, 1);
   }
-  .hares-espace:not(.is-ouvert) .hares-echantillon { border-width: 0; }
-  .hares-espace.is-ouvert .hares-echantillon { opacity: 1; transform: none; }
-  .hares-table-tete { display: flex; align-items: center; gap: 4px 12px; flex-wrap: wrap; padding: 6px 8px 6px 14px; background: var(--hares-fonce); }
-  .hares-table-tete h2 { margin: 0; font: 500 13px/1.3 var(--sans); color: #fff; }
-  .hares-table-tete h2 b { font: 500 13px/1 var(--mono); color: #fff; }
-  .hares-table-note { font: 400 11px/1.4 var(--sans); color: #d6caf3; }
+  .hares-espace:not(.is-ouvert) .hares-resultats { border-width: 0; }
+  .hares-espace.is-ouvert .hares-resultats { opacity: 1; transform: none; }
+  .hares-resultats-tete { display: flex; align-items: center; gap: 12px; padding: 6px 8px 6px 14px; background: var(--hares-fonce); }
+  .hares-resultats-titre { font: 700 12.5px/1 Georgia, "Times New Roman", serif; color: #fff; }
+  .hares-bilan { margin-left: auto; color: #ddd3f5; font-size: 11px; white-space: nowrap; }
   .hares-fermer {
-    margin-left: auto;
-    width: 22px;
-    height: 22px;
-    border: 0;
-    border-radius: 5px;
-    background: rgba(255, 255, 255, 0.14);
-    font: 400 14px/1 var(--sans);
-    color: #fff;
-    cursor: pointer;
+    width: 22px; height: 22px; border: 0; border-radius: 5px; background: rgba(255, 255, 255, .14);
+    font: 400 14px/1 var(--hares-sans); color: #fff; cursor: pointer;
   }
-  .hares-fermer:hover { background: rgba(255, 255, 255, 0.28); }
+  .hares-fermer:hover { background: rgba(255, 255, 255, .26); }
+  .hares-contexte { display: grid; gap: 8px; padding: 10px 12px; border-bottom: 1px solid var(--hares-ligne); background: #fafafa; }
+  .hares-depart { display: flex; justify-content: space-between; align-items: center; gap: 6px 12px; flex-wrap: wrap; font-size: 12px; color: #374151; }
+  .hares-depart b { font-weight: 600; color: #1f2937; }
+  .hares-depart-actions { display: flex; gap: 6px; flex-wrap: wrap; }
+  .hares-depart .valo-bouton { padding: 5px 10px; font-size: 11.5px; }
+  .hares-alerte { flex-basis: 100%; margin: 0; color: var(--warn); }
+  .hares-fil:empty { display: none; }
+  .hares-fil { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin: 0; padding: 0; list-style: none; }
+  .hares-fil li { display: flex; align-items: center; gap: 6px; }
+  .hares-fil li + li::before { content: "→"; font-size: 12px; color: #a1a1aa; }
+  .hares-pas {
+    display: inline-flex; align-items: baseline; gap: 6px;
+    padding: 4px 9px; border: 1px solid var(--hares-ligne); border-radius: 999px; background: #fff;
+    font: 400 11.5px/1.25 var(--hares-sans); color: #374151; cursor: pointer;
+  }
+  .hares-pas b { font-weight: 600; color: #1f2937; font-variant-numeric: tabular-nums; }
+  .hares-pas.is-actif { border-color: var(--hares); background: var(--hares-tint); color: var(--hares); }
+  .hares-table-zone { flex: 1; min-height: 0; display: flex; flex-direction: column; }
   .hares-table-defile { flex: 1; overflow: auto; }
-  .hares-echantillon > .agent-source, .hares-echantillon > .hares-vide { margin: 0; padding: 10px 14px; }
-
-  .hares-etape-tete { display: flex; align-items: baseline; gap: 6px 12px; flex-wrap: wrap; }
-  .hares-etape-num { font: 400 10px/1 var(--mono); letter-spacing: 0.09em; text-transform: uppercase; color: var(--muted); }
-  .hares-effectif { margin-left: auto; font: 500 12px/1 var(--mono); color: var(--ink-2); white-space: nowrap; }
-  .hares-notes, .hares-retirees ul { display: grid; gap: 4px; margin: 0; padding-left: 16px; font: 400 12px/1.5 var(--sans); color: var(--ink-3); }
-  .hares-intertitre { margin: 4px 0 6px; font: 400 9.5px/1 var(--mono); letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted-2); }
-  .hares-retirees b { font-weight: 500; color: var(--ink-2); }
-  .hares-actions { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
-  .hares-defile { overflow-x: auto; }
-  .hares-envoye { margin: 0; font: 400 12px/1.5 var(--sans); color: var(--green); }
-  .hares-envoye.is-hares { color: var(--hares); }
-
-  /* La confirmation avant d'écraser le CMPC : ce qui change, avant / après. */
-  .hares-cmpc { display: grid; gap: 8px; padding: 12px 14px; border: 1px solid var(--hares-chip); border-radius: 8px; background: var(--hares-tint); }
-  .hares-cmpc p { margin: 0; font: 400 12.5px/1.5 var(--sans); color: var(--ink-3); }
-  .hares-cmpc p b { font-weight: 600; color: var(--hares); }
-  .hares-cmpc table { border-collapse: collapse; font: 400 12px/1.35 var(--sans); color: var(--ink-3); }
-  .hares-cmpc th, .hares-cmpc td { padding: 4px 18px 4px 0; text-align: left; }
-  .hares-cmpc th { font: 400 9.5px/1.2 var(--mono); letter-spacing: 0.05em; text-transform: uppercase; color: var(--muted); }
-  .hares-cmpc .is-nombre { text-align: right; font-family: var(--mono); font-variant-numeric: tabular-nums; }
-  .hares-cmpc .is-change { color: var(--hares); font-weight: 600; }
-
-  .hares-table { width: 100%; border-collapse: collapse; font: 400 12px/1.35 var(--sans); }
+  .hares-table { width: 100%; border-collapse: collapse; font-size: 12.5px; }
   .hares-table th {
-    position: sticky;
-    top: 0;
-    z-index: 1;
-    padding: 8px 10px;
-    border-bottom: 1px solid var(--line);
-    background: var(--tile);
-    text-align: left;
-    font: 400 9.5px/1.2 var(--mono);
-    letter-spacing: 0.05em;
-    text-transform: uppercase;
-    color: var(--muted);
-    white-space: nowrap;
+    position: sticky; top: 0; z-index: 1; padding: 8px 12px; background: #fafafa;
+    border-bottom: 1px solid var(--hares-ligne); text-align: left; white-space: nowrap;
+    font: 600 10.5px/1.2 var(--hares-sans); letter-spacing: .04em; text-transform: uppercase; color: var(--hares-gris);
   }
   .hares-table th.is-tri { color: var(--hares); }
-  .hares-table td { padding: 7px 10px; border-bottom: 1px solid var(--line); color: var(--ink-3); vertical-align: top; }
-  .hares-table tr:last-child td { border-bottom: 0; }
-  .hares-table .is-nombre { text-align: right; font-family: var(--mono); font-variant-numeric: tabular-nums; white-space: nowrap; }
-  .hares-nom { display: block; font-weight: 500; color: var(--ink); }
-  .hares-sous { display: block; font-size: 11px; color: var(--muted); }
-  .hares-vide { margin: 0; padding: 18px; text-align: center; font: 400 12.5px/1.5 var(--sans); color: var(--muted); }
+  .hares-table td { padding: 8px 12px; border-bottom: 1px solid var(--hares-ligne); color: #1f2937; vertical-align: top; }
+  .hares-table .is-nombre { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .hares-table tbody tr { animation: hares-entree 300ms ease-out both; }
+  .hares-nom { display: block; font-weight: 600; }
+  .hares-sous { display: block; font-size: 11px; color: var(--hares-gris); }
+  .hares-table-zone > .agent-source { margin: 0; padding: 8px 12px; font-size: 11px; color: var(--hares-gris); border-top: 1px solid var(--hares-ligne); }
+  .hares-vide { margin: 0; padding: 18px; text-align: center; font-size: 12.5px; color: var(--hares-gris); }
+
+  /* La confirmation avant d'écraser le CMPC : ce qui change, avant / après. */
+  .hares-cmpc { display: grid; gap: 8px; margin-top: 2px; padding: 12px 14px; border: 1px solid var(--hares-chip); border-radius: 8px; background: var(--hares-tint); }
+  .hares-cmpc p { margin: 0; font-size: 12.5px; color: #374151; }
+  .hares-cmpc p b { font-weight: 600; color: var(--hares); }
+  .hares-cmpc table { border-collapse: collapse; font-size: 12px; color: #374151; }
+  .hares-cmpc th, .hares-cmpc td { padding: 4px 18px 4px 0; text-align: left; }
+  .hares-cmpc th { font: 600 10px/1.2 var(--hares-sans); letter-spacing: .04em; text-transform: uppercase; color: var(--hares-gris); }
+  .hares-cmpc .is-nombre { text-align: right; font-variant-numeric: tabular-nums; }
+  .hares-cmpc .is-change { color: var(--hares); font-weight: 600; }
+  .hares-cmpc .hares-puces { margin-top: 2px; }
 
   /* L'onglet HARES, violet comme la barre de son chat, coiffé d'un cadenas :
      fermé tant que le code analyste n'a pas été donné dans la session. */
   .tabs .onglet-hares {
-    position: relative;
-    align-self: flex-start;
-    margin-top: -6px;
-    padding: 6px 13px 7px;
-    border: 0;
-    border-radius: 8px;
-    background: var(--hares);
-    font-weight: 500;
-    color: #fff;
+    position: relative; align-self: flex-start; margin-top: -6px;
+    padding: 6px 13px 7px; border: 0; border-radius: 8px;
+    background: var(--hares); font-weight: 500; color: #fff;
   }
   .tabs .onglet-hares:hover { background: var(--hares-fonce); color: #fff; }
   .tabs .onglet-hares.is-active { color: #fff; box-shadow: 0 0 0 2px var(--surface), 0 0 0 3.5px var(--hares); }
   .onglet-cadenas {
-    position: absolute;
-    top: -9px;
-    right: -10px;
-    display: grid;
-    place-items: center;
-    width: 20px;
-    height: 20px;
-    border-radius: 50%;
-    background: var(--surface);
-    box-shadow: 0 0 0 1.5px var(--hares);
-    color: var(--hares);
+    position: absolute; top: -9px; right: -10px;
+    display: grid; place-items: center; width: 20px; height: 20px;
+    border-radius: 50%; background: var(--surface); box-shadow: 0 0 0 1.5px var(--hares); color: var(--hares);
   }
   .onglet-cadenas svg { display: block; }
   .onglet-cadenas .anse-ouverte { display: none; }
@@ -2561,36 +2508,21 @@
   .onglet-hares.is-ouvert .onglet-cadenas .anse-ouverte { display: inline; }
   .top-inner { position: relative; }
   .cadenas-hares {
-    position: absolute;
-    z-index: 30;
-    width: 260px;
-    padding: 12px;
-    border: 1px solid var(--line);
-    border-radius: 10px;
-    background: var(--surface);
+    position: absolute; z-index: 30; width: 260px; padding: 12px;
+    border: 1px solid var(--line); border-radius: 10px; background: var(--surface);
     box-shadow: 0 10px 28px rgba(24, 24, 27, 0.14);
   }
   .cadenas-hares label { display: block; margin-bottom: 4px; font: 500 12.5px/1.3 var(--sans); color: var(--ink); }
   .cadenas-hares p { margin: 0 0 8px; font: 400 11px/1.4 var(--sans); color: var(--muted); }
   .cadenas-ligne { display: flex; gap: 6px; }
   .cadenas-ligne input {
-    flex: 1;
-    min-width: 0;
-    padding: 7px 9px;
-    border: 1px solid var(--line);
-    border-radius: 6px;
-    font: 400 13px/1.2 var(--mono);
-    color: var(--ink);
+    flex: 1; min-width: 0; padding: 7px 9px; border: 1px solid var(--line); border-radius: 6px;
+    font: 400 13px/1.2 var(--mono); color: var(--ink);
   }
   .cadenas-ligne input:focus { outline: none; border-color: var(--hares); }
   .cadenas-ligne button {
-    padding: 7px 10px;
-    border: 0;
-    border-radius: 6px;
-    background: var(--hares);
-    font: 500 12px/1 var(--sans);
-    color: #fff;
-    cursor: pointer;
+    padding: 7px 10px; border: 0; border-radius: 6px; background: var(--hares);
+    font: 500 12px/1 var(--sans); color: #fff; cursor: pointer;
   }
   .cadenas-hares .cadenas-erreur { min-height: 1.3em; margin: 6px 0 0; color: var(--warn); }
   .cadenas-hares.is-refuse { animation: cadenas-refus 320ms ease; }
@@ -2600,38 +2532,23 @@
      CMPC, et une pastille sur les onglets dont les chiffres en viennent. */
   .bandeau-hares { max-width: 1060px; margin: 14px auto 0; padding: 0 32px; }
   .bandeau-hares-corps {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: 6px 14px;
-    padding: 10px 14px;
-    border: 1px solid var(--hares-chip);
-    border-radius: 10px;
-    background: var(--hares-tint);
-    font: 400 12.5px/1.5 var(--sans);
-    color: var(--ink-3);
+    display: flex; flex-wrap: wrap; align-items: center; gap: 6px 14px;
+    padding: 10px 14px; border: 1px solid var(--hares-chip); border-radius: 10px; background: var(--hares-tint);
+    font: 400 12.5px/1.5 var(--sans); color: var(--ink-3);
   }
   .bandeau-hares-corps b { font-weight: 600; color: var(--hares); }
   .bandeau-hares-actions { margin-left: auto; display: flex; gap: 8px; flex-wrap: wrap; }
   .bandeau-hares-consignes { flex-basis: 100%; margin: 0; font-size: 11.5px; color: var(--muted); }
   .a-hares::after {
-    content: "HARES";
-    display: inline-block;
-    margin-left: 6px;
-    padding: 2px 5px;
-    border-radius: 4px;
-    background: var(--hares);
-    vertical-align: 1px;
-    font: 500 8.5px/1 var(--mono);
-    letter-spacing: 0.06em;
-    color: #fff;
+    content: "HARES"; display: inline-block; margin-left: 6px; padding: 2px 5px; border-radius: 4px;
+    background: var(--hares); vertical-align: 1px; font: 500 8.5px/1 var(--mono); letter-spacing: 0.06em; color: #fff;
   }
 
-  @media (max-width: 760px) {
+  @media (max-width: 860px) {
     .hares { padding: 18px 14px 36px; }
-    .hares-espace, .hares-espace.is-ouvert { grid-template-columns: minmax(0, 1fr); gap: 14px; }
-    .hares-espace:not(.is-ouvert) .hares-echantillon { display: none; }
-    .hares-chat, .hares-echantillon { height: 560px; }
+    .hares-espace, .hares-espace.is-ouvert { grid-template-columns: minmax(0, 1fr); gap: 16px; }
+    .hares-espace:not(.is-ouvert) .hares-resultats { display: none; }
+    .hares-agent { margin-top: 22px; }
     .bandeau-hares { padding: 0 14px; }
   }
   .notice-hares {
@@ -3176,36 +3093,63 @@
 
 <main class="hares" id="panel-hares" hidden>
   <div class="hares-cadre" id="haresPanneau" aria-label="HARES">
-    <div class="hares-tete">
-      <div>
-        <h1 class="hares-titre">HARES</h1>
-        <p class="hares-sous-titre">Affinez et analysez un échantillon de sociétés cotées en langage naturel.
-        Chaque demande s'applique au résultat de la précédente ; seul « Appliquer au CMPC », après
-        confirmation, modifie le calcul.</p>
-      </div>
-      <span class="agent-etat" data-o="agent-etat"></span>
+    <div class="hares-entete">
+      <span class="hares-pastille">
+        <svg width="14" height="15" viewBox="0 0 14 15" aria-hidden="true">
+          <path d="M1 6a6 6 0 0 1 12 0v9l-2-1.6L9 15l-2-1.6L5 15l-2-1.6L1 15Z" fill="#6d28d9"/>
+          <rect x="4" y="5" width="2" height="3" fill="#fff"/><rect x="8" y="5" width="2" height="3" fill="#fff"/>
+        </svg>
+        HARES
+      </span>
+      <span class="hares-accroche" data-t="accroche"></span>
+      <span class="hares-entete-droite">
+        <span class="hares-langues" role="group" aria-label="Langue">
+          <button type="button" data-hares-langue="fr" aria-pressed="true">FR</button>
+          <button type="button" data-hares-langue="en" aria-pressed="false">ENG</button>
+        </span>
+        <span class="hares-analyste" data-t="analyste"></span>
+        <button type="button" class="hares-nouvelle" data-hares-nouvelle data-t="nouvelle"></button>
+      </span>
     </div>
+
+    <div class="hares-agent">
+      <span>
+        <span class="hares-agent-nom" data-t="agentNom"></span><br>
+        <span class="hares-agent-sous" data-t="agentSous"></span>
+      </span>
+      <span class="hares-session" id="haresSession"></span>
+    </div>
+
     <div class="hares-espace" id="haresEspace">
       <div class="hares-chat" id="haresChat">
         <button type="button" class="hares-rouvrir" id="haresRouvrir" hidden></button>
-        <div class="hares-depart" id="haresDepart"></div>
-        <ol class="hares-fil" id="haresFil"></ol>
         <div class="hares-messages" id="haresMessages">
           <div class="hares-historique" id="haresHistorique"></div>
           <div class="hares-msg is-moi" id="haresDemande" hidden></div>
           <div class="hares-msg is-hares" id="haresReponse" aria-live="polite"></div>
-          <div class="agent-exemples hares-exemples" id="haresExemples"></div>
         </div>
         <div class="hares-saisie-zone">
           <div class="hb-zone" id="haresBuddy"></div>
           <form class="hares-saisie" id="haresFormulaire">
-            <input type="text" id="haresQuestion" class="agent-champ" maxlength="400" autocomplete="off"
-                   placeholder="Par exemple : fais ressortir uniquement les groupes" aria-label="Demande à HARES">
-            <button type="submit" class="hares-envoyer" id="haresDemander">Demander</button>
+            <input type="text" id="haresQuestion" class="agent-champ" maxlength="400" autocomplete="off" aria-label="Demande à HARES">
+            <button type="submit" class="hares-envoyer" id="haresDemander" data-t="envoyer"></button>
           </form>
         </div>
+        <p class="hares-astuce"><span data-t="astuce"></span><span class="agent-etat" data-o="agent-etat"></span></p>
       </div>
-      <section class="hares-echantillon" id="haresEchantillon" aria-label="Échantillon"></section>
+
+      <section class="hares-resultats" id="haresResultats" aria-hidden="false">
+        <div class="hares-resultats-tete">
+          <span class="hares-resultats-titre" data-t="titre"></span>
+          <span class="hares-bilan" id="haresBilan"></span>
+          <button type="button" class="hares-fermer" data-hares-fermer>×</button>
+        </div>
+        <div class="hares-contexte">
+          <div class="hares-depart" id="haresDepart"></div>
+          <ol class="hares-fil" id="haresFil"></ol>
+        </div>
+        <div class="hares-table-zone" id="haresEchantillon"></div>
+      </section>
     </div>
   </div>
 </main>
@@ -5090,7 +5034,7 @@
 
   function retirerCmpcHares() {
     CMPC_HARES = null;
-    HARES.info = "Le CMPC est revenu à son calcul d'origine.";
+    HARES.info = TH().retire;
     apply();
     rendreHares();
   }
@@ -12872,23 +12816,141 @@
     rendreHares();
   }
 
+  /* ---- Les textes de l'onglet, en français et en anglais ----
+     La bascule FR / ENG de l'en-tête traduit tout ce que l'onglet écrit
+     lui-même : en-tête, barre, panneau, boutons, accueil, confirmation. Le
+     moteur, lui, rédige en français ses reformulations, ses notes et ses
+     réponses aux questions de données, quelle que soit la langue choisie.
+     Le choix n'est pas retenu : la page n'écrit rien dans le navigateur. */
+  const TXT_HARES = {
+    fr: {
+      accroche: "Votre fidèle soldat, prêt pour la bataille !",
+      analyste: "Analyste : accès déverrouillé", nouvelle: "Nouvelle session",
+      agentNom: "Analyste", agentSous: "Assistant conversationnel",
+      session: (s, p) => `Session : CMPC ${s || "—"}, ${p || "—"} —`,
+      placeholder: "Affinez l'échantillon avec HARES (ex. « fais ressortir uniquement les groupes »)",
+      envoyer: "Envoyer",
+      astuce: "Astuce : écrivez naturellement — HARES comprend les contraintes, les groupes et les classements.",
+      titre: "Échantillon", fermer: "Fermer le panneau",
+      bilan: (a, n) => `Appliqué à ${a} sociétés — ${n} restante${n > 1 ? "s" : ""}`,
+      rouvrir: (n) => `Afficher le tableau (${n}) ▸`,
+      vous: "Analyste", attente: "Traduction de la demande…",
+      compris: "J'ai compris :", corriger: "Corriger",
+      restent: (n, a) => `<b>${n}</b> société${n > 1 ? "s" : ""} sur ${a} ${n > 1 ? "restent" : "reste"}`,
+      renvoi: "tableau complet à droite →",
+      etape: (i) => `Étape ${i}`,
+      accueil: (n, lib) => `<p>Bonjour — je peux affiner votre échantillon de comparables (${lib}). Essayez par exemple :</p>`
+        + `<p class="hares-exemple">« Garde seulement les sociétés dont la marge d'EBITDA est comprise entre 20 % et 35 % » ou « fais ressortir uniquement les groupes ».</p>`,
+      appliquer: "Appliquer au CMPC", envoyerComp: "Envoyer vers comparaison",
+      annuler: "Annuler cette étape", reprendre: "Reprendre à partir d'ici",
+      voirTableau: (n) => `Voir le tableau (${n})`,
+      applique: "Cet échantillon est appliqué au CMPC.", voirCalcul: "Voir le calcul", retirer: "Revenir au calcul d'origine",
+      envoye: "Échantillon envoyé vers Valorisation › Comparables.", voirComp: "Voir la comparaison",
+      cmpcRequis: "Référentiel Comparables requis, dans CMPC › Paramètres",
+      note: (an, brute) => `Exercice ${an} · montants en M FCFA · VE = capitalisation + dette totale${brute ? " · levier sur dette brute" : ""}.`,
+      premieres: (m, n) => `Les ${m} premières selon le tri en cours, sur ${n}. Affinez l'échantillon pour voir le reste.`,
+      vide: "Aucune société ne répond à ces critères. Annulez la dernière étape, ou repartez du départ.",
+      erreurReferentiel: "Le CMPC ne repose sur un échantillon de sociétés que sous le référentiel Comparables : choisissez-le dans CMPC › Paramètres, puis revenez appliquer cet échantillon.",
+      erreurVide: "L'échantillon est vide : il n'y a rien à appliquer au CMPC.",
+      erreurBeta: "Aucune société de cet échantillon ne publie de bêta désendetté : le CMPC ne peut pas en être tiré.",
+      confirmer: "Confirmer", annulerConfirmation: "Annuler",
+      question: "Appliquer cet échantillon au CMPC ?",
+      explication: (s, p, n0, n1, cible) => `Le CMPC (${s}, ${p}) repose aujourd'hui sur ${n0} société${n0 > 1 ? "s" : ""}. `
+        + `Il reposera sur les ${n1} de cet échantillon : bêta désendetté et gearing deviennent leurs médianes.`
+        + (cible ? " Le gearing cible saisi dans les Paramètres reste celui du calcul." : ""),
+      colonnes: ["Actuel", "Avec HARES"],
+      lignes: ["Sociétés retenues", "Bêta désendetté médian", "Gearing médian (D/E)", "CMPC"],
+      duree: "Valable pour la session. Le CMPC portera le bandeau « Modifié par HARES », d'où revenir au calcul d'origine.",
+      applique2: (n, b, g) => `CMPC recalculé sur les ${n} sociétés de l'échantillon : bêta désendetté ${b}${g ? ", gearing " + g : ""}. Le CMPC porte désormais le bandeau « Modifié par HARES ».`,
+      nonModifie: "Le CMPC n'est pas modifié.",
+      retire: "Le CMPC est revenu à son calcul d'origine.",
+      retireContexte: "L'échantillon appliqué au CMPC a été retiré : le référentiel, le secteur ou le périmètre du CMPC ont changé depuis.",
+    },
+    en: {
+      accroche: "Your loyal soldier, ready for battles!",
+      analyste: "Analyst: unlocked", nouvelle: "New Session",
+      agentNom: "Analyst", agentSous: "Conversational assistant",
+      session: (s, p) => `Session: WACC ${s || "—"}, ${p || "—"} —`,
+      placeholder: 'Ask HARES to refine the sample (e.g. "show only groups")',
+      envoyer: "Send",
+      astuce: "Tip: Use natural language — HARES understands constraints, groups, and ranking preferences.",
+      titre: "Sample", fermer: "Close panel",
+      bilan: (a, n) => `Applied to ${a} companies — ${n} remain${n > 1 ? "" : "s"}`,
+      rouvrir: (n) => `Show table (${n}) ▸`,
+      vous: "Analyst", attente: "Translating the request…",
+      compris: "Understood:", corriger: "Correct",
+      restent: (n, a) => `<b>${n}</b> of ${a} compan${n > 1 ? "ies remain" : "y remains"}`,
+      renvoi: "full table on the right →",
+      etape: (i) => `Step ${i}`,
+      accueil: (n, lib) => `<p>Hi — I can help you refine your comparable sample (${lib}). Try commands like:</p>`
+        + `<p class="hares-exemple">« Garde seulement les sociétés dont la marge d'EBITDA est comprise entre 20 % et 35 % » or « fais ressortir uniquement les groupes » — HARES reads French.</p>`,
+      appliquer: "Apply to WACC", envoyerComp: "Send to comparison",
+      annuler: "Undo this step", reprendre: "Resume from here",
+      voirTableau: (n) => `Show table (${n})`,
+      applique: "This sample is applied to the WACC.", voirCalcul: "See the calculation", retirer: "Back to the original calculation",
+      envoye: "Sample sent to Valorisation › Comparables.", voirComp: "See the comparison",
+      cmpcRequis: "Requires the Comparables reference, in CMPC › Paramètres",
+      note: (an, brute) => `Fiscal year ${an} · amounts in M FCFA · EV = market cap + total debt${brute ? " · leverage on gross debt" : ""}.`,
+      premieres: (m, n) => `The first ${m} by the current sort, out of ${n}. Refine the sample to see the rest.`,
+      vide: "No company meets these criteria. Undo the last step, or start over.",
+      erreurReferentiel: "The WACC only rests on a sample of companies under the Comparables reference: choose it in CMPC › Paramètres, then come back to apply this sample.",
+      erreurVide: "The sample is empty: there is nothing to apply to the WACC.",
+      erreurBeta: "No company in this sample publishes an unlevered beta: the WACC cannot be derived from it.",
+      confirmer: "Confirm", annulerConfirmation: "Cancel",
+      question: "Apply this sample to the WACC?",
+      explication: (s, p, n0, n1, cible) => `The WACC (${s}, ${p}) currently rests on ${n0} compan${n0 > 1 ? "ies" : "y"}. `
+        + `It will rest on the ${n1} of this sample: unlevered beta and gearing become their medians.`
+        + (cible ? " The target gearing entered in Paramètres stays in the calculation." : ""),
+      colonnes: ["Current", "With HARES"],
+      lignes: ["Retained companies", "Median unlevered beta", "Median gearing (D/E)", "WACC"],
+      duree: "Valid for the session. The WACC will carry the « Modifié par HARES » banner, from which to restore the original calculation.",
+      applique2: (n, b, g) => `WACC recalculated on the ${n} companies of the sample: unlevered beta ${b}${g ? ", gearing " + g : ""}. The WACC now carries the « Modifié par HARES » banner.`,
+      nonModifie: "The WACC is not modified.",
+      retire: "The WACC is back to its original calculation.",
+      retireContexte: "The sample applied to the WACC was removed: the reference, sector or scope of the WACC changed since.",
+    },
+  };
+  let LANGUE_HARES = "fr";
+  const TH = () => TXT_HARES[LANGUE_HARES];
+
+  function appliquerLangueHares() {
+    const X = TH(), racine = $("panel-hares");
+    racine.querySelectorAll("[data-t]").forEach((e) => { e.textContent = X[e.dataset.t]; });
+    $("haresQuestion").placeholder = X.placeholder;
+    racine.querySelector("[data-hares-fermer]").setAttribute("aria-label", X.fermer);
+    racine.querySelectorAll("[data-hares-langue]").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.haresLangue === LANGUE_HARES)));
+  }
+
   /* ---- Le fil ----
      Chaque nouvelle demande archive l'échange précédent : la question, puis la
-     réponse figée, sans ses boutons — ils agiraient sur l'échantillon
-     d'aujourd'hui, plus sur celui d'alors. La réponse en cours, elle, se
-     redessine à chaque changement d'état. */
+     réponse figée, sans ses boutons ni ses exemples — ils agiraient sur
+     l'échantillon d'aujourd'hui, plus sur celui d'alors. La réponse en cours,
+     elle, se redessine à chaque changement d'état. */
   function archiverHares(demande) {
     const q = $("haresDemande"), live = $("haresReponse");
     if (HARES.question) HARES.historique.push({ qui: "moi", html: q.innerHTML });
     if (live.innerHTML.trim()) {
       const copie = live.cloneNode(true);
-      copie.querySelectorAll("button").forEach((b) => b.remove());
+      // Le renvoi vers le tableau devient du texte : le bouton n'agirait plus.
+      copie.querySelectorAll(".hares-renvoi").forEach((b) => b.replaceWith(document.createTextNode(b.textContent.replace(/\s*→$/, ""))));
+      copie.querySelectorAll("button, .hares-exemples").forEach((b) => b.remove());
       copie.querySelectorAll("[id]").forEach((n) => n.removeAttribute("id"));
       HARES.historique.push({ qui: "hares", html: copie.innerHTML });
     }
-    HARES.nHistorique = HARES.historique.length;
+    HARES.nHistorique += 1;
     HARES.question = demande;
     HARES.exemples = [];
+  }
+
+  // Nouvelle session : le fil se vide et l'on repart de l'échantillon de départ.
+  function nouvelleSessionHares() {
+    HARES.historique = [];
+    HARES.nHistorique += 1;
+    HARES.question = null;
+    HARES.exemples = [];
+    HARES.info = null;
+    HARES.depart = null;
+    ouvrirHares();
   }
 
   /* ---- Appliquer au CMPC ----
@@ -12896,55 +12958,47 @@
      « ne retiens que ces sociétés pour le WACC » — ou le bouton du même nom
      préparent l'écrasement ; il ne se fait qu'à la confirmation. */
   const sansAccentsHares = (t) => String(t).normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
-  const DEMANDE_CMPC_HARES = / (?:appliqu\w*|retien\w*|retenir|ecras\w*|remplac\w*|report\w*|injecte\w*|bascul\w*)\b.*\b(?:cmpc|wacc)\b/;
+  const DEMANDE_CMPC_HARES = / (?:appliqu\w*|apply\w*|retien\w*|retenir|ecras\w*|remplac\w*|report\w*|injecte\w*|bascul\w*)\b.*\b(?:cmpc|wacc)\b/;
 
   function proposerCmpc() {
-    const ids = idsHares();
-    if (!estComparables()) {
-      HARES.confirmCmpc = { erreur: "Le CMPC ne repose sur un échantillon de sociétés que sous le référentiel Comparables : choisissez-le dans CMPC › Paramètres, puis revenez appliquer cet échantillon." };
-      return;
-    }
-    if (!ids.length) { HARES.confirmCmpc = { erreur: "L'échantillon est vide : il n'y a rien à appliquer au CMPC." }; return; }
+    const X = TH(), ids = idsHares();
+    if (!estComparables()) { HARES.confirmCmpc = { erreur: X.erreurReferentiel }; return; }
+    if (!ids.length) { HARES.confirmCmpc = { erreur: X.erreurVide }; return; }
     const tries = ids.filter((id) => COMPARABLES[id])
       .sort((a, b) => (COMPARABLES[b].capitalisation || 0) - (COMPARABLES[a].capitalisation || 0));
     const projet = {
       ids: tries, stats: medianesCmpcHares(tries), contexte: contexteCmpc(),
       depart: HARES.depart.libelle, etapes: HARES.etapes.map(etiquetteEtape),
     };
-    if (projet.stats.beta_u == null) {
-      HARES.confirmCmpc = { erreur: "Aucune société de cet échantillon ne publie de bêta désendetté : le CMPC ne peut pas en être tiré." };
-      return;
-    }
+    if (projet.stats.beta_u == null) { HARES.confirmCmpc = { erreur: X.erreurBeta }; return; }
     const avant = sansHares(() => ({ cc: cmpcComparables(), n: societesRetenues().ids.length, s: statsSecteur(params.secteur) }));
     const apres = avecHares(projet, () => cmpcComparables());
     HARES.confirmCmpc = { projet: projet, avant: avant, apres: apres };
   }
 
   function confirmationCmpcHtml(c) {
-    if (c.erreur) return `<p class="agent-entete">${esc(c.erreur)}</p>`;
+    const X = TH();
+    if (c.erreur) return `<p>${esc(c.erreur)}</p>`;
     const p = c.projet, av = c.avant, ap = c.apres;
     const taux = (cc) => (cc ? frPct(cc.waccLocal != null ? cc.waccLocal : cc.wacc, 2) : "—");
     const nb = (v, d) => (v == null ? "—" : frNum(v, d));
-    const ligne = (lib, a, b) => `<tr><td>${lib}</td><td class="is-nombre">${esc(a)}</td><td class="is-nombre${a !== b ? " is-change" : ""}">${esc(b)}</td></tr>`;
-    const cible = gearingCibleDE() != null;
+    const ligne = (lib, a, b) => `<tr><td>${esc(lib)}</td><td class="is-nombre">${esc(a)}</td><td class="is-nombre${a !== b ? " is-change" : ""}">${esc(b)}</td></tr>`;
     return `<div class="hares-cmpc">
-      <p><b>Appliquer cet échantillon au CMPC ?</b> Le CMPC (${esc(params.secteur)}, ${esc(av.s ? av.s.perimetre : "")}) repose
-        aujourd'hui sur ${esc(pluriel(av.n, "société"))}. Il reposera sur les ${esc(frEntier(p.ids.length))} de cet
-        échantillon : bêta désendetté et gearing deviennent leurs médianes.${cible ? " Le gearing cible saisi dans les Paramètres reste celui du calcul." : ""}</p>
+      <p><b>${esc(X.question)}</b> ${esc(X.explication(params.secteur, av.s ? av.s.perimetre : "", av.n, frEntier(p.ids.length), gearingCibleDE() != null))}</p>
       <table>
-        <thead><tr><th></th><th class="is-nombre">Actuel</th><th class="is-nombre">Avec HARES</th></tr></thead>
+        <thead><tr><th></th><th class="is-nombre">${esc(X.colonnes[0])}</th><th class="is-nombre">${esc(X.colonnes[1])}</th></tr></thead>
         <tbody>
-          ${ligne("Sociétés retenues", frEntier(av.n), frEntier(p.ids.length))}
-          ${ligne("Bêta désendetté médian", nb(av.s && av.s.beta_u, 3), nb(p.stats.beta_u, 3))}
-          ${ligne("Gearing médian (D/E)", nb(av.s && av.s.gearing, 2), nb(p.stats.gearing, 2))}
-          ${ligne("CMPC", taux(av.cc), taux(ap))}
+          ${ligne(X.lignes[0], frEntier(av.n), frEntier(p.ids.length))}
+          ${ligne(X.lignes[1], nb(av.s && av.s.beta_u, 3), nb(p.stats.beta_u, 3))}
+          ${ligne(X.lignes[2], nb(av.s && av.s.gearing, 2), nb(p.stats.gearing, 2))}
+          ${ligne(X.lignes[3], taux(av.cc), taux(ap))}
         </tbody>
       </table>
-      <p>Valable pour la session. Le CMPC portera le bandeau « Modifié par HARES », d'où revenir au calcul d'origine.</p>
-      <span class="hares-actions">
-        <button type="button" class="valo-bouton is-plein" data-hares-cmpc-confirmer>Confirmer</button>
-        <button type="button" class="valo-bouton" data-hares-cmpc-annuler>Annuler</button>
-      </span>
+      <p>${esc(X.duree)}</p>
+      <div class="hares-puces">
+        <button type="button" class="hares-puce" data-hares-cmpc-confirmer>${esc(X.confirmer)}</button>
+        <button type="button" class="hares-puce" data-hares-cmpc-annuler>${esc(X.annulerConfirmation)}</button>
+      </div>
     </div>`;
   }
 
@@ -12953,38 +13007,34 @@
     if (!c || !c.projet) return;
     CMPC_HARES = c.projet;
     HARES.confirmCmpc = null;
-    HARES.info = `CMPC recalculé sur les ${frEntier(c.projet.ids.length)} sociétés de l'échantillon : bêta désendetté `
-      + `${frNum(c.projet.stats.beta_u, 3)}${c.projet.stats.gearing == null ? "" : ", gearing " + frNum(c.projet.stats.gearing, 2)}. `
-      + "Le CMPC porte désormais le bandeau « Modifié par HARES ».";
+    HARES.info = TH().applique2(frEntier(c.projet.ids.length), frNum(c.projet.stats.beta_u, 3),
+                                c.projet.stats.gearing == null ? null : frNum(c.projet.stats.gearing, 2));
     apply();
     rendreHares();
   }
 
-  // Les actions sur l'échantillon, sous la réponse : l'appliquer au CMPC,
-  // l'envoyer vers la comparaison, revoir son tableau.
-  function actionsEchantillonHtml() {
-    const ids = idsHares();
+  // Les actions sur l'échantillon, en boutons sous la réponse, comme dans la
+  // maquette : la première, pleine, est l'action principale.
+  function pucesHtml(i) {
+    const X = TH(), ids = idsHares();
     const h = cmpcHares();
     const applique = h && h.ids.length === ids.length && ids.every((id) => h.ids.indexOf(id) >= 0);
     const envoye = HARES.envoi && ENVOI_HARES === HARES.envoi && HARES.envoi.ids.join(",") === ids.join(",");
-    const titreCmpc = !estComparables() ? ` title="Référentiel Comparables requis, dans CMPC › Paramètres"` : "";
+    const derniere = i === HARES.etapes.length - 1;
+    const titreCmpc = !estComparables() ? ` title="${esc(X.cmpcRequis)}"` : "";
     return `
-      <span class="hares-actions">
-        <button type="button" class="valo-bouton is-plein" data-hares-cmpc${ids.length && !applique ? "" : " disabled"}${titreCmpc}>Appliquer au CMPC</button>
-        <button type="button" class="valo-bouton" data-hares-envoyer${ids.length ? "" : " disabled"}>Envoyer vers comparaison</button>
-        ${HARES.panneauOuvert || !ids.length ? "" : `<button type="button" class="agent-lien" data-hares-panneau>Voir le tableau (${esc(frEntier(ids.length))})</button>`}
-      </span>
-      ${applique ? `<p class="hares-envoye is-hares">Cet échantillon est appliqué au CMPC.
-        <button type="button" class="agent-lien" data-hares-voir-cmpc>Voir le calcul</button> ·
-        <button type="button" class="agent-lien" data-hares-cmpc-retirer>Revenir au calcul d'origine</button></p>` : ""}
-      ${envoye ? `<p class="hares-envoye">Échantillon envoyé vers Valorisation › Comparables.
-        <button type="button" class="agent-lien" data-hares-voir>Voir la comparaison</button></p>` : ""}`;
-  }
-
-  function accueilHaresHtml() {
-    return `<p class="agent-entete">Je travaille sur <b>${esc(pluriel(idsHares().length, "société"))}</b> — ${esc(HARES.depart.libelle)}.
-      Demandez-moi d'isoler un secteur ou une zone, de filtrer sur un ratio, de classer, ou de retirer les valeurs
-      aberrantes : chaque demande s'applique au résultat de la précédente.</p>`;
+      <div class="hares-puces">
+        <button type="button" class="hares-puce" data-hares-cmpc${ids.length && !applique ? "" : " disabled"}${titreCmpc}>${esc(X.appliquer)}</button>
+        <button type="button" class="hares-puce" data-hares-envoyer${ids.length ? "" : " disabled"}>${esc(X.envoyerComp)}</button>
+        ${derniere ? `<button type="button" class="hares-puce" data-hares-annuler>${esc(X.annuler)}</button>`
+                   : `<button type="button" class="hares-puce" data-hares-reprendre="${i}">${esc(X.reprendre)}</button>`}
+        ${HARES.panneauOuvert || !ids.length ? "" : `<button type="button" class="hares-puce" data-hares-panneau>${esc(X.voirTableau(frEntier(ids.length)))}</button>`}
+      </div>
+      ${applique ? `<p class="hares-envoye is-hares">${esc(X.applique)}
+        <button type="button" class="agent-lien" data-hares-voir-cmpc>${esc(X.voirCalcul)}</button> ·
+        <button type="button" class="agent-lien" data-hares-cmpc-retirer>${esc(X.retirer)}</button></p>` : ""}
+      ${envoye ? `<p class="hares-envoye">${esc(X.envoye)}
+        <button type="button" class="agent-lien" data-hares-voir>${esc(X.voirComp)}</button></p>` : ""}`;
   }
 
   // Cinq sociétés au plus : elles tiennent dans le fil, sous la réponse.
@@ -12994,6 +13044,12 @@
     const lignes = trierHares(ids.map(ligneHares).filter(Boolean), triHares());
     return `<ul class="hares-liste">${lignes.map((l) => `<li><b>${esc(l.nom)}</b><span>${esc(l.pays || "")}</span>`
       + `<span>${esc(formaterHares("capitalisation", l.capitalisation))}</span></li>`).join("")}</ul>`;
+  }
+
+  function exemplesHtml() {
+    if (!HARES.exemples.length) tirerExemplesHares();
+    return `<div class="hares-exemples" id="haresExemples">${HARES.exemples
+      .map((x) => `<button type="button" class="agent-puce" data-agent-question="${esc(x)}">${esc(x)}</button>`).join("")}</div>`;
   }
 
   function tirerExemplesHares() {
@@ -13059,27 +13115,24 @@
   }
 
   function etapeHtml(e, i) {
+    const X = TH();
     const derniere = i === HARES.etapes.length - 1;
     const origine = origineDemande(e);
+    const grand = e.apres > LIGNES_DANS_LE_FIL;
+    const reformulation = e.reformulation.charAt(0).toUpperCase() + e.reformulation.slice(1);
     return `
-      <div class="hares-etape-tete">
-        <span class="hares-etape-num">Étape ${i + 1}</span>
-        <p class="agent-question">« ${esc(e.demande)} »</p>
-        <span class="hares-effectif">${esc(frEntier(e.avant))} → ${esc(pluriel(e.apres, "société"))}</span>
-      </div>
-      <div class="agent-compris"><span><b>J'ai compris :</b> ${esc(e.reformulation.charAt(0).toUpperCase() + e.reformulation.slice(1))}.</span>
-        <button type="button" class="agent-lien" data-agent-corriger="${esc(e.demande)}">Corriger</button></div>
+      <p class="hares-etape-tete"><b>${esc(X.compris)}</b> ${esc(reformulation)}. ${X.restent(esc(frEntier(e.apres)), esc(frEntier(e.avant)))}${
+        grand && derniere ? ` — <button type="button" class="hares-renvoi" data-hares-panneau>${esc(X.renvoi)}</button>` : "."}
+        <button type="button" class="agent-lien" data-agent-corriger="${esc(e.demande)}">${esc(X.corriger)}</button></p>
       ${e.notes.length ? `<ul class="hares-notes">${e.notes.map((n) => `<li>${esc(n)}</li>`).join("")}</ul>` : ""}
       ${statsHtml(e.stats)}
       ${e.retirees.length ? `<div class="hares-retirees"><p class="hares-intertitre">Retirées, et pourquoi</p>
         <ul>${e.retirees.map((x) => `<li><b>${esc(x.nom)}</b> : ${esc(x.raison)}.</li>`).join("")}</ul></div>` : ""}
-      <p class="agent-source">Source : S&amp;P Capital IQ, exercice ${HARES.an}${origine ? " · " + esc(origine) : ""}.</p>
-      <span class="hares-actions">${derniere
-        ? `<button type="button" class="valo-bouton" data-hares-annuler>Annuler cette étape</button>`
-        : `<button type="button" class="valo-bouton" data-hares-reprendre="${i}">Reprendre à partir d'ici</button>`}</span>`;
+      <p class="agent-source">${esc(X.etape(i + 1))} · Source : S&amp;P Capital IQ, exercice ${HARES.an}${origine ? " · " + esc(origine) : ""}.</p>`;
   }
 
   function tableHaresHtml() {
+    const X = TH();
     const ids = idsHares(), tri = triHares();
     const lignes = trierHares(ids.map(ligneHares).filter(Boolean), tri);
     const nombre = (c) => estNumeriqueHares(c);
@@ -13088,46 +13141,42 @@
       if (c === "statut") return `<td${l.mere ? ` title="Filiale de ${esc(l.mere)}"` : ""}>${esc(statutHares(l))}${l.mere ? `<span class="hares-sous">de ${esc(l.mere)}</span>` : ""}</td>`;
       return `<td class="${nombre(c) ? "is-nombre" : ""}">${esc(formaterHares(c, l[c]))}</td>`;
     };
+    if (!lignes.length) return `<p class="hares-vide">${esc(X.vide)}</p>`;
     return `
-      <div class="hares-table-tete">
-        <h2>Échantillon : <b>${esc(frEntier(lignes.length))}</b> société${lignes.length > 1 ? "s" : ""}</h2>
-        <span class="hares-table-note">exercice ${HARES.an} · montants en M FCFA · VE = capitalisation + dette totale${TRESORERIE_HARES ? "" : " · levier sur dette brute"}</span>
-        <button type="button" class="hares-fermer" data-hares-fermer aria-label="Fermer le panneau" title="Fermer">×</button>
-      </div>
-      ${lignes.length ? `
       <div class="hares-table-defile">
         <table class="hares-table">
           <thead><tr>${COLONNES_HARES.map((c) => `<th class="${nombre(c) ? "is-nombre" : ""}${c === tri.champ ? " is-tri" : ""}">${esc(libHares(c))}${c === tri.champ ? (tri.sens === "desc" ? " ↓" : " ↑") : ""}</th>`).join("")}</tr></thead>
-          <tbody>${lignes.slice(0, AFFICHAGE_HARES).map((l) => `<tr data-hares-id="${esc(l.id)}">${COLONNES_HARES.map((c) => cellule(l, c)).join("")}</tr>`).join("")}</tbody>
+          <tbody>${lignes.slice(0, AFFICHAGE_HARES).map((l, k) => `<tr data-hares-id="${esc(l.id)}" style="animation-delay:${Math.min(k, 20) * 18}ms">${COLONNES_HARES.map((c) => cellule(l, c)).join("")}</tr>`).join("")}</tbody>
         </table>
       </div>
-      ${lignes.length > AFFICHAGE_HARES ? `<p class="agent-source">Les ${AFFICHAGE_HARES} premières selon le tri en cours, sur ${esc(frEntier(lignes.length))}. Affinez l'échantillon pour voir le reste.</p>` : ""}`
-      : `<p class="hares-vide">Aucune société ne répond à ces critères. Annulez la dernière étape, ou repartez du départ.</p>`}`;
+      <p class="agent-source">${lignes.length > AFFICHAGE_HARES ? esc(X.premieres(AFFICHAGE_HARES, frEntier(lignes.length))) + " " : ""}${esc(X.note(HARES.an, !TRESORERIE_HARES))}</p>`;
   }
 
   function reponseHaresHtml(enCours) {
+    const X = TH();
     const tete = `<span class="hares-qui">HARES</span>`;
-    if (enCours) return tete + `<p class="agent-attente">Traduction de la demande…</p>`;
-    if (HARES.confirmCmpc) return tete + confirmationCmpcHtml(HARES.confirmCmpc);
-    if (HARES.reponse) return tete + reponseHtml(HARES.reponse);
-    if (CMPC_HARES_RETIRE) {
-      HARES.info = "L'échantillon appliqué au CMPC a été retiré : le référentiel, le secteur ou le périmètre du CMPC ont changé depuis.";
-      CMPC_HARES_RETIRE = null;
+    if (enCours) return tete + `<p class="agent-attente">${esc(X.attente)}</p>`;
+    if (HARES.confirmCmpc) return tete + confirmationCmpcHtml(HARES.confirmCmpc) + exemplesHtml();
+    if (HARES.reponse) return tete + reponseHtml(HARES.reponse) + exemplesHtml();
+    if (CMPC_HARES_RETIRE) { HARES.info = X.retireContexte; CMPC_HARES_RETIRE = null; }
+    const info = HARES.info ? `<p>${esc(HARES.info)}</p>` : "";
+    if (!HARES.etapes.length) {
+      return tete + (info || X.accueil(esc(pluriel(idsHares().length, "société")), esc(HARES.depart.libelle))) + exemplesHtml();
     }
-    const info = HARES.info ? `<p class="agent-entete">${esc(HARES.info)}</p>` : "";
     const i = HARES.vue == null ? HARES.etapes.length - 1 : HARES.vue;
-    const corps = HARES.etapes.length ? etapeHtml(HARES.etapes[i], i) : (info ? "" : accueilHaresHtml());
-    return tete + info + corps + listeCourteHares() + actionsEchantillonHtml();
+    return tete + info + etapeHtml(HARES.etapes[i], i) + listeCourteHares() + pucesHtml(i) + exemplesHtml();
   }
 
   function rendreHares(enCours) {
     const racine = $("panel-hares");
     if (!racine || !HARES.depart) return;
+    const X = TH();
     const etat = racine.querySelector('[data-o="agent-etat"]');
     etat.textContent = AGENT.horsLigne ? "Mode hors ligne : gabarits seulement" + (AGENT.raison ? " — " + AGENT.raison : "")
       : AGENT.quota ? "Quota du jour atteint : gabarits seulement"
       : "Demandes courantes lues sur place, les autres traduites en ligne";
     etat.classList.toggle("is-hors-ligne", Boolean(AGENT.horsLigne || AGENT.quota));
+    $("haresSession").textContent = X.session(estComparables() ? params.secteur : params.industry, params.country);
     $("haresDemander").disabled = Boolean(AGENT.enCours);
     $("haresDepart").innerHTML = departHtml();
     $("haresFil").innerHTML = filHtml();
@@ -13138,17 +13187,15 @@
     }
     const q = $("haresDemande");
     q.hidden = !HARES.question;
-    q.innerHTML = HARES.question ? `<span class="hares-qui">Vous</span><p>${esc(HARES.question)}</p>` : "";
+    q.innerHTML = HARES.question ? `<span class="hares-qui">${esc(X.vous)}</span><p>${esc(HARES.question)}</p>` : "";
     $("haresReponse").innerHTML = reponseHaresHtml(enCours);
-    if (!HARES.exemples.length) tirerExemplesHares();
-    $("haresExemples").innerHTML = enCours ? ""
-      : HARES.exemples.map((x) => `<button type="button" class="agent-puce" data-agent-question="${esc(x)}">${esc(x)}</button>`).join("");
+    $("haresBilan").textContent = X.bilan(frEntier(HARES.depart.ids.length), frEntier(idsHares().length));
     $("haresEchantillon").innerHTML = tableHaresHtml();
     $("haresEspace").classList.toggle("is-ouvert", HARES.panneauOuvert);
-    $("haresEchantillon").setAttribute("aria-hidden", HARES.panneauOuvert ? "false" : "true");
+    $("haresResultats").setAttribute("aria-hidden", HARES.panneauOuvert ? "false" : "true");
     const rouvrir = $("haresRouvrir");
     rouvrir.hidden = HARES.panneauOuvert;
-    rouvrir.textContent = `Afficher l'échantillon (${frEntier(idsHares().length)}) ▸`;
+    rouvrir.textContent = X.rouvrir(frEntier(idsHares().length));
     const fil = $("haresMessages");
     fil.scrollTop = fil.scrollHeight;
     if (BUDDY_HARES) {
@@ -13160,6 +13207,7 @@
   function initHares() {
     const racine = $("panel-hares");
     if (!racine) return;
+    appliquerLangueHares();
     // Le soldat, derrière la barre de saisie ; il se promène dans le chat.
     if (window.HaresBuddy) {
       BUDDY_HARES = HaresBuddy.monter({ hote: "#haresBuddy", champ: "#haresQuestion",
@@ -13177,6 +13225,9 @@
       if (ev.target.closest("button") && !ev.target.closest("[data-hares-cmpc-confirmer], [data-hares-cmpc-annuler]")) HARES.confirmCmpc = null;
       const q = ev.target.closest("[data-agent-question]");
       if (q) { champ.value = ""; demanderHares(q.dataset.agentQuestion); return; }
+      const langue = ev.target.closest("[data-hares-langue]");
+      if (langue) { LANGUE_HARES = langue.dataset.haresLangue; appliquerLangueHares(); rendreHares(); return; }
+      if (ev.target.closest("[data-hares-nouvelle]")) { nouvelleSessionHares(); return; }
       if (ev.target.closest("[data-hares-fermer]")) { HARES.panneauOuvert = false; rendreHares(); return; }
       if (ev.target.closest("[data-hares-panneau], #haresRouvrir")) {
         HARES.panneauOuvert = true;
@@ -13188,7 +13239,7 @@
       if (ev.target.closest("[data-hares-cmpc-confirmer]")) { appliquerCmpcHares(); return; }
       if (ev.target.closest("[data-hares-cmpc-annuler]")) {
         HARES.confirmCmpc = null;
-        HARES.info = "Le CMPC n'est pas modifié.";
+        HARES.info = TH().nonModifie;
         rendreHares();
         return;
       }
