@@ -2286,46 +2286,62 @@
     .ins-table th, .ins-table td { padding: 8px 5px; }
   }
   /* ---------- Onglet HARES ---------- */
-  /* HARES occupe toute la zone de contenu sous la navigation : ni colonne
-     latérale ni filtre classique, seulement la saisie, le fil des étapes et
-     l'échantillon. Le tableau compte douze colonnes : il prend toute la
-     largeur, sans le plafond de 1060 px des autres onglets. */
-  .hares { padding: 26px 32px 120px; }
-  .hares-cadre { display: grid; gap: 16px; min-width: 0; }
+  /* HARES est un chat : le fil des messages et sa barre de saisie à gauche ;
+     quand une réponse ne tient plus dans le fil — plus de cinq sociétés —, le
+     tableau de l'échantillon s'ouvre dans un panneau qui glisse depuis la
+     droite. L'onglet prend toute la largeur, sans le plafond de 1060 px des
+     autres : le tableau compte douze colonnes. Le violet de la barre est aussi
+     celui de l'onglet du haut. */
+  :root {
+    --hares: #5b21b6;
+    --hares-fonce: #3b1782;
+    --hares-tint: #f6f2fd;
+    --hares-chip: #d9ccf5;
+  }
+  .hares { padding: 26px 32px 48px; }
+  .hares-cadre { display: grid; gap: 14px; min-width: 0; }
   .hares-tete { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px 18px; flex-wrap: wrap; }
   .hares-titre { margin: 0; font: 600 21px/1.15 var(--sans); letter-spacing: 0.06em; color: var(--ink); }
-  .hares-sous-titre { margin: 5px 0 0; max-width: 680px; font: 400 12.5px/1.45 var(--sans); color: var(--muted); }
+  .hares-sous-titre { margin: 5px 0 0; max-width: 720px; font: 400 12.5px/1.45 var(--sans); color: var(--muted); }
   .agent-etat { padding-top: 4px; font: 400 10.5px/1.35 var(--sans); color: var(--muted-2); }
   .agent-etat.is-hors-ligne { color: var(--warn); }
+  .hares-espace {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 0fr);
+    gap: 0;
+    transition: grid-template-columns 460ms cubic-bezier(.2, .8, .2, 1), gap 460ms;
+  }
+  .hares-espace.is-ouvert { grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr); gap: 20px; }
+  .hares-chat {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    min-width: 0;
+    height: clamp(500px, calc(100vh - 220px), 860px);
+    padding: 14px 14px 12px;
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    background: var(--tile);
+  }
   .hares-depart {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    gap: 8px 16px;
+    gap: 6px 12px;
     flex-wrap: wrap;
-    padding: 12px 16px;
+    padding: 8px 12px;
     border: 1px solid var(--line);
-    border-radius: 10px;
+    border-radius: 8px;
     background: var(--surface);
-    font: 400 12.5px/1.45 var(--sans);
+    font: 400 12px/1.45 var(--sans);
     color: var(--ink-3);
   }
   .hares-depart b { font-weight: 500; color: var(--ink); }
-  .hares-depart-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+  .hares-depart-actions { display: flex; gap: 6px; flex-wrap: wrap; }
+  .hares-depart .valo-bouton { padding: 5px 10px; font-size: 11.5px; }
   .hares-alerte { flex-basis: 100%; margin: 0; color: var(--warn); }
-  .hares-saisie { display: flex; gap: 8px; }
-  .agent-champ {
-    flex: 1;
-    min-width: 0;
-    padding: 11px 14px;
-    border: 1px solid var(--line);
-    border-radius: 8px;
-    background: var(--field);
-    font: 400 14px/1.3 var(--sans);
-    color: var(--ink);
-  }
-  .agent-champ:focus { outline: none; border-color: var(--accent); background: var(--surface); }
-  .hares-exemples:empty, .hares-fil:empty, .hares-reponse:empty { display: none; }
+  .hares-fil:empty, .hares-exemples:empty { display: none; }
   .hares-fil { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin: 0; padding: 0; list-style: none; }
   .hares-fil li { display: flex; align-items: center; gap: 6px; }
   .hares-fil li + li::before { content: "→"; font: 400 12px/1 var(--sans); color: var(--muted-2); }
@@ -2336,38 +2352,157 @@
     padding: 5px 10px;
     border: 1px solid var(--line);
     border-radius: 999px;
-    background: var(--tile);
+    background: var(--surface);
     font: 400 11.5px/1.25 var(--sans);
     color: var(--ink-3);
     cursor: pointer;
   }
   .hares-pas b { font: 500 11.5px/1 var(--mono); color: var(--ink); }
-  .hares-pas:hover { border-color: var(--accent-chip); }
-  .hares-pas.is-actif { border-color: var(--accent); background: var(--accent-tint); color: var(--accent); }
-  .hares-reponse, .hares-echantillon {
-    display: grid;
+  .hares-pas:hover { border-color: var(--hares-chip); }
+  .hares-pas.is-actif { border-color: var(--hares); background: var(--hares-tint); color: var(--hares); }
+
+  /* Le fil : les échanges passés, figés, puis la question en cours et la
+     réponse vivante (#haresReponse), enfin cinq exemples en bulles grises. */
+  .hares-messages {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
     gap: 10px;
+    padding: 2px 2px 34px;
+  }
+  .hares-historique { display: contents; }
+  .hares-msg {
+    flex: none;
+    display: grid;
+    gap: 9px;
     min-width: 0;
-    padding: 18px 20px 20px;
+    padding: 12px 14px;
     border: 1px solid var(--line);
     border-radius: 10px;
     background: var(--surface);
+    animation: hares-entree 260ms ease-out;
   }
+  .hares-msg[hidden], .hares-msg:empty { display: none; }
+  .hares-msg.is-archive { animation: none; }
+  .hares-qui { font: 500 10px/1 var(--mono); letter-spacing: 0.1em; text-transform: uppercase; color: var(--hares); }
+  .hares-msg.is-moi .hares-qui { color: #c2410c; }
+  .hares-msg.is-moi p { margin: 0; font: 400 13px/1.45 var(--sans); color: var(--ink-2); }
+  .hares-liste { margin: 0; padding: 0; list-style: none; border-top: 1px solid var(--line); }
+  .hares-liste li { display: flex; gap: 10px; padding: 6px 0; border-bottom: 1px solid var(--line); font: 400 12px/1.35 var(--sans); color: var(--muted); }
+  .hares-liste b { flex: 1; font-weight: 500; color: var(--ink); }
+  .hares-liste span:last-child { font-family: var(--mono); font-variant-numeric: tabular-nums; }
+  .hares-exemples { display: flex; flex-wrap: wrap; gap: 5px; }
+  .hares-exemples .agent-puce {
+    padding: 4px 9px;
+    border: 0;
+    border-radius: 999px;
+    background: #ececf0;
+    font: 400 11px/1.3 var(--sans);
+    color: var(--muted);
+  }
+  .hares-exemples .agent-puce:hover { background: #e2e2e8; color: var(--ink); }
+  @keyframes hares-entree { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+
+  /* La barre de saisie, violette, et le soldat qui se tient derrière elle. */
+  .hares-saisie-zone { position: relative; }
+  .hares-saisie {
+    position: relative;
+    z-index: 2;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 7px 7px 7px 16px;
+    border-radius: 10px;
+    background: var(--hares);
+  }
+  .hares-saisie .agent-champ { padding: 6px 0; border: 0; background: none; color: #fff; }
+  .hares-saisie .agent-champ:focus { background: none; }
+  .hares-saisie .agent-champ::placeholder { color: #d9cdf6; }
+  .hares-envoyer {
+    padding: 9px 18px;
+    border: 0;
+    border-radius: 7px;
+    background: #fff;
+    font: 600 12.5px/1 var(--sans);
+    color: var(--hares);
+    cursor: pointer;
+  }
+  .hares-envoyer:disabled { opacity: 0.6; cursor: default; }
+  .hares-rouvrir {
+    position: absolute;
+    top: -12px;
+    right: 16px;
+    z-index: 3;
+    padding: 5px 11px;
+    border: 0;
+    border-radius: 999px;
+    background: var(--hares-fonce);
+    font: 500 11px/1.2 var(--sans);
+    color: #fff;
+    cursor: pointer;
+    box-shadow: 0 2px 6px rgba(59, 23, 130, 0.25);
+  }
+  .hares-rouvrir:hover { background: var(--hares); }
+
+  /* Le panneau de l'échantillon : ouvert, il glisse depuis la droite ;
+     fermé, il ne garde aucune largeur. */
+  .hares-echantillon {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    height: clamp(500px, calc(100vh - 220px), 860px);
+    overflow: hidden;
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    background: var(--surface);
+    opacity: 0;
+    transform: translateX(24px);
+    transition: opacity 360ms ease, transform 460ms cubic-bezier(.2, .8, .2, 1);
+  }
+  .hares-espace:not(.is-ouvert) .hares-echantillon { border-width: 0; }
+  .hares-espace.is-ouvert .hares-echantillon { opacity: 1; transform: none; }
+  .hares-table-tete { display: flex; align-items: center; gap: 4px 12px; flex-wrap: wrap; padding: 6px 8px 6px 14px; background: var(--hares-fonce); }
+  .hares-table-tete h2 { margin: 0; font: 500 13px/1.3 var(--sans); color: #fff; }
+  .hares-table-tete h2 b { font: 500 13px/1 var(--mono); color: #fff; }
+  .hares-table-note { font: 400 11px/1.4 var(--sans); color: #d6caf3; }
+  .hares-fermer {
+    margin-left: auto;
+    width: 22px;
+    height: 22px;
+    border: 0;
+    border-radius: 5px;
+    background: rgba(255, 255, 255, 0.14);
+    font: 400 14px/1 var(--sans);
+    color: #fff;
+    cursor: pointer;
+  }
+  .hares-fermer:hover { background: rgba(255, 255, 255, 0.28); }
+  .hares-table-defile { flex: 1; overflow: auto; }
+  .hares-echantillon > .agent-source, .hares-echantillon > .hares-vide { margin: 0; padding: 10px 14px; }
+
   .hares-etape-tete { display: flex; align-items: baseline; gap: 6px 12px; flex-wrap: wrap; }
   .hares-etape-num { font: 400 10px/1 var(--mono); letter-spacing: 0.09em; text-transform: uppercase; color: var(--muted); }
   .hares-effectif { margin-left: auto; font: 500 12px/1 var(--mono); color: var(--ink-2); white-space: nowrap; }
   .hares-notes, .hares-retirees ul { display: grid; gap: 4px; margin: 0; padding-left: 16px; font: 400 12px/1.5 var(--sans); color: var(--ink-3); }
   .hares-intertitre { margin: 4px 0 6px; font: 400 9.5px/1 var(--mono); letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted-2); }
   .hares-retirees b { font-weight: 500; color: var(--ink-2); }
-  .hares-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+  .hares-actions { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
   .hares-defile { overflow-x: auto; }
-  .hares-table-tete { display: flex; align-items: center; gap: 8px 16px; flex-wrap: wrap; }
-  .hares-table-tete h2 { margin: 0; font: 500 14px/1.2 var(--sans); color: var(--ink); }
-  .hares-table-tete h2 b { font: 500 14px/1 var(--mono); color: var(--green); }
-  .hares-table-note { font: 400 11px/1.4 var(--sans); color: var(--muted); }
-  .hares-table-tete .valo-bouton { margin-left: auto; }
   .hares-envoye { margin: 0; font: 400 12px/1.5 var(--sans); color: var(--green); }
-  .hares-table-defile { overflow: auto; max-height: 70vh; border: 1px solid var(--line); border-radius: 8px; }
+  .hares-envoye.is-hares { color: var(--hares); }
+
+  /* La confirmation avant d'écraser le CMPC : ce qui change, avant / après. */
+  .hares-cmpc { display: grid; gap: 8px; padding: 12px 14px; border: 1px solid var(--hares-chip); border-radius: 8px; background: var(--hares-tint); }
+  .hares-cmpc p { margin: 0; font: 400 12.5px/1.5 var(--sans); color: var(--ink-3); }
+  .hares-cmpc p b { font-weight: 600; color: var(--hares); }
+  .hares-cmpc table { border-collapse: collapse; font: 400 12px/1.35 var(--sans); color: var(--ink-3); }
+  .hares-cmpc th, .hares-cmpc td { padding: 4px 18px 4px 0; text-align: left; }
+  .hares-cmpc th { font: 400 9.5px/1.2 var(--mono); letter-spacing: 0.05em; text-transform: uppercase; color: var(--muted); }
+  .hares-cmpc .is-nombre { text-align: right; font-family: var(--mono); font-variant-numeric: tabular-nums; }
+  .hares-cmpc .is-change { color: var(--hares); font-weight: 600; }
+
   .hares-table { width: 100%; border-collapse: collapse; font: 400 12px/1.35 var(--sans); }
   .hares-table th {
     position: sticky;
@@ -2383,13 +2518,122 @@
     color: var(--muted);
     white-space: nowrap;
   }
-  .hares-table th.is-tri { color: var(--accent); }
+  .hares-table th.is-tri { color: var(--hares); }
   .hares-table td { padding: 7px 10px; border-bottom: 1px solid var(--line); color: var(--ink-3); vertical-align: top; }
   .hares-table tr:last-child td { border-bottom: 0; }
   .hares-table .is-nombre { text-align: right; font-family: var(--mono); font-variant-numeric: tabular-nums; white-space: nowrap; }
   .hares-nom { display: block; font-weight: 500; color: var(--ink); }
   .hares-sous { display: block; font-size: 11px; color: var(--muted); }
   .hares-vide { margin: 0; padding: 18px; text-align: center; font: 400 12.5px/1.5 var(--sans); color: var(--muted); }
+
+  /* L'onglet HARES, violet comme la barre de son chat, coiffé d'un cadenas :
+     fermé tant que le code analyste n'a pas été donné dans la session. */
+  .tabs .onglet-hares {
+    position: relative;
+    align-self: flex-start;
+    margin-top: -6px;
+    padding: 6px 13px 7px;
+    border: 0;
+    border-radius: 8px;
+    background: var(--hares);
+    font-weight: 500;
+    color: #fff;
+  }
+  .tabs .onglet-hares:hover { background: var(--hares-fonce); color: #fff; }
+  .tabs .onglet-hares.is-active { color: #fff; box-shadow: 0 0 0 2px var(--surface), 0 0 0 3.5px var(--hares); }
+  .onglet-cadenas {
+    position: absolute;
+    top: -9px;
+    right: -10px;
+    display: grid;
+    place-items: center;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: var(--surface);
+    box-shadow: 0 0 0 1.5px var(--hares);
+    color: var(--hares);
+  }
+  .onglet-cadenas svg { display: block; }
+  .onglet-cadenas .anse-ouverte { display: none; }
+  .onglet-hares.is-ouvert .onglet-cadenas { color: var(--green); box-shadow: 0 0 0 1.5px var(--green); }
+  .onglet-hares.is-ouvert .onglet-cadenas .anse-fermee { display: none; }
+  .onglet-hares.is-ouvert .onglet-cadenas .anse-ouverte { display: inline; }
+  .top-inner { position: relative; }
+  .cadenas-hares {
+    position: absolute;
+    z-index: 30;
+    width: 260px;
+    padding: 12px;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    background: var(--surface);
+    box-shadow: 0 10px 28px rgba(24, 24, 27, 0.14);
+  }
+  .cadenas-hares label { display: block; margin-bottom: 4px; font: 500 12.5px/1.3 var(--sans); color: var(--ink); }
+  .cadenas-hares p { margin: 0 0 8px; font: 400 11px/1.4 var(--sans); color: var(--muted); }
+  .cadenas-ligne { display: flex; gap: 6px; }
+  .cadenas-ligne input {
+    flex: 1;
+    min-width: 0;
+    padding: 7px 9px;
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    font: 400 13px/1.2 var(--mono);
+    color: var(--ink);
+  }
+  .cadenas-ligne input:focus { outline: none; border-color: var(--hares); }
+  .cadenas-ligne button {
+    padding: 7px 10px;
+    border: 0;
+    border-radius: 6px;
+    background: var(--hares);
+    font: 500 12px/1 var(--sans);
+    color: #fff;
+    cursor: pointer;
+  }
+  .cadenas-hares .cadenas-erreur { min-height: 1.3em; margin: 6px 0 0; color: var(--warn); }
+  .cadenas-hares.is-refuse { animation: cadenas-refus 320ms ease; }
+  @keyframes cadenas-refus { 0%, 100% { transform: translateX(0); } 25%, 75% { transform: translateX(-5px); } 50% { transform: translateX(5px); } }
+
+  /* L'indicateur « modifié par HARES » : un bandeau sous les sous-onglets du
+     CMPC, et une pastille sur les onglets dont les chiffres en viennent. */
+  .bandeau-hares { max-width: 1060px; margin: 14px auto 0; padding: 0 32px; }
+  .bandeau-hares-corps {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px 14px;
+    padding: 10px 14px;
+    border: 1px solid var(--hares-chip);
+    border-radius: 10px;
+    background: var(--hares-tint);
+    font: 400 12.5px/1.5 var(--sans);
+    color: var(--ink-3);
+  }
+  .bandeau-hares-corps b { font-weight: 600; color: var(--hares); }
+  .bandeau-hares-actions { margin-left: auto; display: flex; gap: 8px; flex-wrap: wrap; }
+  .bandeau-hares-consignes { flex-basis: 100%; margin: 0; font-size: 11.5px; color: var(--muted); }
+  .a-hares::after {
+    content: "HARES";
+    display: inline-block;
+    margin-left: 6px;
+    padding: 2px 5px;
+    border-radius: 4px;
+    background: var(--hares);
+    vertical-align: 1px;
+    font: 500 8.5px/1 var(--mono);
+    letter-spacing: 0.06em;
+    color: #fff;
+  }
+
+  @media (max-width: 760px) {
+    .hares { padding: 18px 14px 36px; }
+    .hares-espace, .hares-espace.is-ouvert { grid-template-columns: minmax(0, 1fr); gap: 14px; }
+    .hares-espace:not(.is-ouvert) .hares-echantillon { display: none; }
+    .hares-chat, .hares-echantillon { height: 560px; }
+    .bandeau-hares { padding: 0 14px; }
+  }
   .notice-hares {
     display: flex;
     justify-content: space-between;
@@ -2489,6 +2733,322 @@
     .aide-etapes { grid-template-columns: 1fr; }
     .aide-hero { grid-template-columns: 1fr; }
   }
+  /* ---------- Le soldat de HARES (copie de hares-buddy/buddy.css) ---------- */
+  /* =====================================================================
+     HARES buddy — feuille de style du personnage.
+
+     Côté application, deux choses seulement à régler : `.hb-zone`, le cadre
+     où il prend son poste (au-dessus de la barre de saisie, dont le parent
+     doit être en `position: relative`), et les variables de couleur.
+
+     Le sprite est un SVG de 24 x 22 unités agrandi trois fois. Dans les
+     calques (`g`), un pas de 1px vaut donc un pixel plein à l'écran, et rien
+     ne tourne : à cette taille, tout angle non droit rend le dessin flou.
+     ===================================================================== */
+
+  .hb-zone {
+    position: absolute;
+    right: 110px;
+    bottom: calc(100% - 12px);   /* ses pieds disparaissent derrière la barre */
+    width: 72px;
+    height: 66px;
+    z-index: 1;                  /* la barre doit avoir un z-index plus grand */
+    pointer-events: none;
+  }
+
+  /* Le porteur se déplace (glisser, chute, retour) ; le personnage, dedans,
+     s'anime. Chacun garde ainsi son propre `transform`. */
+  .hb-porteur {
+    width: 72px;
+    height: 66px;
+    pointer-events: none;
+    transform: translate(var(--dx, 0px), var(--dy, 0px)) rotate(var(--penche, 0deg));
+    transform-origin: 50% 20%;   /* on le tient par le casque */
+  }
+  /* La chaîne d'or spirituelle, en pixel art. Le script la place dans le
+     parent positionné de la zone, au-dessus de la barre (z-index 4) : elle
+     passe devant la boîte de dialogue même quand le soldat est derrière. L'aura
+     de l'anneau est elle aussi pixelisée : des ombres sans flou, décalées d'un
+     pixel d'art (3 px) dans les quatre directions. */
+  .hb-chaine {
+    position: absolute;
+    left: 0;
+    top: 0;
+    z-index: 4;
+    width: 1px;
+    height: 1px;
+    overflow: visible;
+    pointer-events: none;
+    shape-rendering: crispEdges;
+    opacity: 0;
+    transition: opacity 120ms steps(2, end);
+  }
+  .hb-chaine.is-visible { opacity: 1; }
+  /* Les maillons restent nets, leurs jours ouverts ; l'aura est pour l'anneau. */
+  .hb-chaine-maillons { filter: drop-shadow(0 3px 0 rgba(90, 55, 0, .35)); }
+  .hb-chaine-anneau {
+    filter: drop-shadow(3px 0 0 rgba(253, 224, 71, .35)) drop-shadow(-3px 0 0 rgba(253, 224, 71, .35))
+            drop-shadow(0 3px 0 rgba(253, 224, 71, .35)) drop-shadow(0 -3px 0 rgba(253, 224, 71, .35));
+  }
+
+  /* Lancé ou secoué vite, il laisse une traînée rouge derrière lui. */
+  .hb-porteur.is-file {
+    filter: drop-shadow(var(--trainee, 0px) 0 0 rgba(185, 28, 28, .35))
+            drop-shadow(calc(var(--trainee, 0px) * 2) 0 0 rgba(185, 28, 28, .15));
+  }
+
+  .hares-buddy {
+    --hb-contour: #18181b;
+    --hb-metal: #5b5b68;
+    --hb-metal-clair: #b4b4bf;
+    --hb-visage: #0c0c10;
+    --hb-oeil: #34d399;
+    --hb-aigrette: #b91c1c;
+    --hb-aigrette-clair: #ef4444;
+    --hb-cape: #b91c1c;
+    --hb-cape-ombre: #7f1d1d;
+    --hb-bronze: #c9952c;
+    --hb-bronze-ombre: #8f6514;
+    --hb-cuirasse: #e0b04a;
+    --hb-cuirasse-clair: #f7d78a;
+    --hb-tunique: #ede9fe;
+    --hb-bouclier: #8f6514;
+    --hb-bouclier-clair: #e0b04a;
+    --hb-bois: #7a5a36;
+    --hb-rouleau: #a37b45;
+    --hb-parchemin: #f6ead0;
+    --hb-encre: #3b2f2f;
+    --hb-plume: #f8fafc;
+    position: relative;
+    width: 72px;
+    height: 66px;
+    animation: hb-flotte 3.2s ease-in-out infinite;
+  }
+
+  /* Il ne prend le pointeur que là où il est peint : le reste du cadre
+     laisse passer vers la barre de saisie. */
+  .hares-buddy .hb-sprite {
+    display: block;
+    shape-rendering: crispEdges;
+    overflow: visible;            /* la pointe de la lance sort du dessin à l'estoc et au bond */
+    pointer-events: visiblePainted;
+    cursor: grab;
+    touch-action: none;
+    transition: transform 180ms steps(3, end);
+  }
+  .hares-buddy g { transform-box: fill-box; }
+  /* La lance ne fait qu'un pixel de large : en crispEdges, une demi-position
+     ou une inclinaison suffisent à l'effacer. Elle est rendue sans arrondi. */
+  .hares-buddy .hb-lance { shape-rendering: geometricPrecision; transition: transform 260ms steps(4, end); }
+  .hb-porteur.is-tenu .hb-sprite,
+  .hb-porteur.is-vole .hb-sprite,
+  .hb-porteur.is-rappel .hb-sprite { shape-rendering: geometricPrecision; }
+  .hares-buddy .hb-yeux { transform-origin: 50% 50%; }
+  .hares-buddy .hb-parchemin { transform-origin: 50% 100%; }
+
+  /* ---------- repos : il monte la garde ---------- */
+  .hares-buddy .hb-yeux { animation: hb-cligne 4.3s ease-in-out infinite; }
+  .hares-buddy .hb-parchemin,
+  .hares-buddy .hb-plume { display: none; }
+
+  .hares-buddy.is-regarde-g .hb-sprite { transform: translateX(-4px); }
+  .hares-buddy.is-regarde-d .hb-sprite { transform: translateX(4px); }
+
+  /* ---------- écoute : le champ a la main, il se penche dessus ---------- */
+  .hares-buddy.is-ecoute { animation-duration: 2.4s; }
+  .hares-buddy.is-ecoute .hb-sprite { transform: translateY(4px); }
+
+  /* ---------- frappe : il pose sa lance, sort le parchemin, une bulle « … » ---------- */
+  .hares-buddy.is-tape .hb-lance { transform: translateY(22px); }
+  .hares-buddy.is-tape { animation-duration: 1.6s; }
+  .hares-buddy.is-tape .hb-parchemin { display: block; animation: hb-ouvre 240ms cubic-bezier(.2, 1.4, .5, 1); }
+  .hares-buddy.is-tape .hb-plume { display: block; animation: hb-plume 220ms steps(1, end) infinite alternate; }
+  .hares-buddy.is-tape .hb-px-x { animation: hb-encre 600ms steps(1, end) infinite alternate; }
+
+  /* ---------- envoi : il saute ---------- */
+  .hares-buddy.is-envoie { animation: hb-saut 600ms ease-out; }
+
+  /* ---------- sommeil : visière éteinte, souffle lent, z qui montent ---------- */
+  .hares-buddy.is-dort { animation: hb-souffle 5s ease-in-out infinite; }
+  .hares-buddy.is-dort .hb-yeux { display: none; }
+  .hares-buddy.is-dort .hb-sprite { transform: translateY(4px); }
+
+  .hb-bulle {
+    position: absolute;
+    left: 50%;
+    top: -18px;
+    display: none;
+    gap: 3px;
+    padding: 4px 6px;
+    border: 2px solid #18181b;
+    border-radius: 6px;
+    background: #fff;
+    transform: translateX(-50%);
+    pointer-events: none;
+  }
+  .hb-bulle::after {
+    content: "";
+    position: absolute;
+    left: 50%;
+    bottom: -6px;
+    width: 4px;
+    height: 4px;
+    margin-left: -2px;
+    border: 2px solid #18181b;
+    border-top: 0;
+    background: #fff;
+  }
+  .hb-bulle i { display: block; width: 4px; height: 4px; background: #18181b; animation: hb-points 900ms steps(1, end) infinite; }
+  .hb-bulle i:nth-child(2) { animation-delay: 150ms; }
+  .hb-bulle i:nth-child(3) { animation-delay: 300ms; }
+  .hares-buddy.is-tape .hb-bulle { display: flex; animation: hb-bulle 220ms ease-out; }
+  @keyframes hb-bulle { from { opacity: 0; transform: translate(-50%, 6px); } to { opacity: 1; transform: translate(-50%, 0); } }
+  /* ---------- réfléchit : la requête est partie, il attend la réponse ----------
+     Lance gardée, bulle « … » seule, regard baissé. */
+  .hares-buddy.is-reflechit .hb-bulle { display: flex; animation: hb-bulle 220ms ease-out; }
+  .hares-buddy.is-reflechit .hb-sprite { transform: translateY(3px); }
+
+  /* ---------- montre : il désigne le panneau de droite ---------- */
+  .hares-buddy.is-montre .hb-sprite { transform: translateX(3px); }
+  /* La lance bascule vers l'avant autour du poing (62 % 70 % de son cadre) :
+     pointe en avant, vers le panneau. Le seul angle permis au repos — une
+     hampe d'un pixel penchée se lit très bien, le reste du dessin, lui, ne
+     tourne pas. */
+  .hares-buddy.is-montre .hb-lance { transform-origin: 62% 70%; transform: rotate(58deg); }
+  .hares-buddy.is-montre .hb-yeux { transform: translateX(1px); animation: none; }
+
+  @keyframes hb-points { 0%, 60%, 100% { opacity: .25; } 20%, 40% { opacity: 1; } }
+
+  .hb-zzz {
+    position: absolute;
+    left: 80%;
+    top: 4px;
+    display: none;
+    width: 40px;
+    height: 40px;
+    font: 600 11px/1 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    color: var(--hb-aigrette-clair);
+    pointer-events: none;
+  }
+  .hares-buddy.is-dort .hb-zzz { display: block; }
+  .hb-zzz i { position: absolute; font-style: normal; opacity: 0; animation: hb-zzz 2.6s ease-out infinite; }
+  .hb-zzz i:nth-child(2) { font-size: 13px; animation-delay: .85s; }
+  .hb-zzz i:nth-child(3) { font-size: 15px; animation-delay: 1.7s; }
+
+  /* ---------- passes d'armes, au clic ----------
+     Chacune pose une animation `hb-passe-<nom>` sur le personnage : c'est sa
+     fin qui libère la passe, côté script. Les pièces (lance, bouclier,
+     aigrette) jouent leur part en même temps, sur la même durée. */
+  .hares-buddy.is-passe-estoc { animation: hb-passe-estoc 520ms steps(6, end); }
+  .hares-buddy.is-passe-estoc .hb-lance { animation: hb-estoc 520ms steps(6, end); }
+
+  .hares-buddy.is-passe-bouclier { animation: hb-passe-bouclier 640ms ease-out; }
+  .hares-buddy.is-passe-bouclier .hb-bouclier { animation: hb-garde 640ms steps(4, end); }
+
+  .hares-buddy.is-passe-cri { --hb-oeil: #f43f5e; animation: hb-passe-cri 700ms steps(1, end); }
+  .hares-buddy.is-passe-cri .hb-aigrette { animation: hb-herisse 700ms steps(1, end); }
+
+  .hares-buddy.is-passe-bond { animation: hb-passe-bond 760ms cubic-bezier(.3, .7, .4, 1); }
+  .hares-buddy.is-passe-bond .hb-lance { animation: hb-brandit 760ms steps(3, end); }
+
+  .hares-buddy.is-passe-eclair { --hb-oeil: #ffffff; animation: hb-passe-eclair 900ms ease-out; }
+
+  /* ---------- saisi, il gigote ; lâché, il tombe puis revient ---------- */
+  .hares-buddy.is-dandine { animation: hb-dandine 320ms steps(1, end) infinite; }
+  .hares-buddy.is-tenu .hb-sprite { cursor: grabbing; }
+  .hb-porteur.is-rappel { filter: drop-shadow(0 0 6px rgba(250, 204, 21, .95)) drop-shadow(0 0 2px #fff7cc); }
+  .hb-porteur.is-arrive { animation: hb-arrive 320ms ease-out; }
+
+  @keyframes hb-flotte { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-4px); } }
+  @keyframes hb-souffle { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-2px); } }
+  @keyframes hb-saut {
+    0% { transform: translateY(0); }
+    30% { transform: translateY(-16px); }
+    60% { transform: translateY(0); }
+    75% { transform: translateY(-6px); }
+    100% { transform: translateY(0); }
+  }
+  @keyframes hb-cligne {
+    0%, 92%, 100% { transform: scaleY(1); }
+    95%, 96.5% { transform: scaleY(0.12); }
+  }
+  @keyframes hb-ouvre { from { transform: scaleY(0.1); opacity: 0; } to { transform: scaleY(1); opacity: 1; } }
+  @keyframes hb-plume { from { transform: translate(0, 0); } to { transform: translate(-1px, 1px); } }
+  @keyframes hb-encre { from { opacity: 1; } to { opacity: 0.35; } }
+  @keyframes hb-zzz {
+    0% { opacity: 0; transform: translate(0, 0) scale(.8); }
+    20% { opacity: 1; }
+    100% { opacity: 0; transform: translate(12px, -26px) scale(1.1); }
+  }
+
+  /* Estoc : il recule d'un pas et la lance part vers le haut, deux fois. */
+  @keyframes hb-passe-estoc {
+    0%, 100% { transform: translateX(0); }
+    20%, 70% { transform: translateX(-4px); }
+  }
+  @keyframes hb-estoc {
+    0%, 40%, 100% { transform: translateY(0); }
+    20%, 60% { transform: translateY(-3px); }
+  }
+  /* Bouclier : il se ramasse derrière le hoplon et charge d'un pas. */
+  @keyframes hb-passe-bouclier {
+    0%, 100% { transform: translate(0, 0); }
+    30% { transform: translate(4px, 4px); }
+    60% { transform: translate(-10px, 0); }
+  }
+  @keyframes hb-garde {
+    0%, 100% { transform: translate(0, 0); }
+    25%, 75% { transform: translate(2px, -2px); }
+  }
+  /* Cri de guerre : les yeux virent au rouge, il tremble, l'aigrette se dresse. */
+  @keyframes hb-passe-cri {
+    0%, 100% { transform: translate(0, 0); }
+    10%, 30%, 50%, 70% { transform: translate(-3px, -2px); }
+    20%, 40%, 60%, 80% { transform: translate(3px, -2px); }
+  }
+  @keyframes hb-herisse {
+    0%, 100% { transform: translateY(0); }
+    10%, 90% { transform: translateY(-1px); }
+  }
+  /* Bond : un grand saut, lance levée, et l'atterrissage qui tasse. */
+  @keyframes hb-passe-bond {
+    0% { transform: translateY(0); }
+    15% { transform: translateY(4px); }
+    50% { transform: translateY(-28px); }
+    85% { transform: translateY(4px); }
+    100% { transform: translateY(0); }
+  }
+  @keyframes hb-brandit {
+    0%, 100% { transform: translateY(0); }
+    30%, 70% { transform: translateY(-4px); }
+  }
+  /* Éclair : il s'illumine d'un halo violet, visière blanche. */
+  @keyframes hb-passe-eclair {
+    0% { filter: drop-shadow(0 0 0 rgba(167, 139, 250, 0)); transform: translateY(0); }
+    20% { filter: drop-shadow(0 0 14px rgba(167, 139, 250, 1)) drop-shadow(0 0 4px #fff); transform: translateY(-6px); }
+    45% { filter: drop-shadow(0 0 4px rgba(167, 139, 250, .6)); transform: translateY(-6px); }
+    60% { filter: drop-shadow(0 0 16px rgba(167, 139, 250, 1)) drop-shadow(0 0 4px #fff); transform: translateY(-6px); }
+    100% { filter: drop-shadow(0 0 0 rgba(167, 139, 250, 0)); transform: translateY(0); }
+  }
+
+  /* Il se dandine en l'air : appui d'un côté, puis de l'autre, en sautillant. */
+  @keyframes hb-dandine {
+    0%, 100% { transform: translate(-3px, 0); }
+    25% { transform: translate(0, -3px); }
+    50% { transform: translate(3px, 0); }
+    75% { transform: translate(0, -3px); }
+  }
+  .hares-buddy.is-dandine .hb-bouclier { animation: hb-balance 320ms steps(1, end) infinite; }
+  @keyframes hb-balance { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-1px); } }
+  @keyframes hb-arrive {
+    0% { transform: translate(0, -6px); }
+    50% { transform: translate(0, 3px); }
+    100% { transform: translate(0, 0); }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .hares-buddy, .hares-buddy *, .hb-porteur { animation: none !important; transition: none !important; }
+  }
 </style>
 </head>
 <body>
@@ -2531,8 +3091,19 @@
       <!-- N'apparaît qu'avec le référentiel Comparables -->
       <button type="button" data-groupe="insight" id="tabInsight" hidden>Insight</button>
       <button type="button" data-groupe="valorisation">Valorisation</button>
-      <button type="button" data-groupe="hares">HARES</button>
+      <button type="button" data-groupe="hares" class="onglet-hares" title="HARES — code analyste requis">HARES<span class="onglet-cadenas" aria-hidden="true"><svg width="11" height="12" viewBox="0 0 11 12" fill="none"><path class="anse-fermee" d="M3 5.4V3.7a2.5 2.5 0 015 0v1.7" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/><path class="anse-ouverte" d="M3 5.4V3.7a2.5 2.5 0 014.9-.8" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/><rect x="1.5" y="5.4" width="8" height="5.6" rx="1.4" fill="currentColor"/></svg></span></button>
     </nav>
+    <div class="cadenas-hares" id="cadenasHares" role="dialog" aria-label="Code analyste" hidden>
+      <form id="cadenasForm" autocomplete="off">
+        <label for="haresCode">Code analyste</label>
+        <p>HARES peut modifier le CMPC : son onglet s'ouvre au code analyste, pour la session.</p>
+        <div class="cadenas-ligne">
+          <input type="password" id="haresCode" spellcheck="false">
+          <button type="submit">Déverrouiller</button>
+        </div>
+        <p class="cadenas-erreur" id="cadenasErreur" aria-live="polite"></p>
+      </form>
+    </div>
   </div>
 </header>
 
@@ -2545,6 +3116,8 @@
     <button type="button" role="tab" data-tab="societes" id="tabSocietes" aria-selected="false" hidden>Sociétés</button>
   </div>
 </div>
+
+<div class="bandeau-hares" id="bandeauHares" hidden></div>
 
 <main class="params" id="panel-params">
   <div class="params-main" id="paramsMain"></div>
@@ -2607,20 +3180,33 @@
       <div>
         <h1 class="hares-titre">HARES</h1>
         <p class="hares-sous-titre">Affinez et analysez un échantillon de sociétés cotées en langage naturel.
-        Chaque demande s'applique au résultat de la précédente ; les autres onglets n'en sont pas modifiés.</p>
+        Chaque demande s'applique au résultat de la précédente ; seul « Appliquer au CMPC », après
+        confirmation, modifie le calcul.</p>
       </div>
       <span class="agent-etat" data-o="agent-etat"></span>
     </div>
-    <div class="hares-depart" id="haresDepart"></div>
-    <form class="hares-saisie" id="haresFormulaire">
-      <input type="text" id="haresQuestion" class="agent-champ" maxlength="400" autocomplete="off"
-             placeholder="Par exemple : fais ressortir uniquement les groupes" aria-label="Demande à HARES">
-      <button type="submit" class="valo-bouton is-plein" id="haresDemander">Demander</button>
-    </form>
-    <div class="agent-exemples hares-exemples" id="haresExemples"></div>
-    <ol class="hares-fil" id="haresFil"></ol>
-    <div class="hares-reponse" id="haresReponse" aria-live="polite"></div>
-    <section class="hares-echantillon" id="haresEchantillon"></section>
+    <div class="hares-espace" id="haresEspace">
+      <div class="hares-chat" id="haresChat">
+        <button type="button" class="hares-rouvrir" id="haresRouvrir" hidden></button>
+        <div class="hares-depart" id="haresDepart"></div>
+        <ol class="hares-fil" id="haresFil"></ol>
+        <div class="hares-messages" id="haresMessages">
+          <div class="hares-historique" id="haresHistorique"></div>
+          <div class="hares-msg is-moi" id="haresDemande" hidden></div>
+          <div class="hares-msg is-hares" id="haresReponse" aria-live="polite"></div>
+          <div class="agent-exemples hares-exemples" id="haresExemples"></div>
+        </div>
+        <div class="hares-saisie-zone">
+          <div class="hb-zone" id="haresBuddy"></div>
+          <form class="hares-saisie" id="haresFormulaire">
+            <input type="text" id="haresQuestion" class="agent-champ" maxlength="400" autocomplete="off"
+                   placeholder="Par exemple : fais ressortir uniquement les groupes" aria-label="Demande à HARES">
+            <button type="submit" class="hares-envoyer" id="haresDemander">Demander</button>
+          </form>
+        </div>
+      </div>
+      <section class="hares-echantillon" id="haresEchantillon" aria-label="Échantillon"></section>
+    </div>
   </div>
 </main>
 
@@ -2932,6 +3518,617 @@
   </div>
 </div>
 
+<script>
+/* Le soldat de HARES — copie de hares-buddy/buddy.js, dont il faut reporter ici
+   les évolutions. Il n'a besoin d'aucune donnée : il vit à part du script principal. */
+/* =====================================================================
+   HARES buddy — le petit spartiate tapi derrière la boîte de dialogue.
+
+   Un soldat en pixels, dessiné en SVG, qui réagit à la saisie : il sort
+   son parchemin et écrit quand on tape, monte la garde quand on ne fait
+   rien, et finit par s'endormir. Un clic déclenche une de ses passes
+   d'armes ; on peut aussi le saisir, le promener et le lancer dans le
+   cadre — une chaîne d'or le ramène ensuite à son poste.
+
+       HaresBuddy.monter({ hote, champ, formulaire, cadre });
+
+   `hote` est l'élément où il s'installe (la zone au-dessus de la barre de
+   saisie), `champ` l'input qu'il surveille, `formulaire` celui dont
+   l'envoi le fait sauter, `cadre` la zone où l'on peut le déplacer. Seul
+   `hote` est obligatoire.
+   ===================================================================== */
+(function (global) {
+  "use strict";
+
+  var LARGEUR = 24, HAUTEUR = 22, ECHELLE = 3;
+
+  /* Les calques du personnage. Un caractère vaut un pixel, le point est
+     vide, une ligne vide ou absente ne dessine rien. Chaque pièce qui
+     s'anime seule — aigrette, bouclier, lance — a son calque : c'est ce
+     qui permet l'estoc sans que le corps bouge. */
+  var CAPE = [
+    "", "", "", "", "", "", "", "", "", "", "", "",
+    ".....KkkkkkkkkkkkkK.....",
+    ".....KkkkkkkkkkkkkK.....",
+    ".....KkkkkkkkkkkkkK.....",
+    ".....KkkkkkkkkkkkkK.....",
+    ".....KkkkkkkkkkkkkK.....",
+    ".....KkkkkkkkkkkkkK.....",
+    ".....KkkkkkkkkkkkkK.....",
+    ".....KkkkkkkkkkkkkK.....",
+    "......kkkk....kkkk......",
+  ];
+
+  // La lance et le poing qui la serre : quand il la pose, les deux s'en vont.
+  var LANCE = [
+    "....................L...",
+    "...................LLL..",
+    "...................LLL..",
+    "....................L...",
+    "....................l...",
+    "....................l...",
+    "....................l...",
+    "....................l...",
+    "....................l...",
+    "....................l...",
+    "....................l...",
+    "....................l...",
+    "....................l...",
+    "....................l...",
+    "....................l...",
+    "..................rrl...",
+    "....................l...",
+    "....................l...",
+    "....................l...",
+    "....................l...",
+    "....................l...",
+    "....................l...",
+  ];
+
+  // Casque corinthien, épaulières et cuirasse de bronze, jambières.
+  var SOLDAT = [
+    "", "", "", "",
+    ".......tt......tt.......",
+    "......tCCCccccccct......",
+    "......tCccccccccct......",
+    "......tcvvvvvvvvct......",
+    "......tcvvvccvvvct......",
+    "......tcvvvccvvvct......",
+    ".......tcvvccvvct.......",
+    "........tttttttt........",
+    "....tggggyyyyyyggggt....",
+    "....tGGGGyyyyyyGGGGt....",
+    "......rtyyYYYYyytr......",
+    "......rtyyyYYyyytr......",
+    ".......tyyyyyyyyt.......",
+    ".......tbbbbbbbbt.......",
+    "........tbbbbbbt........",
+    "........ggg..ggg........",
+    "........ggg..ggg........",
+    ".......tttt..tttt.......",
+  ];
+
+  var AIGRETTE = [
+    "..........aaaa..........",
+    ".........aAAAAa.........",
+    "........aAAAAAAa........",
+    "........aAAAAAAa........",
+    ".........aaaaaa.........",
+  ];
+
+  // Le hoplon de bronze, frappé du lambda de Lacédémone.
+  var BOUCLIER = [
+    "", "", "", "", "", "", "", "", "", "", "",
+    ".ssss...................",
+    "sSSSSs..................",
+    "sSaaSs..................",
+    "sSaaSs..................",
+    "saSSas..................",
+    "saSSas..................",
+    "sSSSSs..................",
+    ".ssss...................",
+  ];
+
+  // Deux fentes lumineuses dans la visière ; endormi, elles s'éteignent.
+  var YEUX = [
+    "", "", "", "", "", "", "", "",
+    ".........oo..oo.........",
+  ];
+
+  // Le parchemin sort pendant la frappe, tenu devant la cuirasse.
+  var PARCHEMIN = [
+    "", "", "", "", "", "", "", "", "", "", "", "", "", "",
+    ".......KqqqqqqqqK.......",
+    ".......KqxxxqxxqK.......",
+    ".......KqxxqxxxqK.......",
+    ".......KqqqqqqqqK.......",
+  ];
+
+  var PLUME = [
+    "", "", "", "", "", "", "", "", "", "", "",
+    "..................f.....",
+    ".................f......",
+    "................f.......",
+  ];
+
+  var COULEURS = {
+    t: "contour", c: "metal", C: "metal-clair", v: "visage", o: "oeil",
+    a: "aigrette", A: "aigrette-clair", k: "cape", K: "cape-ombre",
+    g: "bronze", G: "bronze-ombre", y: "cuirasse", Y: "cuirasse-clair",
+    r: "bronze", b: "tunique",
+    s: "bouclier", S: "bouclier-clair",
+    l: "bois", L: "metal-clair",
+    q: "parchemin", x: "encre", f: "plume",
+  };
+  // Le parchemin réutilise la cape pour ses rouleaux : on le distingue.
+  var COULEURS_PARCHEMIN = { K: "rouleau" };
+
+  var CALQUES = [
+    { nom: "cape", lignes: CAPE },
+    { nom: "lance", lignes: LANCE },
+    { nom: "corps", lignes: SOLDAT },
+    { nom: "aigrette", lignes: AIGRETTE },
+    { nom: "yeux", lignes: YEUX },
+    { nom: "bouclier", lignes: BOUCLIER },
+    { nom: "parchemin", lignes: PARCHEMIN, couleurs: COULEURS_PARCHEMIN },
+    { nom: "plume", lignes: PLUME },
+  ];
+
+  // Les passes d'armes du clic, jouées dans l'ordre puis en boucle.
+  var PASSES = ["estoc", "bouclier", "cri", "bond", "eclair"];
+
+  var SOMMEIL = 20000;   // sans rien faire, il pique du nez au bout de 20 s
+  var FIN_FRAPPE = 900;  // il range le parchemin ce temps après la dernière touche
+  var SEUIL_SAISIE = 5;  // en deçà de ce déplacement (px), c'est un clic, pas une saisie
+
+  function rects(lignes, couleurs) {
+    var out = [], x, y, l, ch, n;
+    for (y = 0; y < HAUTEUR; y += 1) {
+      l = lignes[y] || "";
+      for (x = 0; x < l.length;) {
+        ch = l[x];
+        if (ch === ".") { x += 1; continue; }
+        n = 1;
+        while (l[x + n] === ch) n += 1;
+        out.push('<rect class="hb-px-' + ch + '" x="' + x + '" y="' + y + '" width="' + n
+          + '" height="1" fill="var(--hb-' + ((couleurs && couleurs[ch]) || COULEURS[ch]) + ')"/>');
+        x += n;
+      }
+    }
+    return out.join("");
+  }
+
+  function sprite() {
+    return '<svg class="hb-sprite" viewBox="0 0 ' + LARGEUR + " " + HAUTEUR + '" width="'
+      + LARGEUR * ECHELLE + '" height="' + HAUTEUR * ECHELLE + '" aria-hidden="true">'
+      + CALQUES.map(function (c) {
+        return '<g class="hb-' + c.nom + '">' + rects(c.lignes, c.couleurs) + "</g>";
+      }).join("")
+      + "</svg>";
+  }
+
+  function element(x) { return typeof x === "string" ? document.querySelector(x) : x; }
+
+  function monter(options) {
+    var opts = options || {};
+    var hote = element(opts.hote), champ = element(opts.champ);
+    var formulaire = element(opts.formulaire), cadre = element(opts.cadre);
+    if (!hote) return null;
+
+    /* Deux boîtes l'une dans l'autre : le porteur se déplace (glisser,
+       chute, retour), le personnage s'anime. Les deux jouent sur
+       `transform`, et chacun garde ainsi le sien. */
+    var porteur = document.createElement("div");
+    porteur.className = "hb-porteur";
+    var elt = document.createElement("div");
+    elt.className = "hares-buddy is-repos";
+    elt.innerHTML = sprite() + '<span class="hb-zzz"><i>z</i><i>z</i><i>z</i></span>'
+      + '<span class="hb-bulle" aria-hidden="true"><i></i><i></i><i></i></span>';
+    porteur.appendChild(elt);
+
+    /* La chaîne d'or qui le ramène : un SVG sans taille, calé sur le coin du
+       poste, qui déborde partout. Elle vit dans le parent positionné de la
+       zone, pas dans la zone : ainsi elle passe devant la barre de saisie,
+       quand le soldat, lui, reste derrière. */
+    var SVG = "http://www.w3.org/2000/svg";
+    var chaine = document.createElementNS(SVG, "svg");
+    chaine.setAttribute("class", "hb-chaine");
+    chaine.setAttribute("aria-hidden", "true");
+    chaine.innerHTML = '<g class="hb-chaine-maillons"></g><g class="hb-chaine-etincelles"></g>'
+      + '<g class="hb-chaine-anneau"></g>';
+    hote.appendChild(chaine);
+    hote.appendChild(porteur);
+
+    var etat = "repos", tFrappe = 0, tSommeil = 0, tRegard = 0, tEnvoi = 0, cote = 1;
+    var passe = 0, passeEnCours = null, tMontre = 0;
+
+    /* Il désigne quelque chose à sa droite : lance pointée, regard tourné.
+       L'application l'appelle quand elle ouvre un panneau. */
+    function montrer(duree) {
+      clearTimeout(tMontre);
+      elt.classList.remove("is-montre");
+      void elt.offsetWidth;
+      elt.classList.add("is-montre");
+      tMontre = setTimeout(function () { elt.classList.remove("is-montre"); }, duree || 2600);
+    }
+
+    function mettre(nouvel) {
+      if (etat === nouvel) return;
+      elt.classList.remove("is-" + etat);
+      etat = nouvel;
+      elt.classList.add("is-" + etat);
+    }
+
+    function auRepos() { return champ && document.activeElement === champ ? "ecoute" : "repos"; }
+
+    /* Toute marque d'activité le réveille et relance le compte à rebours
+       du sommeil : c'est le seul endroit qui décide qu'il s'endort. */
+    function reveiller() {
+      clearTimeout(tSommeil);
+      if (etat === "dort") mettre(auRepos());
+      tSommeil = setTimeout(function () { mettre("dort"); }, SOMMEIL);
+    }
+
+    // Le coup d'œil de temps en temps, alterné gauche-droite.
+    tRegard = setInterval(function () {
+      if (etat !== "repos" || passeEnCours) return;
+      cote = -cote;
+      elt.classList.add(cote > 0 ? "is-regarde-d" : "is-regarde-g");
+      setTimeout(function () { elt.classList.remove("is-regarde-d", "is-regarde-g"); }, 1100);
+    }, 5200);
+
+    if (champ) {
+      champ.addEventListener("input", function () {
+        mettre("tape");
+        reveiller();
+        clearTimeout(tFrappe);
+        tFrappe = setTimeout(function () { mettre(auRepos()); }, FIN_FRAPPE);
+      });
+      champ.addEventListener("focus", function () {
+        if (etat === "repos" || etat === "dort") mettre("ecoute");
+        reveiller();
+      });
+      champ.addEventListener("blur", function () { if (etat === "ecoute") mettre("repos"); });
+    }
+
+    if (formulaire) {
+      formulaire.addEventListener("submit", function () {
+        clearTimeout(tFrappe);
+        clearTimeout(tEnvoi);
+        mettre("envoie");
+        reveiller();
+        tEnvoi = setTimeout(function () { mettre(auRepos()); }, 700);
+      });
+    }
+
+    /* ---------- les passes d'armes ---------- */
+    function jouer(nom) {
+      if (passeEnCours) elt.classList.remove("is-passe-" + passeEnCours);
+      passeEnCours = nom;
+      void elt.offsetWidth;   // relance l'animation si la même passe revient
+      elt.classList.add("is-passe-" + nom);
+    }
+    elt.addEventListener("animationend", function (ev) {
+      if (passeEnCours && ev.animationName === "hb-passe-" + passeEnCours) {
+        elt.classList.remove("is-passe-" + passeEnCours);
+        passeEnCours = null;
+      }
+    });
+
+    /* ---------- le glisser-déposer ----------
+       Le porteur est décalé par --dx et --dy, bornés au cadre. Pendant qu'on
+       le tient, sa vitesse le fait pencher et laisse une traînée. Lâché en
+       mouvement, il est lancé : il file, rebondit sur les bords du cadre et
+       retombe sous son propre poids. Dans tous les cas, une chaîne d'or finit
+       par le ramener à son poste. */
+    var saisie = null, glisse = false, dx = 0, dy = 0, bornes = null;
+    var vx = 0, vy = 0, dernier = null, vol = 0;
+    var GRAVITE = 0.55, REBOND = 0.6, LANCER_MIN = 2.5;
+
+    function placer(x, y) {
+      dx = x; dy = y;
+      porteur.style.setProperty("--dx", dx + "px");
+      porteur.style.setProperty("--dy", dy + "px");
+    }
+
+    // L'inclinaison et la traînée suivent la vitesse horizontale.
+    function pencher(v) {
+      porteur.style.setProperty("--penche", Math.max(-22, Math.min(22, v * 1.6)).toFixed(1) + "deg");
+      porteur.style.setProperty("--trainee", Math.max(-14, Math.min(14, -v * 1.3)).toFixed(1) + "px");
+      porteur.classList.toggle("is-file", Math.abs(v) > 2.5);
+    }
+
+    function calculerBornes() {
+      var zone = cadre || hote.offsetParent || document.body;
+      var c = zone.getBoundingClientRect();
+      var p = porteur.getBoundingClientRect();
+      var ox = p.left - dx, oy = p.top - dy;
+      return {
+        xmin: c.left - ox, xmax: c.right - (ox + p.width),
+        ymin: c.top - oy, ymax: c.bottom - (oy + p.height),
+      };
+    }
+
+    /* Lâché, il est rappelé : la chaîne jaillit de l'anneau jusqu'à lui,
+       puis se raccourcit et le ramène à son poste, qu'il gagne en se
+       dandinant, nimbé d'or. Tout se joue en coordonnées du poste : --dx et
+       --dy sont son décalage, ANCRE le point de la chaîne sur son dos. */
+    var ANCRE = { x: LARGEUR * ECHELLE / 2, y: HAUTEUR * ECHELLE * 0.55 };
+    var JAILLIT = 300, TENSION = 140, TRACTION = 760;
+    var maillons = chaine.querySelector(".hb-chaine-maillons");
+    var etincelles = chaine.querySelector(".hb-chaine-etincelles");
+    var anneau = chaine.querySelector(".hb-chaine-anneau");
+
+    // Cale la chaîne sur le poste, dans le parent positionné qui l'accueille.
+    function installerChaine() {
+      var scene = hote.offsetParent || hote.parentNode;
+      if (chaine.parentNode !== scene) scene.appendChild(chaine);
+      var h = hote.getBoundingClientRect(), s = scene.getBoundingClientRect();
+      chaine.style.left = (h.left - s.left - scene.clientLeft) + "px";
+      chaine.style.top = (h.top - s.top - scene.clientTop) + "px";
+    }
+
+    /* La chaîne pend en arc de l'anneau jusqu'au bout (une courbe de
+       Bézier, le point de contrôle tiré vers le bas d'autant qu'elle a de
+       mou). On l'échantillonne pour pouvoir y poser les maillons à
+       intervalles réguliers, en longueur et non en paramètre. */
+    function courbe(ex, ey, mou) {
+      var ax = ANCRE.x, ay = ANCRE.y;
+      var len = Math.hypot(ex - ax, ey - ay);
+      var cx = (ax + ex) / 2, cy = (ay + ey) / 2 + mou * len;
+      var pts = [], cum = [0], i, u, v;
+      for (i = 0; i <= 48; i += 1) {
+        u = i / 48; v = 1 - u;
+        pts.push([v * v * ax + 2 * v * u * cx + u * u * ex, v * v * ay + 2 * v * u * cy + u * u * ey]);
+        if (i) cum.push(cum[i - 1] + Math.hypot(pts[i][0] - pts[i - 1][0], pts[i][1] - pts[i - 1][1]));
+      }
+      return { pts: pts, cum: cum, total: cum[48], d: "M" + ax + " " + ay + "Q" + cx + " " + cy + " " + ex + " " + ey };
+    }
+
+    function surCourbe(c, s) {
+      var i = 1;
+      while (i < 48 && c.cum[i] < s) i += 1;
+      var a = c.pts[i - 1], b = c.pts[i], k = (s - c.cum[i - 1]) / ((c.cum[i] - c.cum[i - 1]) || 1);
+      return { x: a[0] + (b[0] - a[0]) * k, y: a[1] + (b[1] - a[1]) * k,
+               ang: Math.atan2(b[1] - a[1], b[0] - a[0]) * 180 / Math.PI };
+    }
+
+    /* La chaîne est en pixel art, à la grille du soldat (un pixel d'art =
+       ECHELLE px) : chaque maillon est un petit motif posé sur la grille,
+       jamais tourné. On choisit le motif selon l'orientation de la chaîne à
+       cet endroit — horizontale, verticale ou l'une des deux diagonales — et
+       un maillon sur deux se présente de face (un anneau ajouré), le suivant
+       de tranche (une barrette). `h` reflet, `g` or, `d` ombre. */
+    var G = ECHELLE, PAS_MAILLON = 4 * ECHELLE;   // une face (5 px d art) et une tranche (3) bout à bout
+    var OR = { h: "#fff3b0", g: "#f2c230", d: "#a46d0c", w: "#ffffff", r: "#fde68a" };
+    var MOTIFS = {
+      face: {
+        h: [".hhh.", "g...g", ".ddd."],
+        v: [".h.", "h.g", "h.g", "g.d", ".d."],
+        b: ["hh..", "h.g.", ".g.d", "..dd"],     // diagonale descendante
+        m: ["..hh", ".g.h", "d.g.", "dd.."],     // diagonale montante
+      },
+      tranche: {
+        h: ["hgd"],
+        v: ["h", "g", "d"],
+        b: ["h..", ".g.", "..d"],
+        m: ["..h", ".g.", "d.."],
+      },
+    };
+    var ETINCELLE = [".r.", "rwr", ".r."];
+    var ANNEAU = ["..hhh..", ".h...g.", "h.....g", "g.....g", "g.....d", ".g...d.", "..ddd.."];
+
+    function sens(ang) {
+      var a = ((ang % 180) + 180) % 180;
+      if (a < 22.5 || a >= 157.5) return "h";
+      if (a >= 67.5 && a < 112.5) return "v";
+      return a < 90 ? "b" : "m";
+    }
+
+    // Pose un motif centré sur (x, y), calé sur la grille ; une balise par
+    // suite de pixels de même couleur.
+    function poser(motif, x, y, out) {
+      var l = motif[0].length, hgt = motif.length;
+      var ox = Math.round(x / G - l / 2) * G, oy = Math.round(y / G - hgt / 2) * G;
+      motif.forEach(function (ligne, j) {
+        for (var i = 0; i < ligne.length;) {
+          var ch = ligne[i];
+          if (ch === ".") { i += 1; continue; }
+          var n = 1;
+          while (ligne[i + n] === ch) n += 1;
+          out.push('<rect x="' + (ox + i * G) + '" y="' + (oy + j * G) + '" width="' + n * G
+            + '" height="' + G + '" fill="' + OR[ch] + '"/>');
+          i += n;
+        }
+      });
+    }
+
+    /* `depuisSoldat` compte les maillons à partir de son dos : ils le
+       suivent, et l'anneau les avale un à un. */
+    function tracer(ex, ey, mou, depuisSoldat, temps) {
+      var c = courbe(ex, ey, mou), n = Math.floor(c.total / PAS_MAILLON);
+      var tranches = [], faces = [], i, s, m;
+      for (i = 0; i <= n; i += 1) {
+        s = depuisSoldat ? c.total - i * PAS_MAILLON : i * PAS_MAILLON;
+        if (s < 0) break;
+        m = surCourbe(c, s);
+        poser(MOTIFS[i % 2 ? "tranche" : "face"][sens(m.ang)], m.x, m.y, i % 2 ? tranches : faces);
+      }
+      maillons.innerHTML = tranches.join("") + faces.join("");
+      // Trois éclats remontent la chaîne vers l'anneau.
+      var e = [], k;
+      for (k = 0; k < 3; k += 1) {
+        s = c.total * (1 - (((temps || 0) / 900 + k / 3) % 1));
+        m = surCourbe(c, s);
+        poser(ETINCELLE, m.x, m.y, e);
+      }
+      etincelles.innerHTML = e.join("");
+      // L'anneau, cerné de runes qui clignotent en alternance.
+      var a = [], phase = Math.floor((temps || 0) / 160) % 2, r = 5 * G;
+      poser(ANNEAU, ANCRE.x, ANCRE.y, a);
+      [[0, -1], [1, 0], [0, 1], [-1, 0], [.7, -.7], [.7, .7], [-.7, .7], [-.7, -.7]].forEach(function (d, q) {
+        if (q % 2 === phase) poser(["r"], ANCRE.x + d[0] * r, ANCRE.y + d[1] * r, a);
+      });
+      anneau.innerHTML = a.join("");
+    }
+
+    function rappeler() {
+      var x0 = dx, y0 = dy, t0 = 0, px = dx;
+      if (global.matchMedia && global.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+        placer(0, 0); pencher(0); return;
+      }
+      installerChaine();
+      porteur.classList.add("is-rappel");
+      elt.classList.add("is-dandine");
+      chaine.classList.add("is-visible");
+      function pas(maintenant) {
+        if (!t0) t0 = maintenant;
+        var e = maintenant - t0;
+        if (e < JAILLIT) {
+          // Elle jaillit de l'anneau en fouettant, lâche, jusqu'à lui.
+          var j = 1 - Math.pow(1 - e / JAILLIT, 2);
+          tracer(ANCRE.x + x0 * j, ANCRE.y + y0 * j, 0.32 * (1 - j * 0.3), false, e);
+        } else if (e < JAILLIT + TENSION) {
+          // Elle se tend d'un coup : le mou disparaît, il ne bouge pas encore.
+          var k0 = (e - JAILLIT) / TENSION;
+          tracer(ANCRE.x + dx, ANCRE.y + dy, 0.22 * (1 - k0) + 0.015 * Math.sin(e / 18), true, e);
+        } else {
+          var k = Math.min(1, (e - JAILLIT - TENSION) / TRACTION);
+          var f = k < 0.5 ? 4 * k * k * k : 1 - Math.pow(-2 * k + 2, 3) / 2;
+          placer(x0 * (1 - f), y0 * (1 - f));
+          pencher((dx - px) * 0.9);
+          px = dx;
+          tracer(ANCRE.x + dx, ANCRE.y + dy, 0.012 * Math.sin(e / 22), true, e);
+          if (k >= 1) {
+            placer(0, 0);
+            pencher(0);
+            chaine.classList.remove("is-visible");
+            porteur.classList.remove("is-rappel");
+            elt.classList.remove("is-dandine");
+            vol = 0;
+            jouerArrivee();
+            return;
+          }
+        }
+        vol = requestAnimationFrame(pas);
+      }
+      vol = requestAnimationFrame(pas);
+    }
+
+    // Un petit tassement à l'arrivée au poste.
+    function jouerArrivee() {
+      porteur.classList.remove("is-arrive");
+      void porteur.offsetWidth;
+      porteur.classList.add("is-arrive");
+    }
+
+    function lancer() {
+      porteur.classList.add("is-vole");
+      elt.classList.add("is-dandine");
+      var debutVol = performance.now();
+      function pas() {
+        vy += GRAVITE;
+        vx *= 0.99;
+        var x = dx + vx, y = dy + vy;
+        if (x < bornes.xmin) { x = bornes.xmin; vx = -vx * REBOND; }
+        if (x > bornes.xmax) { x = bornes.xmax; vx = -vx * REBOND; }
+        if (y < bornes.ymin) { y = bornes.ymin; vy = -vy * REBOND; }
+        placer(x, y);
+        pencher(vx);
+        // Il touche le bas du cadre, ou le vol a assez duré : la chaîne le reprend.
+        if (y >= bornes.ymax || performance.now() - debutVol > 1400) {
+          placer(x, Math.min(y, bornes.ymax));
+          porteur.classList.remove("is-vole");
+          rappeler();
+          return;
+        }
+        vol = requestAnimationFrame(pas);
+      }
+      vol = requestAnimationFrame(pas);
+    }
+
+    var sprite_ = elt.querySelector(".hb-sprite");
+    sprite_.addEventListener("pointerdown", function (ev) {
+      if (ev.button !== 0) return;
+      if (vol) return;   // en vol ou rappelé : on ne le reprend qu'une fois au poste
+      ev.preventDefault();
+      reveiller();
+      saisie = { x: ev.clientX, y: ev.clientY, dx: dx, dy: dy };
+      dernier = { x: ev.clientX, y: ev.clientY, t: performance.now() };
+      vx = 0; vy = 0;
+      glisse = false;
+      sprite_.setPointerCapture(ev.pointerId);
+    });
+
+    sprite_.addEventListener("pointermove", function (ev) {
+      if (!saisie) return;
+      var mx = ev.clientX - saisie.x, my = ev.clientY - saisie.y;
+      if (!glisse) {
+        if (Math.abs(mx) < SEUIL_SAISIE && Math.abs(my) < SEUIL_SAISIE) return;
+        glisse = true;
+        bornes = calculerBornes();
+        porteur.classList.add("is-tenu");
+        elt.classList.add("is-tenu", "is-dandine");
+      }
+      placer(Math.min(bornes.xmax, Math.max(bornes.xmin, saisie.dx + mx)),
+             Math.min(bornes.ymax, Math.max(bornes.ymin, saisie.dy + my)));
+      // Vitesse en px par image (16 ms), lissée pour ne pas trembler.
+      var maintenant = performance.now(), dt = Math.max(8, maintenant - dernier.t);
+      vx = vx * 0.4 + ((ev.clientX - dernier.x) / dt) * 16 * 0.6;
+      vy = vy * 0.4 + ((ev.clientY - dernier.y) / dt) * 16 * 0.6;
+      dernier = { x: ev.clientX, y: ev.clientY, t: maintenant };
+      pencher(vx);
+    });
+
+    function lacher(ev) {
+      if (!saisie) return;
+      var etaitGlisse = glisse;
+      saisie = null;
+      glisse = false;
+      if (ev && sprite_.hasPointerCapture(ev.pointerId)) sprite_.releasePointerCapture(ev.pointerId);
+      porteur.classList.remove("is-tenu");
+      elt.classList.remove("is-tenu", "is-dandine");
+      if (!etaitGlisse) {
+        jouer(PASSES[passe % PASSES.length]);
+        passe += 1;
+        return;
+      }
+      // Immobile depuis un instant avant le lâcher : ce n'est pas un lancer.
+      if (performance.now() - dernier.t > 80) { vx = 0; vy = 0; }
+      if (Math.hypot(vx, vy) > LANCER_MIN) lancer();
+      else rappeler();
+    }
+    sprite_.addEventListener("pointerup", lacher);
+    sprite_.addEventListener("pointercancel", lacher);
+
+    porteur.addEventListener("animationend", function (ev) {
+      if (ev.animationName === "hb-arrive") porteur.classList.remove("is-arrive");
+    });
+
+    document.addEventListener("pointerdown", reveiller, { passive: true });
+    reveiller();
+
+    return {
+      element: elt,
+      etat: function (nom) { if (nom) { mettre(nom); reveiller(); } return etat; },
+      passe: function (nom) { jouer(nom || PASSES[passe++ % PASSES.length]); },
+      montrer: montrer,
+      demonter: function () {
+        clearInterval(tRegard);
+        clearTimeout(tSommeil);
+        clearTimeout(tFrappe);
+        clearTimeout(tEnvoi);
+        clearTimeout(tMontre);
+        cancelAnimationFrame(vol);
+        document.removeEventListener("pointerdown", reveiller);
+        porteur.remove();
+      },
+    };
+  }
+
+  global.HaresBuddy = { monter: monter, sprite: sprite, passes: PASSES.slice() };
+}(window));
+</script>
 <script>
   // ---- Jeu de données injecté au build (wacc_html.py) ----
   // DATA_START
@@ -3293,6 +4490,8 @@
   }
 
   function renderTabs() {
+    // HARES ne s'ouvre qu'au code analyste, même par un lien qui le viserait.
+    if (tab === "hares" && !ACCES_HARES.ouvert) tab = DERNIER_ONGLET.cmpc;
     // Sociétés et Insight n'existent que sous référentiel Comparables.
     // Valorisation reste toujours là : son DCF ne dépend pas du référentiel.
     if (!estComparables() && (tab === "societes" || tab === "insight")) tab = "params";
@@ -3321,6 +4520,8 @@
     $("panel-valorisation").hidden = tab !== "valorisation";
     $("panel-hares").hidden = tab !== "hares";
     $("panel-aide").hidden = tab !== "aide";
+    majCadenas();
+    majIndicateurHares(groupe);
     // Le bouton du guide est hors de la barre : son etat actif ne suit pas la
     // boucle ci-dessus, qui ne balaie que les onglets.
     $("tabAide").classList.toggle("is-on", tab === "aide");
@@ -3344,7 +4545,12 @@
     b.addEventListener("click", () => { tab = b.dataset.tab; renderTabs(); });
   });
   document.querySelectorAll(".tabs button[data-groupe]").forEach((b) => {
-    b.addEventListener("click", () => {
+    b.addEventListener("click", (ev) => {
+      if (b.dataset.groupe === "hares") {
+        // Fermé, le cadenas demande le code ; ouvert, un clic dessus le referme.
+        if (ACCES_HARES.ouvert && ev.target.closest(".onglet-cadenas")) { reverrouillerHares(); return; }
+        if (!ACCES_HARES.ouvert) { ouvrirCadenas(); return; }
+      }
       tab = DERNIER_ONGLET[b.dataset.groupe];
       renderTabs();
       // On vient à HARES pour écrire : la saisie prend la main.
@@ -3352,6 +4558,79 @@
     });
   });
   window.addEventListener("resize", placerCurseursOnglets);
+
+  /* ================= Le cadenas de HARES =================
+     HARES peut réécrire le CMPC : son onglet s'ouvre au code analyste. La page
+     est statique, ce verrou dissuade sans protéger — qui lit le code peut le
+     lever. Seule l'empreinte SHA-256 du code est écrite ici ; pour en changer :
+       python -c "import hashlib; print(hashlib.sha256(b'nouveau-code').hexdigest())"
+     Le déverrouillage vaut pour la session et n'est écrit nulle part : un
+     rechargement referme le cadenas. */
+  const EMPREINTE_CODE_ANALYSTE = "c743be31acf0dc256fbda478a95a92a813001a3c5dd0bbab132b3537bf3ef716";
+  const ACCES_HARES = { ouvert: false };
+  const ongletHares = () => document.querySelector('.tabs button[data-groupe="hares"]');
+
+  async function empreinteCode(texte) {
+    if (!(window.crypto && crypto.subtle && window.TextEncoder)) return null;
+    const brut = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(texte));
+    return Array.from(new Uint8Array(brut)).map((o) => o.toString(16).padStart(2, "0")).join("");
+  }
+
+  function majCadenas() {
+    const b = ongletHares();
+    b.classList.toggle("is-ouvert", ACCES_HARES.ouvert);
+    b.title = ACCES_HARES.ouvert ? "HARES — déverrouillé ; cliquer le cadenas pour le refermer" : "HARES — code analyste requis";
+  }
+
+  function ouvrirCadenas() {
+    const boite = $("cadenasHares"), b = ongletHares();
+    boite.hidden = false;
+    const p = boite.offsetParent.getBoundingClientRect(), r = b.getBoundingClientRect();
+    const gauche = Math.min(r.left - p.left, p.width - boite.offsetWidth - 8);
+    boite.style.left = Math.max(8, gauche) + "px";
+    boite.style.top = (r.bottom - p.top + 10) + "px";
+    $("cadenasErreur").textContent = "";
+    $("haresCode").value = "";
+    $("haresCode").focus();
+  }
+  function fermerCadenas() { $("cadenasHares").hidden = true; }
+
+  async function essayerCodeAnalyste() {
+    const code = $("haresCode").value.trim();
+    if (!code) return;
+    const e = await empreinteCode(code);
+    if (e === null) { $("cadenasErreur").textContent = "Ce navigateur ne sait pas vérifier le code (Web Crypto absent)."; return; }
+    if (e !== EMPREINTE_CODE_ANALYSTE) {
+      const boite = $("cadenasHares");
+      $("cadenasErreur").textContent = "Code incorrect.";
+      boite.classList.remove("is-refuse");
+      void boite.offsetWidth;
+      boite.classList.add("is-refuse");
+      $("haresCode").select();
+      return;
+    }
+    ACCES_HARES.ouvert = true;
+    fermerCadenas();
+    majCadenas();
+    tab = "hares";
+    renderTabs();
+    $("haresQuestion").focus();
+  }
+
+  // Refermer le cadenas rend l'onglet inaccessible ; un CMPC déjà modifié par
+  // HARES le reste, et se défait depuis son bandeau.
+  function reverrouillerHares() {
+    ACCES_HARES.ouvert = false;
+    majCadenas();
+    if (tab === "hares") { tab = DERNIER_ONGLET.cmpc; renderTabs(); }
+  }
+
+  $("cadenasForm").addEventListener("submit", (ev) => { ev.preventDefault(); essayerCodeAnalyste(); });
+  $("cadenasHares").addEventListener("keydown", (ev) => { if (ev.key === "Escape") fermerCadenas(); });
+  document.addEventListener("pointerdown", (ev) => {
+    const boite = $("cadenasHares");
+    if (!boite.hidden && !boite.contains(ev.target) && !ongletHares().contains(ev.target)) fermerCadenas();
+  });
 
   /* ================= Onglet Paramètres ================= */
   function optionsHtml(key, options) {
@@ -3674,7 +4953,7 @@
     if (!retenu) return null;
 
     const demande = echelles[0];
-    return Object.assign({}, retenu.stats, {
+    const resultat = Object.assign({}, retenu.stats, {
       nom: nom,
       perimetre: retenu.perimetre,
       echelle: retenu.echelle,
@@ -3682,6 +4961,10 @@
       demande: demande.perimetre,
       demandeN: demande.stats ? demande.stats.societes : 0,
     });
+    // Le CMPC écrasé par HARES garde son périmètre affiché, mais ses médianes
+    // et ses effectifs sont ceux de l'échantillon que HARES a fait retenir.
+    const h = nom === params.secteur ? cmpcHares() : null;
+    return h ? Object.assign(resultat, h.stats, { hares: h }) : resultat;
   }
 
   // Le continent de l'émetteur valorisé, celui dont on prend la courbe
@@ -3721,6 +5004,9 @@
   // appliquée aux mêmes données, et un test vérifie que la médiane des sociétés
   // retenues côté navigateur égale celle publiée par le build.
   function societesRetenues() {
+    // Écrasé par HARES : les sociétés retenues sont celles de son échantillon.
+    const h = cmpcHares();
+    if (h) return { ids: h.ids.slice(), stats: statsSecteur(params.secteur) };
     const stats = statsSecteur(params.secteur);
     if (!stats) return { ids: [], stats: null };
     const dans = (c) => stats.echelle === "place" ? c.place === stats.perimetre
@@ -3733,6 +5019,100 @@
       .slice(0, ECHANTILLON);
     return { ids: ids, stats: stats };
   }
+
+  /* ================= HARES → CMPC =================
+     Sur confirmation, HARES remplace les sociétés retenues du CMPC par son
+     échantillon. Bêta désendetté et gearing deviennent leurs médianes, à la
+     règle du build (moteur/comparables.py::statistiques) : médiane des
+     valeurs publiées, arrondie à quatre décimales — mais sur tout
+     l'échantillon, sans le plafond des vingt plus grosses capitalisations :
+     ce choix-là, c'est l'analyste qui l'a fait dans HARES.
+
+     L'écrasement vit le temps de la session, n'est écrit nulle part, et ne
+     vaut que pour le secteur et le périmètre où il a été posé : qu'ils
+     changent, et il est retiré — le CMPC affiché ne serait plus celui que
+     l'échantillon décrivait. */
+  let CMPC_HARES = null;          // { ids, stats, contexte, depart, etapes }
+  let CMPC_HARES_RETIRE = null;   // retiré faute de contexte : HARES le dira
+  let IGNORER_HARES = false;
+
+  const contexteCmpc = () => [params.referentiel, params.secteur, params.continent, params.zone || "", params.place_cible || ""].join("|");
+
+  function cmpcHares() {
+    if (!CMPC_HARES || IGNORER_HARES) return null;
+    if (!estComparables() || CMPC_HARES.contexte !== contexteCmpc()) {
+      CMPC_HARES_RETIRE = CMPC_HARES;
+      CMPC_HARES = null;
+      return null;
+    }
+    return CMPC_HARES;
+  }
+  // Le calcul d'origine, ou celui qu'un projet d'écrasement donnerait.
+  function sansHares(f) {
+    const garde = IGNORER_HARES;
+    IGNORER_HARES = true;
+    try { return f(); } finally { IGNORER_HARES = garde; }
+  }
+  function avecHares(projet, f) {
+    const garde = [CMPC_HARES, IGNORER_HARES];
+    CMPC_HARES = projet;
+    IGNORER_HARES = false;
+    try { return f(); } finally { CMPC_HARES = garde[0]; IGNORER_HARES = garde[1]; }
+  }
+
+  function medianesCmpcHares(ids) {
+    const membres = ids.map((id) => COMPARABLES[id]).filter(Boolean);
+    const med = (cle) => {
+      const m = mediane(membres.map((s) => s[cle]));
+      return m == null ? null : Math.round(m * 1e4) / 1e4;
+    };
+    return {
+      societes: membres.length, retenues: membres.length,
+      beta_u: med("beta_u"), beta_1an: med("beta_1an"), beta_3ans: med("beta_3ans"),
+      horizon_1an: membres.filter((s) => s.beta_horizon === "1 an").length,
+      gearing: med("gearing"),
+      capitalisation: Math.round(membres.reduce((a, s) => a + (s.capitalisation || 0), 0) * 10) / 10,
+    };
+  }
+
+  // Le bandeau du CMPC et les pastilles des onglets dont les chiffres viennent de HARES.
+  function majIndicateurHares(groupe) {
+    const h = cmpcHares();
+    document.querySelector('.tabs button[data-groupe="cmpc"]').classList.toggle("a-hares", Boolean(h));
+    document.querySelectorAll('.sous-vues button[data-tab="wacc"], .sous-vues button[data-tab="societes"]')
+      .forEach((b) => b.classList.toggle("a-hares", Boolean(h)));
+    const el = $("bandeauHares");
+    el.hidden = !h || groupe !== "cmpc";
+    if (!h) { el.innerHTML = ""; return; }
+    const o = sansHares(() => ({ s: statsSecteur(params.secteur), n: societesRetenues().ids.length }));
+    const avant = (v, d) => (v == null ? "" : ` (origine ${frNum(v, d)})`);
+    el.innerHTML = `<div class="bandeau-hares-corps">
+      <span><b>CMPC modifié par HARES</b> — médianes sur ${esc(frEntier(h.ids.length))} sociétés au lieu des
+        ${esc(frEntier(o.n))} retenues d'origine · bêta désendetté ${h.stats.beta_u == null ? "—" : frNum(h.stats.beta_u, 3)}${avant(o.s && o.s.beta_u, 3)}
+        · gearing ${h.stats.gearing == null ? "—" : frNum(h.stats.gearing, 2)}${avant(o.s && o.s.gearing, 2)}</span>
+      <span class="bandeau-hares-actions">
+        <button type="button" class="valo-bouton" data-bandeau-hares="voir">Voir dans HARES</button>
+        <button type="button" class="valo-bouton is-plein" data-bandeau-hares="retirer">Revenir au calcul d'origine</button>
+      </span>
+      <p class="bandeau-hares-consignes">Consignes : ${esc(["départ : " + h.depart].concat(h.etapes).join(" · "))}</p>
+    </div>`;
+  }
+
+  function retirerCmpcHares() {
+    CMPC_HARES = null;
+    HARES.info = "Le CMPC est revenu à son calcul d'origine.";
+    apply();
+    rendreHares();
+  }
+
+  $("bandeauHares").addEventListener("click", (ev) => {
+    const b = ev.target.closest("[data-bandeau-hares]");
+    if (!b) return;
+    if (b.dataset.bandeauHares === "retirer") { retirerCmpcHares(); return; }
+    if (!ACCES_HARES.ouvert) { ouvrirCadenas(); return; }
+    tab = "hares";
+    renderTabs();
+  });
 
   function gearingSectoriel(nomSecteur) {
     const s = statsSecteur(nomSecteur);
@@ -3838,7 +5218,7 @@
       beta: beta, betaU: betaU, beta3: secteur.beta_3ans, beta1: secteur.beta_1an,
       horizon1an: secteur.horizon_1an || 0, rf: rf, tax: tax,
       perimetre: secteur.perimetre, echelle: secteur.echelle, repli: secteur.repli,
-      retenues: secteur.retenues,
+      retenues: secteur.retenues, hares: secteur.hares || null,
       demande: secteur.demande, demandeN: secteur.demandeN,
       gearing: g, gearingSecteur: gSect,
       gearingCible: cible != null ? params.gearing_cible : null,
@@ -3896,9 +5276,11 @@
           { label: "Coût des fonds propres", value: frPct(cc.ke), strong: true },
         ]),
         methodology: "MEDAF : taux sans risque + bêta ré-endetté x prime de marché + prime de taille + prime spécifique. Chaque bêta coté de l'échantillon est désendetté à son propre levier — dette totale sur fonds propres — au taux d'IS de son pays ; la médiane est ré-endettée au gearing retenu et au taux d'IS du pays valorisé.",
-        source: "Bêtas cotés (" + horizonBeta(cc) + ") désendettés, médiane sur " + cc.retenues + " société(s) du secteur" +
-          (cc.retenues < cc.societes ? ", les plus grosses capitalisations de " + cc.perimetre +
-           " qui en compte " + cc.societes : " sur " + cc.perimetre) +
+        source: "Bêtas cotés (" + horizonBeta(cc) + ") désendettés, " + (cc.hares
+          ? "médiane sur les " + cc.retenues + " société(s) de l'échantillon retenu par HARES"
+          : "médiane sur " + cc.retenues + " société(s) du secteur" +
+            (cc.retenues < cc.societes ? ", les plus grosses capitalisations de " + cc.perimetre +
+             " qui en compte " + cc.societes : " sur " + cc.perimetre)) +
           " ; fonds propres et dette totale S&P Capital IQ ; taux " + cc.rf.libelle + " publié par le " + cc.rf.source +
           ", taux d'IS, prime de risque pays et prime de marché mature Damodaran.",
         hypothesis: (cc.gearingSaisi
@@ -4679,7 +6061,8 @@
   function chargerSocietes() {
     const pan = PANNEAUX.soc;
     pan.detail = detailSociete;
-    const ids = societesDuPerimetre();
+    // Écrasé par HARES, l'onglet liste son échantillon, toutes retenues.
+    const ids = cmpcHares() ? cmpcHares().ids.slice() : societesDuPerimetre();
     const retenues = societesRetenues();
     const marquees = new Set(retenues.ids);
     pan.items = ids.map((id) => {
@@ -8952,7 +10335,10 @@
           prime: sourcePrime,
           beta: "Médiane des bêtas cotés à trois ans" +
             (cc.horizon1an ? " (1 an pour " + cc.horizon1an + " société(s) sans 3 ans publié)" : "") +
-            " du secteur " + params.secteur + ", " + cc.perimetre + " (" + cc.retenues + " sociétés)," +
+            (cc.hares
+              ? " de l'échantillon retenu par HARES (" + cc.retenues + " sociétés ; " +
+                ["départ : " + cc.hares.depart].concat(cc.hares.etapes).join(" · ") + "),"
+              : " du secteur " + params.secteur + ", " + cc.perimetre + " (" + cc.retenues + " sociétés),") +
             " chacun désendetté à son levier dette totale / fonds propres et au taux d'IS légal de son pays",
           impot: cc.taxDefaut
             ? "Taux d'IS non publié pour " + params.country + " : 25 % retenu, comme sous le référentiel Damodaran"
@@ -10829,7 +12215,17 @@
     reponse: null,    // réponse à une question hors échantillon, ou erreur
     info: null,       // message ponctuel (retour au départ…)
     envoi: null,      // dernier échantillon envoyé vers comparaison
+    historique: [],   // le fil passé : { qui: "moi" | "hares", html }, figé
+    nHistorique: 0,   // nombre de messages jamais archivés : le fil ne se redessine qu'à son changement
+    question: null,   // la demande en cours, au-dessus de la réponse vivante
+    exemples: [],     // les cinq exemples tirés pour la réponse en cours
+    panneauOuvert: true,
+    confirmCmpc: null,
   };
+  // Au-delà de cinq sociétés, le tableau ne tient plus dans le fil : il
+  // s'ouvre dans le panneau de droite.
+  const LIGNES_DANS_LE_FIL = 5;
+  let BUDDY_HARES = null;
 
   function formaterHares(champ, v) {
     if (v == null || v === "") return "—";
@@ -10896,6 +12292,8 @@
     HARES.etapes = [];
     HARES.vue = null;
     HARES.reponse = null;
+    HARES.confirmCmpc = null;
+    HARES.panneauOuvert = depart.ids.length > LIGNES_DANS_LE_FIL;
   }
   const idsHares = () => (HARES.etapes.length ? HARES.etapes[HARES.etapes.length - 1].ids : HARES.depart.ids);
   const triHares = () => (HARES.etapes.length ? HARES.etapes[HARES.etapes.length - 1].tri : TRI_HARES);
@@ -11425,6 +12823,8 @@
       notes: r.notes, stats: r.stats, retirees: r.retirees,
     }, meta));
     HARES.vue = null;
+    HARES.panneauOuvert = r.ids.length > LIGNES_DANS_LE_FIL;
+    if (HARES.panneauOuvert && BUDDY_HARES) BUDDY_HARES.montrer(2600);
     rendreHares();
   }
 
@@ -11432,7 +12832,10 @@
     const demande = String(texte || "").trim().slice(0, 400);
     if (!demande || AGENT.enCours) return;
     if (!HARES.depart) ouvrirHares();
+    archiverHares(demande);
     HARES.info = null;
+    HARES.confirmCmpc = null;
+    if (DEMANDE_CMPC_HARES.test(" " + sansAccentsHares(demande) + " ")) { proposerCmpc(); rendreHares(); return; }
     const donnees = questionDonnees(demande);
     if (donnees) {
       HARES.reponse = { question: demande, origine: "gabarit", resultat: executerReponse(donnees.requete), donnees: true };
@@ -11479,7 +12882,139 @@
     rendreHares();
   }
 
-  /* ---- Affichage ---- */
+  /* ---- Le fil ----
+     Chaque nouvelle demande archive l'échange précédent : la question, puis la
+     réponse figée, sans ses boutons — ils agiraient sur l'échantillon
+     d'aujourd'hui, plus sur celui d'alors. La réponse en cours, elle, se
+     redessine à chaque changement d'état. */
+  function archiverHares(demande) {
+    const q = $("haresDemande"), live = $("haresReponse");
+    if (HARES.question) HARES.historique.push({ qui: "moi", html: q.innerHTML });
+    if (live.innerHTML.trim()) {
+      const copie = live.cloneNode(true);
+      copie.querySelectorAll("button").forEach((b) => b.remove());
+      copie.querySelectorAll("[id]").forEach((n) => n.removeAttribute("id"));
+      HARES.historique.push({ qui: "hares", html: copie.innerHTML });
+    }
+    HARES.nHistorique = HARES.historique.length;
+    HARES.question = demande;
+    HARES.exemples = [];
+  }
+
+  /* ---- Appliquer au CMPC ----
+     Une demande qui vise le CMPC — « applique cet échantillon au CMPC »,
+     « ne retiens que ces sociétés pour le WACC » — ou le bouton du même nom
+     préparent l'écrasement ; il ne se fait qu'à la confirmation. */
+  const sansAccentsHares = (t) => String(t).normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+  const DEMANDE_CMPC_HARES = / (?:appliqu\w*|retien\w*|retenir|ecras\w*|remplac\w*|report\w*|injecte\w*|bascul\w*)\b.*\b(?:cmpc|wacc)\b/;
+
+  function proposerCmpc() {
+    const ids = idsHares();
+    if (!estComparables()) {
+      HARES.confirmCmpc = { erreur: "Le CMPC ne repose sur un échantillon de sociétés que sous le référentiel Comparables : choisissez-le dans CMPC › Paramètres, puis revenez appliquer cet échantillon." };
+      return;
+    }
+    if (!ids.length) { HARES.confirmCmpc = { erreur: "L'échantillon est vide : il n'y a rien à appliquer au CMPC." }; return; }
+    const tries = ids.filter((id) => COMPARABLES[id])
+      .sort((a, b) => (COMPARABLES[b].capitalisation || 0) - (COMPARABLES[a].capitalisation || 0));
+    const projet = {
+      ids: tries, stats: medianesCmpcHares(tries), contexte: contexteCmpc(),
+      depart: HARES.depart.libelle, etapes: HARES.etapes.map(etiquetteEtape),
+    };
+    if (projet.stats.beta_u == null) {
+      HARES.confirmCmpc = { erreur: "Aucune société de cet échantillon ne publie de bêta désendetté : le CMPC ne peut pas en être tiré." };
+      return;
+    }
+    const avant = sansHares(() => ({ cc: cmpcComparables(), n: societesRetenues().ids.length, s: statsSecteur(params.secteur) }));
+    const apres = avecHares(projet, () => cmpcComparables());
+    HARES.confirmCmpc = { projet: projet, avant: avant, apres: apres };
+  }
+
+  function confirmationCmpcHtml(c) {
+    if (c.erreur) return `<p class="agent-entete">${esc(c.erreur)}</p>`;
+    const p = c.projet, av = c.avant, ap = c.apres;
+    const taux = (cc) => (cc ? frPct(cc.waccLocal != null ? cc.waccLocal : cc.wacc, 2) : "—");
+    const nb = (v, d) => (v == null ? "—" : frNum(v, d));
+    const ligne = (lib, a, b) => `<tr><td>${lib}</td><td class="is-nombre">${esc(a)}</td><td class="is-nombre${a !== b ? " is-change" : ""}">${esc(b)}</td></tr>`;
+    const cible = gearingCibleDE() != null;
+    return `<div class="hares-cmpc">
+      <p><b>Appliquer cet échantillon au CMPC ?</b> Le CMPC (${esc(params.secteur)}, ${esc(av.s ? av.s.perimetre : "")}) repose
+        aujourd'hui sur ${esc(pluriel(av.n, "société"))}. Il reposera sur les ${esc(frEntier(p.ids.length))} de cet
+        échantillon : bêta désendetté et gearing deviennent leurs médianes.${cible ? " Le gearing cible saisi dans les Paramètres reste celui du calcul." : ""}</p>
+      <table>
+        <thead><tr><th></th><th class="is-nombre">Actuel</th><th class="is-nombre">Avec HARES</th></tr></thead>
+        <tbody>
+          ${ligne("Sociétés retenues", frEntier(av.n), frEntier(p.ids.length))}
+          ${ligne("Bêta désendetté médian", nb(av.s && av.s.beta_u, 3), nb(p.stats.beta_u, 3))}
+          ${ligne("Gearing médian (D/E)", nb(av.s && av.s.gearing, 2), nb(p.stats.gearing, 2))}
+          ${ligne("CMPC", taux(av.cc), taux(ap))}
+        </tbody>
+      </table>
+      <p>Valable pour la session. Le CMPC portera le bandeau « Modifié par HARES », d'où revenir au calcul d'origine.</p>
+      <span class="hares-actions">
+        <button type="button" class="valo-bouton is-plein" data-hares-cmpc-confirmer>Confirmer</button>
+        <button type="button" class="valo-bouton" data-hares-cmpc-annuler>Annuler</button>
+      </span>
+    </div>`;
+  }
+
+  function appliquerCmpcHares() {
+    const c = HARES.confirmCmpc;
+    if (!c || !c.projet) return;
+    CMPC_HARES = c.projet;
+    HARES.confirmCmpc = null;
+    HARES.info = `CMPC recalculé sur les ${frEntier(c.projet.ids.length)} sociétés de l'échantillon : bêta désendetté `
+      + `${frNum(c.projet.stats.beta_u, 3)}${c.projet.stats.gearing == null ? "" : ", gearing " + frNum(c.projet.stats.gearing, 2)}. `
+      + "Le CMPC porte désormais le bandeau « Modifié par HARES ».";
+    apply();
+    rendreHares();
+  }
+
+  // Les actions sur l'échantillon, sous la réponse : l'appliquer au CMPC,
+  // l'envoyer vers la comparaison, revoir son tableau.
+  function actionsEchantillonHtml() {
+    const ids = idsHares();
+    const h = cmpcHares();
+    const applique = h && h.ids.length === ids.length && ids.every((id) => h.ids.indexOf(id) >= 0);
+    const envoye = HARES.envoi && ENVOI_HARES === HARES.envoi && HARES.envoi.ids.join(",") === ids.join(",");
+    const titreCmpc = !estComparables() ? ` title="Référentiel Comparables requis, dans CMPC › Paramètres"` : "";
+    return `
+      <span class="hares-actions">
+        <button type="button" class="valo-bouton is-plein" data-hares-cmpc${ids.length && !applique ? "" : " disabled"}${titreCmpc}>Appliquer au CMPC</button>
+        <button type="button" class="valo-bouton" data-hares-envoyer${ids.length ? "" : " disabled"}>Envoyer vers comparaison</button>
+        ${HARES.panneauOuvert || !ids.length ? "" : `<button type="button" class="agent-lien" data-hares-panneau>Voir le tableau (${esc(frEntier(ids.length))})</button>`}
+      </span>
+      ${applique ? `<p class="hares-envoye is-hares">Cet échantillon est appliqué au CMPC.
+        <button type="button" class="agent-lien" data-hares-voir-cmpc>Voir le calcul</button> ·
+        <button type="button" class="agent-lien" data-hares-cmpc-retirer>Revenir au calcul d'origine</button></p>` : ""}
+      ${envoye ? `<p class="hares-envoye">Échantillon envoyé vers Valorisation › Comparables.
+        <button type="button" class="agent-lien" data-hares-voir>Voir la comparaison</button></p>` : ""}`;
+  }
+
+  function accueilHaresHtml() {
+    return `<p class="agent-entete">Je travaille sur <b>${esc(pluriel(idsHares().length, "société"))}</b> — ${esc(HARES.depart.libelle)}.
+      Demandez-moi d'isoler un secteur ou une zone, de filtrer sur un ratio, de classer, ou de retirer les valeurs
+      aberrantes : chaque demande s'applique au résultat de la précédente.</p>`;
+  }
+
+  // Cinq sociétés au plus : elles tiennent dans le fil, sous la réponse.
+  function listeCourteHares() {
+    const ids = idsHares();
+    if (!ids.length || ids.length > LIGNES_DANS_LE_FIL || HARES.reponse) return "";
+    const lignes = trierHares(ids.map(ligneHares).filter(Boolean), triHares());
+    return `<ul class="hares-liste">${lignes.map((l) => `<li><b>${esc(l.nom)}</b><span>${esc(l.pays || "")}</span>`
+      + `<span>${esc(formaterHares("capitalisation", l.capitalisation))}</span></li>`).join("")}</ul>`;
+  }
+
+  function tirerExemplesHares() {
+    const pool = EXEMPLES_HARES.slice();
+    HARES.exemples = [];
+    while (HARES.exemples.length < 5 && pool.length) HARES.exemples.push(pool.splice(Math.floor(Math.random() * pool.length), 1)[0]);
+  }
+
+  /* ---- Affichage ----
+     Cinq exemples sont tirés au hasard sous chaque réponse ; tous sont lus
+     sur place, sans appel au serveur (tests/test_hares.py le vérifie). */
   const EXEMPLES_HARES = [
     "Isole les sociétés de télécom en Afrique",
     "Garde uniquement les sociétés dont la marge d'EBITDA est comprise entre 20 % et 35 %",
@@ -11487,6 +13022,14 @@
     "Parmi elles, lesquelles ont un endettement net / EBITDA inférieur à 2x ?",
     "Classe-les par chiffre d'affaires et donne-moi la médiane et les quartiles des multiples",
     "Retire les valeurs aberrantes et explique pourquoi",
+    "Isole les banques en Europe",
+    "Garde uniquement les filiales",
+    "Classe-les par marge d'EBITDA",
+    "Garde les 10 plus grosses",
+    "Parmi elles, lesquelles ont un P/E inférieur à 15 ?",
+    "Isole les sociétés d'assurance en Amérique du Nord",
+    "Garde uniquement les sociétés dont la croissance du CA dépasse 10 %",
+    "Donne-moi la médiane et les quartiles des multiples",
   ];
 
   function departHtml() {
@@ -11546,19 +13089,9 @@
         : `<button type="button" class="valo-bouton" data-hares-reprendre="${i}">Reprendre à partir d'ici</button>`}</span>`;
   }
 
-  function reponseHaresHtml(enCours) {
-    if (enCours) return `<p class="agent-question">« ${esc(enCours)} »</p><p class="agent-attente">Traduction de la demande…</p>`;
-    if (HARES.reponse) return reponseHtml(HARES.reponse);
-    const info = HARES.info ? `<p class="agent-entete">${esc(HARES.info)}</p>` : "";
-    if (!HARES.etapes.length) return info;
-    const i = HARES.vue == null ? HARES.etapes.length - 1 : HARES.vue;
-    return info + etapeHtml(HARES.etapes[i], i);
-  }
-
   function tableHaresHtml() {
     const ids = idsHares(), tri = triHares();
     const lignes = trierHares(ids.map(ligneHares).filter(Boolean), tri);
-    const envoye = HARES.envoi && ENVOI_HARES === HARES.envoi && HARES.envoi.ids.join(",") === ids.join(",");
     const nombre = (c) => estNumeriqueHares(c);
     const cellule = (l, c) => {
       if (c === "nom") return `<td><span class="hares-nom">${esc(l.nom)}</span><span class="hares-sous">${esc(l.pays || "")}${l.place ? " · " + esc(l.place) : ""}</span></td>`;
@@ -11567,12 +13100,10 @@
     };
     return `
       <div class="hares-table-tete">
-        <h2>Échantillon actuel : <b>${esc(frEntier(lignes.length))}</b> société${lignes.length > 1 ? "s" : ""}</h2>
+        <h2>Échantillon : <b>${esc(frEntier(lignes.length))}</b> société${lignes.length > 1 ? "s" : ""}</h2>
         <span class="hares-table-note">exercice ${HARES.an} · montants en M FCFA · VE = capitalisation + dette totale${TRESORERIE_HARES ? "" : " · levier sur dette brute"}</span>
-        <button type="button" class="valo-bouton is-plein" data-hares-envoyer${lignes.length ? "" : " disabled"}>Envoyer vers comparaison</button>
+        <button type="button" class="hares-fermer" data-hares-fermer aria-label="Fermer le panneau" title="Fermer">×</button>
       </div>
-      ${envoye ? `<p class="hares-envoye">Échantillon envoyé vers Valorisation › Comparables.
-        <button type="button" class="agent-lien" data-hares-voir>Voir la comparaison</button></p>` : ""}
       ${lignes.length ? `
       <div class="hares-table-defile">
         <table class="hares-table">
@@ -11582,6 +13113,21 @@
       </div>
       ${lignes.length > AFFICHAGE_HARES ? `<p class="agent-source">Les ${AFFICHAGE_HARES} premières selon le tri en cours, sur ${esc(frEntier(lignes.length))}. Affinez l'échantillon pour voir le reste.</p>` : ""}`
       : `<p class="hares-vide">Aucune société ne répond à ces critères. Annulez la dernière étape, ou repartez du départ.</p>`}`;
+  }
+
+  function reponseHaresHtml(enCours) {
+    const tete = `<span class="hares-qui">HARES</span>`;
+    if (enCours) return tete + `<p class="agent-attente">Traduction de la demande…</p>`;
+    if (HARES.confirmCmpc) return tete + confirmationCmpcHtml(HARES.confirmCmpc);
+    if (HARES.reponse) return tete + reponseHtml(HARES.reponse);
+    if (CMPC_HARES_RETIRE) {
+      HARES.info = "L'échantillon appliqué au CMPC a été retiré : le référentiel, le secteur ou le périmètre du CMPC ont changé depuis.";
+      CMPC_HARES_RETIRE = null;
+    }
+    const info = HARES.info ? `<p class="agent-entete">${esc(HARES.info)}</p>` : "";
+    const i = HARES.vue == null ? HARES.etapes.length - 1 : HARES.vue;
+    const corps = HARES.etapes.length ? etapeHtml(HARES.etapes[i], i) : (info ? "" : accueilHaresHtml());
+    return tete + info + corps + listeCourteHares() + actionsEchantillonHtml();
   }
 
   function rendreHares(enCours) {
@@ -11594,24 +13140,70 @@
     etat.classList.toggle("is-hors-ligne", Boolean(AGENT.horsLigne || AGENT.quota));
     $("haresDemander").disabled = Boolean(AGENT.enCours);
     $("haresDepart").innerHTML = departHtml();
-    $("haresExemples").innerHTML = HARES.etapes.length || HARES.reponse ? ""
-      : EXEMPLES_HARES.map((q) => `<button type="button" class="agent-puce" data-agent-question="${esc(q)}">${esc(q)}</button>`).join("");
     $("haresFil").innerHTML = filHtml();
+    const hist = $("haresHistorique");
+    if (hist.dataset.n !== String(HARES.nHistorique)) {
+      hist.innerHTML = HARES.historique.map((m) => `<div class="hares-msg is-${m.qui} is-archive">${m.html}</div>`).join("");
+      hist.dataset.n = String(HARES.nHistorique);
+    }
+    const q = $("haresDemande");
+    q.hidden = !HARES.question;
+    q.innerHTML = HARES.question ? `<span class="hares-qui">Vous</span><p>${esc(HARES.question)}</p>` : "";
     $("haresReponse").innerHTML = reponseHaresHtml(enCours);
+    if (!HARES.exemples.length) tirerExemplesHares();
+    $("haresExemples").innerHTML = enCours ? ""
+      : HARES.exemples.map((x) => `<button type="button" class="agent-puce" data-agent-question="${esc(x)}">${esc(x)}</button>`).join("");
     $("haresEchantillon").innerHTML = tableHaresHtml();
+    $("haresEspace").classList.toggle("is-ouvert", HARES.panneauOuvert);
+    $("haresEchantillon").setAttribute("aria-hidden", HARES.panneauOuvert ? "false" : "true");
+    const rouvrir = $("haresRouvrir");
+    rouvrir.hidden = HARES.panneauOuvert;
+    rouvrir.textContent = `Afficher l'échantillon (${frEntier(idsHares().length)}) ▸`;
+    const fil = $("haresMessages");
+    fil.scrollTop = fil.scrollHeight;
+    if (BUDDY_HARES) {
+      if (AGENT.enCours) BUDDY_HARES.etat("reflechit");
+      else if (BUDDY_HARES.etat() === "reflechit") BUDDY_HARES.etat("repos");
+    }
   }
 
   function initHares() {
     const racine = $("panel-hares");
     if (!racine) return;
+    // Le soldat, derrière la barre de saisie ; il se promène dans le chat.
+    if (window.HaresBuddy) {
+      BUDDY_HARES = HaresBuddy.monter({ hote: "#haresBuddy", champ: "#haresQuestion",
+                                        formulaire: "#haresFormulaire", cadre: "#haresChat" });
+    }
     $("haresFormulaire").addEventListener("submit", (ev) => {
       ev.preventDefault();
-      demanderHares($("haresQuestion").value);
+      const champ = $("haresQuestion"), demande = champ.value;
+      champ.value = "";
+      demanderHares(demande);
     });
     racine.addEventListener("click", (ev) => {
       const champ = $("haresQuestion");
+      // Toute autre action abandonne une confirmation d'écrasement en suspens.
+      if (ev.target.closest("button") && !ev.target.closest("[data-hares-cmpc-confirmer], [data-hares-cmpc-annuler]")) HARES.confirmCmpc = null;
       const q = ev.target.closest("[data-agent-question]");
-      if (q) { champ.value = q.dataset.agentQuestion; demanderHares(q.dataset.agentQuestion); return; }
+      if (q) { champ.value = ""; demanderHares(q.dataset.agentQuestion); return; }
+      if (ev.target.closest("[data-hares-fermer]")) { HARES.panneauOuvert = false; rendreHares(); return; }
+      if (ev.target.closest("[data-hares-panneau], #haresRouvrir")) {
+        HARES.panneauOuvert = true;
+        rendreHares();
+        if (BUDDY_HARES) BUDDY_HARES.montrer(2000);
+        return;
+      }
+      if (ev.target.closest("[data-hares-cmpc]")) { proposerCmpc(); rendreHares(); return; }
+      if (ev.target.closest("[data-hares-cmpc-confirmer]")) { appliquerCmpcHares(); return; }
+      if (ev.target.closest("[data-hares-cmpc-annuler]")) {
+        HARES.confirmCmpc = null;
+        HARES.info = "Le CMPC n'est pas modifié.";
+        rendreHares();
+        return;
+      }
+      if (ev.target.closest("[data-hares-cmpc-retirer]")) { retirerCmpcHares(); return; }
+      if (ev.target.closest("[data-hares-voir-cmpc]")) { tab = "wacc"; renderTabs(); return; }
       const c = ev.target.closest("[data-agent-corriger]");
       if (c) {
         champ.value = c.dataset.agentCorriger;
@@ -11624,12 +13216,16 @@
       const etape = ev.target.closest("[data-hares-etape]");
       if (etape) { HARES.vue = Number(etape.dataset.haresEtape); HARES.reponse = null; HARES.info = null; rendreHares(); return; }
       if (ev.target.closest("[data-hares-annuler]")) {
-        HARES.etapes.pop(); HARES.vue = null; HARES.reponse = null; HARES.info = null; rendreHares(); return;
+        HARES.etapes.pop(); HARES.vue = null; HARES.reponse = null; HARES.info = null;
+        HARES.panneauOuvert = idsHares().length > LIGNES_DANS_LE_FIL;
+        rendreHares(); return;
       }
       const reprendre = ev.target.closest("[data-hares-reprendre]");
       if (reprendre) {
         HARES.etapes = HARES.etapes.slice(0, Number(reprendre.dataset.haresReprendre) + 1);
-        HARES.vue = null; HARES.reponse = null; HARES.info = null; rendreHares(); return;
+        HARES.vue = null; HARES.reponse = null; HARES.info = null;
+        HARES.panneauOuvert = idsHares().length > LIGNES_DANS_LE_FIL;
+        rendreHares(); return;
       }
       const depart = ev.target.closest("[data-hares-depart]");
       if (depart) {

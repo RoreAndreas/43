@@ -14,6 +14,7 @@ from pathlib import Path
 import pytest
 
 from conformite import conforme
+from conftest import deverrouiller_hares
 
 QUESTIONS = json.loads((Path(__file__).parent / "questions.json").read_text(encoding="utf-8"))["questions"]
 NIVEAU0 = [q for q in QUESTIONS if q["niveau"] == 0]
@@ -148,6 +149,7 @@ def test_le_spread_des_industries_est_celui_qui_entre_dans_le_kd(page_seule):
 def ouvrir_hares(page):
     if not page.is_visible("#panel-hares"):
         page.click('.tabs button[data-groupe="hares"]')
+        deverrouiller_hares(page)
 
 
 def demander(page, question):

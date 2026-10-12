@@ -274,6 +274,18 @@ def secteur(donnees: dict, nom: str, perimetre: str = "univers") -> dict:
     raise AssertionError(f"secteur « {nom} » absent du périmètre « {perimetre} »")
 
 
+# HARES s'ouvre au code analyste : seule son empreinte est dans la page.
+CODE_ANALYSTE = "ares43"
+
+
+def deverrouiller_hares(page) -> None:
+    """Le cadenas de l'onglet HARES : le code analyste l'ouvre pour la session."""
+    if page.is_visible("#haresCode"):
+        page.fill("#haresCode", CODE_ANALYSTE)
+        page.press("#haresCode", "Enter")
+        page.wait_for_selector("#panel-hares", state="visible")
+
+
 # Onglets : CMPC (Paramètres, Calcul, Sociétés), Insight, Valorisation, HARES.
 # Chaque vue s'atteint par son onglet puis, s'il y en a un, son sous-onglet.
 GROUPES = {"params": "cmpc", "wacc": "cmpc", "societes": "cmpc", "insight": "insight",
@@ -283,5 +295,7 @@ GROUPES = {"params": "cmpc", "wacc": "cmpc", "societes": "cmpc", "insight": "ins
 def ouvrir(page, vue: str) -> None:
     """Ouvre une vue par la barre d'onglets, puis le sous-onglet s'il y en a un."""
     page.click(f'.tabs button[data-groupe="{GROUPES[vue]}"]')
+    if vue == "hares":
+        deverrouiller_hares(page)
     if GROUPES[vue] != vue:
         page.click(f'.sous-vues button[data-tab="{vue}"]')

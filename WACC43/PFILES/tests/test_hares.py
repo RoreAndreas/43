@@ -13,7 +13,7 @@ import statistics
 
 import pytest
 
-from conftest import mode_comparables, ouvrir
+from conftest import CODE_ANALYSTE, deverrouiller_hares, mode_comparables, ouvrir
 
 TELECOMS = "Telecommunication Services"
 
@@ -21,6 +21,7 @@ TELECOMS = "Telecommunication Services"
 def ouvrir_hares(page):
     if not page.is_visible("#panel-hares"):
         page.click('.tabs button[data-groupe="hares"]')
+        deverrouiller_hares(page)
 
 
 def demander(page, question):
@@ -201,11 +202,20 @@ def test_retirer_les_valeurs_aberrantes_et_dire_pourquoi(page, donnees):
     assert "Règle de Tukey" in texte and "Retirées, et pourquoi".upper() in texte.upper()
 
 
-def test_les_exemples_sont_reconnus_sur_place(page):
+def test_cinq_exemples_tires_de_la_liste(page):
     ouvrir_hares(page)
     exemples = page.eval_on_selector_all("#haresExemples [data-agent-question]", "els => els.map((e) => e.dataset.agentQuestion)")
-    assert len(exemples) == 6
-    for q in exemples:
+    tous = page.evaluate("EXEMPLES_HARES")
+    assert len(exemples) == 5 and len(set(exemples)) == 5
+    assert set(exemples) <= set(tous)
+
+
+def test_tous_les_exemples_sont_reconnus_sur_place(page):
+    """Les exemples sont tirés au hasard : c'est toute la liste qui doit être lue
+    sans serveur, chacun sur l'échantillon de départ."""
+    ouvrir_hares(page)
+    for q in page.evaluate("EXEMPLES_HARES"):
+        page.evaluate("HARES.etapes = []; HARES.vue = null; rendreHares()")
         assert "J'ai compris" in demander(page, q), q
 
 
@@ -264,7 +274,7 @@ def test_envoyer_vers_comparaison_puis_revenir(page):
         return ids.filter((id) => (COMPARABLES[id].ebitda || {})[String(an)] > 0).length;
     }""", echantillon)
     assert page.evaluate("multipleComparables().n") == attendu
-    assert "envoyé vers Valorisation" in page.inner_text("#haresEchantillon")
+    assert "envoyé vers Valorisation" in page.inner_text("#haresReponse")
     page.click("[data-hares-voir]")
     assert page.is_visible("#valoComparables")
     assert "Échantillon envoyé par HARES" in page.inner_text("#noticeHares")
@@ -294,3 +304,127 @@ def test_sur_telephone_la_page_ne_defile_pas_en_largeur(navigateur):
     demander(onglet, "Isole les sociétés de télécom en Afrique")
     assert onglet.evaluate("document.documentElement.scrollWidth") <= 390
     onglet.close()
+
+
+# ------------------------------------------------------------- le cadenas
+
+def test_hares_est_verrouille_par_defaut(page):
+    page.click('.tabs button[data-groupe="hares"]')
+    assert page.is_visible("#haresCode")
+    assert not page.is_visible("#panel-hares")
+
+
+def test_un_mauvais_code_est_refuse(page):
+    page.click('.tabs button[data-groupe="hares"]')
+    page.fill("#haresCode", "sparte")
+    page.press("#haresCode", "Enter")
+    page.wait_for_timeout(200)
+    assert "Code incorrect" in page.inner_text("#cadenasErreur")
+    assert not page.is_visible("#panel-hares")
+
+
+def test_le_bon_code_ouvre_hares_et_le_cadenas_le_referme(page):
+    page.click('.tabs button[data-groupe="hares"]')
+    page.fill("#haresCode", CODE_ANALYSTE)
+    page.press("#haresCode", "Enter")
+    page.wait_for_selector("#panel-hares", state="visible")
+    assert "is-ouvert" in page.get_attribute('.tabs button[data-groupe="hares"]', "class")
+    page.click('.tabs button[data-groupe="hares"] .onglet-cadenas')
+    assert not page.is_visible("#panel-hares")
+    page.click('.tabs button[data-groupe="hares"]')
+    assert page.is_visible("#haresCode")
+
+
+def test_l_url_ne_contourne_pas_le_cadenas(page):
+    page.evaluate("tab = 'hares'; renderTabs()")
+    assert not page.is_visible("#panel-hares")
+
+
+# --------------------------------------------- le fil et le panneau de droite
+
+def test_le_fil_garde_les_echanges_passes(page):
+    telecoms_du_monde(page)
+    demander(page, "Fais ressortir uniquement les groupes")
+    archives = page.query_selector_all("#haresHistorique .hares-msg")
+    assert len(archives) >= 3            # accueil, première question, première réponse, deuxième question
+    # Figées : aucune action ne survit dans une réponse passée.
+    assert page.query_selector("#haresHistorique button") is None
+
+
+def test_un_gros_resultat_ouvre_le_panneau_un_petit_reste_dans_le_fil(page):
+    telecoms_du_monde(page)
+    assert "is-ouvert" in page.get_attribute("#haresEspace", "class")
+    demander(page, "les 3 plus grosses")
+    assert "is-ouvert" not in page.get_attribute("#haresEspace", "class")
+    assert len(page.query_selector_all("#haresReponse .hares-liste li")) == 3
+    page.click("#haresRouvrir")
+    assert "is-ouvert" in page.get_attribute("#haresEspace", "class")
+    page.click("[data-hares-fermer]")
+    assert "is-ouvert" not in page.get_attribute("#haresEspace", "class")
+    assert page.is_visible("#haresRouvrir")
+
+
+# ------------------------------------------------ HARES écrase le CMPC
+
+def mediane(valeurs):
+    v = [x for x in valeurs if x is not None]
+    return round(statistics.median(v), 4) if v else None
+
+
+def test_appliquer_au_cmpc_demande_confirmation(page):
+    mode_comparables(page)
+    avant = page.evaluate("societesRetenues().ids.join(',')")
+    demander(page, "Fais ressortir uniquement les groupes")
+    page.click("#haresReponse [data-hares-cmpc]")
+    assert "Appliquer cet échantillon au CMPC" in page.inner_text("#haresReponse")
+    assert page.evaluate("societesRetenues().ids.join(',')") == avant
+    page.click("[data-hares-cmpc-annuler]")
+    assert page.evaluate("societesRetenues().ids.join(',')") == avant
+    assert page.evaluate("CMPC_HARES") is None
+
+
+def test_confirmer_ecrase_societes_et_medianes(page, donnees):
+    mode_comparables(page)
+    origine = page.evaluate("[cmpcComparables().betaU, cmpcComparables().wacc]")
+    demander(page, "Fais ressortir uniquement les groupes")
+    echantillon = ids(page)
+    page.click("#haresReponse [data-hares-cmpc]")
+    page.click("[data-hares-cmpc-confirmer]")
+    retenues = page.evaluate("societesRetenues().ids")
+    assert sorted(retenues) == sorted(echantillon)
+    soc = donnees["comparables"]["societes"]
+    attendu = mediane([soc[i].get("beta_u") for i in echantillon])
+    assert page.evaluate("cmpcComparables().betaU") == pytest.approx(attendu)
+    assert page.evaluate("cmpcComparables().hares") is not None
+    # L'indicateur : bandeau dans le CMPC, pastille sur l'onglet, source du bêta.
+    ouvrir(page, "wacc")
+    assert "CMPC modifié par HARES" in page.inner_text("#bandeauHares")
+    assert "a-hares" in page.get_attribute('.tabs button[data-groupe="cmpc"]', "class")
+    # Et l'on revient au calcul d'origine.
+    page.click('#bandeauHares [data-bandeau-hares="retirer"]')
+    assert page.evaluate("[cmpcComparables().betaU, cmpcComparables().wacc]") == origine
+    assert not page.is_visible("#bandeauHares")
+
+
+def test_une_demande_en_langage_naturel_vise_le_cmpc(page):
+    mode_comparables(page)
+    demander(page, "Fais ressortir uniquement les groupes")
+    texte = demander(page, "Applique cet échantillon au CMPC")
+    assert "Appliquer cet échantillon au CMPC" in texte
+
+
+def test_changer_de_secteur_retire_l_ecrasement(page):
+    mode_comparables(page)
+    demander(page, "Fais ressortir uniquement les groupes")
+    page.click("#haresReponse [data-hares-cmpc]")
+    page.click("[data-hares-cmpc-confirmer]")
+    assert page.evaluate("CMPC_HARES") is not None
+    page.evaluate("params.secteur = 'Banks'; apply()")
+    assert page.evaluate("cmpcHares()") is None
+
+
+def test_sous_damodaran_hares_ne_peut_pas_ecraser(page):
+    ouvrir_hares(page)
+    demander(page, "Isole les sociétés de télécom en Afrique")
+    page.click("#haresReponse [data-hares-cmpc]")
+    assert "référentiel Comparables" in page.inner_text("#haresReponse")
