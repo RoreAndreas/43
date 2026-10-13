@@ -401,7 +401,7 @@ def test_confirmer_ecrase_societes_et_medianes(page, donnees):
     assert page.evaluate("cmpcComparables().hares") is not None
     # L'indicateur : bandeau dans le CMPC, pastille sur l'onglet, source du bêta.
     ouvrir(page, "wacc")
-    assert "CMPC modifié par HARES" in page.inner_text("#bandeauHares")
+    assert "Modifié par HARES" in page.inner_text("#bandeauHares")
     assert "a-hares" in page.get_attribute('.tabs button[data-groupe="cmpc"]', "class")
     # Et l'on revient au calcul d'origine.
     page.click('#bandeauHares [data-bandeau-hares="retirer"]')

@@ -2537,7 +2537,6 @@
   }
   .bandeau-hares-corps b { font-weight: 600; color: var(--hares); }
   .bandeau-hares-actions { margin-left: auto; display: flex; gap: 8px; flex-wrap: wrap; }
-  .bandeau-hares-consignes { flex-basis: 100%; margin: 0; font-size: 11.5px; color: var(--muted); }
   .a-hares::after {
     content: "HARES"; display: inline-block; margin-left: 6px; padding: 2px 5px; border-radius: 4px;
     background: var(--hares); vertical-align: 1px; font: 500 8.5px/1 var(--mono); letter-spacing: 0.06em; color: #fff;
@@ -2775,7 +2774,10 @@
   .hares-buddy.is-ecoute .hb-sprite { transform: translateY(4px); }
 
   /* ---------- frappe : il pose sa lance, sort le parchemin, une bulle « … » ---------- */
-  .hares-buddy.is-tape .hb-lance { transform: translateY(22px); }
+  /* Pendant qu'il écrit, la lance passe en travers de son dos : derrière le
+     corps, pointe au-dessus de l'épaule ; le poing qui la tenait la lâche. */
+  .hares-buddy.is-tape .hb-lance { transform-origin: 50% 50%; transform: translate(-8px, -1px) rotate(-38deg); }
+  .hares-buddy.is-tape .hb-lance .hb-px-r { display: none; }
   .hares-buddy.is-tape { animation-duration: 1.6s; }
   .hares-buddy.is-tape .hb-parchemin { display: block; animation: hb-ouvre 240ms cubic-bezier(.2, 1.4, .5, 1); }
   .hares-buddy.is-tape .hb-plume { display: block; animation: hb-plume 220ms steps(1, end) infinite alternate; }
@@ -4988,7 +4990,7 @@
     }
     return CMPC_HARES;
   }
-  // Le calcul d'origine, ou celui qu'un projet d'écrasement donnerait.
+  // Le calcul initial, ou celui qu'un projet d'écrasement donnerait.
   function sansHares(f) {
     const garde = IGNORER_HARES;
     IGNORER_HARES = true;
@@ -5025,17 +5027,12 @@
     const el = $("bandeauHares");
     el.hidden = !h || groupe !== "cmpc";
     if (!h) { el.innerHTML = ""; return; }
-    const o = sansHares(() => ({ s: statsSecteur(params.secteur), n: societesRetenues().ids.length }));
-    const avant = (v, d) => (v == null ? "" : ` (origine ${frNum(v, d)})`);
     el.innerHTML = `<div class="bandeau-hares-corps">
-      <span><b>CMPC modifié par HARES</b> — médianes sur ${esc(frEntier(h.ids.length))} sociétés au lieu des
-        ${esc(frEntier(o.n))} retenues d'origine · bêta désendetté ${h.stats.beta_u == null ? "—" : frNum(h.stats.beta_u, 3)}${avant(o.s && o.s.beta_u, 3)}
-        · gearing ${h.stats.gearing == null ? "—" : frNum(h.stats.gearing, 2)}${avant(o.s && o.s.gearing, 2)}</span>
+      <span><b>Modifié par HARES</b></span>
       <span class="bandeau-hares-actions">
         <button type="button" class="valo-bouton" data-bandeau-hares="voir">Voir dans HARES</button>
-        <button type="button" class="valo-bouton is-plein" data-bandeau-hares="retirer">Revenir au calcul d'origine</button>
+        <button type="button" class="valo-bouton is-plein" data-bandeau-hares="retirer">Revenir au calcul initial</button>
       </span>
-      <p class="bandeau-hares-consignes">Consignes : ${esc(["départ : " + h.depart].concat(h.etapes).join(" · "))}</p>
     </div>`;
   }
 
@@ -9654,7 +9651,7 @@
       } else if (a === "hypotheses") {
         basculerHypotheses();
       } else if (a === "hyp-defaut" && VALO.bg && VALO.hyp) {
-        // Chaque jeu revient à son propre calcul d'origine.
+        // Chaque jeu revient à son propre calcul initial.
         if (!VALO.jeux) initialiserJeux(VALO.hyp);
         const n = VALO.hyp.horizon;
         if (VALO.jeu === "regles") VALO.jeux.regles = hypothesesParRegles(VALO.bg, n);
@@ -12846,8 +12843,7 @@
         + `<p class="hares-exemple">« Garde seulement les sociétés dont la marge d'EBITDA est comprise entre 20 % et 35 % » ou « fais ressortir uniquement les groupes ».</p>`,
       appliquer: "Appliquer au CMPC", envoyerComp: "Envoyer vers comparaison",
       annuler: "Annuler cette étape", reprendre: "Reprendre à partir d'ici",
-      voirTableau: (n) => `Voir le tableau (${n})`,
-      applique: "Cet échantillon est appliqué au CMPC.", voirCalcul: "Voir le calcul", retirer: "Revenir au calcul d'origine",
+      applique: "Cet échantillon est appliqué au CMPC.", voirCalcul: "Voir le calcul", retirer: "Revenir au calcul initial",
       envoye: "Échantillon envoyé vers Valorisation › Comparables.", voirComp: "Voir la comparaison",
       cmpcRequis: "Référentiel Comparables requis, dans CMPC › Paramètres",
       note: (an, brute) => `Exercice ${an} · montants en M FCFA · VE = capitalisation + dette totale${brute ? " · levier sur dette brute" : ""}.`,
@@ -12863,10 +12859,10 @@
         + (cible ? " Le gearing cible saisi dans les Paramètres reste celui du calcul." : ""),
       colonnes: ["Actuel", "Avec HARES"],
       lignes: ["Sociétés retenues", "Bêta désendetté médian", "Gearing médian (D/E)", "CMPC"],
-      duree: "Valable pour la session. Le CMPC portera le bandeau « Modifié par HARES », d'où revenir au calcul d'origine.",
+      duree: "Valable pour la session. Le CMPC portera le bandeau « Modifié par HARES », d'où revenir au calcul initial.",
       applique2: (n, b, g) => `CMPC recalculé sur les ${n} sociétés de l'échantillon : bêta désendetté ${b}${g ? ", gearing " + g : ""}. Le CMPC porte désormais le bandeau « Modifié par HARES ».`,
       nonModifie: "Le CMPC n'est pas modifié.",
-      retire: "Le CMPC est revenu à son calcul d'origine.",
+      retire: "Le CMPC est revenu à son calcul initial.",
       retireContexte: "L'échantillon appliqué au CMPC a été retiré : le référentiel, le secteur ou le périmètre du CMPC ont changé depuis.",
     },
     en: {
@@ -12888,8 +12884,7 @@
         + `<p class="hares-exemple">« Garde seulement les sociétés dont la marge d'EBITDA est comprise entre 20 % et 35 % » or « fais ressortir uniquement les groupes » — HARES reads French.</p>`,
       appliquer: "Apply to WACC", envoyerComp: "Send to comparison",
       annuler: "Undo this step", reprendre: "Resume from here",
-      voirTableau: (n) => `Show table (${n})`,
-      applique: "This sample is applied to the WACC.", voirCalcul: "See the calculation", retirer: "Back to the original calculation",
+      applique: "This sample is applied to the WACC.", voirCalcul: "See the calculation", retirer: "Back to the initial calculation",
       envoye: "Sample sent to Valorisation › Comparables.", voirComp: "See the comparison",
       cmpcRequis: "Requires the Comparables reference, in CMPC › Paramètres",
       note: (an, brute) => `Fiscal year ${an} · amounts in M FCFA · EV = market cap + total debt${brute ? " · leverage on gross debt" : ""}.`,
@@ -13031,7 +13026,6 @@
         <button type="button" class="hares-puce" data-hares-envoyer${ids.length ? "" : " disabled"}>${esc(X.envoyerComp)}</button>
         ${derniere ? `<button type="button" class="hares-puce" data-hares-annuler>${esc(X.annuler)}</button>`
                    : `<button type="button" class="hares-puce" data-hares-reprendre="${i}">${esc(X.reprendre)}</button>`}
-        ${HARES.panneauOuvert || !ids.length ? "" : `<button type="button" class="hares-puce" data-hares-panneau>${esc(X.voirTableau(frEntier(ids.length)))}</button>`}
       </div>
       ${applique ? `<p class="hares-envoye is-hares">${esc(X.applique)}
         <button type="button" class="agent-lien" data-hares-voir-cmpc>${esc(X.voirCalcul)}</button> ·
