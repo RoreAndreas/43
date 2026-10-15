@@ -1,10 +1,30 @@
 {
-    "last_update": "2026-10-12 19:44:21",
+    "last_update": "2026-10-15 01:21:57",
     "count": 20,
     "weeks": [
         {
             "semaine": "Semaine du 12 Octobre au 18 Octobre 2026",
             "publications": [
+                {
+                    "date": "14/10/2026",
+                    "titre": "BOA NG : Notation Financière",
+                    "url": "https://www.richbourse.com/common/actualite/afficher-fichier/14-10-2026-boa-ng-notation-financiere"
+                },
+                {
+                    "date": "14/10/2026",
+                    "titre": "BRVM : Transactions Sur Dossier",
+                    "url": "https://www.richbourse.com/common/actualite/afficher-fichier/14-10-2026-brvm-transactions-sur-dossier"
+                },
+                {
+                    "date": "13/10/2026",
+                    "titre": "BICI CI : Rapport d'activités - 1er semestre 2026",
+                    "url": "https://www.richbourse.com/common/actualite/afficher-fichier/13-10-2026-bici-ci-rapport-d-activites-1er-semestre-2026"
+                },
+                {
+                    "date": "13/10/2026",
+                    "titre": "SAPH CI : Rapport d'activités - 3e trimestre 2026",
+                    "url": "https://www.richbourse.com/common/actualite/afficher-fichier/13-10-2026-saph-ci-rapport-d-activites-3e-trimestre-2026"
+                },
                 {
                     "date": "12/10/2026",
                     "titre": "SONATEL SN : Fractionnement de l'action",
@@ -12,13 +32,13 @@
                 },
                 {
                     "date": "12/10/2026",
-                    "titre": "SONATEL SN : Communiqué",
-                    "url": "https://www.richbourse.com/common/actualite/afficher-fichier/12-10-2026-sonatel-sn-communique"
+                    "titre": "Flottant des sociétés cotées à la BRVM",
+                    "url": "https://www.richbourse.com/common/actualite/afficher-fichier/12-10-2026-flottant-des-societes-cotees-a-la-brvm"
                 },
                 {
                     "date": "12/10/2026",
-                    "titre": "Flottant des sociétés cotées à la BRVM",
-                    "url": "https://www.richbourse.com/common/actualite/afficher-fichier/12-10-2026-flottant-des-societes-cotees-a-la-brvm"
+                    "titre": "SONATEL SN : Communiqué",
+                    "url": "https://www.richbourse.com/common/actualite/afficher-fichier/12-10-2026-sonatel-sn-communique"
                 }
             ]
         },
@@ -37,11 +57,6 @@
                 },
                 {
                     "date": "08/10/2026",
-                    "titre": "BRVM : Transactions Sur Dossier",
-                    "url": "https://www.richbourse.com/common/actualite/afficher-fichier/08-10-2026-brvm-transactions-sur-dossier"
-                },
-                {
-                    "date": "08/10/2026",
                     "titre": "ORANGE CI : Attestation des Commissaires Aux Comptes sur le rapport d'activités - 1er semestre 2026",
                     "url": "https://www.richbourse.com/common/actualite/afficher-fichier/08-10-2026-orange-ci-attestation-des-commissaires-aux-comptes-sur-le-rapport-d-activites-1er-semestre-2026"
                 },
@@ -49,6 +64,11 @@
                     "date": "08/10/2026",
                     "titre": "ORANGE CI : Rapport d'activités - 1er semestre 2026",
                     "url": "https://www.richbourse.com/common/actualite/afficher-fichier/08-10-2026-orange-ci-rapport-d-activites-1er-semestre-2026"
+                },
+                {
+                    "date": "08/10/2026",
+                    "titre": "BRVM : Transactions Sur Dossier",
+                    "url": "https://www.richbourse.com/common/actualite/afficher-fichier/08-10-2026-brvm-transactions-sur-dossier"
                 },
                 {
                     "date": "07/10/2026",
@@ -72,13 +92,13 @@
                 },
                 {
                     "date": "05/10/2026",
-                    "titre": "SONATEL : Annulation de transaction",
-                    "url": "https://www.richbourse.com/common/actualite/afficher-fichier/05-10-2026-brvm-annulation-de-transaction"
+                    "titre": "AFRICA GLOGAL LOGISTICS CI : Attestation des Commissaires Aux Comptes - Etats financiers - Exercice 2025",
+                    "url": "https://www.richbourse.com/common/actualite/afficher-fichier/05-10-2026-africa-glogal-logistics-ci-attestation-des-commissaires-aux-comptes-etats-financiers-exercice-2025"
                 },
                 {
                     "date": "05/10/2026",
-                    "titre": "AFRICA GLOGAL LOGISTICS CI : Attestation des Commissaires Aux Comptes - Etats financiers - Exercice 2025",
-                    "url": "https://www.richbourse.com/common/actualite/afficher-fichier/05-10-2026-africa-glogal-logistics-ci-attestation-des-commissaires-aux-comptes-etats-financiers-exercice-2025"
+                    "titre": "SONATEL : Annulation de transaction",
+                    "url": "https://www.richbourse.com/common/actualite/afficher-fichier/05-10-2026-brvm-annulation-de-transaction"
                 }
             ]
         },
@@ -92,28 +112,8 @@
                 },
                 {
                     "date": "01/10/2026",
-                    "titre": "Composition de l'indice BRVM",
-                    "url": "https://www.richbourse.com/common/actualite/afficher-fichier/01-10-2026-composition-de-l-indice-brvm"
-                },
-                {
-                    "date": "01/10/2026",
                     "titre": "BOA CI : Rapport d'activités - 1er semestre 2026",
                     "url": "https://www.richbourse.com/common/actualite/afficher-fichier/01-10-2026-boa-ci-rapport-d-activites-1er-semestre-2026"
-                },
-                {
-                    "date": "01/10/2026",
-                    "titre": "ONATEL BF : Rapport d'activités et Attestation des Commissaires Aux Comptes - 1er semestre 2026",
-                    "url": "https://www.richbourse.com/common/actualite/afficher-fichier/01-10-2026-onatel-bf-rapport-d-activites-et-attestation-des-commissaires-aux-comptes-1er-semestre-2026"
-                },
-                {
-                    "date": "01/10/2026",
-                    "titre": "ONATEL BF : Rapport d'activités - 1er semestre 2026",
-                    "url": "https://www.richbourse.com/common/actualite/afficher-fichier/01-10-2026-onatel-bf-rapport-dactivites-1er-semestre-2026"
-                },
-                {
-                    "date": "01/10/2026",
-                    "titre": "BOA CI : Rapport d'examen limité des états financiers - 1er semestre 2026",
-                    "url": "https://www.richbourse.com/common/actualite/afficher-fichier/01-10-2026-boa-ci-rapport-d-examen-limite-des-etats-financiers-1er-semestre-2026"
                 }
             ]
         }
