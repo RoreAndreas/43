@@ -1,10 +1,15 @@
 {
-    "last_update": "2026-10-15 01:21:57",
+    "last_update": "2026-10-16 06:59:07",
     "count": 20,
     "weeks": [
         {
             "semaine": "Semaine du 12 Octobre au 18 Octobre 2026",
             "publications": [
+                {
+                    "date": "15/10/2026",
+                    "titre": "BOA Bénin : Transaction Sur Dossier",
+                    "url": "https://www.richbourse.com/common/actualite/afficher-fichier/15-10-2026-boa-benin-transaction-sur-dossier"
+                },
                 {
                     "date": "14/10/2026",
                     "titre": "BOA NG : Notation Financière",
@@ -109,11 +114,6 @@
                     "date": "02/10/2026",
                     "titre": "ETI TG : Avis de convocation - Assemblée Générale Ordinaire",
                     "url": "https://www.richbourse.com/common/actualite/afficher-fichier/02-10-2026-eti-tg-avis-de-convocation-assemblee-generale-ordinaire"
-                },
-                {
-                    "date": "01/10/2026",
-                    "titre": "BOA CI : Rapport d'activités - 1er semestre 2026",
-                    "url": "https://www.richbourse.com/common/actualite/afficher-fichier/01-10-2026-boa-ci-rapport-d-activites-1er-semestre-2026"
                 }
             ]
         }
