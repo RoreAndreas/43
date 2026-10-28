@@ -567,3 +567,69 @@ def test_conserve_seul_choisit_hors_echantillon(page, choix):
     telecoms_du_monde(page)
     demander(page, f'Conserve {soc[nom]["nom"]} et {soc[ticker]["ticker"]}')
     assert ids(page) == [nom, ticker]
+
+
+# ------------------------------------------- l'industry classification S&P
+
+def test_decomposer_une_industrie_par_industry_classification(page, donnees):
+    """Sur toute la base, sans toucher à l'échantillon ni ouvrir son tableau."""
+    soc = donnees["comparables"]["societes"]
+    attendu = {}
+    for s in soc.values():
+        if s["industrie"] == TELECOMS:
+            attendu[s["classification"]] = attendu.get(s["classification"], 0) + 1
+    ouvrir_hares(page)
+    avant = ids(page)
+    texte = demander(page, f"De quoi est composée l'industrie {TELECOMS} en industry classification ?")
+    rep = page.evaluate("HARES.etapes[0].repartitions[0]")
+    assert rep["industrie"] == TELECOMS and len(rep["groupes"]) == 1
+    assert {v["valeur"]: v["n"] for v in rep["groupes"][0]["valeurs"]} == attendu
+    assert ids(page) == avant
+    assert "is-ouvert" not in page.get_attribute("#haresEspace", "class")
+    assert "restent" not in texte
+
+
+def test_decomposer_l_echantillon_regroupe_par_industrie(page, donnees):
+    telecoms_du_monde(page)
+    demander(page, "Fais ressortir uniquement les groupes")
+    echantillon = ids(page)
+    demander(page, "Décompose l'échantillon par industry classification")
+    rep = page.evaluate("HARES.etapes[2].repartitions[0]")
+    assert rep["industrie"] is None and rep["n"] == len(echantillon)
+    assert [g["nom"] for g in rep["groupes"]] == [TELECOMS]
+
+
+def test_cliquer_une_classification_la_filtre(page, donnees):
+    soc = donnees["comparables"]["societes"]
+    telecoms_du_monde(page)
+    demander(page, "Décompose l'échantillon par industry classification")
+    valeur = page.inner_text("#haresReponse .hares-valeur")
+    page.click("#haresReponse .hares-valeur")
+    page.wait_for_timeout(250)
+    attendu = {i for i, s in soc.items() if s["industrie"] == TELECOMS and s["classification"] == valeur}
+    assert set(ids(page)) == attendu
+    # Le fil garde la composition passée, noms compris, sans bouton.
+    assert valeur in page.inner_text("#haresHistorique")
+
+
+def test_filtrer_et_ecarter_par_industry_classification(page, donnees):
+    soc = donnees["comparables"]["societes"]
+    valeur = "Asset Management"
+    attendu = {i for i, s in soc.items() if s.get("classification") == valeur}
+    assert attendu, "aucune société « Asset Management » dans les données"
+    ouvrir_hares(page)
+    demander(page, f"Isole l'industry classification {valeur}")
+    assert set(ids(page)) == attendu
+    demander(page, "repars de zéro")
+    demander(page, f"Retire l'industry classification {valeur}")
+    assert not set(ids(page)) & attendu
+
+
+def test_une_classification_approchee_propose_les_candidates(page):
+    ouvrir_hares(page)
+    page.fill("#haresQuestion", "Isole la classification Banks")
+    page.click("#haresDemander")
+    page.wait_for_timeout(250)
+    assert "plusieurs" in page.inner_text("#haresReponse .agent-erreur")
+    page.click('#haresReponse [data-agent-candidat="Isole l\'industry classification Bank"]')
+    assert page.input_value("#haresQuestion") == "Isole l'industry classification Bank"

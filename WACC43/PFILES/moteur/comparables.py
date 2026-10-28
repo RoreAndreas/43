@@ -126,6 +126,7 @@ _GROUPE_NOM = re.compile(r"\b(?:group|groupe|grupo|gruppe|groep|holding|holdings
 # Code S&P de la trésorerie, absent des exports d'octobre 2026. Quand il y
 # figure, la dette nette remplace la dette brute dans les ratios de HARES.
 CODE_TRESORERIE = "IQ_CASH_ST_INVEST"
+CODE_CLASSIFICATION = "MI_INDUSTRY_CLASSIFICATION"
 
 
 def statut_groupe(nom, description) -> tuple:
@@ -155,6 +156,15 @@ def _nombre(valeur):
         return float(texte.replace(",", ""))
     except ValueError:
         return None
+
+
+
+def _texte(valeur):
+    """Une cellule texte, ou None quand S&P n'a rien (vide, « NA », « - »)."""
+    if valeur is None:
+        return None
+    texte = str(valeur).strip()
+    return None if not texte or texte.upper() in _ABSENT else texte
 
 
 def _nom_court(nom: str) -> str:
@@ -304,6 +314,11 @@ def charger(chemin: Path, progress=None) -> dict:
         if beta_3ans is None:
             dire(f"Comparables : {chemin.name} sans bêta à 3 ans — bêta à 1 an retenu.")
         is_effectif = c1.une("IQ_EFFECT_TAX_RATE") if c1.a("IQ_EFFECT_TAX_RATE") else None
+        # L'« Industry Classification » de S&P Market Intelligence : une autre
+        # nomenclature que la Primary Industry de Sheet2 (« Bank » et non
+        # « Diversified Banks »), qu'elle contredit sur la moitié des sociétés
+        # africaines. HARES filtre et décompose sur elle. Facultative.
+        p_classe = c1.une(CODE_CLASSIFICATION) if c1.a(CODE_CLASSIFICATION) else None
         p_id = c1.une("SP_ENTITY_ID")
 
         comptes = {}
@@ -323,6 +338,7 @@ def charger(chemin: Path, progress=None) -> dict:
                 # 100 % quand le résultat avant impôt est presque nul. Conservé
                 # pour un usage ultérieur, il n'entre pas dans le désendettement.
                 "is_effectif": None if taux is None else taux / 100.0,
+                "classification": None if p_classe is None else _texte(ligne[p_classe]),
             }
 
         c3 = _colonnes(wb["Sheet3"], chemin)
@@ -648,6 +664,8 @@ def payload_page(univers: dict, classer) -> dict:
             sortie[ident]["mere"] = mere
         if s.get("tresorerie") is not None:
             sortie[ident]["tresorerie"] = round(s["tresorerie"], 1)
+        if s.get("classification"):
+            sortie[ident]["classification"] = s["classification"]
     return sortie
 
 

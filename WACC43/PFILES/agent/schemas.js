@@ -96,7 +96,7 @@ const MESSAGE = (source) => ({
 
 // HARES : des opérations sur l'échantillon de travail de la page, appliquées
 // à la suite des précédentes. Même contrat que `executerOperations` côté page.
-export const OPERATIONS_ECHANTILLON = ["filtrer", "trier", "limiter", "statistiques", "aberrantes", "retirer", "garder", "selectionner", "repartir"];
+export const OPERATIONS_ECHANTILLON = ["filtrer", "trier", "limiter", "statistiques", "aberrantes", "retirer", "garder", "selectionner", "repartition", "repartir"];
 export const OPERATEURS_ECHANTILLON = OPERATEURS.concat(["entre", "hors"]);
 const OPERATION = {
   type: "object",
@@ -117,6 +117,7 @@ const OPERATION = {
     champs: { type: "array", items: TEXTE(40), maxItems: 6 },
     noms: { type: "array", items: TEXTE(120), maxItems: 40 },
     depart: { enum: ["depart", "base", "comparables"] },
+    industrie: TEXTE(80),
   },
 };
 const ECHANTILLON = {

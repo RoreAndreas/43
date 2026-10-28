@@ -189,6 +189,18 @@ latéral ni filtre classique. Il affine et analyse en langage naturel un
   place ; HARES propose les candidats plutôt que de deviner, et un nom
   introuvable arrête la demande au lieu d'être écarté en silence. Quand la
   demande vise le CMPC, la confirmation de l'écrasement suit aussitôt.
+- **Industry classification.** La colonne « Industry Classification » des
+  exports (`MI_INDUSTRY_CLASSIFICATION`, Sheet1) est une autre nomenclature
+  que la Primary Industry de Sheet2 — « Bank » et non « Diversified Banks » —
+  et la contredit sur la moitié des sociétés africaines ; le build l'embarque
+  à part, dans `classification`. HARES filtre dessus (« isole l'industry
+  classification Asset Management », « garde les Oil and Gas Exploration
+  and Production au Nigeria ») et
+  décompose : « de quoi est composée l'industrie Banks en industry
+  classification ? » répond sur toute la base, « décompose l'échantillon par
+  industry classification » sur l'échantillon, regroupé par industrie. La
+  composition ne filtre rien ; chaque classification s'y clique pour devenir
+  un filtre.
 - **Cloisonné.** Rien de ce que HARES filtre ne touche les autres onglets. Seul
   « Envoyer vers comparaison » transmet l'échantillon, et seulement aux
   multiples de Valorisation › Comparables — donc à la valorisation par les

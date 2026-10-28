@@ -2395,6 +2395,8 @@
   .hares-intertitre { margin: 10px 0 6px; font: 600 10.5px/1 var(--hares-sans); letter-spacing: .04em; text-transform: uppercase; color: var(--hares-gris); }
   .hares-retirees b { font-weight: 600; }
   .hares-defile { overflow-x: auto; }
+  .hares-repartition { max-height: 360px; overflow-y: auto; }
+  .hares-groupe td { padding-top: 10px; border-top: 1px solid var(--hares-ligne); }
 
   /* La barre : violette, le soldat derrière. */
   .hares-saisie-zone { position: relative; }
@@ -12115,12 +12117,16 @@
        aberrantes   { champs }
        retirer      { noms }     garder { noms }
        selectionner { noms }     noms ou tickers, pris dans toute la base
+       repartition  { champ, industrie? }   combien de sociétés par valeur, sans
+                                 toucher à l'échantillon ; avec une industrie,
+                                 sur toute la base
        repartir     { depart }   depart : depart | base | comparables
      Les ratios se calculent sur un exercice commun à tout l'échantillon, fixé
      au départ : un multiple n'a de sens qu'entre sociétés du même exercice. */
   const CHAMPS_HARES = {
     nom: { lib: "Société" }, pays: { lib: "Pays" }, continent: { lib: "Continent" }, zone: { lib: "Zone" },
     place: { lib: "Place" }, industrie: { lib: "Industrie" }, activite: { lib: "Activité" },
+    classification: { lib: "Industry classification" },
     statut: { lib: "Statut" }, mere: { lib: "Maison mère" },
     capitalisation: { lib: "Capitalisation", fmt: "montant" }, dette: { lib: "Dette totale", fmt: "montant" },
     dette_nette: { lib: "Dette nette", fmt: "montant" }, ve: { lib: "Valeur d'entreprise", fmt: "montant" },
@@ -12197,7 +12203,8 @@
     const ratio = (num, den) => (num != null && den != null && den > 0 ? num / den : null);
     return {
       id: id, nom: s.nom, pays: s.pays, continent: s.continent, zone: s.zone, place: s.place,
-      industrie: s.industrie, activite: s.activite, statut: s.statut || null, mere: s.mere || null,
+      industrie: s.industrie, activite: s.activite, classification: s.classification || null,
+      statut: s.statut || null, mere: s.mere || null,
       capitalisation: s.capitalisation, dette: s.dette, dette_nette: nette, ve: ve,
       ca: ca, ebitda: eb, rn: rn,
       marge_ebitda: ratio(eb, ca), croissance_ca: ca != null && caAvant > 0 ? ca / caAvant - 1 : null,
@@ -12352,7 +12359,7 @@
   function executerOperations(operations, courant) {
     let lignes = courant.ids.map(ligneHares).filter(Boolean);
     let tri = courant.tri;
-    const resolues = [], notes = [], stats = [], retirees = [];
+    const resolues = [], notes = [], stats = [], retirees = [], repartitions = [];
     for (const op of operations) {
       if (!op || typeof op !== "object") return erreurAgent("invalide", "Opération absente.");
       if (op.type === "filtrer") {
@@ -12380,7 +12387,12 @@
           for (const v of liste) {
             const r = resoudreValeurHares(champ, v);
             if (r.ok) sortie.push(r.valeur);
-            else if (r.code === "ambigu" || liste.length === 1) return erreurAgent(r.code, r.message, r.candidats);
+            // Une industry classification approchée : chaque candidate remet
+            // une demande entière dans la barre, pas son seul nom.
+            else if (r.code === "ambigu" || liste.length === 1) {
+              return erreurAgent(r.code, r.message, champ === "classification" && r.candidats
+                ? r.candidats.map((c) => ({ libelle: c, valeur: "Isole l'industry classification " + c })) : r.candidats);
+            }
           }
           if (!sortie.length) return erreurAgent("inconnu", `Aucune valeur de « ${libHares(champ)} » ne correspond à la liste demandée.`);
           valeur = op.op === "dans" ? sortie : sortie[0];
@@ -12495,13 +12507,47 @@
           if (ailleurs.length) notes.push(`Hors du secteur du CMPC (${params.secteur}) : ${ailleurs.map((id) => `${COMPARABLES[id].nom} (${COMPARABLES[id].industrie || "secteur inconnu"})`).join(", ")}.`);
         }
         resolues.push({ type: "selectionner", noms: choisies.map((id) => designationHares(COMPARABLES[id])) });
+      } else if (op.type === "repartition") {
+        const champ = CHAMPS_HARES[op.champ] && !estNumeriqueHares(op.champ) && op.champ !== "nom" ? op.champ : "classification";
+        let population = lignes, industrie = null;
+        if (op.industrie) {
+          const r = resoudreValeurHares("industrie", op.industrie);
+          if (!r.ok) return erreurAgent(r.code, "Industrie : " + r.message, r.candidats);
+          industrie = r.valeur;
+          population = Object.keys(COMPARABLES).filter((id) => COMPARABLES[id].industrie === industrie).map(ligneHares).filter(Boolean);
+        }
+        repartitions.push(repartitionHares(population, champ, industrie));
+        resolues.push({ type: "repartition", champ: champ, industrie: industrie });
       } else if (op.type === "repartir") {
         return erreurAgent("invalide", "« Repartir » ne peut venir qu'en tête de la demande.");
       } else {
         return erreurAgent("invalide", `Opération inconnue : « ${op.type} ».`);
       }
     }
-    return { ok: true, ids: lignes.map((l) => l.id), tri: tri, operations: resolues, notes: notes, stats: stats, retirees: retirees };
+    return { ok: true, ids: lignes.map((l) => l.id), tri: tri, operations: resolues, notes: notes, stats: stats, retirees: retirees,
+             repartitions: repartitions };
+  }
+
+  // Combien de sociétés par valeur d'un champ texte. Par industry
+  // classification (ou par activité), regroupées sous leur industrie : c'est
+  // la question « de quoi est composée chaque industrie ».
+  function repartitionHares(lignes, champ, industrie) {
+    const grouper = champ === "classification" || champ === "activite";
+    const groupes = new Map();
+    for (const l of lignes) {
+      const g = grouper ? l.industrie || "Industrie non renseignée" : "";
+      const v = l[champ] == null || l[champ] === "" ? "Non renseignée" : String(l[champ]);
+      if (!groupes.has(g)) groupes.set(g, new Map());
+      groupes.get(g).set(v, (groupes.get(g).get(v) || 0) + 1);
+    }
+    const parTaille = (a, b) => b.n - a.n || String(a.nom || a.valeur).localeCompare(String(b.nom || b.valeur), "fr");
+    return {
+      champ: champ, industrie: industrie, n: lignes.length,
+      groupes: [...groupes].map(([nom, m]) => ({
+        nom: nom, n: [...m.values()].reduce((a, b) => a + b, 0),
+        valeurs: [...m].map(([valeur, n]) => ({ valeur: valeur, n: n })).sort(parTaille),
+      })).sort(parTaille),
+    };
   }
 
   /* ---- Reformulation ---- */
@@ -12513,7 +12559,8 @@
 
   const ARTICLES_HARES = { industrie: ["le secteur", "les secteurs"], pays: ["le pays", "les pays"], continent: ["le continent", "les continents"],
     zone: ["la zone", "les zones"], place: ["la place de cotation", "les places de cotation"], activite: ["l'activité", "les activités"],
-    nom: ["la société", "les sociétés"], mere: ["la maison mère", "les maisons mères"] };
+    nom: ["la société", "les sociétés"], mere: ["la maison mère", "les maisons mères"],
+    classification: ["l'industry classification", "les industry classifications"] };
   const articleHares = (o) => (ARTICLES_HARES[o.champ] || ["« " + libHares(o.champ) + " »", "« " + libHares(o.champ) + " »"])[Array.isArray(o.valeur) && o.valeur.length > 1 ? 1 : 0];
 
   function phraseOperation(o) {
@@ -12531,6 +12578,9 @@
     if (o.type === "retirer") return `retirer ${o.noms.join(", ")}`;
     if (o.type === "garder") return `ne garder que ${o.noms.join(", ")}`;
     if (o.type === "selectionner") return `travailler sur ${o.noms.join(", ")}, pris dans toute la base`;
+    if (o.type === "repartition") {
+      return `décomposer ${o.industrie ? `l'industrie « ${o.industrie} », sur toute la base,` : "l'échantillon"} par ${libHares(o.champ).toLowerCase()}`;
+    }
     return o.type;
   }
   const reformulerHares = (ops) => ops.map(phraseOperation).join(", puis ");
@@ -12550,6 +12600,7 @@
     if (o.type === "retirer") return "Retrait de " + o.noms.length;
     if (o.type === "garder") return "Sélection de " + o.noms.length;
     if (o.type === "selectionner") return pluriel(o.noms.length, "société") + " choisie" + (o.noms.length > 1 ? "s" : "");
+    if (o.type === "repartition") return "Composition" + (o.industrie ? " de " + o.industrie : "");
     return o.type;
   }
   const etiquetteEtape = (e) => {
@@ -12729,10 +12780,62 @@
     return { operations: [{ type: "selectionner", noms: parties }], cmpc: / (?:cmpc|wacc|calcul|calculs|cout du capital) /.test(t) };
   }
 
+  /* L'« Industry Classification » S&P (champ classification), plus fine que
+     l'industrie et d'une autre nomenclature que la Primary Industry : dite
+     telle (« l'industry classification Bank »), ou nommée par sa valeur
+     anglaise quand elle tient en plusieurs mots et n'est pas aussi le nom
+     d'une industrie — « Biotechnology » reste un secteur, « Bank » seul est
+     trop court pour être reconnu sans le mot. Les valeurs reconnues sont
+     ôtées du texte : « Oil and Gas Exploration and Production » ne doit pas
+     ressortir aussi en secteur pétrolier. */
+  const MOT_CLASSIFICATION_HARES = / (?:industry classifications?|classifications?)(?= )/;
+  let CLASSIFICATIONS_HARES = null;
+  function classificationsHares(t) {
+    if (!CLASSIFICATIONS_HARES) {
+      const industries = new Set(valeursHares("industrie").map(cleNom));
+      CLASSIFICATIONS_HARES = valeursHares("classification")
+        .map((v) => ({ cle: cleNom(v), valeur: v, seule: cleNom(v).indexOf(" ") >= 0 && !industries.has(cleNom(v)) }))
+        .sort((a, b) => b.cle.length - a.cle.length);
+    }
+    const dite = MOT_CLASSIFICATION_HARES.test(t);
+    let reste = t;
+    const valeurs = [];
+    for (const c of CLASSIFICATIONS_HARES) {
+      if ((dite || c.seule) && reste.indexOf(" " + c.cle + " ") >= 0) {
+        valeurs.push(c.valeur);
+        reste = reste.replace(" " + c.cle + " ", " ");
+      }
+    }
+    // Dite, mais sans valeur exacte : le texte qui suit le mot, que
+    // l'exécution résout au plus proche ou dont elle propose les candidates.
+    if (dite && !valeurs.length) {
+      const m = / (?:industry classifications?|classifications?) (?:(?:est|sont|egale a|=|de|du|des|d|l|la|le|les) )*(.+?)(?= (?:en|au|aux|dans|puis|parmi|avec|dont|et|ou|par|classe\w*|trie\w*) | $)/.exec(" " + reste.trim() + " ");
+      if (m) { valeurs.push(m[1]); reste = reste.replace(" " + m[1] + " ", " "); }
+    }
+    return { valeurs: valeurs, reste: reste.replace(MOT_CLASSIFICATION_HARES, " ") };
+  }
+
+  // « De quoi est composée l'industrie Banks ? », « décompose l'échantillon
+  // par industry classification » : une question, qui ne filtre rien.
+  const COMPOSITION_HARES = / (?:compose|composee|composees|composes|composent|composition|repartition|repartis|repartie|reparties|decompose\w*|decomposition|ventile\w*|ventilation|de quoi (?:est|sont)) /;
+  function compositionHares(t, texte) {
+    if (!COMPOSITION_HARES.test(t)) return null;
+    const champ = / par pays /.test(t) ? "pays" : / par zones? /.test(t) ? "zone" : / par continents? /.test(t) ? "continent"
+      : / par activites? /.test(t) ? "activite"
+      : / par (?:secteurs?|industries?) /.test(t) && !MOT_CLASSIFICATION_HARES.test(t) ? "industrie" : "classification";
+    const op = { type: "repartition", champ: champ };
+    const e = entitesQuestion(texte);
+    if (e.secteurs.length && champ !== "industrie") op.industrie = e.secteurs[0];
+    return { operations: [op] };
+  }
+
   /** Rend { operations } ou null quand la demande n'est pas reconnue. */
   function reconnaitreOperations(texte) {
-    const t = texteHares(texte);
-    const e = entitesQuestion(texte);
+    const composition = compositionHares(texteHares(texte), texte);
+    if (composition) return composition;
+    const classes = classificationsHares(texteHares(texte));
+    const t = classes.reste;
+    const e = entitesQuestion(t);
     const ops = [];
     const negatif = NEGATION_HARES.test(t);
 
@@ -12766,8 +12869,15 @@
     else if (sansFiliales) ops.push({ type: "filtrer", champ: "statut", op: "!=", valeur: "filiale" });
     else if (queFiliales) ops.push({ type: "filtrer", champ: "statut", op: "=", valeur: "filiale" });
 
-    // Secteur et géographie, avec les lexiques du moteur.
+    // Secteur, industry classification et géographie, avec les lexiques du moteur.
     const categories = [];
+    // Écarter plusieurs classifications, c'est les écarter une à une : la
+    // négation, plus bas, retourne chaque « = » en « != ».
+    if (classes.valeurs.length === 1 || (classes.valeurs.length && negatif)) {
+      classes.valeurs.forEach((v) => categories.push({ type: "filtrer", champ: "classification", op: "=", valeur: v }));
+    } else if (classes.valeurs.length) {
+      categories.push({ type: "filtrer", champ: "classification", op: "dans", valeur: classes.valeurs });
+    }
     if (e.secteurs.length) categories.push({ type: "filtrer", champ: "industrie", op: "=", valeur: e.secteurs[0] });
     if (e.pays.length) categories.push(e.pays.length > 1 ? { type: "filtrer", champ: "pays", op: "dans", valeur: e.pays }
                                                           : { type: "filtrer", champ: "pays", op: "=", valeur: e.pays[0] });
@@ -12843,7 +12953,7 @@
   // « retire Shenandoah Telecommunications » filtrent, sans devenir une fiche
   // d'industrie Damodaran — sauf si la demande nomme une donnée pays, un taux
   // ou le CMPC. Une industrie Damodaran ne répond que si elle est dite telle.
-  const ACTION_HARES = / (?:isole\w*|garde\w*|conserve\w*|retire\w*|enleve\w*|exclu\w*|ecarte\w*|filtre\w*|parmi|classe\w*|trie\w*|ordonne\w*|range\w*|ressortir|selectionne\w*|limite\w*|repar\w*|reprend\w*|recommence\w*|aberrant\w*|elimine\w*|supprime\w*) /;
+  const ACTION_HARES = / (?:isole\w*|garde\w*|conserve\w*|retire\w*|enleve\w*|exclu\w*|ecarte\w*|filtre\w*|parmi|classe\w*|trie\w*|ordonne\w*|range\w*|ressortir|selectionne\w*|limite\w*|repar\w*|reprend\w*|recommence\w*|aberrant\w*|elimine\w*|supprime\w*|compos\w*|repartition|reparti\w*|decompos\w*|ventil\w*|classifications?) /;
   function questionDonnees(texte) {
     const t = " " + cleNom(texte) + " ";
     const explicite = metriquePays(t) || / (?:cmpc|wacc|taux sans risque|us bonds?|treasury) /.test(t);
@@ -12891,10 +13001,12 @@
     HARES.etapes.push(Object.assign({
       demande: demande, operations: r.operations, reformulation: reformulerHares(r.operations),
       avant: courant.ids.length, apres: r.ids.length, ids: r.ids, tri: r.tri,
-      notes: r.notes, stats: r.stats, retirees: r.retirees,
+      notes: r.notes, stats: r.stats, retirees: r.retirees, repartitions: r.repartitions,
     }, meta));
     HARES.vue = null;
-    HARES.panneauOuvert = r.ids.length > LIGNES_DANS_LE_FIL;
+    // Une composition répond à une question : le tableau de l'échantillon,
+    // qu'elle ne change pas, reste fermé.
+    HARES.panneauOuvert = r.ids.length > LIGNES_DANS_LE_FIL && !r.operations.every((o) => o.type === "repartition");
     if (HARES.panneauOuvert && BUDDY_HARES) BUDDY_HARES.montrer(2600);
     rendreHares();
   }
@@ -12991,7 +13103,7 @@
       rouvrir: (n) => `Afficher le tableau (${n}) ▸`,
       vous: "Analyste", attente: "Traduction de la demande…",
       compris: "J'ai compris :", corriger: "Corriger",
-      restent: (n, a) => `<b>${n}</b> société${n > 1 ? "s" : ""} sur ${a} ${n > 1 ? "restent" : "reste"}`,
+      restent: (n, a) => `<b>${frEntier(n)}</b> société${n > 1 ? "s" : ""} sur ${frEntier(a)} ${n > 1 ? "restent" : "reste"}`,
       renvoi: "tableau complet à droite →",
       etape: (i) => `Étape ${i}`,
       accueil: (n, lib) => `<p>Bonjour — je peux affiner votre échantillon de comparables (${lib}). Essayez par exemple :</p>`
@@ -13032,7 +13144,7 @@
       rouvrir: (n) => `Show table (${n}) ▸`,
       vous: "Analyst", attente: "Translating the request…",
       compris: "Understood:", corriger: "Correct",
-      restent: (n, a) => `<b>${n}</b> of ${a} compan${n > 1 ? "ies remain" : "y remains"}`,
+      restent: (n, a) => `<b>${frEntier(n)}</b> of ${frEntier(a)} compan${n > 1 ? "ies remain" : "y remains"}`,
       renvoi: "full table on the right →",
       etape: (i) => `Step ${i}`,
       accueil: (n, lib) => `<p>Hi — I can help you refine your comparable sample (${lib}). Try commands like:</p>`
@@ -13085,6 +13197,7 @@
       const copie = live.cloneNode(true);
       // Le renvoi vers le tableau devient du texte : le bouton n'agirait plus.
       copie.querySelectorAll(".hares-renvoi").forEach((b) => b.replaceWith(document.createTextNode(b.textContent.replace(/\s*→$/, ""))));
+      copie.querySelectorAll(".hares-valeur").forEach((b) => b.replaceWith(document.createTextNode(b.textContent)));
       copie.querySelectorAll("button, .hares-exemples").forEach((b) => b.remove());
       copie.querySelectorAll("[id]").forEach((n) => n.removeAttribute("id"));
       HARES.historique.push({ qui: "hares", html: copie.innerHTML });
@@ -13248,6 +13361,8 @@
     "Garde uniquement les sociétés dont la croissance du CA dépasse 10 %",
     "Donne-moi la médiane et les quartiles des multiples",
     "Utilise Sonatel, BRVM:ORAC et MTN Nigeria pour le CMPC",
+    "De quoi sont composées les industries de l'échantillon en industry classification ?",
+    "Décompose l'industrie Banks par industry classification",
   ];
 
   function departHtml() {
@@ -13286,18 +13401,40 @@
       </table></div>`;
   }
 
+  // Chaque industry classification se clique : elle devient un filtre, sur
+  // l'échantillon, ou sur toute la base quand la composition y a été prise.
+  function repartitionHtml(r) {
+    const par = libHares(r.champ).toLowerCase();
+    const titre = `Composition ${r.industrie ? `de l'industrie « ${r.industrie} », sur toute la base` : "de l'échantillon"} par ${par} — ${pluriel(r.n, "société")}`;
+    const cliquable = r.champ === "classification";
+    const valeur = (v) => (!cliquable || v === "Non renseignée" ? esc(v)
+      : `<button type="button" class="agent-lien hares-valeur" data-agent-question="${esc((r.industrie ? "Repars de la base complète et isole l'industry classification " : "Isole l'industry classification ") + v)}">${esc(v)}</button>`);
+    const entete = r.groupes.length > 1 || r.groupes[0] && r.groupes[0].nom;
+    return `
+      <p class="hares-intertitre">${esc(titre)}</p>
+      <div class="hares-defile hares-repartition"><table class="agent-table hares-stats">
+        <thead><tr><th>${esc(libHares(r.champ))}</th><th class="is-nombre">Sociétés</th><th class="is-nombre">Part</th></tr></thead>
+        <tbody>${r.groupes.map((g) => (entete ? `<tr class="hares-groupe"><td colspan="3"><b>${esc(g.nom)}</b> · ${esc(pluriel(g.n, "société"))}</td></tr>` : "")
+          + g.valeurs.map((x) => `<tr data-hares-repartition="${esc(x.valeur)}"><td>${valeur(x.valeur)}</td><td class="is-nombre">${x.n}</td>
+            <td class="is-nombre">${esc(frPct(x.n / g.n, 0))}</td></tr>`).join("")).join("")}</tbody>
+      </table></div>`;
+  }
+
   function etapeHtml(e, i) {
     const X = TH();
     const derniere = i === HARES.etapes.length - 1;
     const origine = origineDemande(e);
     const grand = e.apres > LIGNES_DANS_LE_FIL;
     const reformulation = e.reformulation.charAt(0).toUpperCase() + e.reformulation.slice(1);
+    // Une composition ne filtre rien : dire combien restent n'aurait pas de sens.
+    const question = e.operations.every((o) => o.type === "repartition");
     return `
-      <p class="hares-etape-tete"><b>${esc(X.compris)}</b> ${esc(reformulation)}. ${X.restent(esc(frEntier(e.apres)), esc(frEntier(e.avant)))}${
-        grand && derniere ? ` — <button type="button" class="hares-renvoi" data-hares-panneau>${esc(X.renvoi)}</button>` : "."}
+      <p class="hares-etape-tete"><b>${esc(X.compris)}</b> ${esc(reformulation)}${question ? "." : ". " + X.restent(e.apres, e.avant) + (
+        grand && derniere ? ` — <button type="button" class="hares-renvoi" data-hares-panneau>${esc(X.renvoi)}</button>` : ".")}
         <button type="button" class="agent-lien" data-agent-corriger="${esc(e.demande)}">${esc(X.corriger)}</button></p>
       ${e.notes.length ? `<ul class="hares-notes">${e.notes.map((n) => `<li>${esc(n)}</li>`).join("")}</ul>` : ""}
       ${statsHtml(e.stats)}
+      ${(e.repartitions || []).map(repartitionHtml).join("")}
       ${e.retirees.length ? `<div class="hares-retirees"><p class="hares-intertitre">Retirées, et pourquoi</p>
         <ul>${e.retirees.map((x) => `<li><b>${esc(x.nom)}</b> : ${esc(x.raison)}.</li>`).join("")}</ul></div>` : ""}
       <p class="agent-source">${esc(X.etape(i + 1))} · Source : S&amp;P Capital IQ, exercice ${HARES.an}${origine ? " · " + esc(origine) : ""}.</p>`;

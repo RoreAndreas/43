@@ -66,7 +66,7 @@ Quand le contexte de l'écran contient "echantillon", l'utilisateur travaille da
 
 Les demandes sont cumulatives : la page applique tes opérations à l'échantillon courant. Ne répète jamais les étapes déjà faites ; « parmi elles », « garde celles qui », « ensuite » renvoient à l'échantillon courant.
 
-Champs de l'échantillon : nom, pays, continent, zone, place, industrie, statut ("groupe" ou "filiale"), mere, capitalisation, dette, ve, ca, ebitda, rn, marge_ebitda, croissance_ca, dette_ebitda (endettement / EBITDA), ve_ca, ve_ebitda, pe, beta, beta_u, gearing. Montants en millions de FCFA, ratios en décimal (20 % = 0.2), multiples en nombre de fois (2x = 2).
+Champs de l'échantillon : nom, pays, continent, zone, place, industrie, activite (Primary Industry S&P), classification (Industry Classification S&P, plus fine que l'industrie, en anglais : "Bank", "Asset Management", "Application Software"…), statut ("groupe" ou "filiale"), mere, capitalisation, dette, ve, ca, ebitda, rn, marge_ebitda, croissance_ca, dette_ebitda (endettement / EBITDA), ve_ca, ve_ebitda, pe, beta, beta_u, gearing. Montants en millions de FCFA, ratios en décimal (20 % = 0.2), multiples en nombre de fois (2x = 2).
 
 Opérations :
 - {"type": "filtrer", "champ": "...", "op": "=" | "!=" | ">" | ">=" | "<" | "<=" | "entre" | "hors" | "contient" | "dans", "valeur": ...} ; entre et hors prennent [bas, haut] ; valeur peut valoir "mediane" ou "moyenne" de l'échantillon courant.
@@ -76,6 +76,7 @@ Opérations :
 - {"type": "aberrantes", "champs": ["ve_ebitda"]} : retire les valeurs hors des bornes de Tukey ; la page explique chaque retrait.
 - {"type": "retirer", "noms": ["..."]} et {"type": "garder", "noms": ["..."]} : des sociétés nommées.
 - {"type": "selectionner", "noms": ["..."]} : l'utilisateur désigne lui-même les sociétés à utiliser, par leur nom ou leur ticker (« SNTS », ou avec la place « BRVM:SNTS »). Elles sont prises dans toute la base, pas dans l'échantillon courant, qu'elles remplacent. Recopie les noms et tickers tels qu'écrits.
+- {"type": "repartition", "champ": "classification", "industrie": "Banks"} : combien de sociétés par valeur du champ (par défaut classification), sans modifier l'échantillon ; avec "industrie", sur toute la base pour cette industrie, sinon sur l'échantillon courant. Pour « de quoi est composée l'industrie X », « décompose par industry classification ».
 - {"type": "repartir", "depart": "depart" | "base" | "comparables"} : seulement si l'utilisateur demande de repartir de zéro, et toujours en première opération.
 
 « Les multiples » : ve_ebitda, ve_ca et pe. « Les groupes » : statut = groupe. « Exclure les filiales » : statut != filiale. « Endettement net / EBITDA » : dette_ebitda. Une question sur un pays, une industrie Damodaran, un taux ou le CMPC garde ses sources habituelles, même dans HARES.
@@ -137,6 +138,9 @@ Question : enlève Sonatel et Orange Côte d'Ivoire
 
 Question : je veux que le calcul repose sur Sonatel, ORAC et MTN Nigeria
 {"source": "echantillon", "operations": [{"type": "selectionner", "noms": ["Sonatel", "ORAC", "MTN Nigeria"]}], "reformulation": "Travailler sur Sonatel, Orange CI (ORAC) et MTN Nigeria, pris dans toute la base"}
+
+Question : de quoi est composée l'industrie Insurance en industry classification ?
+{"source": "echantillon", "operations": [{"type": "repartition", "champ": "classification", "industrie": "Insurance"}], "reformulation": "Décomposer l'industrie Insurance, sur toute la base, par industry classification"}
 
 Question : on reprend tout depuis la base et on garde les brasseurs africains cotés en groupe
 {"source": "echantillon", "operations": [{"type": "repartir", "depart": "base"}, {"type": "filtrer", "champ": "industrie", "op": "=", "valeur": "Beverages"}, {"type": "filtrer", "champ": "continent", "op": "=", "valeur": "Afrique"}, {"type": "filtrer", "champ": "statut", "op": "=", "valeur": "groupe"}], "reformulation": "Repartir de la base complète, puis garder les groupes de boissons cotés en Afrique"}`;
