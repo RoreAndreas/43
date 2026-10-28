@@ -181,6 +181,14 @@ latéral ni filtre classique. Il affine et analyse en langage naturel un
   valeurs aberrantes (règle de Tukey, chaque retrait expliqué), retirer des
   sociétés nommées. Le fil des étapes permet d'annuler ou de reprendre plus
   haut ; « repars de zéro » revient au départ.
+- **Sociétés choisies.** « Utilise Sonatel, ORAC et MTN Nigeria », « calcule
+  le CMPC avec BRVM:SNTS et Orange CI » : l'analyste désigne lui-même les
+  sociétés, par leur nom ou leur ticker, prises dans toute la base et non
+  dans l'échantillon courant. Un ticker que plusieurs places réutilisent (MTN
+  est MTN Group à Johannesburg et Vail Resorts à New York) se précise par sa
+  place ; HARES propose les candidats plutôt que de deviner, et un nom
+  introuvable arrête la demande au lieu d'être écarté en silence. Quand la
+  demande vise le CMPC, la confirmation de l'écrasement suit aussitôt.
 - **Cloisonné.** Rien de ce que HARES filtre ne touche les autres onglets. Seul
   « Envoyer vers comparaison » transmet l'échantillon, et seulement aux
   multiples de Valorisation › Comparables — donc à la valorisation par les

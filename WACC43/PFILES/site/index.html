@@ -12058,7 +12058,8 @@
     const question = `<p class="agent-question">« ${esc(e.question)} »</p>`;
     if (!r.ok) {
       const candidats = r.candidats && r.candidats.length ? `
-        <span class="agent-exemples">${r.candidats.map((c) => `<button type="button" class="agent-puce" data-agent-candidat="${esc(c)}">${esc(c)}</button>`).join("")}</span>` : "";
+        <span class="agent-exemples">${r.candidats.map((c) => typeof c === "string" ? { libelle: c, valeur: c } : c)
+          .map((c) => `<button type="button" class="agent-puce" data-agent-candidat="${esc(c.valeur)}">${esc(c.libelle)}</button>`).join("")}</span>` : "";
       const classe = r.code === "hors_perimetre" || r.code === "clarification" ? "agent-entete" : "agent-erreur";
       return question + `<div class="${classe}">${esc(r.message || "Pas de réponse.")}${candidats}</div>` + corrigerHtml(e, null);
     }
@@ -12103,6 +12104,7 @@
        statistiques { champs }
        aberrantes   { champs }
        retirer      { noms }     garder { noms }
+       selectionner { noms }     noms ou tickers, pris dans toute la base
        repartir     { depart }   depart : depart | base | comparables
      Les ratios se calculent sur un exercice commun à tout l'échantillon, fixé
      au départ : un multiple n'a de sens qu'entre sociétés du même exercice. */
@@ -12299,6 +12301,39 @@
     : champ === "pe" && l.rn != null && l.capitalisation && l.rn / l.capitalisation < 0.02
       ? " — résultat net presque nul au regard de la capitalisation" : "";
 
+  /* ---- Une société désignée par son nom ou par son ticker ----
+     Le ticker se donne nu (« SNTS ») ou précédé de sa place (« BRVM:SNTS ») :
+     S&P réutilise un même code sur plusieurs places — MTN est MTN Group à
+     Johannesburg et Vail Resorts à New York —, et seule la place les
+     départage. Un nom ou un ticker exact l'emporte ; à défaut, le nom se
+     résout comme ailleurs (resoudreNom). Deux sociétés possibles font une
+     erreur « ambigu » : on demande plutôt que deviner. */
+  const cleTicker = (s) => normalize(s == null ? "" : String(s)).replace(/[^a-z0-9]+/g, "");
+  const codeHares = (s) => (s.place ? s.place + ":" : "") + s.ticker;
+  const designationHares = (s) => s.nom + (s.ticker ? ` (${codeHares(s)})` : "");
+  const CLES_SOCIETES = {};
+  function clesSociete(id) {
+    if (!CLES_SOCIETES[id]) {
+      const s = COMPARABLES[id];
+      CLES_SOCIETES[id] = { nom: cleNom(s.nom), tickers: s.ticker ? [cleTicker(s.ticker), cleTicker(codeHares(s))] : [] };
+    }
+    return CLES_SOCIETES[id];
+  }
+
+  /** Rend { ok, id, exact } ou { ok: false, code: "ambigu" | "inconnu", ids }. */
+  function resoudreSociete(texte, ids) {
+    const c = cleNom(texte), k = cleTicker(texte);
+    if (!k) return { ok: false, code: "inconnu", ids: [] };
+    const exacts = ids.filter((id) => { const x = clesSociete(id); return x.nom === c || x.tickers.indexOf(k) >= 0; });
+    if (exacts.length === 1) return { ok: true, id: exacts[0], exact: true };
+    const r = resoudreNom(texte, ids.map((id) => COMPARABLES[id].nom));
+    const parNom = r.ok ? ids.filter((id) => COMPARABLES[id].nom === r.valeur)
+      : r.code === "ambigu" ? ids.filter((id) => r.candidats.indexOf(COMPARABLES[id].nom) >= 0) : [];
+    if (!exacts.length && parNom.length === 1) return { ok: true, id: parNom[0], exact: false };
+    const candidats = [...new Set(exacts.concat(parNom))].slice(0, 8);
+    return candidats.length ? { ok: false, code: "ambigu", ids: candidats } : { ok: false, code: "inconnu", ids: [] };
+  }
+
   /**
    * Applique des opérations à un échantillon { ids, tri }. Rend
    * { ok, ids, tri, operations (résolues), notes, stats, retirees } ou une
@@ -12407,16 +12442,49 @@
         resolues.push({ type: "aberrantes", champs: champs });
       } else if (op.type === "retirer" || op.type === "garder") {
         const noms = (op.noms || []).filter(Boolean).slice(0, 20);
-        const presentes = lignes.map((l) => l.nom);
+        const presentes = lignes.map((l) => l.id);
         const trouves = new Set(), inconnus = [];
         for (const n of noms) {
-          const r = resoudreNom(n, presentes);
-          if (r.ok) trouves.add(r.valeur); else inconnus.push(n);
+          const r = resoudreSociete(n, presentes);
+          if (r.ok) trouves.add(r.id); else inconnus.push(n);
         }
         if (!trouves.size) return erreurAgent("inconnu", `Aucune société de l'échantillon ne correspond à « ${noms.join(", ")} ».`);
-        lignes = lignes.filter((l) => (op.type === "retirer") !== trouves.has(l.nom));
+        lignes = lignes.filter((l) => (op.type === "retirer") !== trouves.has(l.id));
         if (inconnus.length) notes.push(`Introuvable${inconnus.length > 1 ? "s" : ""} dans l'échantillon : ${inconnus.join(", ")}.`);
-        resolues.push({ type: op.type, noms: [...trouves] });
+        resolues.push({ type: op.type, noms: [...trouves].map((id) => COMPARABLES[id].nom) });
+      } else if (op.type === "selectionner") {
+        // Dans toute la base, pas dans l'échantillon courant : l'analyste
+        // désigne lui-même les sociétés du calcul. Le CMPC en dépendra, donc
+        // rien n'est écarté en silence : un nom inconnu ou ambigu arrête tout.
+        const noms = (op.noms || []).filter(Boolean).slice(0, 40);
+        if (!noms.length) return erreurAgent("invalide", "Aucune société désignée.");
+        const base = Object.keys(COMPARABLES), choisies = [], inconnus = [];
+        for (const n of noms) {
+          const r = resoudreSociete(n, base);
+          if (r.ok) { if (choisies.indexOf(r.id) < 0) choisies.push(r.id); continue; }
+          if (r.code === "ambigu") {
+            // Chaque candidat remet la demande entière dans la barre, le nom
+            // ambigu remplacé par le ticker et sa place.
+            return erreurAgent("ambigu", `« ${n} » désigne plusieurs sociétés : précisez le ticker, et sa place s'il en a plusieurs.`,
+              r.ids.map((id) => ({ libelle: designationHares(COMPARABLES[id]),
+                                   valeur: "Utilise " + noms.map((x) => (x === n ? codeHares(COMPARABLES[id]) : x)).join(", ") })));
+          }
+          inconnus.push(n);
+        }
+        if (inconnus.length) {
+          return erreurAgent("inconnu", `Introuvable${inconnus.length > 1 ? "s" : ""} dans la base, ni par le nom ni par le ticker : ${inconnus.join(", ")}.`
+            + (choisies.length ? ` Reconnue${choisies.length > 1 ? "s" : ""} : ${choisies.map((id) => designationHares(COMPARABLES[id])).join(", ")}.` : ""));
+        }
+        lignes = choisies.map(ligneHares).filter(Boolean);
+        const sansBeta = choisies.filter((id) => COMPARABLES[id].beta_u == null);
+        if (sansBeta.length) {
+          notes.push(`Sans bêta désendetté publié, donc sans poids dans la médiane du CMPC : ${sansBeta.map((id) => COMPARABLES[id].nom).join(", ")}.`);
+        }
+        if (estComparables()) {
+          const ailleurs = choisies.filter((id) => COMPARABLES[id].industrie !== params.secteur);
+          if (ailleurs.length) notes.push(`Hors du secteur du CMPC (${params.secteur}) : ${ailleurs.map((id) => `${COMPARABLES[id].nom} (${COMPARABLES[id].industrie || "secteur inconnu"})`).join(", ")}.`);
+        }
+        resolues.push({ type: "selectionner", noms: choisies.map((id) => designationHares(COMPARABLES[id])) });
       } else if (op.type === "repartir") {
         return erreurAgent("invalide", "« Repartir » ne peut venir qu'en tête de la demande.");
       } else {
@@ -12452,6 +12520,7 @@
     if (o.type === "aberrantes") return `retirer les valeurs aberrantes de ${o.champs.map(libHares).join(", ")}, règle de Tukey`;
     if (o.type === "retirer") return `retirer ${o.noms.join(", ")}`;
     if (o.type === "garder") return `ne garder que ${o.noms.join(", ")}`;
+    if (o.type === "selectionner") return `travailler sur ${o.noms.join(", ")}, pris dans toute la base`;
     return o.type;
   }
   const reformulerHares = (ops) => ops.map(phraseOperation).join(", puis ");
@@ -12470,6 +12539,7 @@
     if (o.type === "aberrantes") return "Sans aberrantes";
     if (o.type === "retirer") return "Retrait de " + o.noms.length;
     if (o.type === "garder") return "Sélection de " + o.noms.length;
+    if (o.type === "selectionner") return pluriel(o.noms.length, "société") + " choisie" + (o.noms.length > 1 ? "s" : "");
     return o.type;
   }
   const etiquetteEtape = (e) => {
@@ -12568,12 +12638,14 @@
   const INVERSE_HARES = { "=": "!=", "!=": "=", ">": "<=", ">=": "<", "<": ">=", "<=": ">", entre: "hors", hors: "entre" };
   const NEGATION_HARES = /(?:^| )(?:retire|retirez|retirer|enleve|enlevez|enlever|exclus|excluez|exclure|ecarte|ecartez|ecarter|supprime|supprimez|supprimer|elimine|eliminez|eliminer|sauf|hors)(?= )/;
 
-  // Une société de l'échantillon désignée par son nom : exact, ou par le
-  // début de son nom quand il est seul à commencer ainsi et ne désigne ni un
-  // secteur ni un lieu — « retire les banques » vise un secteur, « retire
-  // Sonatel » une société.
+  // Une société de l'échantillon désignée par son nom ou son ticker : exact,
+  // ou par le début de son nom quand il est seul à commencer ainsi et ne
+  // désigne ni un secteur ni un lieu — « retire les banques » vise un
+  // secteur, « retire Sonatel » une société.
   function societeNommee(partie, lignes) {
     const c = partie.replace(/^(?:la |le |les |l )/, "").trim();
+    const parTicker = lignes.filter((l) => clesSociete(l.id).tickers.indexOf(cleTicker(partie)) >= 0);
+    if (parTicker.length === 1) return codeHares(COMPARABLES[parTicker[0].id]);
     if (c.length < 3) return null;
     const exact = lignes.filter((l) => cleNom(l.nom) === c);
     if (exact.length === 1) return exact[0].nom;
@@ -12581,6 +12653,70 @@
     if (e.secteurs.length || e.pays.length || e.zones.length) return null;
     const debut = lignes.filter((l) => cleNom(l.nom).indexOf(c + " ") === 0);
     return debut.length === 1 ? debut[0].nom : null;
+  }
+
+  /* « Utilise Sonatel, ORAC et MTN Nigeria », « calcule le CMPC avec
+     BRVM:SNTS et Orange CI » : l'analyste désigne lui-même, par le nom ou par
+     le ticker, les sociétés du calcul, prises dans toute la base. Rend
+     { operations, cmpc } — cmpc quand la demande vise le calcul —, ou null
+     quand elle ne nomme pas de sociétés : « retiens ces sociétés pour le
+     WACC » ou « prends les banques » vont ailleurs. */
+  const VERBE_SELECTION_HARES = / (?:utilise|utilisez|utiliser|prends|prenez|prendre|selectionne|selectionnez|selectionner|choisis|choisissez|choisir|retiens|retenez|retenir|base toi sur|basez vous sur|(?:calcule|calculez|calculer|recalcule|recalculez|fais|faites) (?:le |un )?(?:cmpc|wacc) (?:avec|sur|a partir de)|(?:cmpc|wacc) (?:avec|sur|a partir de)) (.+)$/;
+  // « Garde uniquement Sonatel et MTNN » ne vaut sélection dans la base que
+  // si la lecture dans l'échantillon a échoué : demanderHares l'essaie après.
+  const VERBE_GARDE_HARES = / (?:garde uniquement|ne garde que|garde seulement|conserve uniquement|ne conserve que|garde) (.+)$/;
+  const CIBLE_CALCUL_HARES = / (?:pour|dans|comme|en tant que|au) (?:le |la |les |l |du |un )?(?:cmpc|wacc|calcul|calculs|cout du capital|comparables?|echantillon)(?: .*)?$/;
+  const ANNONCE_HARES = /^(?:que |uniquement |seulement |exclusivement |les societes |la societe |les entreprises |l entreprise |les |la |le |l )+/;
+
+  // Un pays, un secteur, une zone ou un indicateur dit tel quel : « prends
+  // les banques » ne nomme pas de société.
+  function estCategorieHares(partie) {
+    const c = partie.replace(ANNONCE_HARES, "").trim();
+    if (PAYS_FR[c] || SECTEURS_FR[c] || MOTIFS_METRIQUES.some(([forme]) => forme === c)) return true;
+    return ["pays", "industrie", "continent", "zone"].some((champ) => valeursHares(champ).some((v) => cleNom(v) === c));
+  }
+
+  // La liste se découpe aux virgules, à « et » et à « and » — que les noms
+  // S&P portent aussi : « Vail Resorts, Inc. », « Banque Internationale pour
+  // le Commerce et l'Industrie… ». Les morceaux voisins qui, recollés, forment
+  // un nom exact sont recollés.
+  // Les noms sont indexés sans leurs « et » / « and », qu'a mangés le découpage.
+  let NOMS_EXACTS_HARES = null;
+  const sansLiaisons = (c) => c.replace(/ (?:et|and)(?= )/g, "");
+  function regrouperParties(parties) {
+    if (!NOMS_EXACTS_HARES) {
+      NOMS_EXACTS_HARES = new Map(Object.keys(COMPARABLES).map((id) => [sansLiaisons(clesSociete(id).nom), clesSociete(id).nom]));
+    }
+    const sortie = [];
+    for (let i = 0; i < parties.length;) {
+      let pris = 1;
+      for (let n = Math.min(6, parties.length - i); n > 1 && pris === 1; n--) {
+        const nom = NOMS_EXACTS_HARES.get(sansLiaisons(parties.slice(i, i + n).join(" ")));
+        if (nom) { pris = n; sortie.push(nom); }
+      }
+      if (pris === 1) sortie.push(parties[i]);
+      i += pris;
+    }
+    return sortie;
+  }
+
+  function selectionHares(texte, verbe) {
+    const t = " " + cleNom(String(texte).replace(/[,;/+]/g, " et ")) + " ";
+    const m = (verbe || VERBE_SELECTION_HARES).exec(t);
+    if (!m) return null;
+    const reste = (m[1] + " ").replace(CIBLE_CALCUL_HARES, " ").trim().replace(ANNONCE_HARES, "");
+    const parties = regrouperParties(reste.split(/ et | and /).map((x) => x.trim()).filter(Boolean)).slice(0, 40);
+    if (!parties.length) return null;
+    const base = Object.keys(COMPARABLES);
+    let reconnues = 0;
+    for (const p of parties) {
+      const r = resoudreSociete(p, base);
+      if (r.exact) { reconnues += 1; continue; }
+      if (estCategorieHares(p)) return null;
+      if (r.ok || r.code === "ambigu") reconnues += 1;
+    }
+    if (!reconnues) return null;
+    return { operations: [{ type: "selectionner", noms: parties }], cmpc: / (?:cmpc|wacc|calcul|calculs|cout du capital) /.test(t) };
   }
 
   /** Rend { operations } ou null quand la demande n'est pas reconnue. */
@@ -12753,6 +12889,21 @@
     rendreHares();
   }
 
+  // Des sociétés nommées ou désignées par leur ticker. Quand la demande vise
+  // le calcul, la confirmation de l'écrasement du CMPC suit aussitôt.
+  function appliquerSelection(choix, demande) {
+    const avant = HARES.etapes.length;
+    appliquerPlan(choix, demande, { origine: "gabarit" });
+    if (!choix.cmpc) return;
+    if (HARES.etapes.length > avant) {
+      proposerCmpc();
+      HARES.confirmCmpc.etape = true;
+    } else if (HARES.reponse && HARES.reponse.resultat.candidats) {
+      HARES.reponse.resultat.candidats.forEach((c) => { if (c.valeur) c.valeur += " pour le CMPC"; });
+    }
+    rendreHares();
+  }
+
   async function demanderHares(texte) {
     const demande = String(texte || "").trim().slice(0, 400);
     if (!demande || AGENT.enCours) return;
@@ -12760,6 +12911,8 @@
     archiverHares(demande);
     HARES.info = null;
     HARES.confirmCmpc = null;
+    const choix = selectionHares(demande);
+    if (choix) { appliquerSelection(choix, demande); return; }
     if (DEMANDE_CMPC_HARES.test(" " + sansAccentsHares(demande) + " ")) { proposerCmpc(); rendreHares(); return; }
     const donnees = questionDonnees(demande);
     if (donnees) {
@@ -12769,6 +12922,8 @@
     }
     const plan = reconnaitreOperations(demande);
     if (plan) { appliquerPlan(plan, demande, { origine: "gabarit" }); return; }
+    const garde = selectionHares(demande, VERBE_GARDE_HARES);
+    if (garde) { appliquerSelection(garde, demande); return; }
     if (AGENT.horsLigne || AGENT.quota) {
       HARES.reponse = { question: demande, origine: "aucune",
                         resultat: erreurAgent(AGENT.quota ? "quota" : "hors_ligne", messageServeur({ code: AGENT.quota ? "quota" : "absent", reprise: AGENT.quota })) };
@@ -13045,6 +13200,8 @@
     HARES.etapes.forEach((e) => (e.operations || []).forEach((op) => {
       ajouter(op.champ);
       (op.champs || []).forEach(ajouter);
+      // Des sociétés choisies pour le calcul : ce qu'elles apportent au CMPC.
+      if (op.type === "selectionner") { ajouter("beta_u"); ajouter("gearing"); }
     }));
     ajouter(triHares().champ);
     return colonnes;
@@ -13080,6 +13237,7 @@
     "Isole les sociétés d'assurance en Amérique du Nord",
     "Garde uniquement les sociétés dont la croissance du CA dépasse 10 %",
     "Donne-moi la médiane et les quartiles des multiples",
+    "Utilise Sonatel, BRVM:ORAC et MTN Nigeria pour le CMPC",
   ];
 
   function departHtml() {
@@ -13161,7 +13319,13 @@
     const X = TH();
     const tete = `<span class="hares-qui">HARES</span>`;
     if (enCours) return tete + `<p class="agent-attente">${esc(X.attente)}</p>`;
-    if (HARES.confirmCmpc) return tete + confirmationCmpcHtml(HARES.confirmCmpc) + exemplesHtml();
+    if (HARES.confirmCmpc) {
+      // Quand la demande a choisi les sociétés et visé le CMPC d'un même
+      // geste, la confirmation suit l'étape qui dit lesquelles.
+      const i = HARES.etapes.length - 1;
+      const etape = HARES.confirmCmpc.etape && i >= 0 ? etapeHtml(HARES.etapes[i], i) + listeCourteHares() : "";
+      return tete + etape + confirmationCmpcHtml(HARES.confirmCmpc) + exemplesHtml();
+    }
     if (HARES.reponse) return tete + reponseHtml(HARES.reponse) + exemplesHtml();
     if (CMPC_HARES_RETIRE) { HARES.info = X.retireContexte; CMPC_HARES_RETIRE = null; }
     const info = HARES.info ? `<p>${esc(HARES.info)}</p>` : "";

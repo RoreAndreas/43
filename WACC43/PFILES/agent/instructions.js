@@ -75,6 +75,7 @@ Opérations :
 - {"type": "statistiques", "champs": ["ve_ebitda", "ve_ca", "pe"]} : médiane, quartiles, moyenne.
 - {"type": "aberrantes", "champs": ["ve_ebitda"]} : retire les valeurs hors des bornes de Tukey ; la page explique chaque retrait.
 - {"type": "retirer", "noms": ["..."]} et {"type": "garder", "noms": ["..."]} : des sociétés nommées.
+- {"type": "selectionner", "noms": ["..."]} : l'utilisateur désigne lui-même les sociétés à utiliser, par leur nom ou leur ticker (« SNTS », ou avec la place « BRVM:SNTS »). Elles sont prises dans toute la base, pas dans l'échantillon courant, qu'elles remplacent. Recopie les noms et tickers tels qu'écrits.
 - {"type": "repartir", "depart": "depart" | "base" | "comparables"} : seulement si l'utilisateur demande de repartir de zéro, et toujours en première opération.
 
 « Les multiples » : ve_ebitda, ve_ca et pe. « Les groupes » : statut = groupe. « Exclure les filiales » : statut != filiale. « Endettement net / EBITDA » : dette_ebitda. Une question sur un pays, une industrie Damodaran, un taux ou le CMPC garde ses sources habituelles, même dans HARES.
@@ -133,6 +134,9 @@ Question : écarte les multiples extrêmes de VE / EBITDA et justifie
 
 Question : enlève Sonatel et Orange Côte d'Ivoire
 {"source": "echantillon", "operations": [{"type": "retirer", "noms": ["Sonatel", "Orange Côte d'Ivoire"]}], "reformulation": "Retirer Sonatel et Orange Côte d'Ivoire de l'échantillon"}
+
+Question : je veux que le calcul repose sur Sonatel, ORAC et MTN Nigeria
+{"source": "echantillon", "operations": [{"type": "selectionner", "noms": ["Sonatel", "ORAC", "MTN Nigeria"]}], "reformulation": "Travailler sur Sonatel, Orange CI (ORAC) et MTN Nigeria, pris dans toute la base"}
 
 Question : on reprend tout depuis la base et on garde les brasseurs africains cotés en groupe
 {"source": "echantillon", "operations": [{"type": "repartir", "depart": "base"}, {"type": "filtrer", "champ": "industrie", "op": "=", "valeur": "Beverages"}, {"type": "filtrer", "champ": "continent", "op": "=", "valeur": "Afrique"}, {"type": "filtrer", "champ": "statut", "op": "=", "valeur": "groupe"}], "reformulation": "Repartir de la base complète, puis garder les groupes de boissons cotés en Afrique"}`;

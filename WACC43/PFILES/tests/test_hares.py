@@ -431,3 +431,121 @@ def test_sous_damodaran_hares_ne_peut_pas_ecraser(page):
     demander(page, "Isole les sociétés de télécom en Afrique")
     page.click("#haresReponse [data-hares-cmpc]")
     assert "référentiel Comparables" in page.inner_text("#haresReponse")
+
+
+# ------------------------------------- des sociétés choisies, par nom ou ticker
+
+def cle(texte):
+    """cleTicker de la page : sans accents ni casse, lettres et chiffres seuls."""
+    import unicodedata
+    t = unicodedata.normalize("NFD", str(texte)).encode("ascii", "ignore").decode().lower()
+    return "".join(c for c in t if c.isalnum())
+
+
+def designation(s):
+    return f'{s["nom"]} ({s["place"]}:{s["ticker"]})'
+
+
+@pytest.fixture
+def choix(donnees):
+    """Trois sociétés pour la même demande : l'une désignée par son nom, une
+    autre par son ticker nu, la dernière par un ticker que d'autres places
+    réutilisent, donc précédé de sa place. Tirées des données, pour ne pas
+    vieillir avec les exports."""
+    soc = donnees["comparables"]["societes"]
+    par_ticker, noms = {}, {}
+    for i, s in soc.items():
+        par_ticker.setdefault(cle(s["ticker"]), []).append(i)
+        noms.setdefault(cle(s["nom"]), []).append(i)
+    # Un ticker nu ne doit coïncider avec aucun nom ni aucun « place + ticker ».
+    autres = set(noms) | {cle(s["place"] + s["ticker"]) for s in soc.values()}
+    uniques = [ids[0] for t, ids in par_ticker.items() if len(ids) == 1 and t not in autres and len(t) >= 3]
+    partages = [i for t, ids in par_ticker.items() if len(ids) > 1 for i in ids]
+    par_nom = [i for i in soc if len(noms[cle(soc[i]["nom"])]) == 1 and "," not in soc[i]["nom"]
+               and " et " not in soc[i]["nom"] and " and " not in soc[i]["nom"]]
+    nom, ticker = par_nom[0], next(i for i in uniques if i != par_nom[0])
+    place = next(i for i in partages if i not in (nom, ticker))
+    return soc, nom, ticker, place
+
+
+def test_choisir_des_societes_par_nom_et_par_ticker(page, choix):
+    soc, nom, ticker, place = choix
+    ouvrir_hares(page)
+    texte = demander(page, f'Utilise {soc[nom]["nom"]}, {soc[ticker]["ticker"]} et {soc[place]["place"]}:{soc[place]["ticker"]}')
+    # Prises dans toute la base : elles remplacent l'échantillon, dans l'ordre dit.
+    assert ids(page) == [nom, ticker, place]
+    assert page.evaluate("HARES.etapes[0].operations[0].type") == "selectionner"
+    for i in (nom, ticker, place):
+        assert designation(soc[i]) in texte
+
+
+def test_un_nom_qui_porte_une_virgule_reste_entier(page, donnees):
+    soc = donnees["comparables"]["societes"]
+    i = next(i for i, s in soc.items() if s["nom"].endswith(", Inc.") and sum(x["nom"] == s["nom"] for x in soc.values()) == 1)
+    ouvrir_hares(page)
+    demander(page, f'Prends {soc[i]["nom"]}')
+    assert ids(page) == [i]
+
+
+def test_un_ticker_partage_fait_choisir_la_place(page, choix):
+    soc, nom, _ticker, place = choix
+    code = soc[place]["ticker"]
+    memes = {i for i, s in soc.items() if cle(s["ticker"]) == cle(code)}
+    ouvrir_hares(page)
+    avant = ids(page)
+    page.fill("#haresQuestion", f'Utilise {soc[nom]["nom"]} et {code} pour le CMPC')
+    page.click("#haresDemander")
+    page.wait_for_timeout(250)
+    erreur = page.inner_text("#haresReponse .agent-erreur")
+    assert "plusieurs sociétés" in erreur
+    for i in memes:
+        assert designation(soc[i]) in erreur
+    assert ids(page) == avant
+    # Un candidat remet la demande dans la barre, le ticker précédé de sa place.
+    page.click(f'[data-agent-candidat*="{soc[place]["place"]}:{code}"]')
+    assert page.input_value("#haresQuestion").endswith(f'{soc[place]["place"]}:{code} pour le CMPC')
+
+
+def test_une_societe_introuvable_arrete_la_selection(page, choix):
+    soc, nom, _t, _p = choix
+    ouvrir_hares(page)
+    avant = ids(page)
+    page.fill("#haresQuestion", f'Utilise {soc[nom]["nom"]} et Zqxwvy Kjhgf')
+    page.click("#haresDemander")
+    page.wait_for_timeout(250)
+    assert "Introuvable" in page.inner_text("#haresReponse .agent-erreur")
+    assert ids(page) == avant
+
+
+def test_un_secteur_n_est_pas_une_societe(page):
+    ouvrir_hares(page)
+    demander(page, "Prends les banques")
+    assert page.evaluate("HARES.etapes[0].operations[0].type") == "filtrer"
+
+
+def test_choisir_pour_le_cmpc_enchaine_la_confirmation(page, choix):
+    soc, nom, ticker, _p = choix
+    mode_comparables(page)
+    texte = demander(page, f'Calcule le CMPC avec {soc[nom]["nom"]} et {soc[ticker]["ticker"]}')
+    assert designation(soc[nom]) in texte and "Appliquer cet échantillon au CMPC" in texte
+    page.click("[data-hares-cmpc-confirmer]")
+    assert page.evaluate("societesRetenues().ids") == sorted([nom, ticker], key=lambda i: -(soc[i]["capitalisation"] or 0))
+    attendu = mediane([soc[i].get("beta_u") for i in (nom, ticker)])
+    if attendu is not None:
+        assert page.evaluate("cmpcComparables().betaU") == pytest.approx(attendu)
+
+
+def test_retirer_par_ticker(page, donnees):
+    telecoms_du_monde(page)
+    soc = donnees["comparables"]["societes"]
+    cible = ids(page)[0]
+    demander(page, f'retire {soc[cible]["place"]}:{soc[cible]["ticker"]}')
+    assert cible not in ids(page)
+
+
+def test_garder_une_societe_hors_de_l_echantillon_la_prend_dans_la_base(page, donnees):
+    telecoms_du_monde(page)
+    soc = donnees["comparables"]["societes"]
+    dehors = next(i for i, s in soc.items() if s["industrie"] == "Banks" and sum(x["nom"] == s["nom"] for x in soc.values()) == 1)
+    demander(page, f'Garde uniquement {soc[dehors]["place"]}:{soc[dehors]["ticker"]}')
+    assert ids(page) == [dehors]
