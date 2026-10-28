@@ -549,3 +549,21 @@ def test_garder_une_societe_hors_de_l_echantillon_la_prend_dans_la_base(page, do
     dehors = next(i for i, s in soc.items() if s["industrie"] == "Banks" and sum(x["nom"] == s["nom"] for x in soc.values()) == 1)
     demander(page, f'Garde uniquement {soc[dehors]["place"]}:{soc[dehors]["ticker"]}')
     assert ids(page) == [dehors]
+
+
+def test_conserve_seul_vaut_garde(page, choix):
+    """« Conserve X » doit être reconnu comme « garde uniquement X », pas
+    seulement « conserve uniquement X » ou « ne conserve que X »."""
+    soc, nom, ticker, _p = choix
+    ouvrir_hares(page)
+    demander(page, f'Conserve {soc[nom]["nom"]} et {soc[ticker]["ticker"]}')
+    assert set(ids(page)) == {nom, ticker}
+
+
+def test_conserve_seul_choisit_hors_echantillon(page, choix):
+    """Hors de l'échantillon courant, « conserve » bascule sur la sélection
+    dans toute la base, dans l'ordre demandé."""
+    soc, nom, ticker, _p = choix
+    telecoms_du_monde(page)
+    demander(page, f'Conserve {soc[nom]["nom"]} et {soc[ticker]["ticker"]}')
+    assert ids(page) == [nom, ticker]

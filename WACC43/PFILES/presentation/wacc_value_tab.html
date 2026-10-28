@@ -12674,7 +12674,7 @@
   const VERBE_SELECTION_HARES = / (?:utilise|utilisez|utiliser|prends|prenez|prendre|selectionne|selectionnez|selectionner|choisis|choisissez|choisir|retiens|retenez|retenir|base toi sur|basez vous sur|(?:calcule|calculez|calculer|recalcule|recalculez|fais|faites) (?:le |un )?(?:cmpc|wacc) (?:avec|sur|a partir de)|(?:cmpc|wacc) (?:avec|sur|a partir de)) (.+)$/;
   // « Garde uniquement Sonatel et MTNN » ne vaut sélection dans la base que
   // si la lecture dans l'échantillon a échoué : demanderHares l'essaie après.
-  const VERBE_GARDE_HARES = / (?:garde uniquement|ne garde que|garde seulement|conserve uniquement|ne conserve que|garde) (.+)$/;
+  const VERBE_GARDE_HARES = / (?:garde uniquement|ne garde que|garde seulement|conserve uniquement|ne conserve que|garde|conserve|conserves|conservez|conserver) (.+)$/;
   const CIBLE_CALCUL_HARES = / (?:pour|dans|comme|en tant que|au) (?:le |la |les |l |du |un )?(?:cmpc|wacc|calcul|calculs|cout du capital|comparables?|echantillon)(?: .*)?$/;
   const ANNONCE_HARES = /^(?:que |uniquement |seulement |exclusivement |les societes |la societe |les entreprises |l entreprise |les |la |le |l )+/;
 
@@ -12738,7 +12738,7 @@
 
     // Des sociétés nommées d'abord : leur nom peut contenir un mot de secteur
     // (« Shenandoah Telecommunications ») qu'il ne faut pas lire comme tel.
-    const verbe = / (retire|retirez|retirer|enleve|enlevez|enlever|exclus|excluez|exclure|ecarte|ecartez|ecarter|supprime|supprimez|elimine|eliminez|sors|garde uniquement|ne garde que|garde seulement|conserve uniquement) (.+)$/
+    const verbe = / (retire|retirez|retirer|enleve|enlevez|enlever|exclus|excluez|exclure|ecarte|ecartez|ecarter|supprime|supprimez|elimine|eliminez|sors|garde uniquement|ne garde que|garde seulement|conserve uniquement|ne conserve que|conserve|conserves|conservez|conserver) (.+)$/
       .exec(" " + cleNom(String(texte).replace(/,/g, " et ")) + " ");
     if (verbe && HARES.depart) {
       const lignes = idsHares().map(ligneHares).filter(Boolean);
