@@ -2201,7 +2201,17 @@ function editTracker(id) {
 }
 
 /* ---------------- ACTIONS ---------------- */
-function download(name, text, type) {
+async function download(name, text, type) {
+  // Dans claude.ai, le fichier passe par la capacité « downloads » ; ailleurs, par un lien classique.
+  if (window.claude && typeof window.claude.use === 'function') {
+    let d = null;
+    try { d = await window.claude.use('downloads'); } catch (e) {}
+    if (d) {
+      try { await d.save({filename: name, data: text}); toast('⬇ Export', name); }
+      catch (e) { if (!e || e.code !== 'declined') toast('Export impossible', (e && e.message) || ''); }
+      return;
+    }
+  }
   const blob = new Blob([text], {type}); const a = document.createElement('a');
   a.href = URL.createObjectURL(blob); a.download = name; document.body.appendChild(a); a.click();
   setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 500);
