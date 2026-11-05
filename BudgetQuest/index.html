@@ -108,7 +108,8 @@ label.f{display:block;margin:10px 0 4px;color:var(--G);font-size:19px}
 .hud .who{min-width:0}
 #sayBtns:empty{display:none}
 #say{min-height:2.3em}
-.say .speaker{font-family:var(--px);font-size:9px;color:var(--y);margin-bottom:6px}
+.say .speaker{font-family:var(--px);font-size:9px;color:var(--y);margin-bottom:8px;display:flex;align-items:center;gap:10px}
+.say .speaker .face{background:var(--D);box-shadow:0 0 0 2px var(--d);flex:none}
 .blink{animation:blink 1s steps(2) infinite}
 @keyframes blink{50%{opacity:0}}
 
@@ -305,153 +306,13 @@ const smallImg = (name, size = 16) => img(spriteURL('s:' + name, SMALL[name].row
 const iconImg = (name, color = SWEET.w, size = 24) => img(spriteURL('i:' + name + color, ICONS[name], {x: color}, 4), size);
 
 /* ================================================================
-   PERSONNAGES — chara-design 16 bits (héros, PNJ) + créateur de perso
-   Sprites 16×24 en couches : tête, corps, hanches, jambes, cheveux, accessoire
+   Constantes partagées (couleurs, miroirs de sprites)
    ================================================================ */
 const K = '#1a1c2c', WOOD = '#8b5a2b', WOODD = '#5e3a1a';
 const M = s => s + [...s].reverse().join('');             // miroir 8 → 16
 const M10 = s => s + [...s].reverse().join('');           // miroir 10 → 20
 const P = (l, mid, w = 16) => ('.'.repeat(l) + mid + '.'.repeat(w)).slice(0, w);
 const E16 = '.'.repeat(16);
-
-const CH_HEAD = {
-  down: [E16, E16, E16, M('.....ooo'), M('....osss'), M('...ossss'), M('..osssss'), M('..osssss'), M('..ossWEs'), M('..ossees'), M('..osrssm'), M('...oSSSS'), M('....oooo')],
-  up:   [E16, E16, E16, M('.....ooo'), M('....osss'), M('...ossss'), M('..osssss'), M('..osssss'), M('..osssss'), M('..osssss'), M('..osssss'), M('...oSSSS'), M('....oooo')],
-  side: [E16, E16, E16, P(5, 'oooooo'), P(4, 'osssssso'), P(3, 'o' + 's'.repeat(8) + 'o'), P(2, 'o' + 's'.repeat(10) + 'o'), P(2, 'o' + 's'.repeat(10) + 'o'),
-         P(2, 'osssssssWEso'), P(2, 'ossSssssseesso'.slice(0, 13)), P(2, 'osssssrssmso'), P(3, 'o' + 'S'.repeat(8) + 'o'), P(4, 'oooooooo')],
-};
-const CH_BODY = {
-  down: [M('....ottS'), M('...octtt'), M('..oTcttt'), M('..osclly'), M('...octtt'), M('...oCTTT')],
-  up:   [M('....ottt'), M('...occcc'), M('..oTcccc'), M('..oscccc'), M('...occcc'), M('...oCCCC')],
-  side: [P(4, 'otttttto'), P(3, 'octtttttto'), P(3, 'occtttTtto'), P(3, 'occlllyllo'), P(3, 'occtttstto'), P(3, 'oCCTTTTTTo')],
-};
-const CH_HIPS = {A: [M('....oppp'), M('....oppo')], B: [M('...otttt'), M('..oTTTTT')]};
-const CH_LEGS = {
-  idle:  [M('....oLLo'), M('....obbo'), M('....oooo')],
-  s1:    ['....oLLoobbo....', '....obbooooo....', '....oooo........'],
-  s2:    ['....obbooLLo....', '....ooooobbo....', '........oooo....'],
-  spread:['...oLLo..oLLo...', '...obbo..obbo...', '...oooo..oooo...'],
-};
-// Coiffures : {ligne: motif} — '.' laisse voir la couche du dessous
-const COURT = {
-  down: {3: M('.....ooo'), 4: M('....ohhh'), 5: M('...ohhhh'), 6: M('..ohhHhh'), 7: M('..ohhh..'), 8: M('..oh....')},
-  up:   {3: M('.....ooo'), 4: M('....ohhh'), 5: M('...ohhhh'), 6: M('..ohhhhh'), 7: M('..ohhhhh'), 8: M('..ohhhhh'), 9: M('..ohhhhh'), 10: M('..oHhhhh'), 11: M('...oHHHH')},
-  side: {3: P(5, 'oooooo'), 4: P(4, 'ohhhhhho'), 5: P(3, 'ohhhhhhhho'), 6: P(2, 'o' + 'h'.repeat(10) + 'o'), 7: P(2, 'ohhhhhhh'), 8: P(2, 'ohhhhh'), 9: P(2, 'ohhhh'), 10: P(2, 'ohhh'), 11: P(3, 'oHH')},
-};
-const HAIRS = {
-  court: {name: 'Court', ...COURT},
-  afro: {name: 'Afro',
-    down: {0: M('....oooo'), 1: M('..oohhhh'), 2: M('.ohhhhhh'), 3: M('.ohhhHhh'), 4: M('ohhhhhhh'), 5: M('ohhhhhHh'), 6: M('ohhhhhhh'), 7: M('ohhho...'), 8: M('ohhho...'), 9: M('.oHHo...'), 10: M('..oo....')},
-    up:   {0: M('....oooo'), 1: M('..oohhhh'), 2: M('.ohhhhhh'), 3: M('.ohhhhhh'), 4: M('ohhhhhhh'), 5: M('ohhhhhhh'), 6: M('ohhhhhhh'), 7: M('ohhhhhhh'), 8: M('ohhhhhhh'), 9: M('.oHhhhhh'), 10: M('..oHHHHH'), 11: M('...ooooo')},
-    side: {0: P(4, 'oooooooo'), 1: P(2, 'oohhhhhhhhoo'), 2: P(1, 'o' + 'h'.repeat(12) + 'o'), 3: P(1, 'o' + 'h'.repeat(12) + 'o'), 4: 'o' + 'h'.repeat(14) + 'o', 5: 'o' + 'h'.repeat(14) + 'o', 6: 'o' + 'h'.repeat(14) + 'o', 7: 'ohhhhhhho....oho', 8: 'ohhhhhho.....oho', 9: P(1, 'oHHHHo'), 10: P(2, 'oooo')}},
-  tresses: {name: 'Tresses',
-    down: {...COURT.down, 8: M('.ohh....'), 9: M('.oho....'), 10: M('.oHo....'), 11: M('.oho....'), 12: M('.oHo....'), 13: M('.oyo....'), 14: M('..o.....')},
-    up:   {...COURT.up, 12: M('...ohHhH'), 13: M('...oHhHh'), 14: M('...oyhyh'), 15: M('....oooo')},
-    side: {...COURT.side, 11: P(1, 'ohho'), 12: P(1, 'oHHo'), 13: P(1, 'ohho'), 14: P(1, 'oyyo'), 15: P(2, 'oo')}},
-  chignon: {name: 'Chignon',
-    down: {0: M('......oo'), 1: M('.....ohh'), 2: M('.....ohH'), 3: M('....oooo'), 4: M('....ohhh'), 5: M('...ohhhh'), 6: M('..ohhhhh'), 7: M('..ohh...'), 8: M('..oh....')},
-    up:   {...COURT.up, 0: M('......oo'), 1: M('.....ohh'), 2: M('.....ohH'), 3: M('....oooo')},
-    side: {...COURT.side, 0: P(4, 'oooo'), 1: P(3, 'ohhhho'), 2: P(3, 'ohHHho'), 3: P(4, 'oooooooo')}},
-  long: {name: 'Long',
-    down: {...COURT.down, 8: M('.ohh....'), 9: M('.ohh....'), 10: M('.ohH....'), 11: M('.ohh....'), 12: M('.ohho...'), 13: M('.ohho...'), 14: M('.oHHo...'), 15: M('..oo....')},
-    up:   {...COURT.up, 10: M('..ohhhhh'), 11: M('..ohhhhh'), 12: M('..ohhhhh'), 13: M('..ohhhhh'), 14: M('..oHHHHH'), 15: M('...ooooo')},
-    side: {...COURT.side, 11: P(2, 'ohhhho'), 12: P(2, 'ohhhho'), 13: P(2, 'ohhhho'), 14: P(2, 'oHHHHo'), 15: P(3, 'oooo')}},
-  rase: {name: 'Rasé',
-    down: {3: M('.....ooo'), 4: M('....oHHH'), 5: M('...oHHHH'), 6: M('..oHH...')},
-    up:   {3: M('.....ooo'), 4: M('....oHHH'), 5: M('...oHHHH'), 6: M('..oHHHHH'), 7: M('..oHHHHH'), 8: M('..oHHHHH'), 9: M('..oHHHHH')},
-    side: {3: P(5, 'oooooo'), 4: P(4, 'oHHHHHHo'), 5: P(3, 'oHHHHHHHHo'), 6: P(2, 'oHHHHHHH'), 7: P(2, 'oHHHH'), 8: P(2, 'oHHH'), 9: P(2, 'oHH')}},
-};
-const ACCS = {
-  crown:   {all: {2: M('.....y.y'), 3: M('.....yyy')}},
-  band:    {down: {6: M('..oaaaaa')}, up: {6: M('..oaaaaa'), 7: M('.......A')}, side: {6: P(2, 'o' + 'a'.repeat(10) + 'o'), 7: P(1, 'AA')}},
-  wrap:    {down: {1: M('.....ooo'), 2: M('...oaaaA'), 3: M('..oaaAaa'), 4: M('..oaaaaa'), 5: M('..oAaAaA'), 6: M('..oAAAAA')},
-            up:   {1: M('.....ooo'), 2: M('...oaaaA'), 3: M('..oaaAaa'), 4: M('..oaaaaa'), 5: M('..oAaAaA'), 6: M('..oAAAAA'), 7: M('......oa'), 8: M('......oA')},
-            side: {1: P(5, 'oooooo'), 2: P(3, 'oaaaAAaaao'), 3: P(2, 'oaaAaaaaAaao'), 4: P(2, 'o' + 'a'.repeat(10) + 'o'), 5: P(2, 'oAaAaAaAaAao'), 6: P(2, 'o' + 'A'.repeat(10) + 'o'), 7: P(0, 'oao'), 8: P(0, 'oAo')}},
-  hat:     {all: {0: M('....oooo'), 1: M('....oaaa'), 2: M('....oaaa'), 3: M('....oAAA'), 4: M('....oRRR'), 5: M('..oooooo'), 6: M('..oaaaaa')}},
-  glasses: {down: {7: M('....oooo'), 8: M('....o..o'), 9: M('....o..o'), 10: M('....ooo.')}, up: {}, side: {7: P(9, 'oooo'), 8: P(9, 'o..o'), 9: P(9, 'o..o'), 10: P(9, 'oooo')}},
-  hood:    {down: {2: M('.....ooo'), 3: M('....oaaa'), 4: M('...oaaaa'), 5: M('..oaaAaa'), 6: M('..oaaAAA'), 7: M('..oaa...'), 8: M('..oa....'), 9: M('..oa....'), 10: M('..oa....'), 11: M('..oaa...'), 12: M('...oaaaa')},
-            up:   {2: M('.....ooo'), 3: M('....oaaa'), 4: M('...oaaaa'), 5: M('..oaaaaa'), 6: M('..oaaaaa'), 7: M('..oaaaaa'), 8: M('..oaaaaa'), 9: M('..oaaaaa'), 10: M('..oaaaaa'), 11: M('..oAaaaa'), 12: M('...oAAAA')},
-            side: {2: P(5, 'oooooo'), 3: P(4, 'oaaaaaao'), 4: P(3, 'oaaaaaaaao'), 5: P(2, 'oaaaaaaaaaao'), 6: P(2, 'oaaaaaaAAAAo'), 7: P(2, 'oaaaaaa'), 8: P(2, 'oaaaaa'), 9: P(2, 'oaaaa'), 10: P(2, 'oaaaa'), 11: P(2, 'oaaaaa'), 12: P(3, 'oAAAAAAo')}},
-  beard:   {down: {10: M('...owwGG'), 11: M('...owwww'), 12: M('....owww'), 13: M('......ow'), 14: M('.......o')}, up: {}, side: {10: P(8, 'owwwwo'), 11: P(8, 'owwwo'), 12: P(9, 'owo')}},
-};
-const SKIN_TONES = [['#f6d2b0', '#e0a98a', '#f09a8a'], ['#e8b48a', '#c98a5a', '#e48a7a'], ['#c98a5a', '#a0643a', '#d0705a'], ['#8d5a36', '#6b3f22', '#a85a48'], ['#5e3a22', '#432612', '#7a3f36']];
-const HAIR_COLS = {noir:['#2b2b3a', '#1a1c2c'], brun:['#5e3a22', '#3e2414'], chatain:['#8b5a2b', '#5e3a1a'], blond:['#ffcd75', '#d9a050'], roux:['#ef7d57', '#b13e53'], blanc:['#f4f4f4', '#94b0c2'], bleu:['#41a6f6', '#3b5dc9'], rose:['#e88ac8', '#b05a98']};
-const EYE_COLS = {noir:'#1a1c2c', brun:'#5e3a1a', bleu:'#3b5dc9', vert:'#257179'};
-const TUNIC_COLS = {bleu:['#3b5dc9', '#29366f'], rouge:['#b13e53', '#5d275d'], vert:['#38b764', '#257179'], or:['#ffcd75', '#ef7d57'], violet:['#b86fd6', '#5d275d'], blanc:['#f4f4f4', '#94b0c2'], noir:['#333c57', '#1a1c2c'], orange:['#ef7d57', '#b13e53']};
-const DEFAULT_LOOK = {skin:2, hair:'court', hairCol:'noir', eyes:'brun', body:'A', tunic:'bleu'};
-// Tenues (débloquées dans les coffres). « classique » utilise la couleur choisie dans le créateur.
-const SKINS = {
-  classique:{name:'Aventurier', classic:true},
-  foret:    {name:'Rôdeur des bois', t:'#38b764', T:'#257179', c:'#257179', C:'#1d4d55', p:'#8b5a2b', acc:'band', a:'#a7f070', A:'#38b764'},
-  ocean:    {name:'Marin', t:'#f4f4f4', T:'#94b0c2', c:'#41a6f6', C:'#3b5dc9', p:'#29366f', acc:'band', a:'#41a6f6', A:'#3b5dc9'},
-  or:       {name:'Chevalier doré', t:'#ffcd75', T:'#ef7d57', c:'#ef7d57', C:'#b13e53', p:'#f4f4f4', l:'#b13e53'},
-  ombre:    {name:'Ombre', t:'#333c57', T:'#1a1c2c', c:'#5d275d', C:'#3a1a3a', p:'#333c57', b:K, acc:'hood', a:'#333c57', A:'#1a1c2c'},
-  royal:    {name:'Royal', t:'#b13e53', T:'#5d275d', c:'#5d275d', C:'#3a1a3a', p:'#f4f4f4', l:'#ffcd75', acc:'crown'},
-  legende:  {name:'Légende', t:'#f4f4f4', T:'#94b0c2', c:'#73eff7', C:'#41a6f6', p:'#ffcd75', l:'#ffcd75', acc:'crown'},
-};
-function outfitOf(key, look) {
-  const o = SKINS[key] || SKINS.classique;
-  if (!o.classic) return o;
-  const [t, T] = TUNIC_COLS[look.tunic] || TUNIC_COLS.bleu;
-  const cape = ['rouge', 'orange', 'violet'].includes(look.tunic) ? ['#3b5dc9', '#29366f'] : ['#b13e53', '#5d275d'];
-  return {...o, t, T, c: cape[0], C: cape[1], p: '#566c86'};
-}
-const heroLook = () => ({...DEFAULT_LOOK, ...((S && S.world && S.world.look) || {})});
-const heroOutfit = (key) => outfitOf(key || (S && S.world && S.world.skin) || 'classique', heroLook());
-
-function overlay(rows, ov) { if (!ov) return; for (const k in ov) { const r = rows[+k]; if (!r) continue; const s = ov[k]; for (let i = 0; i < 16; i++) if (s[i] && s[i] !== '.') r[i] = s[i]; } }
-function charRows(look, out, view, frame) {
-  const legs = view === 'side' ? (frame ? CH_LEGS.spread : CH_LEGS.idle) : frame === 1 ? CH_LEGS.s1 : frame === 2 ? CH_LEGS.s2 : CH_LEGS.idle;
-  const rows = [...CH_HEAD[view], ...CH_BODY[view], ...CH_HIPS[look.body === 'B' ? 'B' : 'A'], ...legs].map(r => r.split(''));
-  const hair = HAIRS[look.hair] || HAIRS.court;
-  if (!(out.acc === 'hood' || out.acc === 'hat')) overlay(rows, hair[view]);
-  else if (out.acc === 'hat') overlay(rows, Object.fromEntries(Object.entries(hair[view]).filter(([k]) => +k >= 7)));
-  const acc = out.acc && ACCS[out.acc];
-  if (acc) overlay(rows, acc.all || acc[view]);
-  return rows.map(r => r.join(''));
-}
-function charPal(look, out, blink) {
-  const [s, S_, r] = SKIN_TONES[look.skin] || SKIN_TONES[2];
-  const [h, H] = HAIR_COLS[look.hairCol] || HAIR_COLS.noir;
-  const eye = EYE_COLS[look.eyes] || EYE_COLS.brun, p = out.p || '#566c86';
-  return {o:K, s, S:S_, r, m:'#6b2a2a', W: blink ? s : '#f4f4f4', E: blink ? s : eye, e: blink ? K : eye, h, H,
-    t: out.t, T: out.T, c: out.c || out.t, C: out.C || out.T, l: out.l || WOOD, y:'#ffcd75', p, b: out.b || WOODD,
-    L: look.body === 'B' ? s : p, a: out.a || out.t, A: out.A || out.T, R:'#b13e53', w:'#f4f4f4', G:'#94b0c2'};
-}
-const _charCache = new Map();
-function charCanvas(look, out, view, frame, opt = {}) {
-  const key = JSON.stringify([look, out, view, frame, opt]);
-  let c = _charCache.get(key);
-  if (!c) {
-    c = document.createElement('canvas'); c.width = 16; c.height = 24;
-    drawSprite(c.getContext('2d'), charRows(look, out, view, frame), charPal(look, out, opt.blink), 0, 0, 1, {flip: opt.flip, grey: opt.grey, flash: opt.flash});
-    if (_charCache.size > 600) _charCache.clear();
-    _charCache.set(key, c);
-  }
-  return c;
-}
-const _charURL = new Map();
-function charImg(look, out, h = 48, view = 'down', opt = {}) {
-  const key = JSON.stringify([look, out, view, opt]);
-  let u = _charURL.get(key);
-  if (!u) { const src = charCanvas(look, out, view, 0, opt), c = document.createElement('canvas'); c.width = 64; c.height = 96; const x = c.getContext('2d'); x.imageSmoothingEnabled = false; x.drawImage(src, 0, 0, 64, 96); u = c.toDataURL(); _charURL.set(key, u); }
-  return `<img class="px" src="${u}" width="${Math.round(h * 2 / 3)}" height="${h}" alt="">`;
-}
-
-/* ---- PNJ du village ---- */
-const NPCS = [
-  {id:'npc_market', role:'market',   x:29, y:15, name:'Awa la marchande',     look:{skin:3, hair:'tresses', hairCol:'noir', eyes:'brun', body:'B'}, out:{t:'#ef7d57', T:'#b13e53', p:'#5d275d', acc:'wrap', a:'#ffcd75', A:'#ef7d57'}},
-  {id:'npc_bank',   role:'bank',     x:22, y:21, name:'M. Diallo, banquier',  look:{skin:4, hair:'rase', hairCol:'noir', eyes:'noir', body:'A'}, out:{t:'#333c57', T:'#1a1c2c', p:'#333c57', l:'#ffcd75', acc:'hat', a:'#2b2b3a', A:'#1a1c2c'}},
-  {id:'npc_arch',   role:'archives', x:29, y:21, name:'Mme Fatou, archiviste', look:{skin:1, hair:'long', hairCol:'roux', eyes:'vert', body:'B'}, out:{t:'#3b5dc9', T:'#29366f', acc:'glasses'}},
-  {id:'npc_lab',    role:'lab',      x:16, y:16, name:"Zeph l'alchimiste",    look:{skin:0, hair:'court', hairCol:'blanc', eyes:'bleu', body:'A'}, out:{t:'#5d275d', T:'#3a1a3a', c:'#b86fd6', C:'#5d275d', p:'#333c57', acc:'hood', a:'#b86fd6', A:'#5d275d'}},
-  {id:'npc_board',  role:'board',    x:22, y:15, name:'Kwame le crieur',      look:{skin:4, hair:'afro', hairCol:'noir', eyes:'brun', body:'A'}, out:{t:'#38b764', T:'#257179', p:'#8b5a2b', acc:'band', a:'#ffcd75', A:'#ef7d57'}},
-  {id:'sage',       role:'sage',     x:19, y:17, name:'Amadou, le vieux sage', look:{skin:2, hair:'rase', hairCol:'blanc', eyes:'noir', body:'A'}, out:{t:'#5d275d', T:'#3a1a3a', c:'#b13e53', C:'#5d275d', p:'#5d275d', acc:'beard'}},
-];
-const VILL_LOOKS = [
-  {look:{skin:1, hair:'chignon', hairCol:'brun', eyes:'brun', body:'B'}, out:{t:'#41a6f6', T:'#3b5dc9', p:'#29366f'}},
-  {look:{skin:3, hair:'court', hairCol:'noir', eyes:'noir', body:'A'}, out:{t:'#ef7d57', T:'#b13e53', p:'#566c86'}},
-  {look:{skin:4, hair:'long', hairCol:'noir', eyes:'brun', body:'B'}, out:{t:'#a7f070', T:'#38b764', p:'#257179', acc:'wrap', a:'#b86fd6', A:'#5d275d'}},
-];
 
 /* ---- Monstres 20×20 avec humeurs (dort / éveillé / inquiet / déchaîné) ---- */
 const MONS = {
@@ -482,7 +343,373 @@ function monPalette(color, lv, type) {
 }
 const monPal = (color, rage) => monPalette(color, rage ? 4 : 2);
 const monImg = (cat, size = 48, rage = false) => img(spriteURL('m2:' + cat.monster + cat.color + rage, (MONS[cat.monster] || MONS.slime).rows, monPalette(cat.color, rage ? 4 : 2, cat.monster), 4), size);
-const heroImg = (size = 48, opt = {}) => charImg(heroLook(), heroOutfit(), size, 'down', opt);
+/* ================================================================
+   PERSONNAGES — les robots de l'Open Space (RoreAndreas/Openspace43)
+   Portage de src/engine/robots.ts (d'après « Le Bureau des agents » de VibesMoney, licence MIT).
+   Gabarit 20 × 24 pixels, tête-cube, visière, pièces de tenue ; pieds au point (10, 22).
+   ================================================================ */
+const RP = {ink:'#15121d', orange:'#ff8a3d', paper:'#f6f2e9', paperShade:'#d8d1c3', paperLine:'#a19a8c'};
+const ROLE_COLORS = {chef:'#FF8A3D', recherche:'#4FB3FF', code:'#3DDC97', design:'#FF6FA8', redaction:'#A98BFF', analyse:'#FFC93D', hares:'#E5484D', renfort:'#9AA3B5'};
+const rLight = (c, t) => mix(c, '#ffffff', t), rDark = (c, t) => mix(c, '#100c1c', t);
+const rr = (g, x, y, w, h, c) => { g.fillStyle = c; g.fillRect(Math.round(x), Math.round(y), Math.round(w), Math.round(h)); };
+const rp = (g, x, y, c) => { g.fillStyle = c; g.fillRect(Math.round(x), Math.round(y), 1, 1); };
+function rOutline(c, color) {
+  const g = c.getContext('2d'), w = c.width, h = c.height, img = g.getImageData(0, 0, w, h), d = img.data;
+  const solid = (x, y) => x >= 0 && y >= 0 && x < w && y < h && d[(y * w + x) * 4 + 3] > 40, out = [];
+  for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) if (!solid(x, y) && (solid(x - 1, y) || solid(x + 1, y) || solid(x, y - 1) || solid(x, y + 1))) out.push(x, y);
+  g.fillStyle = color; for (let i = 0; i < out.length; i += 2) g.fillRect(out[i], out[i + 1], 1, 1);
+  return c;
+}
+function rMirror(src) { const c = document.createElement('canvas'); c.width = src.width; c.height = src.height; const g = c.getContext('2d'); g.translate(src.width, 0); g.scale(-1, 1); g.drawImage(src, 0, 0); return c; }
+
+/* ---- L'équipe de l'Open Space (src/characters/catalog.json) ---- */
+const TEAM = {
+  rore: {name:'Roré', archetype:'Commandant spatial', idle:'supervise', outfit:{head:'#4a4658', visor:'#0b0910', body:'#f1eff7', arm:'#e4e1ec', hand:'#3d3a4a', leg:'#2a2734', tip:'#ff8a3d', colors:{headTop:'#77718a', headShade:'#33303f', visorHi:'#4a4566', cape:'#ff8a3d', gold:'#ffb02e'}, parts:['jacket', 'cape', 'epaulettes', 'star']},
+    lines:['Une petite pause, et on repart !', 'Tout le monde a pris son café ?', 'Belle équipe, hein ?']},
+  hacker_cyberpunk: {name:'Nyx', archetype:'Hacker cyberpunk', idle:'bounce', outfit:{head:'#4e5459', visor:'#0d2630', eyes:'#35e0ff', body:'#3d3d48', arm:'#4e5459', hand:'#bdccde', leg:'#262632', colors:{hood:'#2b2b33', cables:'#41f509', shoes:'#f3f1f8'}, parts:['hood', 'cables', 'sneakers']},
+    lines:["Nouveau record à l'arcade. Encore.", 'Baby-foot ? Je prends les rouges.', 'Pause de cinq minutes. Bon, dix.', "Le frigo n'a plus de boisson énergisante. Inacceptable."]},
+  mage_du_code: {name:'Merlain', archetype:'Mage du code', idle:'shimmer', outfit:{head:'#8897a9', eyes:'#3fe0c8', body:'#5a2d82', arm:'#6a3a96', leg:'#2a1f3d', colors:{hat:'#4a2370', rune:'#3fe0c8', wood:'#7a5230'}, parts:['wizardHat', 'beard', 'robe', 'staff']},
+    lines:['Une tisane, et le code coule de source.', "Ce grimoire parle d'expressions régulières. Terrifiant.", 'Patience : tout bug finit par se révéler.', 'Les plantes aussi ont besoin de magie.']},
+  robot_ingenieur: {name:'Boulon', archetype:'Robot ingénieur', idle:'blink', outfit:{head:'#efe6d2', visor:'#1d2230', eyes:'#35e0ff', body:'#ec933e', arm:'#4c4e72', hand:'#ec933e', leg:'#4c4e72', tip:'#ec933e', colors:{belt:'#ffd166'}, parts:['chestLight', 'toolbelt']},
+    lines:['Bip ! Batterie à 12 %. Je recharge.', "J'ai réparé la machine à café. Deux fois.", 'Bip boup. Ça veut dire bonjour.']},
+  analyste_strategique: {name:'Margaux', archetype:'Analyste stratégique', idle:'check', outfit:{body:'#223455', arm:'#f4f1ea', leg:'#111834', colors:{hair:'#2b2430', glasses:'#8a5a3c', tie:'#e0a526', tablet:'#2c2c4e', screen:'#6f849d'}, parts:['bun', 'glasses', 'tie', 'tablet']},
+    lines:['Café serré, sans sucre. Comme les chiffres.', "J'ai fait un graphique des pauses café.", 'La pause est un investissement. Rentable.']},
+  styliste_extravagant: {name:'Zaza', archetype:'Styliste extravagante', idle:'pose', outfit:{body:'#f4628d', arm:'#f4628d', leg:'#1d1a24', colors:{hair:'#7a3dbf', sunglasses:'#fde219', tape:'#fde219', shoes:'#f3f9f9'}, parts:['pompadour', 'sunglasses', 'puffy', 'tape', 'sneakers']},
+    lines:["Ce village manque de rose. Je m'en occupe.", 'Ta tenue est parfaite. Presque.', "Le marché, c'est un défilé."]},
+  explorateur_futuriste: {name:'Rook', archetype:'Explorateur futuriste', idle:'scan', outfit:{body:'#e8c67e', arm:'#c9a866', leg:'#976e3e', colors:{hair:'#c8462d', strap:'#57483c', lens:'#43748a', pack:'#43748a', holo:'#9fe8ff'}, parts:['hairTuft', 'goggles', 'backpack', 'holo']},
+    lines:["J'ai trouvé un raccourci vers la forêt.", 'Il y a une plante rare près du lac.', 'Je cartographie le village. Pour la science.']},
+  hares: {name:'Hares', archetype:'Spartiate de la finance', idle:'supervise', outfit:{head:'#b8863b', visor:'#1a1210', eyes:'#ff6b5e', body:'#c99a4a', arm:'#8a5a36', hand:'#b8863b', leg:'#3a2a1c', tip:'#c0392b', colors:{crest:'#c0392b', bronze:'#b8863b', cape:'#c0392b', wood:'#6b4a2b'}, parts:['crest', 'cape', 'shield', 'spear']},
+    lines:['Un CMPC sans prime de risque pays ? Jamais.', "J'ai trié huit mille sociétés ce matin.", 'Ma lance est affûtée. Mes bêtas aussi.']},
+};
+// Les postes du village : chaque membre de l'équipe tient un lieu (Nyx se balade).
+const TEAM_POSTS = [
+  {id:'npc_market', who:'styliste_extravagant', role:'market', x:29, y:15},
+  {id:'npc_bank', who:'hares', role:'bank', x:22, y:21},
+  {id:'npc_arch', who:'analyste_strategique', role:'archives', x:29, y:21},
+  {id:'npc_lab', who:'robot_ingenieur', role:'lab', x:16, y:16},
+  {id:'npc_board', who:'explorateur_futuriste', role:'board', x:22, y:15},
+  {id:'sage', who:'mage_du_code', role:'sage', x:19, y:17},
+];
+const ROLE_TITLE = {market:'tient le marché', bank:'garde la Banque des Écarts', archives:'tient les Archives', lab:"s'occupe du Labo", board:'crie les quêtes du jour', sage:'donne des conseils'};
+// La famille : cousins, frères et sœurs, apprentis, et d'autres robots de la même espèce, qui vivent dans le monde.
+const derive = (base, patch) => { const o = TEAM[base].outfit; return {...o, ...patch, colors:{...o.colors, ...(patch.colors || {})}, parts: patch.parts || o.parts}; };
+const FAMILY = [
+  {id:'byte',    name:'Byte',    kin:'cousine de Nyx',           of:'hacker_cyberpunk', zone:'east',    idle:'bounce', outfit: derive('hacker_cyberpunk', {eyes:'#ff6fa8', body:'#2b2b33', colors:{hood:'#5d275d', cables:'#ff6fa8', shoes:'#ffcd75'}}),
+   lines:['Nyx dit que je code comme une tortue. Je code comme une fusée.', 'Les plaines ont un super réseau. Zéro monstre dans le wifi.']},
+  {id:'merlot',  name:'Merlot',  kin:'apprenti de Merlain',      of:'mage_du_code',     zone:'forest',  idle:'shimmer', outfit: derive('mage_du_code', {head:'#a9b7c6', eyes:'#ffcd75', body:'#257179', arm:'#2f8a6a', colors:{hat:'#1d5c63', rune:'#ffcd75'}, parts:['wizardHat', 'robe', 'staff']}),
+   lines:["Maître Merlain m'a appris un sort : « Budget, reste stable ! »", 'Pas encore de barbe. Un jour.']},
+  {id:'ecrou',   name:'Écrou',   kin:'frère de Boulon',          of:'robot_ingenieur',  zone:'village', idle:'blink', outfit: derive('robot_ingenieur', {body:'#41a6f6', hand:'#41a6f6', tip:'#41a6f6', eyes:'#ffcd75'}),
+   lines:['Bip bip ! Boulon a réparé mon antenne. Deux fois aussi.', 'Je compte les pièces du village. Toutes.']},
+  {id:'rivet',   name:'Rivet',   kin:'cousine de Boulon',        of:'robot_ingenieur',  zone:'lake',    idle:'blink', outfit: derive('robot_ingenieur', {body:'#a7f070', hand:'#a7f070', tip:'#a7f070', eyes:'#ff6fa8', parts:['chestLight']}),
+   lines:["L'eau du lac ? Étanchéité vérifiée à 98 %.", 'Bip ! Tu as vu les pierres ? Elles mènent quelque part.']},
+  {id:'margot',  name:'Margot',  kin:'sœur jumelle de Margaux',  of:'analyste_strategique', zone:'village', idle:'check', outfit: derive('analyste_strategique', {body:'#5d275d', colors:{hair:'#c8462d', glasses:'#f3f1f8', tie:'#73eff7', screen:'#9fe8ff'}}),
+   lines:['Margaux fait les graphiques, moi je fais les camemberts.', 'Une dépense notée, c’est une dépense comprise.']},
+  {id:'zouzou',  name:'Zouzou',  kin:'cousine de Zaza',          of:'styliste_extravagant', zone:'lake', idle:'pose', outfit: derive('styliste_extravagant', {body:'#73eff7', arm:'#73eff7', colors:{hair:'#f4628d', sunglasses:'#f4f4f4', tape:'#f4628d'}}),
+   lines:['Le turquoise, c’est le nouveau rose. Ne le dis pas à Zaza.', 'Le reflet du lac me va bien, non ?']},
+  {id:'rooky',   name:'Rooky',   kin:'petit frère de Rook',      of:'explorateur_futuriste', zone:'mountain', idle:'scan', outfit: derive('explorateur_futuriste', {body:'#a7f070', arm:'#8fcf5a', colors:{hair:'#ffcd75', pack:'#b13e53', lens:'#ffcd75'}, parts:['hairTuft', 'goggles', 'backpack']}),
+   lines:["Rook dit qu'un coffre dort au sommet du col. Je le trouverai !", 'Ma parabole capte les monstres à trois cases.']},
+  {id:'ajax',    name:'Ajax',    kin:'cousin de Hares',          of:'hares', zone:'east', idle:'supervise', outfit: derive('hares', {eyes:'#73eff7', tip:'#3b5dc9', colors:{crest:'#3b5dc9', cape:'#3b5dc9'}, parts:['crest', 'cape', 'spear']}),
+   lines:['Hares garde la banque. Moi, je garde les plaines.', 'Un monstre déchaîné ? Ma lance est prête.']},
+  {id:'pixel',   name:'Pixel',   kin:'robot du village',         zone:'village', idle:'blink', outfit:{body:ROLE_COLORS.renfort, colors:{}, parts:[]},
+   lines:['Oups, j’ai encore fait tomber une tasse.', 'Je suis un robot de renfort. Je renforce… le village.']},
+  {id:'plume',   name:'Plume',   kin:'robot du village',         zone:'south', idle:'breathe', outfit:{body:ROLE_COLORS.redaction, colors:{accent:ROLE_COLORS.redaction}, parts:['pencil']},
+   lines:["J'écris la chronique du village. Ton budget y figure !", 'Chapitre 1 : le héros qui notait tout.']},
+  {id:'mosaique',name:'Mosaïque',kin:'robot du village',         zone:'forest', idle:'pose', outfit:{body:ROLE_COLORS.design, colors:{accent:ROLE_COLORS.design}, parts:['beret']},
+   lines:['Ces pins mériteraient un peu de rose.', 'Je peins le village. Le château sera magnifique.']},
+];
+const ZONES = {village:[18, 13, 30, 26], east:[37, 12, 45, 24], forest:[16, 2, 23, 12], lake:[11, 22, 21, 32], mountain:[37, 10, 45, 16], south:[20, 26, 33, 33]};
+
+/* ---- Roré, le héros : son apparence (créateur) et ses tenues (coffres) ---- */
+const LOOK_EYES = {orange:'#ff8a3d', cyan:'#35e0ff', vert:'#41f509', rouge:'#ff6b5e', violet:'#c58bff', jaune:'#ffd84d'};
+const LOOK_CAPE = {orange:'#ff8a3d', rouge:'#c0392b', bleu:'#3b5dc9', vert:'#38b764', violet:'#7a3dbf', or:'#ffb02e', rose:'#f4628d', blanc:'#e4e1ec'};
+const LOOK_BODY = {blanc:'#f1eff7', noir:'#3d3d48', marine:'#223455', sable:'#e8c67e', rouge:'#b13e53'};
+const LOOK_ACC = {aucun:{name:'Aucun', parts:[]}, beret:{name:'Béret', parts:['beret']}, explorerHat:{name:"Chapeau d'explorateur", parts:['explorerHat']}, headset:{name:'Casque audio', parts:['headset']}, goggles:{name:"Lunettes d'aviateur", parts:['goggles']}, sunglasses:{name:'Lunettes de soleil', parts:['sunglasses']}, glasses:{name:'Lunettes', parts:['glasses']}};
+const DEFAULT_LOOK = {eyes:'orange', cape:'orange', body:'blanc', acc:'aucun'};
+const SKINS = {
+  classique:{name:'Commandant'},
+  foret:    {name:'Rôdeur des bois', cape:'#38b764', tip:'#38b764', add:['explorerHat']},
+  ocean:    {name:'Marin', cape:'#41a6f6', tip:'#41a6f6', add:['goggles']},
+  or:       {name:'Commandant doré', body:'#ffcd75', arm:'#ffe3a3', cape:'#ef7d57', gold:'#fff1b0'},
+  ombre:    {name:'Ombre', head:'#2b2b33', body:'#3d3d48', arm:'#4e5459', cape:'#5d275d', tip:'#b86fd6', hood:'#1a1c2c', add:['hood']},
+  royal:    {name:'Royal', cape:'#b13e53', tip:'#b13e53', add:['crown']},
+  legende:  {name:'Légende', body:'#f7f5fc', cape:'#73eff7', tip:'#73eff7', eyes:'#73eff7', add:['crown', 'chestLight']},
+};
+const heroLook = () => ({...DEFAULT_LOOK, ...((S && S.world && S.world.look) || {})});
+function heroOutfitFor(skinKey, look) {
+  const o = TEAM.rore.outfit, s = SKINS[skinKey] || SKINS.classique, L = look || heroLook();
+  const out = {...o, colors:{...o.colors}, parts:[...o.parts]};
+  out.eyes = s.eyes || LOOK_EYES[L.eyes] || RP.orange;
+  out.body = s.body || LOOK_BODY[L.body] || o.body;
+  if (s.arm || L.body !== 'blanc') out.arm = s.arm || rLight(out.body, .1);
+  if (s.head) { out.head = s.head; out.colors.headTop = rLight(s.head, .3); out.colors.headShade = rDark(s.head, .2); }
+  out.colors.cape = s.cape || LOOK_CAPE[L.cape] || o.colors.cape;
+  out.tip = s.tip || out.colors.cape;
+  if (s.gold) out.colors.gold = s.gold;
+  if (s.hood) out.colors.hood = s.hood;
+  const head = s.add && s.add.some(p => HEADWEAR.includes(p)) ? [] : (LOOK_ACC[L.acc] || LOOK_ACC.aucun).parts;
+  out.parts = [...out.parts, ...head, ...(s.add || [])];
+  return out;
+}
+const heroKey = () => 'hero|' + (S ? S.world.skin : '') + '|' + JSON.stringify(heroLook());
+const heroOutfit = () => heroOutfitFor(S && S.world.skin);
+
+/* ---- Le moteur de dessin (robots.ts) ---- */
+const HATS = ['beret', 'explorerHat', 'hood', 'wizardHat', 'bun', 'pompadour', 'hairTuft', 'crest', 'crown'];
+const HEADWEAR = [...HATS, 'headset', 'goggles', 'sunglasses', 'glasses'];
+function rLook(o) {
+  const head = o.head || '#e8e5f1', eye = o.eyes || RP.orange, colors = o.colors || {};
+  return {
+    parts: new Set(o.parts), c: (k, f) => colors[k] || f,
+    top: colors.headTop || (o.head ? rLight(head, .35) : '#ffffff'), front: head, shade: colors.headShade || (o.head ? rDark(head, .18) : '#c4bfd4'),
+    visor: o.visor || '#15121c', visorHi: colors.visorHi || (o.visor ? rLight(o.visor, .2) : '#3d3852'),
+    eye, eyeHi: rLight(eye, .6), eyeDim: rDark(eye, .25),
+    body: o.body, bodyHi: rLight(o.body, .3), bodyShade: rDark(o.body, .25),
+    arm: o.arm || '#d7d3e2', hand: o.hand || '#b9b4c9', leg: o.leg || '#3a3547', tip: o.tip || o.body,
+  };
+}
+function rEyes(g, L, eyes, bob) {
+  const y0 = 8 + bob;
+  if (eyes === 'blink') { rr(g, 7, y0 + 1, 2, 1, L.eyeDim); rr(g, 11, y0 + 1, 2, 1, L.eyeDim); return; }
+  if (eyes === 'happy') { for (const x of [7, 11]) { rr(g, x, y0, 2, 1, L.eye); rp(g, x - 1, y0 + 1, L.eye); rp(g, x + 2, y0 + 1, L.eye); } return; }
+  const ox = eyes === 'left' ? -1 : eyes === 'right' ? 1 : 0, oy = eyes === 'down' ? 1 : eyes === 'up' ? -1 : 0;
+  for (const x of [7, 11]) { rr(g, x + ox, y0 + oy, 2, 2, L.eye); rp(g, x + ox, y0 + oy, L.eyeHi); }
+}
+function rHead(g, L, dir, eyes, bob) {
+  const y = 4 + bob;
+  rr(g, 4, y, 12, 2, L.top); rr(g, 4, y + 2, 12, 8, L.front); rr(g, 15, y + 2, 1, 8, L.shade); rr(g, 4, y + 9, 12, 1, L.shade); rr(g, 4, y + 2, 11, 1, rLight(L.front, .12));
+  if (dir === 'down') { rr(g, 6, y + 3, 8, 4, L.visor); rr(g, 6, y + 3, 3, 1, L.visorHi); rEyes(g, L, eyes, bob); }
+  else if (dir === 'up') { rr(g, 8, y + 5, 4, 1, L.shade); rr(g, 8, y + 7, 4, 1, L.shade); }
+  else {
+    rr(g, 10, y + 3, 6, 4, L.visor); rr(g, 10, y + 3, 2, 1, L.visorHi);
+    const oy = eyes === 'down' ? 1 : eyes === 'up' ? -1 : 0;
+    if (eyes === 'blink') rr(g, 13, y + 5, 2, 1, L.eyeDim);
+    else if (eyes === 'happy') { rr(g, 13, y + 4, 2, 1, L.eye); rp(g, 12, y + 5, L.eye); }
+    else { rr(g, 13, y + 4 + oy, 2, 2, L.eye); rp(g, 13, y + 4 + oy, L.eyeHi); }
+    rr(g, 4, y + 2, 1, 8, L.shade);
+  }
+}
+function rAntenna(g, L, bob, chef) { rr(g, 9, 3 + bob, 2, 1, chef ? '#5b566a' : '#9d98ae'); rr(g, 9, 1 + bob, 2, 2, L.tip); rp(g, 9, 1 + bob, rLight(L.tip, .5)); }
+function rHeadParts(g, L, dir, bob) {
+  const y = bob, has = p => L.parts.has(p), side = dir === 'left' || dir === 'right';
+  if (has('beret')) { const c = L.c('accent', ROLE_COLORS.design); rr(g, 5, 2 + y, 10, 2, c); rr(g, 4, 3 + y, 12, 1, rDark(c, .15)); rr(g, 6, 1 + y, 6, 1, rLight(c, .25)); rp(g, 11, 0 + y, rDark(c, .3)); }
+  if (has('explorerHat')) { rr(g, 3, 4 + y, 14, 1, '#d6bd86'); rr(g, 6, 1 + y, 8, 3, '#c7aa70'); rr(g, 6, 3 + y, 8, 1, '#7c6337'); rr(g, 7, 1 + y, 6, 1, '#e3cf9e'); }
+  if (has('headset')) {
+    const c = L.c('accent', ROLE_COLORS.code); rr(g, 4, 3 + y, 12, 1, '#2b2836');
+    if (side) { rr(g, 7, 6 + y, 3, 4, c); rr(g, 7, 9 + y, 3, 1, rDark(c, .3)); }
+    else { rr(g, 2, 6 + y, 2, 5, c); rr(g, 16, 6 + y, 2, 5, c); rr(g, 2, 10 + y, 2, 1, rDark(c, .3)); rr(g, 16, 10 + y, 2, 1, rDark(c, .3)); }
+  }
+  if (has('hood')) {
+    const c = L.c('hood', '#2b2b33'), hi = rLight(c, .12), lo = rDark(c, .3);
+    if (dir === 'up') { rr(g, 3, 3 + y, 14, 11, c); rr(g, 4, 3 + y, 12, 1, hi); rr(g, 9, 5 + y, 2, 8, lo); rr(g, 8, 2 + y, 4, 1, c); }
+    else if (side) { rr(g, 4, 3 + y, 10, 3, c); rr(g, 3, 5 + y, 7, 9, c); rr(g, 4, 3 + y, 9, 1, hi); rr(g, 9, 6 + y, 1, 7, lo); rr(g, 6, 2 + y, 4, 1, c); }
+    else { rr(g, 3, 3 + y, 14, 3, c); rr(g, 3, 5 + y, 2, 9, c); rr(g, 15, 5 + y, 2, 9, c); rr(g, 4, 3 + y, 12, 1, hi); rr(g, 5, 6 + y, 10, 1, lo); rr(g, 8, 2 + y, 4, 1, c); }
+  }
+  if (has('wizardHat')) {
+    const c = L.c('hat', '#5a2d82'), hi = rLight(c, .2), band = L.c('rune', '#3fe0c8');
+    if (side) { rr(g, 3, 4 + y, 14, 1, rDark(c, .2)); rr(g, 5, 3 + y, 9, 1, band); rr(g, 5, 2 + y, 7, 1, c); rr(g, 5, 1 + y, 5, 1, hi); rr(g, 3, 0 + y, 3, 1, c); }
+    else { rr(g, 2, 4 + y, 16, 1, rDark(c, .2)); rr(g, 5, 3 + y, 10, 1, band); rr(g, 6, 2 + y, 8, 1, c); rr(g, 7, 1 + y, 6, 1, hi); rr(g, 8, 0 + y, 4, 1, c); rp(g, 12, 0 + y, rDark(c, .2)); }
+  }
+  if (has('bun')) {
+    const c = L.c('hair', '#2b2430'), hi = rLight(c, .2);
+    if (dir === 'up') { rr(g, 4, 4 + y, 12, 5, c); rr(g, 8, 1 + y, 4, 3, c); rp(g, 9, 1 + y, hi); }
+    else if (side) { rr(g, 4, 4 + y, 10, 2, c); rr(g, 4, 5 + y, 3, 5, c); rr(g, 3, 2 + y, 4, 3, c); rp(g, 4, 2 + y, hi); }
+    else { rr(g, 4, 4 + y, 12, 2, c); rr(g, 4, 6 + y, 1, 4, c); rr(g, 15, 6 + y, 1, 4, c); rr(g, 8, 1 + y, 4, 3, c); rp(g, 9, 1 + y, hi); }
+  }
+  if (has('pompadour')) {
+    const c = L.c('hair', '#7a3dbf'), hi = rLight(c, .3), lo = rDark(c, .25);
+    if (side) { rr(g, 10, 0 + y, 5, 1, hi); rr(g, 7, 1 + y, 8, 1, c); rr(g, 5, 2 + y, 9, 1, c); rr(g, 4, 3 + y, 9, 2, lo); rr(g, 4, 5 + y, 2, 3, lo); }
+    else { rr(g, 8, 0 + y, 5, 1, hi); rr(g, 6, 1 + y, 8, 1, c); rr(g, 5, 2 + y, 10, 1, c); rr(g, 4, 3 + y, 12, 2, dir === 'up' ? c : lo); if (dir === 'up') rr(g, 4, 5 + y, 12, 3, lo); else { rr(g, 4, 5 + y, 1, 3, lo); rr(g, 15, 5 + y, 1, 3, lo); } }
+  }
+  if (has('hairTuft')) {
+    const c = L.c('hair', '#c8462d'), hi = rLight(c, .25);
+    if (side) { rr(g, 5, 3 + y, 9, 1, c); rp(g, 6, 2 + y, c); rp(g, 9, 2 + y, hi); rp(g, 12, 2 + y, c); rr(g, 4, 4 + y, 2, 3, c); }
+    else { rr(g, 5, 3 + y, 10, 1, c); rp(g, 6, 2 + y, c); rp(g, 8, 2 + y, hi); rp(g, 11, 2 + y, c); rp(g, 13, 2 + y, hi); if (dir === 'up') rr(g, 4, 4 + y, 12, 3, c); }
+  }
+  if (has('crest')) {
+    const c = L.c('crest', '#c0392b'), hi = rLight(c, .3), bronze = L.c('bronze', '#b8863b');
+    if (side) { rr(g, 4, 1 + y, 10, 2, c); rr(g, 3, 2 + y, 2, 3, c); rr(g, 6, 1 + y, 7, 1, hi); rr(g, 8, 3 + y, 4, 1, bronze); }
+    else { rr(g, 8, 0 + y, 4, 4, c); rr(g, 9, 0 + y, 1, 4, hi); rr(g, 7, 3 + y, 6, 1, bronze); if (dir === 'down') { rr(g, 4, 9 + y, 2, 4, bronze); rr(g, 14, 9 + y, 2, 4, bronze); } }
+  }
+  if (has('crown')) { // une couronne (tenues Royal et Légende)
+    const c = L.c('gold', '#ffb02e'), hi = rLight(c, .45);
+    rr(g, 5, 2 + y, 10, 2, c); rr(g, 5, 2 + y, 10, 1, hi);
+    for (const x of side ? [6, 9, 12] : [5, 9, 14]) { rp(g, x, 1 + y, c); }
+    rr(g, 9, 0 + y, side ? 1 : 2, 1, c); rp(g, side ? 10 : 9, 3 + y, '#c0392b'); if (!side) rp(g, 10, 3 + y, '#c0392b');
+  }
+  if (has('goggles') && dir !== 'up') {
+    const band = L.c('strap', '#57483c'), lens = L.c('lens', '#43748a');
+    if (side) { rr(g, 4, 5 + y, 11, 1, band); rr(g, 12, 4 + y, 3, 2, lens); rp(g, 13, 4 + y, rLight(lens, .5)); }
+    else { rr(g, 4, 5 + y, 12, 1, band); for (const x of [6, 11]) { rr(g, x, 4 + y, 3, 2, lens); rp(g, x, 4 + y, rLight(lens, .5)); } }
+  }
+  if (has('glasses')) {
+    const f = L.c('glasses', '#f3f1f8');
+    if (dir === 'down') for (const x of [6, 10]) { rr(g, x, 7 + y, 4, 1, f); rr(g, x, 10 + y, 4, 1, f); rr(g, x, 7 + y, 1, 4, f); rr(g, x + 3, 7 + y, 1, 4, f); }
+    else if (dir !== 'up') { rr(g, 12, 7 + y, 4, 1, f); rr(g, 12, 10 + y, 4, 1, f); rr(g, 12, 7 + y, 1, 4, f); }
+  }
+  if (has('sunglasses') && dir !== 'up') {
+    const f = L.c('sunglasses', '#fde219'), lens = '#2a1630';
+    if (side) { rr(g, 12, 7 + y, 3, 3, f); rp(g, 13, 8 + y, lens); }
+    else { for (const x of [6, 11]) { rr(g, x, 7 + y, 3, 3, f); rp(g, x + 1, 8 + y, lens); } rr(g, 9, 8 + y, 2, 1, f); }
+  }
+  if (has('pencil') && dir === 'down') { rp(g, 16, 3 + y, '#ff8fb1'); rr(g, 16, 4 + y, 1, 5, '#ffd166'); rp(g, 16, 9 + y, '#3a3547'); }
+}
+function rBehind(g, L, dir, frame, walking, bob) {
+  const y = 14 + bob;
+  if (L.parts.has('cape') && dir !== 'up') {
+    const c = L.c('cape', RP.orange), lo = rDark(c, .25);
+    if (dir === 'down') { rr(g, 3, y, 3, 7, lo); rr(g, 14, y, 3, 7, lo); rr(g, 3, y, 1, 7, c); rr(g, 16, y, 1, 7, c); }
+    else { const flap = walking && frame % 2 ? 1 : 0; rr(g, 4 - flap, y, 4 + flap, 7, c); rr(g, 4 - flap, y + 6, 4 + flap, 1, lo); }
+  }
+  if (L.parts.has('backpack') && dir !== 'down' && dir !== 'up') {
+    const c = L.c('pack', '#43748a'), lo = rDark(c, .3);
+    rr(g, 3, y - 1, 5, 7, c); rr(g, 3, y + 1, 5, 1, lo); rr(g, 2, 8 + bob, 3, 3, '#cfd2e0'); rp(g, 3, 9 + bob, '#8a8ea2'); rr(g, 4, 11 + bob, 1, 2, '#8a8ea2');
+  }
+}
+function rBodyParts(g, L, dir, limbs, bob) {
+  const y = 14 + bob, has = p => L.parts.has(p);
+  if (dir === 'up') {
+    if (has('cape')) { const c = L.c('cape', RP.orange), lo = rDark(c, .25); rr(g, 5, y, 10, 7, c); rr(g, 8, y + 1, 1, 6, lo); rr(g, 11, y + 1, 1, 6, lo); rr(g, 5, y + 6, 10, 1, lo); }
+    if (has('backpack')) { const c = L.c('pack', '#43748a'), lo = rDark(c, .3); rr(g, 5, y - 1, 10, 7, c); rr(g, 5, y + 1, 10, 1, lo); rr(g, 8, y + 3, 4, 2, lo); rr(g, 13, 9 + bob, 3, 3, '#cfd2e0'); rp(g, 14, 10 + bob, '#8a8ea2'); rr(g, 14, 12 + bob, 1, 1, '#8a8ea2'); }
+    if (has('epaulettes')) { rr(g, 5, y, 2, 1, L.c('gold', '#ffb02e')); rr(g, 13, y, 2, 1, L.c('gold', '#ffb02e')); }
+    if (has('puffy')) { rr(g, 3, y - 1, 4, 3, L.body); rr(g, 13, y - 1, 4, 3, L.body); rr(g, 3, y - 1, 14, 1, L.bodyHi); }
+    return;
+  }
+  if (has('puffy')) { rr(g, 3, y - 1, 4, 3, L.body); rr(g, 13, y - 1, 4, 3, L.body); rr(g, 3, y - 1, 4, 1, L.bodyHi); rr(g, 13, y - 1, 4, 1, L.bodyHi); rr(g, 3, y + 1, 4, 1, L.bodyShade); rr(g, 13, y + 1, 4, 1, L.bodyShade); }
+  if (has('tie')) { rp(g, 8, y, '#f4f1ea'); rp(g, 11, y, '#f4f1ea'); rr(g, 9, y, 2, 1, L.c('tie', '#e0a526')); rr(g, 9, y + 1, 1, 3, L.c('tie', '#e0a526')); }
+  if (has('tape')) { const c = L.c('tape', '#fde219'); rr(g, 8, y, 1, 4, c); rr(g, 11, y, 1, 2, c); }
+  if (has('epaulettes')) { rr(g, 5, y, 2, 1, L.c('gold', '#ffb02e')); rr(g, 13, y, 2, 1, L.c('gold', '#ffb02e')); }
+  if (has('star')) { rp(g, 12, y + 2, L.c('gold', '#ffd84d')); rp(g, 12, y + 1, rLight(L.c('gold', '#ffd84d'), .5)); }
+  if (has('chestLight')) { rr(g, 9, y + 1, 2, 2, L.eye); rp(g, 9, y + 1, L.eyeHi); }
+  if (has('toolbelt')) { rr(g, 6, y + 4, 8, 1, L.c('belt', '#ffd166')); rp(g, 9, y + 4, rDark(L.c('belt', '#ffd166'), .4)); }
+  if (has('backpack')) { const s = L.c('strap', '#57483c'); rr(g, 7, y, 1, 4, s); rr(g, 12, y, 1, 4, s); rr(g, 15, 9 + bob, 3, 3, '#cfd2e0'); rp(g, 16, 10 + bob, '#8a8ea2'); }
+  if (has('cables')) { const c = L.c('cables', '#41f509'); for (const [x, ay, h] of [limbs.la, limbs.ra]) { rp(g, x, ay + bob + 1, c); rp(g, x + 1, ay + bob + Math.min(3, h - 2), c); } rp(g, 7, y + 2, c); }
+  if (has('holo')) { const [x, ay, h] = limbs.ra; rr(g, x, ay + bob + h - 2, 2, 1, L.c('holo', '#9fe8ff')); }
+  if (has('shield')) {
+    const b = L.c('bronze', '#b8863b'), rim = rDark(b, .3), mark = L.c('crest', '#c0392b');
+    rr(g, 2, y, 6, 6, b); rr(g, 3, y - 1, 4, 8, b); rr(g, 2, y, 1, 6, rim); rr(g, 7, y, 1, 6, rim);
+    for (const [mx, my] of [[5, 1], [4, 2], [4, 3], [6, 2], [6, 3], [3, 4], [7, 4]]) rp(g, mx, y + my, mark);
+  }
+  if (has('tablet')) { const c = L.c('tablet', '#2c2c4e'); rr(g, 5, y + 1, 4, 4, c); rr(g, 6, y + 2, 2, 2, L.c('screen', '#6f849d')); }
+}
+function rBodyFront(g, L, dir, limbs, bob, chef) {
+  const y = 14 + bob, robe = L.parts.has('robe');
+  rr(g, 7, 19, 2, 3 - limbs.ll, L.leg); rr(g, 11, 19, 2, 3 - limbs.rl, L.leg);
+  if (L.parts.has('sneakers')) { if (!limbs.ll) rr(g, 7, 21, 2, 1, L.c('shoes', '#f3f1f8')); if (!limbs.rl) rr(g, 11, 21, 2, 1, L.c('shoes', '#f3f1f8')); }
+  const h = robe ? 7 : 5;
+  rr(g, robe ? 5 : 6, y, robe ? 10 : 8, h, L.body); rr(g, robe ? 5 : 6, y, robe ? 10 : 8, 1, L.bodyHi); rr(g, robe ? 5 : 6, y + h - 1, robe ? 10 : 8, 1, L.bodyShade); rr(g, robe ? 14 : 13, y + 1, 1, h - 2, L.bodyShade);
+  if (robe) for (const x of [6, 9, 12]) rp(g, x, y + h - 2, L.c('rune', '#3fe0c8'));
+  if (chef && dir === 'down') {
+    const inner = L.c('cape', RP.orange);
+    rr(g, 8, y, 4, 1, inner); rr(g, 9, y + 1, 2, 1, inner);
+    for (const [mx, my] of [[7, 0], [12, 0], [8, 1], [11, 1], [9, 2], [10, 2]]) rp(g, mx, y + my, L.bodyShade);
+    rp(g, 10, y + 3, '#8f8aa1'); rp(g, 7, y + 2, rLight(inner, .55));
+  } else if (chef && dir === 'up') rr(g, 10, y + 1, 1, 3, L.bodyShade);
+  else if (!chef && dir === 'down' && L.parts.size <= 1) rp(g, 8, y + 2, rLight(L.body, .55));
+  for (const [x, ay, ah] of [limbs.la, limbs.ra]) { rr(g, x, ay + bob, 2, ah, L.arm); rr(g, x, ay + bob + ah - 1, 2, 1, L.hand); }
+}
+function rBodySide(g, L, frame, walking, bob) {
+  const y = 14 + bob, swing = walking ? [0, 1, 0, -1][frame % 4] : 0, robe = L.parts.has('robe');
+  rr(g, 8 + swing, 19, 2, 3, rDark(L.leg, .15)); rr(g, 10 - swing, 19, 2, 3, L.leg);
+  if (L.parts.has('sneakers')) { rr(g, 8 + swing, 21, 2, 1, rDark(L.c('shoes', '#f3f1f8'), .15)); rr(g, 10 - swing, 21, 3, 1, L.c('shoes', '#f3f1f8')); }
+  const h = robe ? 7 : 5;
+  rr(g, robe ? 6 : 7, y, robe ? 9 : 7, h, L.body); rr(g, robe ? 6 : 7, y, robe ? 9 : 7, 1, L.bodyHi); rr(g, robe ? 6 : 7, y + h - 1, robe ? 9 : 7, 1, L.bodyShade);
+  if (robe) for (const x of [8, 12]) rp(g, x, y + h - 2, L.c('rune', '#3fe0c8'));
+  if (L.parts.has('puffy')) { rr(g, 6, y - 1, 9, 3, L.body); rr(g, 6, y - 1, 9, 1, L.bodyHi); }
+  if (L.parts.has('tie')) { rp(g, 13, y, '#f4f1ea'); rr(g, 13, y + 1, 1, 2, L.c('tie', '#e0a526')); }
+  if (L.parts.has('toolbelt')) rr(g, 7, y + 4, 7, 1, L.c('belt', '#ffd166'));
+  if (L.parts.has('epaulettes')) rr(g, 9, y, 3, 1, L.c('gold', '#ffb02e'));
+  if (L.parts.has('backpack')) rr(g, 8, y, 1, 4, L.c('strap', '#57483c'));
+  if (L.parts.has('chestLight')) rp(g, 12, y + 2, L.eye);
+  if (L.parts.has('tablet')) { rr(g, 11, y + 1, 2, 4, L.c('tablet', '#2c2c4e')); rr(g, 9 - swing, y + 1, 3, 2, L.arm); }
+  else { rr(g, 9 - swing, y + 1, 2, 4, L.arm); rr(g, 9 - swing, y + 4, 2, 1, L.hand); if (L.parts.has('cables')) rp(g, 9 - swing, y + 2, L.c('cables', '#41f509')); if (L.parts.has('holo')) rp(g, 10 - swing, y + 3, L.c('holo', '#9fe8ff')); }
+}
+function rStaff(g, L, dir, frame, bob, glint) {
+  const x = dir === 'up' ? 3 : 16;
+  if (L.parts.has('spear')) { const tip = L.c('bronze', '#b8863b'); rr(g, x, 3 + bob, 1, 19 - bob, L.c('wood', '#7a5230')); rr(g, x - 1, 1 + bob, 3, 2, tip); rp(g, x, 0 + bob, rLight(tip, .4)); return; }
+  if (!L.parts.has('staff')) return;
+  const wood = L.c('wood', '#7a5230'), gem = L.c('rune', '#3fe0c8');
+  rr(g, x, 4 + bob, 1, 17 - bob, wood); rr(g, x - 1, 1 + bob, 3, 3, glint && frame % 2 ? rLight(gem, .5) : gem); rp(g, x - 1, 1 + bob, '#ffffff');
+}
+function rLimbs(pose, frame) {
+  const f = frame % 4;
+  if (pose === 'walk') return {la:[4, 14 + (f === 1 ? 1 : f === 3 ? -1 : 0), 4], ra:[14, 14 + (f === 1 ? -1 : f === 3 ? 1 : 0), 4], ll: f === 1 ? 1 : 0, rl: f === 3 ? 1 : 0};
+  if (pose === 'wave') return {la:[4, 14, 4], ra:[15 + (frame % 2), 4, 6], ll:0, rl:0};
+  if (pose === 'cheer') return {la:[3, 3 + (frame % 2), 6], ra:[15, 3 + ((frame + 1) % 2), 6], ll: frame % 2, rl: (frame + 1) % 2};
+  return {la:[4, 14, 4], ra:[14, 14, 4], ll:0, rl:0};
+}
+function rBuild(o, pose, dir, frame, eyes) {
+  if (dir === 'left') return rMirror(rBuild(o, pose, 'right', frame, eyes));
+  const L = rLook(o), chef = L.parts.has('jacket');
+  const c = document.createElement('canvas'); c.width = 20; c.height = 24;
+  const g = c.getContext('2d');
+  const walking = pose === 'walk', f = frame % 4;
+  const bob = walking ? (f === 1 || f === 3 ? -1 : 0) : pose === 'cheer' ? -(frame % 2) : 0;
+  const hatted = HATS.some(p => L.parts.has(p)), glint = pose === 'stand';
+  if (dir === 'right') {
+    rBehind(g, L, dir, frame, walking, bob); rBodySide(g, L, frame, walking, bob);
+    if (!hatted) rAntenna(g, L, bob, chef);
+    rHead(g, L, 'right', eyes, bob); rHeadParts(g, L, 'right', bob);
+    if (L.parts.has('beard')) { rr(g, 11, 11 + bob, 4, 3, '#f2efe6'); rr(g, 12, 14 + bob, 3, 2, '#f2efe6'); }
+    rStaff(g, L, dir, frame, bob, glint);
+  } else {
+    const limbs = rLimbs(pose, frame);
+    rBehind(g, L, dir, frame, walking, bob); rBodyFront(g, L, dir, limbs, bob, chef); rBodyParts(g, L, dir, limbs, bob);
+    if (!hatted) rAntenna(g, L, bob, chef);
+    rHead(g, L, dir, eyes, bob); rHeadParts(g, L, dir, bob);
+    if (L.parts.has('beard') && dir === 'down') { rr(g, 6, 11 + bob, 8, 3, '#f2efe6'); rr(g, 7, 14 + bob, 6, 2, '#f2efe6'); rr(g, 9, 16 + bob, 2, 1, '#f2efe6'); rp(g, 8, 12 + bob, '#d8d1c3'); rp(g, 11, 13 + bob, '#d8d1c3'); }
+    if ((pose === 'wave' || pose === 'cheer') && dir === 'down') {
+      const [x, ay, h] = limbs.ra; if (x <= 15) { rr(g, x, ay + bob, 2, h, L.arm); rr(g, x, ay + bob, 2, 1, L.hand); }
+      if (pose === 'cheer') { const [lx, ly, lh] = limbs.la; rr(g, lx, ly + bob, 2, lh, L.arm); rr(g, lx, ly + bob, 2, 1, L.hand); }
+    }
+    rStaff(g, L, dir, frame, bob, glint);
+  }
+  return rOutline(c, chef ? '#07060a' : RP.ink);
+}
+const _robotCache = new Map();
+function robotSprite(key, outfit, pose, dir, frame, eyes = 'open', grey = false) {
+  const id = `${key}|${pose}|${dir}|${frame}|${eyes}|${grey}`;
+  let c = _robotCache.get(id);
+  if (!c) {
+    c = rBuild(outfit, pose, dir, frame, eyes);
+    if (grey) { const g = c.getContext('2d'), im = g.getImageData(0, 0, c.width, c.height), d = im.data; for (let i = 0; i < d.length; i += 4) { const v = (d[i] * .3 + d[i + 1] * .59 + d[i + 2] * .11) * .75; d[i] = d[i + 1] = d[i + 2] = v; } g.putImageData(im, 0, 0); }
+    if (_robotCache.size > 900) _robotCache.clear();
+    _robotCache.set(id, c);
+  }
+  return c;
+}
+// Sa personnalité quand il attend (characters.ts, idleEffect)
+function idleEffect(idle, t) {
+  const k = t % 6;
+  switch (idle) {
+    case 'bounce': return {hop: k < .9 && Math.floor(k * 7) % 2 ? 1 : 0};
+    case 'shimmer': return {hop: 0, frame: Math.floor(t * 2.5) % 2};
+    case 'blink': return {hop: 0, eyes: (k > 2 && k < 2.12) || (k > 2.3 && k < 2.42) ? 'blink' : undefined};
+    case 'check': return {hop: 0, eyes: k > 3.6 ? 'down' : undefined};
+    case 'pose': return k < 1.1 ? {hop: 1, eyes: 'happy'} : {hop: 0};
+    case 'scan': return {hop: 0, eyes: ['left', 'open', 'right', 'up', 'open', 'left'][Math.floor(k)]};
+    case 'supervise': return {hop: 0, eyes: k > 4.4 ? (k > 5.2 ? 'right' : 'left') : undefined};
+    default: return {hop: 0, eyes: k > 4 && k < 4.12 ? 'blink' : undefined};
+  }
+}
+const _robotURL = new Map();
+function robotImg(key, outfit, h = 48, opt = {}) {
+  const id = key + JSON.stringify(opt);
+  let u = _robotURL.get(id);
+  if (!u) {
+    const src = robotSprite(key, outfit, opt.pose || 'stand', opt.dir || 'down', 0, opt.eyes || 'open', !!opt.grey), c = document.createElement('canvas');
+    c.width = 80; c.height = 96; const x = c.getContext('2d'); x.imageSmoothingEnabled = false; x.drawImage(src, 0, 0, 80, 96);
+    u = c.toDataURL(); _robotURL.set(id, u);
+  }
+  return `<img class="px" src="${u}" width="${Math.round(h * 20 / 24)}" height="${h}" alt="">`;
+}
+function robotFace(key, outfit, size = 40) {
+  const id = 'face:' + key;
+  let u = _robotURL.get(id);
+  if (!u) { const src = robotSprite(key, outfit, 'stand', 'down', 0, 'open'), c = document.createElement('canvas'); c.width = 64; c.height = 64; const x = c.getContext('2d'); x.imageSmoothingEnabled = false; x.drawImage(src, 2, 0, 16, 16, 0, 0, 64, 64); u = c.toDataURL(); _robotURL.set(id, u); }
+  return `<img class="px face" src="${u}" width="${size}" height="${size}" alt="">`;
+}
+const heroImg = (size = 48, opt = {}) => robotImg(heroKey(), heroOutfit(), size, opt);
+
 
 
 /* ---------------- STATE ---------------- */
@@ -528,6 +755,7 @@ function migrate(s) {
   if (!Array.isArray(s.world.skins) || !s.world.skins.includes('classique')) s.world.skins = ['classique', ...(Array.isArray(s.world.skins) ? s.world.skins : [])];
   if (!s.world.chests || typeof s.world.chests !== 'object') s.world.chests = {};
   if (!SKINS[s.world.skin]) s.world.skin = 'classique';
+  if (!s.world.look || !LOOK_EYES[s.world.look.eyes] || !LOOK_CAPE[s.world.look.cape]) s.world.look = {...DEFAULT_LOOK};
   s.expenses = s.expenses.filter(e => e && typeof e.date === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(e.date)).map(e => ({...e, amount: Math.max(0, Math.round(+e.amount || 0))}));
   return s;
 }
@@ -1002,7 +1230,7 @@ function buildObjects() {
   add({id:'board', type:'building', kind:'board', x:23, y:15, w:1, h:1, name:'Tableau des quêtes'});
   add({id:'lab', type:'building', kind:'lab', x:14, y:15, w:2, h:2, name:"Labo de l'alchimiste"});
   add({id:'fire', type:'fire', x:25, y:23, w:1, h:1, name:'Feu de camp'});
-  for (const n of NPCS) add({...n, type:'npc', w:1, h:1});
+  for (const p of TEAM_POSTS) { const m = TEAM[p.who]; add({...p, type:'npc', w:1, h:1, name: m.name, key: p.who, outfit: m.outfit, idle: m.idle, lines: m.lines}); }
   for (const s of SIGNS) add({...s, type:'sign', w:1, h:1, name:'Panneau'});
   const built = S.world.built || 0;
   PLOTS.forEach(([x, y], i) => add({id:'plot' + i, type: i < built ? 'village' : 'plot', x, y, w:2, h:2, idx:i, v:VILLAGE[i], name: i < built ? VILLAGE[i].name : 'Terrain à bâtir'}));
@@ -1063,7 +1291,11 @@ function ensureWorld() {
     const s = S.world.seen || '';
     for (let i = 0; i < s.length && i < WORLD.seen.length; i++) WORLD.seen[i] = s.charCodeAt(i) === 49 ? 1 : 0;
   }
-  if (!WORLD.villagers.length) WORLD.villagers = VILL_LOOKS.map((v, i) => { const [x, y] = [[23, 21], [25, 17], [22, 19]][i]; return {x, y, fx:x * TS, fy:y * TS, tgt:null, look:v.look, out:v.out, i, wait:1 + i, flip:false, dir:'down', step:0}; });
+  if (!WORLD.villagers.length) {
+    const spot = (zone, i) => { const [x0, y0, x1, y1] = ZONES[zone], cells = []; for (let y = y0; y <= y1; y++) for (let x = x0; x <= x1; x++) if (walkable(x, y)) cells.push([x, y]); return cells.length ? cells[Math.floor(hash(i * 7 + 3, i * 13 + 5) * cells.length)] : [20, 16]; };
+    const list = [{id:'nyx', name:'Nyx', kin:"membre de l'Open Space", key:'hacker_cyberpunk', outfit:TEAM.hacker_cyberpunk.outfit, idle:'bounce', zone:'village', lines:TEAM.hacker_cyberpunk.lines}, ...FAMILY.map(f => ({...f, key:'fam:' + f.id}))];
+    WORLD.villagers = list.map((v, i) => { const [x, y] = spot(v.zone, i + 1); return {...v, type:'wander', w:1, h:1, x, y, fx:x * TS, fy:y * TS, tgt:null, i, wait:1 + (i % 3), flip:false, dir:'down', step:0, talk:0}; });
+  }
   placeHero();
 }
 const inMap = (x, y) => x >= 0 && y >= 0 && x < MW && y < MH;
@@ -1126,7 +1358,7 @@ function stepDir(dir) {
   else { const o = inMap(nx, ny) && WORLD.at.get(ny * MW + nx); if (o) { UI.hold = null; interact(o); } }
 }
 function goTo(tx, ty) {
-  const h = HERO_S, o = inMap(tx, ty) ? WORLD.at.get(ty * MW + tx) : null;
+  const h = HERO_S, o = (inMap(tx, ty) ? WORLD.at.get(ty * MW + tx) : null) || WORLD.villagers.find(v => Math.round(v.fx / TS) === tx && Math.round(v.fy / TS) === ty);
   if (o) {
     if (adjacentTo(o, h.x, h.y)) { h.path = []; return interact(o); }
     const p = findPath(h.x, h.y, (x, y) => adjacentTo(o, x, y));
@@ -1137,9 +1369,10 @@ function goTo(tx, ty) {
   const p = walkable(tx, ty) ? findPath(h.x, h.y, (x, y) => x === tx && y === ty) : findPath(h.x, h.y, (x, y) => Math.abs(x - tx) + Math.abs(y - ty) === 1);
   if (p) { h.path = p; h.pending = null; }
 }
+function wandererAt(x, y) { return WORLD.villagers.find(v => !v.tgt && v.x === x && v.y === y) || null; }
 function nearObject() {
   const h = HERO_S, order = [h.dir, 'up', 'down', 'left', 'right'];
-  for (const d of order) { const [dx, dy] = DIRS[d], x = h.x + dx, y = h.y + dy; const o = inMap(x, y) && WORLD.at.get(y * MW + x); if (o) return o; }
+  for (const d of order) { const [dx, dy] = DIRS[d], x = h.x + dx, y = h.y + dy; const o = (inMap(x, y) && WORLD.at.get(y * MW + x)) || wandererAt(x, y); if (o) return o; }
   return null;
 }
 function interactNear() { const o = nearObject(); if (o) interact(o); else { UI.dlg = null; UI.near = null; paintDlg(); } }
@@ -1155,13 +1388,14 @@ function proximity() {
   const o = nearObject();
   if (UI.dlg && UI.dlg.obj && !adjacentTo(UI.dlg.obj, HERO_S.x, HERO_S.y)) UI.dlg = null;
   if (o && (!UI.dlg || UI.dlg.obj !== o)) {
-    const verb = {building:'Entrer', chest:'Ouvrir', sign:'Lire', npc:'Parler', lair:'Observer', fire:'Se reposer', plot:'Regarder', village:'Regarder'}[o.type];
-    UI.dlg = {who: objName(o).toUpperCase(), text: o.type === 'sign' ? o.text : hintText(o), btns: o.type === 'sign' ? '' : `<button class="btn sm gold" data-act="A">A · ${verb}</button>`, obj: o};
+    const verb = {building:'Entrer', chest:'Ouvrir', sign:'Lire', npc:'Parler', wander:'Parler', lair:'Observer', fire:'Se reposer', plot:'Regarder', village:'Regarder'}[o.type];
+    UI.dlg = {who: objName(o).toUpperCase(), text: o.type === 'sign' ? o.text : hintText(o), btns: o.type === 'sign' ? '' : `<button class="btn sm gold" data-act="A">A · ${verb}</button>`, obj: o, face: o.outfit ? [o.key, o.outfit] : null};
   }
   UI.near = o;
   paintDlg();
 }
 function objName(o) {
+  if (o.type === 'wander') return o.name;
   if (o.type === 'lair') { const c = UI.game && UI.game.ms.cats.find(x => x.cat.id === o.catId); return c ? monName(c) : 'Repaire'; }
   if (o.type === 'chest' && o.chestId === 'secret' && !S.world.chests.secret) return 'Coffre mystérieux';
   return o.name;
@@ -1172,7 +1406,8 @@ function hintText(o) {
     case 'lair': { const c = UI.game.ms.cats.find(x => x.cat.id === o.catId); return c ? `${RAGE_TXT[rageLv(c.ratio)]} · ${Math.round(c.ratio * 100)} % du budget « ${c.cat.name} ».` : ''; }
     case 'chest': return S.world.chests[o.chestId] ? 'Un coffre vide.' : condMet(o, UI.game) ? 'Il brille… il peut être ouvert !' : 'Un coffre verrouillé.';
     case 'fire': return S.checkins[today()] ? 'Le feu crépite : journée sans dépense pointée.' : 'Un feu de camp. Repose-toi ici les jours sans dépense.';
-    case 'npc': return {sage:'Un vieil homme qui connaît bien les monstres.', market:'La marchande tient le marché. Parle-lui pour noter une dépense.', bank:'Le banquier connaît tes écarts au franc près.', archives:"L'archiviste garde le journal de toutes tes dépenses.", lab:"L'alchimiste s'occupe de tes suivis personnalisés.", board:'Le crieur annonce les quêtes du jour.'}[o.role] || '';
+    case 'npc': return `${TEAM[o.who].archetype} de l'Open Space, ${ROLE_TITLE[o.role]}.`;
+    case 'wander': return `${o.kin === "membre de l'Open Space" ? TEAM.hacker_cyberpunk.archetype + " de l'Open Space, en balade." : o.kin[0].toUpperCase() + o.kin.slice(1) + '.'}`;
     case 'plot': return 'Un terrain à bâtir pour le village.';
     case 'village': return o.v.desc;
   }
@@ -1186,7 +1421,7 @@ function interact(o) {
   const g = UI.game, h = HERO_S;
   UI.near = o;
   if (adjacentTo(o, h.x, h.y)) { const dx = o.x - h.x, dy = o.y - h.y; if (Math.abs(dx) >= Math.abs(dy) && dx) h.flip = dx < 0; }
-  const D = (text, btns = '') => { UI.dlg = {who: objName(o).toUpperCase(), text, btns, obj: o}; paintDlg(); };
+  const D = (text, btns = '') => { UI.dlg = {who: objName(o).toUpperCase(), text, btns, obj: o, face: o.outfit ? [o.key, o.outfit] : null}; paintDlg(); };
   switch (o.type) {
     case 'building':
       SFX.click();
@@ -1197,15 +1432,23 @@ function interact(o) {
       if (o.kind === 'lab') return openPanel('suivis');
       return D(`Bienvenue chez toi, ${heroName()}. Tenue actuelle : ${SKINS[S.world.skin].name}.`, btn('♞ Apparence', 'panel', 'data-p="look"') + btn('Tenues', 'panel', 'data-p="skins"', 'grey') + btn('Budgets & options', 'panel', 'data-p="options"', 'cyan') + btn('Règles', 'rules', '', 'grey'));
     case 'sign': return D(o.text);
+    case 'wander': {
+      SFX.click(); UI.talkAt = performance.now();
+      o._li = ((o._li ?? -1) + 1) % o.lines.length;
+      return D(`« ${o.lines[o._li]} »`, btn('Encore un mot', 'A', '', 'grey'));
+    }
     case 'npc': {
       SFX.click();
       const ms = g.ms, r = o.role;
-      if (r === 'sage') { UI.tipIdx = ((UI.tipIdx ?? Math.floor(Math.random() * TIPS.length)) + 1) % TIPS.length; return D(`« ${TIPS[UI.tipIdx]} »`, btn('Un autre conseil', 'A', '', 'grey')); }
-      if (r === 'market') return D(`Bienvenue au marché, ${heroName()} ! Qu'est-ce que tu as acheté aujourd'hui ? Dis-le-moi, je note tout.`, btn('⚔ Noter une dépense', 'panel', 'data-p="add"', 'green'));
-      if (r === 'bank') return D(`Ce mois-ci : ${fmt(ms.spent)} dépensés sur ${fmt(ms.budget)}, soit un écart de ${fmtS(ms.budget - ms.spent)}.${ms.status === 'current' && ms.elapsed ? ` À ce rythme, tu finiras à ${fmt(ms.projection)}.` : ''}`, btn('⚖ Voir les écarts', 'panel', 'data-p="ecarts"'));
-      if (r === 'archives') return D(`J'ai ${ms.count} dépense${ms.count > 1 ? 's' : ''} dans mes registres pour ${ymLabel(ms.ym)}. Tout est classé, jour par jour.`, btn('✎ Ouvrir le journal', 'panel', 'data-p="journal"', 'cyan'));
-      if (r === 'lab') return D(`Mes fioles mesurent tout : ${esc(S.trackers.map(t => t.name).join(', ')) || "rien pour l'instant"}. Une mesure par jour, et c'est +5 XP !`, btn('⚗ Mes suivis', 'panel', 'data-p="suivis"', 'cyan'));
-      if (r === 'board') { const done = S.habits.filter(hb => habitDone(today(), hb.id)).length; return D(`Avis à la population ! Quêtes du jour : ${done}/${S.habits.length} accomplies.${done === S.habits.length && S.habits.length ? ' Journée parfaite, bravo !' : ''}`, btn('★ Tableau des quêtes', 'panel', 'data-p="quetes"')); }
+      UI.talkAt = performance.now();
+      o._li = ((o._li ?? -1) + 1) % o.lines.length;
+      const say1 = `« ${o.lines[o._li]} » `;
+      if (r === 'sage') { UI.tipIdx = ((UI.tipIdx ?? Math.floor(Math.random() * TIPS.length)) + 1) % TIPS.length; return D(`« ${TIPS[UI.tipIdx]} » Un conseil de mage : le budget, c'est comme le code, ça se relit.`, btn('Un autre conseil', 'A', '', 'grey')); }
+      if (r === 'market') return D(say1 + `Bienvenue au marché, ${heroName()} ! Qu'est-ce que tu as acheté aujourd'hui ? Dis-le-moi, je note tout.`, btn('⚔ Noter une dépense', 'panel', 'data-p="add"', 'green'));
+      if (r === 'bank') return D(say1 + `Ce mois-ci : ${fmt(ms.spent)} dépensés sur ${fmt(ms.budget)}, soit un écart de ${fmtS(ms.budget - ms.spent)}.${ms.status === 'current' && ms.elapsed ? ` À ce rythme, tu finiras à ${fmt(ms.projection)}.` : ''}`, btn('⚖ Voir les écarts', 'panel', 'data-p="ecarts"'));
+      if (r === 'archives') return D(say1 + `J'ai ${ms.count} dépense${ms.count > 1 ? 's' : ''} dans mes registres pour ${ymLabel(ms.ym)}. Tout est classé, jour par jour.`, btn('✎ Ouvrir le journal', 'panel', 'data-p="journal"', 'cyan'));
+      if (r === 'lab') return D(say1 + `Mes capteurs mesurent tout : ${esc(S.trackers.map(t => t.name).join(', ')) || "rien pour l'instant"}. Une mesure par jour, et c'est +5 XP !`, btn('⚗ Mes suivis', 'panel', 'data-p="suivis"', 'cyan'));
+      if (r === 'board') { const done = S.habits.filter(hb => habitDone(today(), hb.id)).length; return D(say1 + `Avis à la population ! Quêtes du jour : ${done}/${S.habits.length} accomplies.${done === S.habits.length && S.habits.length ? ' Journée parfaite, bravo !' : ''}`, btn('★ Tableau des quêtes', 'panel', 'data-p="quetes"')); }
       return;
     }
     case 'fire': {
@@ -1245,6 +1488,7 @@ let particles = [];
 function worldFx(type, catId, o) {
   const h = HERO_S, cx = h.fx + 8, cy = h.fy + 6;
   if (type === 'spend') for (let i = 0; i < 10; i++) particles.push({x:cx, y:cy, vx:(Math.random() - .5) * 60, vy:-40 - Math.random() * 40, g:120, c:'#ffcd75', life:.7});
+  if (type === 'heal' || type === 'chest') UI.cheerUntil = performance.now() + 1400;
   if (type === 'heal') for (let i = 0; i < 14; i++) particles.push({x:cx + (Math.random() - .5) * 20, y:cy + Math.random() * 10, vx:0, vy:-20, c:i % 2 ? '#a7f070' : '#73eff7', life:.8, s:1 + (i % 2)});
   if (type === 'hurt') for (let i = 0; i < 10; i++) particles.push({x:cx, y:cy, vx:(Math.random() - .5) * 70, vy:-30 - Math.random() * 30, g:100, c:'#b13e53', life:.6});
   if (type === 'chest' && o) for (let i = 0; i < 18; i++) particles.push({x:o.x * TS + 8, y:o.y * TS + 6, vx:(Math.random() - .5) * 50, vy:-50 - Math.random() * 40, g:110, c:i % 3 ? '#ffcd75' : '#f4f4f4', life:1});
@@ -1283,9 +1527,10 @@ function updateWorld(dt) {
       v.step += dt;
       if (d <= sp) { v.fx = tx; v.fy = ty; v.x = v.tgt[0]; v.y = v.tgt[1]; v.tgt = null; v.wait = 1 + Math.random() * 3; }
       else { v.fx += ddx / d * sp; v.fy += ddy / d * sp; }
-    } else if ((v.wait -= dt) <= 0) {
-      const [dx, dy] = Object.values(DIRS)[Math.floor(Math.random() * 4)], nx = v.x + dx, ny = v.y + dy;
-      if (nx >= 18 && nx <= 30 && ny >= 13 && ny <= 26 && walkable(nx, ny) && !(nx === h.x && ny === h.y)) { v.tgt = [nx, ny]; v.dir = dx > 0 ? 'right' : dx < 0 ? 'left' : dy > 0 ? 'down' : 'up'; v.flip = dx < 0; }
+    } else if (UI.near === v || h.pending === v) { v.wait = 2; }
+    else if ((v.wait -= dt) <= 0) {
+      const [dx, dy] = Object.values(DIRS)[Math.floor(Math.random() * 4)], nx = v.x + dx, ny = v.y + dy, [zx0, zy0, zx1, zy1] = ZONES[v.zone] || ZONES.village;
+      if (nx >= zx0 && nx <= zx1 && ny >= zy0 && ny <= zy1 && walkable(nx, ny) && !(nx === h.x && ny === h.y) && !WORLD.villagers.some(o => o !== v && ((o.x === nx && o.y === ny) || (o.tgt && o.tgt[0] === nx && o.tgt[1] === ny)))) { v.tgt = [nx, ny]; v.dir = dx > 0 ? 'right' : dx < 0 ? 'left' : dy > 0 ? 'down' : 'up'; v.flip = dx < 0; }
       else v.wait = .5;
     }
   }
@@ -1345,11 +1590,12 @@ function drawWorld(now) {
       else { box('#b13e53', X + 6, Y + 9, 2, 2); box('#ef7d57', X + 9, Y + 9, 1, 1); box('#566c86', X + 8 + f, Y + 4 - f * 2, 2, 2); }
     }]);
     else if (o.type === 'npc') list.push([base, () => {
-      let view = 'down', flip = false;
-      if (UI.near === o && adjacentTo(o, h.x, h.y)) { const dx = h.x - o.x, dy = h.y - o.y; view = dy < 0 ? 'up' : dy > 0 ? 'down' : 'side'; flip = dx < 0; }
-      const blink = ((now + o.x * 997) % 3400) < 140;
+      let dir = 'down', pose = 'stand', fr = 0, eyes;
+      const talking = UI.near === o && adjacentTo(o, h.x, h.y);
+      if (talking) { const dx = h.x - o.x, dy = h.y - o.y; dir = dy < 0 ? 'up' : dy > 0 ? 'down' : dx < 0 ? 'left' : 'right'; if (dir === 'down' && now - (UI.talkAt || 0) < 1600) { pose = 'wave'; fr = tick % 2; } }
+      else { const ie = idleEffect(o.idle, now / 1000 + o.x * .7); eyes = ie.eyes; if (ie.frame != null) fr = ie.frame; if (ie.hop) fr = fr; o._hop = ie.hop; }
       shadowAt(X + 8, Y + 13, 12);
-      put(charCanvas(o.look, o.out, view, 0, {blink, flip}), X, Y - 9 + (Math.floor(now / 700 + o.x) % 2));
+      put(robotSprite(o.key, o.outfit, pose, dir, fr, eyes || 'open'), X - 2, Y - 7 - (talking ? 0 : (o._hop || 0)));
     }]);
     else if (o.type === 'lair') list.push([base, () => {
       const c = cats[o.catId]; if (!c) return;
@@ -1365,17 +1611,22 @@ function drawWorld(now) {
     }]);
   }
   for (const v of WORLD.villagers) list.push([v.fy + 16, () => {
-    const view = v.dir === 'up' ? 'up' : v.dir === 'down' ? 'down' : 'side';
-    const fr = v.tgt ? (view === 'side' ? [1, 0][Math.floor(v.step * 6) % 2] : [1, 0, 2, 0][Math.floor(v.step * 6) % 4]) : 0;
+    const talking = UI.near === v && adjacentTo(v, h.x, h.y);
+    let dir = v.dir, pose = v.tgt ? 'walk' : 'stand', fr = v.tgt ? Math.floor(v.step * 7) % 4 : 0, eyes, hop = 0;
+    if (talking) { const dx = h.x - v.x, dy = h.y - v.y; dir = dy < 0 ? 'up' : dy > 0 ? 'down' : dx < 0 ? 'left' : 'right'; pose = dir === 'down' && now - (UI.talkAt || 0) < 1600 ? 'wave' : 'stand'; fr = pose === 'wave' ? tick % 2 : 0; }
+    else if (!v.tgt) { const ie = idleEffect(v.idle, now / 1000 + v.i * 1.3); eyes = ie.eyes; hop = ie.hop || 0; if (ie.frame != null) fr = ie.frame; }
     shadowAt(v.fx + 8, v.fy + 13, 12);
-    put(charCanvas(v.look, v.out, view, fr, {flip: v.flip, blink: ((now + v.i * 1300) % 3700) < 140}), Math.round(v.fx), Math.round(v.fy) - 9 - (fr ? 1 : 0));
+    put(robotSprite(v.key, v.outfit, pose, dir, fr, eyes || 'open'), Math.round(v.fx) - 2, Math.round(v.fy) - 7 - hop);
   }]);
   list.push([h.fy + 16.5, () => {
-    const view = h.dir === 'up' ? 'up' : h.dir === 'down' ? 'down' : 'side', moving = !!h.tgt;
-    const fr = moving ? (view === 'side' ? [1, 0][Math.floor(h.step * 8) % 2] : [1, 0, 2, 0][Math.floor(h.step * 8) % 4]) : 0;
-    const ko = g && g.hp <= 0, hurt = UI.hurtUntil && now < UI.hurtUntil && tick % 2;
+    const moving = !!h.tgt, ko = g && g.hp <= 0, hurt = UI.hurtUntil && now < UI.hurtUntil && tick % 2;
+    const fr = moving ? Math.floor(h.step * 9) % 4 : 0;
+    const ie = moving ? {} : idleEffect('supervise', now / 1000);
+    const pose = !moving && UI.cheerUntil && now < UI.cheerUntil ? 'cheer' : moving ? 'walk' : 'stand';
     shadowAt(h.fx + 8, h.fy + 13, 12);
-    put(charCanvas(heroLook(), heroOutfit(), view, fr, {flip: h.dir === 'left', blink: !moving && (now % 3900) < 150, grey: ko, flash: !!hurt}), Math.round(h.fx), Math.round(h.fy) - 9 - (fr ? 1 : 0));
+    const spr = robotSprite(heroKey(), heroOutfit(), pose, h.dir, pose === 'cheer' ? tick % 2 : fr, ko ? 'blink' : pose === 'cheer' ? 'happy' : (ie.eyes || 'open'), ko);
+    if (hurt) { ctx.globalAlpha = .45; put(spr, Math.round(h.fx) - 2, Math.round(h.fy) - 7); ctx.globalAlpha = 1; }
+    else put(spr, Math.round(h.fx) - 2, Math.round(h.fy) - 7);
   }]);
   list.sort((a, b) => a[0] - b[0]);
   for (const [, f] of list) f();
@@ -1442,23 +1693,23 @@ function travel(o) {
 }
 function skinsHTML() {
   const L = heroLook();
-  return `<p class="muted" style="margin-top:0">Ouvre les coffres cachés dans le monde pour débloquer de nouvelles tenues. Pour changer ton visage, ta coiffure ou ta silhouette : <button class="btn sm cyan" data-act="panel" data-p="look">♞ Apparence</button></p><div class="trophies">${Object.entries(SKINS).map(([k, s]) => {
+  return `<p class="muted" style="margin-top:0">Ouvre les coffres cachés dans le monde pour débloquer de nouvelles tenues pour Roré. <button class="btn sm cyan" data-act="panel" data-p="look">♞ Apparence</button></p><div class="trophies">${Object.entries(SKINS).map(([k, sk]) => {
     const on = S.world.skins.includes(k), src = CHESTS.find(c => c.skin === k), known = src && S.world.found.includes('chest:' + src.id);
-    return `<button class="trophy ${on ? '' : 'locked'} ${S.world.skin === k ? 'sel' : ''}" ${on ? `data-act="skin" data-id="${k}"` : 'disabled'} style="border:0;color:inherit;text-align:left;font-family:inherit;cursor:${on ? 'pointer' : 'default'}">${charImg(L, outfitOf(k, L), 54, 'down', on ? {} : {grey: true})}<div><div class="t1">${on ? s.name : '???'}</div><div class="t2">${on ? (S.world.skin === k ? 'Équipée' : 'Toucher pour porter') : (known ? esc(src.name) : 'Coffre à trouver')}</div></div></button>`;
+    return `<button class="trophy ${on ? '' : 'locked'} ${S.world.skin === k ? 'sel' : ''}" ${on ? `data-act="skin" data-id="${k}"` : 'disabled'} style="border:0;color:inherit;text-align:left;font-family:inherit;cursor:${on ? 'pointer' : 'default'}">${robotImg('hero|' + k + '|' + JSON.stringify(L), heroOutfitFor(k, L), 54, on ? {} : {grey: true})}<div><div class="t1">${on ? sk.name : '???'}</div><div class="t2">${on ? (S.world.skin === k ? 'Équipée' : 'Toucher pour porter') : (known ? esc(src.name) : 'Coffre à trouver')}</div></div></button>`;
   }).join('')}</div>`;
 }
 function lookHTML() {
-  const L = heroLook(), out = heroOutfit(), bare = {...out, acc: null};
-  const opt = (k, v, inner, title = '') => `<button class="sw ${String(L[k]) === String(v) ? 'sel' : ''}" data-act="look" data-k="${k}" data-v="${v}" title="${esc(title)}" aria-label="${esc(title)}">${inner}</button>`;
+  const L = heroLook(), sk = S.world.skin, prevKey = heroKey(), out = heroOutfit();
+  const opt = (k, v, inner, title = '') => `<button class="sw ${L[k] === v ? 'sel' : ''}" data-act="look" data-k="${k}" data-v="${v}" title="${esc(title)}" aria-label="${esc(title)}">${inner}</button>`;
   const sw = col => `<i style="background:${col}"></i>`;
-  return `<div class="look-prev">${['down', 'side', 'up'].map(v => charImg(L, out, 96, v)).join('')}</div>
-    <h3>Peau</h3><div class="sws">${SKIN_TONES.map((t, i) => opt('skin', i, sw(t[0]), 'Teint ' + (i + 1))).join('')}</div>
-    <h3>Coiffure</h3><div class="sws">${Object.entries(HAIRS).map(([k, hh]) => opt('hair', k, charImg({...L, hair: k}, bare, 48), hh.name)).join('')}</div>
-    <h3>Couleur des cheveux</h3><div class="sws">${Object.entries(HAIR_COLS).map(([k, c]) => opt('hairCol', k, sw(c[0]), k)).join('')}</div>
-    <h3>Yeux</h3><div class="sws">${Object.entries(EYE_COLS).map(([k, c]) => opt('eyes', k, sw(c), k)).join('')}</div>
-    <h3>Silhouette</h3><div class="sws">${[['A', 'Pantalon'], ['B', 'Jupe']].map(([k, n]) => opt('body', k, charImg({...L, body: k}, out, 48) + `<span style="margin-left:6px">${n}</span>`, n)).join('')}</div>
-    <h3>Couleur de la tenue « Aventurier »</h3><div class="sws">${Object.entries(TUNIC_COLS).map(([k, c]) => opt('tunic', k, sw(c[0]), k)).join('')}</div>
-    <p class="muted" style="font-size:17px">Tenue portée : <b class="gold">${esc((SKINS[S.world.skin] || SKINS.classique).name)}</b>. <button class="btn sm grey" data-act="panel" data-p="skins">Changer de tenue</button></p>
+  const accPrev = k => { const l2 = {...L, acc: k}; return robotImg('hero|classique|' + JSON.stringify(l2), heroOutfitFor('classique', l2), 44); };
+  return `<p class="muted" style="margin-top:0">Roré, le chef de projet de l'Open Space, est ton héros. Personnalise-le :</p>
+    <div class="look-prev">${['down', 'right', 'up'].map(d => robotImg(prevKey, out, 96, {dir: d})).join('')}</div>
+    <h3>Yeux (visière)</h3><div class="sws">${Object.entries(LOOK_EYES).map(([k, c]) => opt('eyes', k, sw(c), k)).join('')}</div>
+    <h3>Cape et antenne</h3><div class="sws">${Object.entries(LOOK_CAPE).map(([k, c]) => opt('cape', k, sw(c), k)).join('')}</div>
+    <h3>Veste</h3><div class="sws">${Object.entries(LOOK_BODY).map(([k, c]) => opt('body', k, sw(c), k)).join('')}</div>
+    <h3>Sur la tête</h3><div class="sws">${Object.entries(LOOK_ACC).map(([k, a]) => opt('acc', k, accPrev(k), a.name)).join('')}</div>
+    <p class="muted" style="font-size:17px">Tenue portée : <b class="gold">${esc((SKINS[sk] || SKINS.classique).name)}</b> (ses couleurs passent avant les tiennes). <button class="btn sm grey" data-act="panel" data-p="skins">Changer de tenue</button></p>
     <button class="btn gold big" data-act="close">✓ Terminé</button>`;
 }
 /* ---------------- RENDU ---------------- */
@@ -1470,7 +1721,7 @@ function say(txt) {
   let i = 0; el.textContent = '';
   sayTimer = setInterval(() => { i += 2; const e = $('#say'); if (!e) return clearInterval(sayTimer); e.textContent = txt.slice(0, i); if (i >= txt.length) clearInterval(sayTimer); }, 22);
 }
-const heroName = () => S.heroName || 'Héros';
+const heroName = () => S.heroName || 'Roré';
 const monName = c => `${(MONS[c.cat.monster] || MONS.slime).name} « ${c.cat.name} »`;
 function rageLv(r) { return r >= 1 ? 4 : r >= .8 ? 3 : r >= .5 ? 2 : 1; }
 const RAGE_TXT = ['', 'CALME', 'AGITÉ', 'ENRAGÉ', 'DÉCHAÎNÉ !'];
@@ -1796,7 +2047,7 @@ function viewOptions() {
   <section class="box">
     <h2>♞ Héros</h2>
     <label class="f" for="o-name">Nom du héros</label>
-    <input id="o-name" class="full" value="${esc(S.heroName)}" maxlength="20" data-chg="heroName" placeholder="Héros">
+    <input id="o-name" class="full" value="${esc(S.heroName)}" maxlength="20" data-chg="heroName" placeholder="Roré">
     <div class="row" style="margin-top:12px"><button class="btn ${S.sound ? 'green' : 'grey'}" data-act="sound">♪ Son : ${S.sound ? 'oui' : 'non'}</button><button class="btn gold" data-act="panel" data-p="look">♞ Apparence</button><button class="btn cyan" data-act="rules">? Règles du jeu</button></div>
   </section>
   <section class="box">
@@ -1842,7 +2093,8 @@ function render() {
 function paintDlg() {
   const w = $('#sayWho'); if (!w) return;
   const d = UI.dlg || {who: heroName().toUpperCase(), text: heroLine(UI.game), btns: ''};
-  w.innerHTML = `${esc(d.who)} <span class="blink">▼</span>`;
+  const face = d.face || (UI.dlg ? null : [heroKey(), heroOutfit()]);
+  w.innerHTML = `${face ? robotFace(face[0], face[1], 36) : ''}<span>${esc(d.who)} <span class="blink">▼</span></span>`;
   $('#sayBtns').innerHTML = d.btns || '';
   say(d.text);
 }
@@ -1923,8 +2175,8 @@ function rulesHTML() {
   </ul><button class="btn gold big" data-act="close">Compris !</button>`;
 }
 function welcome() {
-  openModal(`<div class="levelup"><h1 style="animation:none">BUDGET QUEST</h1>${heroImg(96)}<p>Une aventure où tes dépenses sont des monstres à dompter.</p></div>
-    <form data-form="welcome"><label class="f" for="w-name">Comment s'appelle ton héros ?</label><input id="w-name" name="name" class="full" maxlength="20" placeholder="Héros" autofocus>
+  openModal(`<div class="levelup"><h1 style="animation:none">BUDGET QUEST</h1>${heroImg(96)}<p>Roré, le chef de projet de l'Open Space, rentre au village. Une aventure où tes dépenses sont des monstres à dompter.</p></div>
+    <form data-form="welcome"><label class="f" for="w-name">Nom du héros</label><input id="w-name" name="name" class="full" maxlength="20" placeholder="Roré" value="Roré" autofocus>
     <p class="muted" style="font-size:17px">Des budgets par défaut (280 000 F/mois au total) sont déjà en place : ajuste-les dans <b>Options</b>.</p>
     <button class="btn gold big">▶ Commencer l'aventure</button></form>`);
 }
@@ -1993,7 +2245,7 @@ const ACT = {
   worldmap: () => { SFX.click(); openPanel('map'); },
   travel: a => travel(WORLD.objs.find(o => o.id === a.dataset.id)),
   panel: a => openPanel(a.dataset.p),
-  look: a => { const k = a.dataset.k; S.world.look = {...heroLook(), [k]: k === 'skin' ? +a.dataset.v : a.dataset.v}; SFX.click(); commit(); },
+  look: a => { const k = a.dataset.k; S.world.look = {...heroLook(), [k]: a.dataset.v}; SFX.click(); commit(); },
   skin: a => { if (!S.world.skins.includes(a.dataset.id)) return; S.world.skin = a.dataset.id; SFX.quest(); commit(); toast('♞ Nouvelle tenue', SKINS[S.world.skin].name); },
   addCat: a => { UI.pickCat = a.dataset.id; openPanel('add'); setTimeout(() => { const i = $('#modal [name=amount]'); if (i) i.focus(); }, 50); },
   edit: a => editExpense(a.dataset.id),
@@ -2095,7 +2347,7 @@ document.addEventListener('submit', e => {
     S.budgets[UI.viewYM] = S.budgets[UI.viewYM] || {}; S.budgets[UI.viewYM][id] = parseAmt(v('budget'));
     commit(); SFX.coin();
   } else if (k === 'welcome') {
-    S.heroName = v('name').trim().slice(0, 20) || 'Héros'; closeModal(); commit(); SFX.lvl(); setTimeout(() => openPanel('look'), 200);
+    S.heroName = v('name').trim().slice(0, 20) || 'Roré'; closeModal(); commit(); SFX.lvl(); setTimeout(() => openPanel('look'), 200);
   }
 });
 document.addEventListener('change', e => {

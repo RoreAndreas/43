@@ -68,29 +68,54 @@ Un bâtiment construit reste en place même si le trésor baisse ensuite.
 
 **Exploration** : chaque lieu découvert rapporte 10 XP. Le bouton CARTE affiche la carte (les zones non explorées restent noires) et permet le voyage rapide vers les lieux déjà découverts.
 
-## Personnages (style RPG 16 bits)
+## Personnages : les robots de l'Open Space
 
-- **Créateur de héros** (Maison → Apparence, ou Options) :
-  - 5 teints de peau ;
-  - 6 coiffures : court, afro, tresses, chignon, long, rasé ;
-  - 8 couleurs de cheveux et 4 couleurs d'yeux ;
-  - silhouette pantalon ou jupe ;
-  - couleur de la tenue « Aventurier ».
-- **Le héros** est vu de face, de dos ou de profil. Il a une animation de marche dans les 4 directions et cligne des yeux.
-- **Tenues** : elles se gagnent dans les coffres (bandeau, capuche, couronne…) et se portent sur l'apparence que tu as choisie.
-- **PNJ** : chacun tient un lieu et te parle de tes chiffres.
+Les habitants du village viennent de l'[Open Space](https://github.com/RoreAndreas/Openspace43). Ce sont les mêmes robots à tête-cube et à visière, en 20 × 24 pixels, dessinés en code. Le dessin est un portage de `src/engine/robots.ts`, d'après *Le Bureau des agents* de VibesMoney (licence MIT).
 
-| PNJ | Lieu | Ce qu'il dit |
+**Roré, le chef de projet, est le héros.**
+- Il porte sa veste blanche, ses épaulettes, son étoile et sa cape.
+- On le voit de face, de dos ou de profil, il marche dans les 4 directions et regarde son équipe quand il attend.
+- Il lève les bras quand tu réussis quelque chose.
+- **Apparence** (Maison → Apparence, ou Options) : couleur des yeux de la visière, de la cape et de l'antenne, de la veste, et un accessoire sur la tête (béret, chapeau d'explorateur, casque audio, lunettes…).
+- **Tenues des coffres** :
+
+| Tenue | Ce qu'elle ajoute |
+|---|---|
+| Rôdeur des bois | Chapeau d'explorateur, cape verte |
+| Marin | Lunettes d'aviateur, cape bleue |
+| Commandant doré | Veste et cape dorées |
+| Ombre | Capuche, tête sombre |
+| Royal | Couronne, cape rouge |
+| Légende | Couronne, visière cyan, voyant sur la poitrine |
+
+**L'équipe tient les lieux du village.** Chacun te répond avec ses propres répliques, puis te parle de tes chiffres. Ils font coucou quand tu leur parles et ont leur façon d'attendre.
+
+| Robot | Lieu |
+|---|---|
+| Zaza, la styliste | Marché |
+| Hares, le spartiate de la finance | Banque des Écarts |
+| Margaux, l'analyste | Archives |
+| Boulon, le robot ingénieur | Labo |
+| Rook, l'explorateur | Tableau des quêtes |
+| Merlain, le mage du code | Conseils |
+
+Nyx, la hacker, se promène dans le village.
+
+**Leur famille vit dans le monde** : cousins, frères et sœurs, apprentis, et d'autres robots de la même espèce. Chacun reste dans sa zone et a ses propres répliques.
+
+| Robot | Lien | Zone |
 |---|---|---|
-| Awa | Marché | Te propose de noter une dépense |
-| M. Diallo | Banque | Écart du mois et projection |
-| Mme Fatou | Archives | Nombre de dépenses notées ce mois |
-| Zeph | Labo | Tes suivis en cours |
-| Kwame le crieur | Tableau des quêtes | Avancement des quêtes du jour |
-| Amadou le sage | Village | Conseils |
+| Byte | Cousine de Nyx | Plaines de l'est |
+| Merlot | Apprenti de Merlain | Lisière de la forêt |
+| Écrou | Frère de Boulon | Village |
+| Rivet | Cousine de Boulon | Lac |
+| Margot | Sœur jumelle de Margaux | Village |
+| Zouzou | Cousine de Zaza | Lac |
+| Rooky | Petit frère de Rook | Pied du col |
+| Ajax | Cousin de Hares | Plaines de l'est |
+| Pixel, Plume, Mosaïque | Robots du village, de la même espèce que les robots de métier de l'Open Space | Village, sud, forêt |
 
-Ils se tournent vers toi quand tu leur parles.
-- **Monstres** : ils sont redessinés en 20 × 20 pixels, avec 4 humeurs selon le budget de leur catégorie.
+**Monstres** : ils sont en 20 × 20 pixels, avec 4 humeurs selon le budget de leur catégorie.
 
 | Budget consommé | Humeur du monstre |
 |---|---|
@@ -99,13 +124,12 @@ Ils se tournent vers toi quand tu leur parles.
 | De 80 à 100 % | Inquiet (sourcils froncés, « ! ») |
 | Plus de 100 % | Déchaîné (teinte rouge, yeux brillants, crocs, vapeur) |
 
-- **Décor** :
-  - profondeur : le héros passe derrière les arbres et les maisons ;
-  - ombres au sol ;
-  - eau animée avec écume ;
-  - maisons aux toits en tuiles avec jardinières ;
-  - arbres fruitiers ;
-  - fenêtres éclairées la nuit.
+**Décor** :
+- profondeur : on passe derrière les arbres et les maisons ;
+- ombres au sol ;
+- eau animée avec écume ;
+- maisons aux toits en tuiles ;
+- fenêtres éclairées la nuit.
 
 ## Règles du jeu
 
