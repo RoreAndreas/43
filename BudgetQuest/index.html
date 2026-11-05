@@ -90,16 +90,22 @@ label.f{display:block;margin:10px 0 4px;color:var(--G);font-size:19px}
 .map-wrap{padding:0;overflow:hidden}
 #world{display:block;width:100%;height:300px;touch-action:manipulation;cursor:pointer;background:var(--k)}
 .mapbtn{position:absolute;top:6px;right:6px;margin:0;opacity:.92}
-.dpad{position:absolute;left:8px;bottom:8px;display:grid;grid-template-columns:repeat(3,38px);grid-template-rows:repeat(3,38px);
-  grid-template-areas:". u ." "l . r" ". d .";gap:2px;opacity:.8}
-.dpad button,.abtn{border:0;background:rgba(26,28,44,.75);color:var(--w);font-size:16px;cursor:pointer;box-shadow:inset -3px -3px 0 rgba(0,0,0,.4),0 0 0 2px var(--w);
+.dpad{position:absolute;left:6px;bottom:6px;display:grid;grid-template-columns:repeat(3,32px);grid-template-rows:repeat(3,32px);
+  grid-template-areas:". u ." "l . r" ". d .";gap:2px;opacity:.55}
+.dpad button,.abtn{border:0;background:rgba(26,28,44,.6);color:var(--w);font-size:13px;cursor:pointer;box-shadow:inset -3px -3px 0 rgba(0,0,0,.4),0 0 0 2px var(--w);
   touch-action:none;user-select:none;-webkit-user-select:none}
 .dpad button:active,.abtn:active{background:var(--d)}
 .dpad .du{grid-area:u}.dpad .dl{grid-area:l}.dpad .dr{grid-area:r}.dpad .dd{grid-area:d}
-.abtn{position:absolute;right:12px;bottom:14px;width:52px;height:52px;font-family:var(--px);font-size:14px;background:rgba(177,62,83,.85);opacity:.9}
+.abtn{position:absolute;right:10px;bottom:12px;width:44px;height:44px;font-family:var(--px);font-size:12px;background:rgba(177,62,83,.8);opacity:.7}
 @media (hover:hover) and (pointer:fine){.dpad{display:none}}
 .panel-head{position:sticky;top:-16px;background:var(--D);padding:6px 0 8px;margin:-6px 0 4px;z-index:2}
 .trophy.sel{box-shadow:0 0 0 3px var(--y)}
+.look-prev{display:flex;justify-content:center;align-items:flex-end;gap:18px;background:var(--t);padding:14px;margin-bottom:12px;box-shadow:inset 0 -10px 0 #257179,0 0 0 3px var(--k)}
+.sws{display:flex;flex-wrap:wrap;gap:8px;margin:6px 0 14px}
+.sw{background:var(--k);border:0;padding:4px 6px;cursor:pointer;box-shadow:0 0 0 2px var(--d);min-width:42px;min-height:42px;display:flex;align-items:center;justify-content:center;color:var(--w);font-family:var(--vt);font-size:18px}
+.sw i{display:block;width:28px;height:28px;box-shadow:inset -3px -3px 0 rgba(0,0,0,.25)}
+.sw.sel{box-shadow:0 0 0 3px var(--y);background:#2a2f48}
+.hud .who{min-width:0}
 #sayBtns:empty{display:none}
 #say{min-height:2.3em}
 .say .speaker{font-family:var(--px);font-size:9px;color:var(--y);margin-bottom:6px}
@@ -256,113 +262,6 @@ function norm(rows, w = 16, h = 16, padBottom = 0) {
   return r.slice(-h);
 }
 
-const HERO = norm([
-  '................',
-  '......kkkk......',
-  '.....kggggk.....',
-  '....kggwgggk..w.',
-  '....kgggggGk..w.',
-  '....kkkkkkkk..w.',
-  '....kssssssk..w.',
-  '....ksessesk..w.',
-  '....kssssssk..w.',
-  '...rkkbbbbkkr.w.',
-  '..rrkbbybbbkrry.',
-  '..rkbbbybbbbkrs.',
-  '..rkbbbbbbbbkr..',
-  '...kkbbkkbbkk...',
-  '....kGGk.kGGk...',
-  '....kkkk.kkkk...',
-]);
-const HERO_PAL = {k:SWEET.k,g:SWEET.G,G:SWEET.d,w:SWEET.w,s:'#f4b183',e:SWEET.k,r:SWEET.r,b:SWEET.b,y:SWEET.y};
-
-const MONS = {
-  slime: {name:'Gelée', rows: norm([
-    '......kkkk......',
-    '....kkaaaakk....',
-    '...kaaawaaaak...',
-    '..kaaawwaaaaak..',
-    '..kaaaaaaaaaak..',
-    '.kaaakaaakaaaak.',
-    '.kaaakaaakaaaak.',
-    '.kaaaaaaaaaaaak.',
-    '.kaaaakkkaaaaak.',
-    '.kAaaaaaaaaaaAk.',
-    '..kkkkkkkkkkkk..',
-  ], 16, 16, 1)},
-  bat: {name:'Chauve-souris', rows: norm([
-    'k..............k',
-    'kk....k..k....kk',
-    'kak..kakkak..kak',
-    'kaak.kaaaak.kaak',
-    'kaaakayaayakaaak',
-    'kaaaaaaaaaaaaaak',
-    '.kaakawaawakaak.',
-    '..kk.kaaaak.kk..',
-    '......kkkk......',
-  ], 16, 16, 4)},
-  ghost: {name:'Spectre', rows: norm([
-    '.....kkkkkk.....',
-    '....kaaaaaak....',
-    '...kaaaaaaaak...',
-    '..kaaaaaaaaaak..',
-    '..kaakkaakkaak..',
-    '..kaakkaakkaak..',
-    '..kaaaaaaaaaak..',
-    '..kaaaakkaaaak..',
-    '..kaaaaaaaaaak..',
-    '..kAaaaaaaaaAk..',
-    '..kaaakaakaaak..',
-    '..kk.kk.kk.kk...',
-  ], 16, 16, 2)},
-  skull: {name:'Crâne', rows: norm([
-    '.....kkkkkk.....',
-    '....kaaaaaak....',
-    '...kaaaaaaaak...',
-    '..kaaaaaaaaaak..',
-    '..kakkkaakkkak..',
-    '..kakrkaakrkak..',
-    '..kakkkaakkkak..',
-    '..kaaaakkaaaak..',
-    '...kAaaaaaaAk...',
-    '....kakakakak...',
-    '....kkkkkkkkk...',
-  ], 16, 16, 1)},
-  mimic: {name:'Mimic', rows: norm([
-    '...kkkkkkkkkk...',
-    '..kAaaaaaaaaAk..',
-    '..kaaeaaaaeaak..',
-    '..kkkkkyykkkkk..',
-    '..kwkwkyykwkwk..',
-    '..krrrrrrrrrrk..',
-    '..kkwkwkkwkwkk..',
-    '..kaaaaaaaaaak..',
-    '..kAaaayyaaaAk..',
-    '..kkkkkkkkkkkk..',
-  ], 16, 16, 1)},
-  mushroom: {name:'Champi', rows: norm([
-    '.....kkkkkk.....',
-    '...kkaawaaakk...',
-    '..kaawwaaaawak..',
-    '.kaaaaaawwaaaak.',
-    '.kawwaaaaaaaaak.',
-    '.kkkkkkkkkkkkkk.',
-    '...kssssssssk...',
-    '...ksessssesk...',
-    '...kssskksssk...',
-    '...kssssssssk...',
-    '....kkkkkkkk....',
-  ], 16, 16, 1)},
-};
-const COLORS = {
-  vert:['#38b764','#257179'], lime:['#a7f070','#38b764'], bleu:['#41a6f6','#3b5dc9'], cyan:['#73eff7','#41a6f6'],
-  violet:['#b86fd6','#5d275d'], rouge:['#ef7d57','#b13e53'], or:['#ffcd75','#ef7d57'], gris:['#94b0c2','#566c86'], blanc:['#f4f4f4','#94b0c2'],
-};
-const monPal = (color, rage) => {
-  const [a, A] = rage ? ['#b13e53', '#5d275d'] : (COLORS[color] || COLORS.vert);
-  return {k:SWEET.k, a, A, w:SWEET.w, e:SWEET.k, r:SWEET.r, y:SWEET.y, s:'#f4e4c4'};
-};
-
 const ICONS = {
   jeu:   ['......xx','.....xxx','....xxx.','x..xxx..','.xxxx...','..xx....','.x.xx...','x.......'],
   journal:['........','.xx..xx.','x..xx..x','x..xx..x','x..xx..x','x..xx..x','.xx..xx.','...xx...'],
@@ -402,10 +301,189 @@ function spriteURL(key, rows, pal, s = 1, opt = {}) {
   const u = c.toDataURL(); _spriteCache.set(k, u); return u;
 }
 const img = (url, size, cls = '') => `<img class="px ${cls}" src="${url}" width="${size}" height="${size}" alt="">`;
-const monImg = (cat, size = 48, rage = false) => img(spriteURL('m:' + cat.monster + cat.color + rage, (MONS[cat.monster] || MONS.slime).rows, monPal(cat.color, rage), 4), size);
-const heroImg = (size = 48, opt = {}) => { const sk = (S && S.world && S.world.skin) || 'classique'; return img(spriteURL('hero' + sk, HERO, heroPal(sk), 4, opt), size); };
 const smallImg = (name, size = 16) => img(spriteURL('s:' + name, SMALL[name].rows, SMALL[name].pal, 4), size);
 const iconImg = (name, color = SWEET.w, size = 24) => img(spriteURL('i:' + name + color, ICONS[name], {x: color}, 4), size);
+
+/* ================================================================
+   PERSONNAGES — chara-design 16 bits (héros, PNJ) + créateur de perso
+   Sprites 16×24 en couches : tête, corps, hanches, jambes, cheveux, accessoire
+   ================================================================ */
+const K = '#1a1c2c', WOOD = '#8b5a2b', WOODD = '#5e3a1a';
+const M = s => s + [...s].reverse().join('');             // miroir 8 → 16
+const M10 = s => s + [...s].reverse().join('');           // miroir 10 → 20
+const P = (l, mid, w = 16) => ('.'.repeat(l) + mid + '.'.repeat(w)).slice(0, w);
+const E16 = '.'.repeat(16);
+
+const CH_HEAD = {
+  down: [E16, E16, E16, M('.....ooo'), M('....osss'), M('...ossss'), M('..osssss'), M('..osssss'), M('..ossWEs'), M('..ossees'), M('..osrssm'), M('...oSSSS'), M('....oooo')],
+  up:   [E16, E16, E16, M('.....ooo'), M('....osss'), M('...ossss'), M('..osssss'), M('..osssss'), M('..osssss'), M('..osssss'), M('..osssss'), M('...oSSSS'), M('....oooo')],
+  side: [E16, E16, E16, P(5, 'oooooo'), P(4, 'osssssso'), P(3, 'o' + 's'.repeat(8) + 'o'), P(2, 'o' + 's'.repeat(10) + 'o'), P(2, 'o' + 's'.repeat(10) + 'o'),
+         P(2, 'osssssssWEso'), P(2, 'ossSssssseesso'.slice(0, 13)), P(2, 'osssssrssmso'), P(3, 'o' + 'S'.repeat(8) + 'o'), P(4, 'oooooooo')],
+};
+const CH_BODY = {
+  down: [M('....ottS'), M('...octtt'), M('..oTcttt'), M('..osclly'), M('...octtt'), M('...oCTTT')],
+  up:   [M('....ottt'), M('...occcc'), M('..oTcccc'), M('..oscccc'), M('...occcc'), M('...oCCCC')],
+  side: [P(4, 'otttttto'), P(3, 'octtttttto'), P(3, 'occtttTtto'), P(3, 'occlllyllo'), P(3, 'occtttstto'), P(3, 'oCCTTTTTTo')],
+};
+const CH_HIPS = {A: [M('....oppp'), M('....oppo')], B: [M('...otttt'), M('..oTTTTT')]};
+const CH_LEGS = {
+  idle:  [M('....oLLo'), M('....obbo'), M('....oooo')],
+  s1:    ['....oLLoobbo....', '....obbooooo....', '....oooo........'],
+  s2:    ['....obbooLLo....', '....ooooobbo....', '........oooo....'],
+  spread:['...oLLo..oLLo...', '...obbo..obbo...', '...oooo..oooo...'],
+};
+// Coiffures : {ligne: motif} — '.' laisse voir la couche du dessous
+const COURT = {
+  down: {3: M('.....ooo'), 4: M('....ohhh'), 5: M('...ohhhh'), 6: M('..ohhHhh'), 7: M('..ohhh..'), 8: M('..oh....')},
+  up:   {3: M('.....ooo'), 4: M('....ohhh'), 5: M('...ohhhh'), 6: M('..ohhhhh'), 7: M('..ohhhhh'), 8: M('..ohhhhh'), 9: M('..ohhhhh'), 10: M('..oHhhhh'), 11: M('...oHHHH')},
+  side: {3: P(5, 'oooooo'), 4: P(4, 'ohhhhhho'), 5: P(3, 'ohhhhhhhho'), 6: P(2, 'o' + 'h'.repeat(10) + 'o'), 7: P(2, 'ohhhhhhh'), 8: P(2, 'ohhhhh'), 9: P(2, 'ohhhh'), 10: P(2, 'ohhh'), 11: P(3, 'oHH')},
+};
+const HAIRS = {
+  court: {name: 'Court', ...COURT},
+  afro: {name: 'Afro',
+    down: {0: M('....oooo'), 1: M('..oohhhh'), 2: M('.ohhhhhh'), 3: M('.ohhhHhh'), 4: M('ohhhhhhh'), 5: M('ohhhhhHh'), 6: M('ohhhhhhh'), 7: M('ohhho...'), 8: M('ohhho...'), 9: M('.oHHo...'), 10: M('..oo....')},
+    up:   {0: M('....oooo'), 1: M('..oohhhh'), 2: M('.ohhhhhh'), 3: M('.ohhhhhh'), 4: M('ohhhhhhh'), 5: M('ohhhhhhh'), 6: M('ohhhhhhh'), 7: M('ohhhhhhh'), 8: M('ohhhhhhh'), 9: M('.oHhhhhh'), 10: M('..oHHHHH'), 11: M('...ooooo')},
+    side: {0: P(4, 'oooooooo'), 1: P(2, 'oohhhhhhhhoo'), 2: P(1, 'o' + 'h'.repeat(12) + 'o'), 3: P(1, 'o' + 'h'.repeat(12) + 'o'), 4: 'o' + 'h'.repeat(14) + 'o', 5: 'o' + 'h'.repeat(14) + 'o', 6: 'o' + 'h'.repeat(14) + 'o', 7: 'ohhhhhhho....oho', 8: 'ohhhhhho.....oho', 9: P(1, 'oHHHHo'), 10: P(2, 'oooo')}},
+  tresses: {name: 'Tresses',
+    down: {...COURT.down, 8: M('.ohh....'), 9: M('.oho....'), 10: M('.oHo....'), 11: M('.oho....'), 12: M('.oHo....'), 13: M('.oyo....'), 14: M('..o.....')},
+    up:   {...COURT.up, 12: M('...ohHhH'), 13: M('...oHhHh'), 14: M('...oyhyh'), 15: M('....oooo')},
+    side: {...COURT.side, 11: P(1, 'ohho'), 12: P(1, 'oHHo'), 13: P(1, 'ohho'), 14: P(1, 'oyyo'), 15: P(2, 'oo')}},
+  chignon: {name: 'Chignon',
+    down: {0: M('......oo'), 1: M('.....ohh'), 2: M('.....ohH'), 3: M('....oooo'), 4: M('....ohhh'), 5: M('...ohhhh'), 6: M('..ohhhhh'), 7: M('..ohh...'), 8: M('..oh....')},
+    up:   {...COURT.up, 0: M('......oo'), 1: M('.....ohh'), 2: M('.....ohH'), 3: M('....oooo')},
+    side: {...COURT.side, 0: P(4, 'oooo'), 1: P(3, 'ohhhho'), 2: P(3, 'ohHHho'), 3: P(4, 'oooooooo')}},
+  long: {name: 'Long',
+    down: {...COURT.down, 8: M('.ohh....'), 9: M('.ohh....'), 10: M('.ohH....'), 11: M('.ohh....'), 12: M('.ohho...'), 13: M('.ohho...'), 14: M('.oHHo...'), 15: M('..oo....')},
+    up:   {...COURT.up, 10: M('..ohhhhh'), 11: M('..ohhhhh'), 12: M('..ohhhhh'), 13: M('..ohhhhh'), 14: M('..oHHHHH'), 15: M('...ooooo')},
+    side: {...COURT.side, 11: P(2, 'ohhhho'), 12: P(2, 'ohhhho'), 13: P(2, 'ohhhho'), 14: P(2, 'oHHHHo'), 15: P(3, 'oooo')}},
+  rase: {name: 'Rasé',
+    down: {3: M('.....ooo'), 4: M('....oHHH'), 5: M('...oHHHH'), 6: M('..oHH...')},
+    up:   {3: M('.....ooo'), 4: M('....oHHH'), 5: M('...oHHHH'), 6: M('..oHHHHH'), 7: M('..oHHHHH'), 8: M('..oHHHHH'), 9: M('..oHHHHH')},
+    side: {3: P(5, 'oooooo'), 4: P(4, 'oHHHHHHo'), 5: P(3, 'oHHHHHHHHo'), 6: P(2, 'oHHHHHHH'), 7: P(2, 'oHHHH'), 8: P(2, 'oHHH'), 9: P(2, 'oHH')}},
+};
+const ACCS = {
+  crown:   {all: {2: M('.....y.y'), 3: M('.....yyy')}},
+  band:    {down: {6: M('..oaaaaa')}, up: {6: M('..oaaaaa'), 7: M('.......A')}, side: {6: P(2, 'o' + 'a'.repeat(10) + 'o'), 7: P(1, 'AA')}},
+  wrap:    {down: {1: M('.....ooo'), 2: M('...oaaaA'), 3: M('..oaaAaa'), 4: M('..oaaaaa'), 5: M('..oAaAaA'), 6: M('..oAAAAA')},
+            up:   {1: M('.....ooo'), 2: M('...oaaaA'), 3: M('..oaaAaa'), 4: M('..oaaaaa'), 5: M('..oAaAaA'), 6: M('..oAAAAA'), 7: M('......oa'), 8: M('......oA')},
+            side: {1: P(5, 'oooooo'), 2: P(3, 'oaaaAAaaao'), 3: P(2, 'oaaAaaaaAaao'), 4: P(2, 'o' + 'a'.repeat(10) + 'o'), 5: P(2, 'oAaAaAaAaAao'), 6: P(2, 'o' + 'A'.repeat(10) + 'o'), 7: P(0, 'oao'), 8: P(0, 'oAo')}},
+  hat:     {all: {0: M('....oooo'), 1: M('....oaaa'), 2: M('....oaaa'), 3: M('....oAAA'), 4: M('....oRRR'), 5: M('..oooooo'), 6: M('..oaaaaa')}},
+  glasses: {down: {7: M('....oooo'), 8: M('....o..o'), 9: M('....o..o'), 10: M('....ooo.')}, up: {}, side: {7: P(9, 'oooo'), 8: P(9, 'o..o'), 9: P(9, 'o..o'), 10: P(9, 'oooo')}},
+  hood:    {down: {2: M('.....ooo'), 3: M('....oaaa'), 4: M('...oaaaa'), 5: M('..oaaAaa'), 6: M('..oaaAAA'), 7: M('..oaa...'), 8: M('..oa....'), 9: M('..oa....'), 10: M('..oa....'), 11: M('..oaa...'), 12: M('...oaaaa')},
+            up:   {2: M('.....ooo'), 3: M('....oaaa'), 4: M('...oaaaa'), 5: M('..oaaaaa'), 6: M('..oaaaaa'), 7: M('..oaaaaa'), 8: M('..oaaaaa'), 9: M('..oaaaaa'), 10: M('..oaaaaa'), 11: M('..oAaaaa'), 12: M('...oAAAA')},
+            side: {2: P(5, 'oooooo'), 3: P(4, 'oaaaaaao'), 4: P(3, 'oaaaaaaaao'), 5: P(2, 'oaaaaaaaaaao'), 6: P(2, 'oaaaaaaAAAAo'), 7: P(2, 'oaaaaaa'), 8: P(2, 'oaaaaa'), 9: P(2, 'oaaaa'), 10: P(2, 'oaaaa'), 11: P(2, 'oaaaaa'), 12: P(3, 'oAAAAAAo')}},
+  beard:   {down: {10: M('...owwGG'), 11: M('...owwww'), 12: M('....owww'), 13: M('......ow'), 14: M('.......o')}, up: {}, side: {10: P(8, 'owwwwo'), 11: P(8, 'owwwo'), 12: P(9, 'owo')}},
+};
+const SKIN_TONES = [['#f6d2b0', '#e0a98a', '#f09a8a'], ['#e8b48a', '#c98a5a', '#e48a7a'], ['#c98a5a', '#a0643a', '#d0705a'], ['#8d5a36', '#6b3f22', '#a85a48'], ['#5e3a22', '#432612', '#7a3f36']];
+const HAIR_COLS = {noir:['#2b2b3a', '#1a1c2c'], brun:['#5e3a22', '#3e2414'], chatain:['#8b5a2b', '#5e3a1a'], blond:['#ffcd75', '#d9a050'], roux:['#ef7d57', '#b13e53'], blanc:['#f4f4f4', '#94b0c2'], bleu:['#41a6f6', '#3b5dc9'], rose:['#e88ac8', '#b05a98']};
+const EYE_COLS = {noir:'#1a1c2c', brun:'#5e3a1a', bleu:'#3b5dc9', vert:'#257179'};
+const TUNIC_COLS = {bleu:['#3b5dc9', '#29366f'], rouge:['#b13e53', '#5d275d'], vert:['#38b764', '#257179'], or:['#ffcd75', '#ef7d57'], violet:['#b86fd6', '#5d275d'], blanc:['#f4f4f4', '#94b0c2'], noir:['#333c57', '#1a1c2c'], orange:['#ef7d57', '#b13e53']};
+const DEFAULT_LOOK = {skin:2, hair:'court', hairCol:'noir', eyes:'brun', body:'A', tunic:'bleu'};
+// Tenues (débloquées dans les coffres). « classique » utilise la couleur choisie dans le créateur.
+const SKINS = {
+  classique:{name:'Aventurier', classic:true},
+  foret:    {name:'Rôdeur des bois', t:'#38b764', T:'#257179', c:'#257179', C:'#1d4d55', p:'#8b5a2b', acc:'band', a:'#a7f070', A:'#38b764'},
+  ocean:    {name:'Marin', t:'#f4f4f4', T:'#94b0c2', c:'#41a6f6', C:'#3b5dc9', p:'#29366f', acc:'band', a:'#41a6f6', A:'#3b5dc9'},
+  or:       {name:'Chevalier doré', t:'#ffcd75', T:'#ef7d57', c:'#ef7d57', C:'#b13e53', p:'#f4f4f4', l:'#b13e53'},
+  ombre:    {name:'Ombre', t:'#333c57', T:'#1a1c2c', c:'#5d275d', C:'#3a1a3a', p:'#333c57', b:K, acc:'hood', a:'#333c57', A:'#1a1c2c'},
+  royal:    {name:'Royal', t:'#b13e53', T:'#5d275d', c:'#5d275d', C:'#3a1a3a', p:'#f4f4f4', l:'#ffcd75', acc:'crown'},
+  legende:  {name:'Légende', t:'#f4f4f4', T:'#94b0c2', c:'#73eff7', C:'#41a6f6', p:'#ffcd75', l:'#ffcd75', acc:'crown'},
+};
+function outfitOf(key, look) {
+  const o = SKINS[key] || SKINS.classique;
+  if (!o.classic) return o;
+  const [t, T] = TUNIC_COLS[look.tunic] || TUNIC_COLS.bleu;
+  const cape = ['rouge', 'orange', 'violet'].includes(look.tunic) ? ['#3b5dc9', '#29366f'] : ['#b13e53', '#5d275d'];
+  return {...o, t, T, c: cape[0], C: cape[1], p: '#566c86'};
+}
+const heroLook = () => ({...DEFAULT_LOOK, ...((S && S.world && S.world.look) || {})});
+const heroOutfit = (key) => outfitOf(key || (S && S.world && S.world.skin) || 'classique', heroLook());
+
+function overlay(rows, ov) { if (!ov) return; for (const k in ov) { const r = rows[+k]; if (!r) continue; const s = ov[k]; for (let i = 0; i < 16; i++) if (s[i] && s[i] !== '.') r[i] = s[i]; } }
+function charRows(look, out, view, frame) {
+  const legs = view === 'side' ? (frame ? CH_LEGS.spread : CH_LEGS.idle) : frame === 1 ? CH_LEGS.s1 : frame === 2 ? CH_LEGS.s2 : CH_LEGS.idle;
+  const rows = [...CH_HEAD[view], ...CH_BODY[view], ...CH_HIPS[look.body === 'B' ? 'B' : 'A'], ...legs].map(r => r.split(''));
+  const hair = HAIRS[look.hair] || HAIRS.court;
+  if (!(out.acc === 'hood' || out.acc === 'hat')) overlay(rows, hair[view]);
+  else if (out.acc === 'hat') overlay(rows, Object.fromEntries(Object.entries(hair[view]).filter(([k]) => +k >= 7)));
+  const acc = out.acc && ACCS[out.acc];
+  if (acc) overlay(rows, acc.all || acc[view]);
+  return rows.map(r => r.join(''));
+}
+function charPal(look, out, blink) {
+  const [s, S_, r] = SKIN_TONES[look.skin] || SKIN_TONES[2];
+  const [h, H] = HAIR_COLS[look.hairCol] || HAIR_COLS.noir;
+  const eye = EYE_COLS[look.eyes] || EYE_COLS.brun, p = out.p || '#566c86';
+  return {o:K, s, S:S_, r, m:'#6b2a2a', W: blink ? s : '#f4f4f4', E: blink ? s : eye, e: blink ? K : eye, h, H,
+    t: out.t, T: out.T, c: out.c || out.t, C: out.C || out.T, l: out.l || WOOD, y:'#ffcd75', p, b: out.b || WOODD,
+    L: look.body === 'B' ? s : p, a: out.a || out.t, A: out.A || out.T, R:'#b13e53', w:'#f4f4f4', G:'#94b0c2'};
+}
+const _charCache = new Map();
+function charCanvas(look, out, view, frame, opt = {}) {
+  const key = JSON.stringify([look, out, view, frame, opt]);
+  let c = _charCache.get(key);
+  if (!c) {
+    c = document.createElement('canvas'); c.width = 16; c.height = 24;
+    drawSprite(c.getContext('2d'), charRows(look, out, view, frame), charPal(look, out, opt.blink), 0, 0, 1, {flip: opt.flip, grey: opt.grey, flash: opt.flash});
+    if (_charCache.size > 600) _charCache.clear();
+    _charCache.set(key, c);
+  }
+  return c;
+}
+const _charURL = new Map();
+function charImg(look, out, h = 48, view = 'down', opt = {}) {
+  const key = JSON.stringify([look, out, view, opt]);
+  let u = _charURL.get(key);
+  if (!u) { const src = charCanvas(look, out, view, 0, opt), c = document.createElement('canvas'); c.width = 64; c.height = 96; const x = c.getContext('2d'); x.imageSmoothingEnabled = false; x.drawImage(src, 0, 0, 64, 96); u = c.toDataURL(); _charURL.set(key, u); }
+  return `<img class="px" src="${u}" width="${Math.round(h * 2 / 3)}" height="${h}" alt="">`;
+}
+
+/* ---- PNJ du village ---- */
+const NPCS = [
+  {id:'npc_market', role:'market',   x:29, y:15, name:'Awa la marchande',     look:{skin:3, hair:'tresses', hairCol:'noir', eyes:'brun', body:'B'}, out:{t:'#ef7d57', T:'#b13e53', p:'#5d275d', acc:'wrap', a:'#ffcd75', A:'#ef7d57'}},
+  {id:'npc_bank',   role:'bank',     x:22, y:21, name:'M. Diallo, banquier',  look:{skin:4, hair:'rase', hairCol:'noir', eyes:'noir', body:'A'}, out:{t:'#333c57', T:'#1a1c2c', p:'#333c57', l:'#ffcd75', acc:'hat', a:'#2b2b3a', A:'#1a1c2c'}},
+  {id:'npc_arch',   role:'archives', x:29, y:21, name:'Mme Fatou, archiviste', look:{skin:1, hair:'long', hairCol:'roux', eyes:'vert', body:'B'}, out:{t:'#3b5dc9', T:'#29366f', acc:'glasses'}},
+  {id:'npc_lab',    role:'lab',      x:16, y:16, name:"Zeph l'alchimiste",    look:{skin:0, hair:'court', hairCol:'blanc', eyes:'bleu', body:'A'}, out:{t:'#5d275d', T:'#3a1a3a', c:'#b86fd6', C:'#5d275d', p:'#333c57', acc:'hood', a:'#b86fd6', A:'#5d275d'}},
+  {id:'npc_board',  role:'board',    x:22, y:15, name:'Kwame le crieur',      look:{skin:4, hair:'afro', hairCol:'noir', eyes:'brun', body:'A'}, out:{t:'#38b764', T:'#257179', p:'#8b5a2b', acc:'band', a:'#ffcd75', A:'#ef7d57'}},
+  {id:'sage',       role:'sage',     x:19, y:17, name:'Amadou, le vieux sage', look:{skin:2, hair:'rase', hairCol:'blanc', eyes:'noir', body:'A'}, out:{t:'#5d275d', T:'#3a1a3a', c:'#b13e53', C:'#5d275d', p:'#5d275d', acc:'beard'}},
+];
+const VILL_LOOKS = [
+  {look:{skin:1, hair:'chignon', hairCol:'brun', eyes:'brun', body:'B'}, out:{t:'#41a6f6', T:'#3b5dc9', p:'#29366f'}},
+  {look:{skin:3, hair:'court', hairCol:'noir', eyes:'noir', body:'A'}, out:{t:'#ef7d57', T:'#b13e53', p:'#566c86'}},
+  {look:{skin:4, hair:'long', hairCol:'noir', eyes:'brun', body:'B'}, out:{t:'#a7f070', T:'#38b764', p:'#257179', acc:'wrap', a:'#b86fd6', A:'#5d275d'}},
+];
+
+/* ---- Monstres 20×20 avec humeurs (dort / éveillé / inquiet / déchaîné) ---- */
+const MONS = {
+  slime: {name:'Gelée', rows: ['', '', '', '.........k', '........kL', '.......kLa', '......kLaa', '.....kLaaa', '....kLaaaa', '...kLaaaaa', '..kaaaBBaa', '.kaaaaEEaa', '.kaaaaFFaa', '.kaaaaaaMM', '.kAaaaaaaN', '.kAAaaaaaa', '..kAAAaaaa', '...kkAAAAA', '.....kkkkk', ''], patch: [[7, 7, 'w'], [8, 6, 'w'], [8, 13, 'L'], [7, 12, 'a']]},
+  bat: {name:'Chauve-souris', hover:true, rows: ['', '', '', '', 'k......k..', 'kk.....ka.', 'kak....kaa', 'kaak..kBBa', 'kaaak.kEEa', 'kaaaakaFFa', 'kaaaaaaaMM', 'kAaak.kaNa', '.kAk...kaa', '..k.....kA', '.........k', '', '', '', '', '']},
+  ghost: {name:'Spectre', hover:true, rows: ['', '', '.......kkk', '.....kkLLa', '....kLLaaa', '...kLaaaaa', '...kaaBBaa', '..kaaaEEaa', '..kaaaFFaa', '..kaaaaaaM', '..kaaaaaaN', '.kaaaaaaaa', '.kAaaaaaaa', '..kaaaaaaa', '..kAaaaaaa', '..kAAaaAaa', '..kAkAAkAA', '...k.kk.kk', '', '']},
+  skull: {name:'Crâne', rows: ['', '', '.....kkkkk', '....kLLaaa', '...kLaaaaa', '..kLaaaaaa', '..kaaaBBaa', '..kaakEEka', '..kaakFFka', '..kaakkkka', '..kAaaaaak', '...kAaaaaa', '....kwkwkw', '....kMMMMM', '....kAwkwk', '.....kkkkk', '', '', '', '']},
+  mimic: {name:'Mimic', rows: ['', '', '', '', '', '...kkkkkkk', '..kLLLLLLL', '..kaaaaaaa', '..kaaEEaaa', '..kaaFFaaa', '..kkkkkkky', '..kwkwkwky', '..kMMMMMMM', '..kMMNNNNN', '..kkwkwkwk', '..kaaaaaaa', '..kAaaaaay', '..kAAAAAAA', '..kkkkkkkk', '']},
+  mushroom: {name:'Champi', rows: ['', '', '......kkkk', '....kkaaaL', '...kaawwaL', '..kaawwwaa', '.kaaaaaaaw', '.kAaaaaaaa', '.kAAAaaaaa', '.kkkkkkkkk', '....kssBBs', '....kssEEs', '....kssFFs', '....kssssM', '....kSsssN', '....kSSsss', '.....kkkkk', '', '', '']},
+};
+for (const m of Object.values(MONS)) {
+  const rows = m.rows.map(r => M10((r + '..........').slice(0, 10)).split(''));
+  for (const [y, x, ch] of (m.patch || [])) rows[y][x] = ch;
+  m.rows = rows.map(r => r.join(''));
+}
+const COLORS = {
+  vert:['#38b764', '#257179'], lime:['#a7f070', '#38b764'], bleu:['#41a6f6', '#3b5dc9'], cyan:['#73eff7', '#41a6f6'],
+  violet:['#b86fd6', '#5d275d'], rouge:['#ef7d57', '#b13e53'], or:['#ffcd75', '#ef7d57'], gris:['#94b0c2', '#566c86'], blanc:['#f4f4f4', '#94b0c2'],
+};
+function mix(a, b, t) { const p = h => [1, 3, 5].map(i => parseInt(h.slice(i, i + 2), 16)); const A = p(a), B = p(b); return '#' + A.map((v, i) => Math.round(v + (B[i] - v) * t).toString(16).padStart(2, '0')).join(''); }
+function monPalette(color, lv, type) {
+  let [a, A] = COLORS[color] || COLORS.vert, L = mix(a, '#ffffff', .4);
+  if (lv === 4) { a = mix(a, '#b13e53', .55); A = mix(A, '#5d275d', .5); L = mix(L, '#ef7d57', .45); }
+  const mood = lv === 4 ? {E:'#ffcd75', F:'#b13e53', B:K, M:K, N:'#f4f4f4'} : lv === 3 ? {E:'#f4f4f4', F:K, B:K, M:K, N:K} : lv === 2 ? {E:'#f4f4f4', F:K, B:a, M:K, N:a} : {E:a, F:K, B:a, M:K, N:a};
+  if (type === 'skull') mood.E = lv <= 1 ? K : lv < 4 ? '#73eff7' : '#ffcd75';
+  if (type === 'mimic') { mood.N = lv === 4 ? '#b13e53' : '#5d275d'; mood.M = K; }
+  return {k:K, a, A, L, w:'#f4f4f4', y:'#ffcd75', r:'#b13e53', s:'#f4e4c4', S:'#d9b77e', ...mood};
+}
+const monPal = (color, rage) => monPalette(color, rage ? 4 : 2);
+const monImg = (cat, size = 48, rage = false) => img(spriteURL('m2:' + cat.monster + cat.color + rage, (MONS[cat.monster] || MONS.slime).rows, monPalette(cat.color, rage ? 4 : 2, cat.monster), 4), size);
+const heroImg = (size = 48, opt = {}) => charImg(heroLook(), heroOutfit(), size, 'down', opt);
+
 
 /* ---------------- STATE ---------------- */
 function defaultState() {
@@ -638,7 +716,6 @@ const SFX = {
 const MW = 48, MH = 36, TS = 16;
 const T = {GRASS:0, FLOWER:1, TREE:2, WATER:3, PATH:4, SAND:5, BRIDGE:6, ROCK:7, PINE:8, SECRET:9, STONE:10, DARK:11, PLAZA:12};
 const WALKABLE = new Set([T.GRASS, T.FLOWER, T.PATH, T.SAND, T.BRIDGE, T.SECRET, T.STONE, T.DARK, T.PLAZA]);
-const WOOD = '#8b5a2b', WOODD = '#5e3a1a', K = '#1a1c2c';
 const DIRS = {up:[0,-1], down:[0,1], left:[-1,0], right:[1,0]};
 
 function seeded(seed) { let s = seed >>> 0; return () => (s = (Math.imul(s, 1664525) + 1013904223) >>> 0) / 4294967296; }
@@ -728,32 +805,15 @@ const TIPS = [
   "Ton trésor construit le village. Un mois sous le budget, c'est un pas vers le château.",
   "Explore tout : chaque lieu découvert rapporte 10 XP.",
 ];
-const SKINS = {
-  classique:{name:'Classique',       cape:'#b13e53', tunic:'#3b5dc9', helm:'#94b0c2', helmD:'#566c86'},
-  foret:    {name:'Rôdeur des bois', cape:'#257179', tunic:'#38b764', helm:'#94b0c2', helmD:'#566c86'},
-  ocean:    {name:'Marin',           cape:'#41a6f6', tunic:'#29366f', helm:'#f4f4f4', helmD:'#94b0c2'},
-  or:       {name:'Chevalier doré',  cape:'#ef7d57', tunic:'#ffcd75', helm:'#ffcd75', helmD:'#ef7d57'},
-  ombre:    {name:'Ombre',           cape:'#333c57', tunic:'#5d275d', helm:'#566c86', helmD:'#333c57'},
-  royal:    {name:'Royal',           cape:'#5d275d', tunic:'#b13e53', helm:'#ffcd75', helmD:'#ef7d57'},
-  legende:  {name:'Légende',         cape:'#73eff7', tunic:'#f4f4f4', helm:'#ffcd75', helmD:'#ef7d57'},
-};
-const heroPal = skin => { const s = SKINS[skin] || SKINS.classique; return {...HERO_PAL, r:s.cape, b:s.tunic, g:s.helm, G:s.helmD}; };
-const HERO_B = HERO.slice(0, 14).concat(['...kGGk...kGGk..', '...kkkk...kkkk..']);
-const VILLAGER = HERO.map(r => r.slice(0, 14).replace(/[y]/g, 'b') + '..');
-const VILL_PALS = [
-  {...HERO_PAL, g:WOOD, G:WOODD, w:'#a8834f', r:'#38b764', b:'#38b764', s:'#c98a5a'},
-  {...HERO_PAL, g:K, G:'#333c57', w:'#566c86', r:'#ef7d57', b:'#ef7d57', s:'#8b5a2b'},
-  {...HERO_PAL, g:'#ffcd75', G:'#ef7d57', w:'#f4f4f4', r:'#41a6f6', b:'#41a6f6'},
-];
-const SAGE_PAL = {...HERO_PAL, g:'#f4f4f4', G:'#94b0c2', w:'#f4f4f4', r:'#5d275d', b:'#5d275d', y:'#ffcd75'};
 
-const SPR_TREE = norm(['................','.....kkkkkk.....','...kkllggggkk...','..kllgggggggGk..','.klggggggggggGk.','.kgggggggggggGk.','kggggggggggggGGk','kgggggggggggGGGk','kggggggggggGGGGk','.kggggggggGGGGk.','.kGgggggGGGGGGk.','..kkGGGGGGGGkk..','....kkkttkk.....','......kttk......','......kttk......','.....kkkkkk.....']);
+const SPR_TREE = norm(['................','.....kkkkkk.....','...kkLLggggkk...','..kLLLgggggggk..','.kLLggggggggGGk.','.kLgggggggggGGk.','kLggggLggFgggGGk','kggggggFggggGGGk','kggLgggggggGGGGk','kgggFggggggGGGGk','kGgggggggGGGGGGk','.kGggggGGGGGGGk.','.kGGGGGGGGGGGDk.','..kkGGGGGGGDkk..','....kkkkkkkk....','......kttk......','......kttk......','.....kttTtk.....','....kktTTtkk....','................'], 16, 20);
 const SPR_PINE = norm(['.......kk.......','......klgk......','.....klggGk.....','....klgggGGk....','.....kggGGk.....','....klgggGGk....','...klggggGGGk...','..klgggggGGGGk..','....kggggGGk....','...klggggGGGk...','..klgggggGGGGk..','.klggggggGGGGGk.','.kkkkkkkkkkkkkk.','......kttk......','......kttk......','......kkkk......']);
 const SPR_ROCK = norm(['......kkkk......','....kkGwGGkk....','...kGwwGGGGdk...','..kGwGGGGGGddk..','..kGGGGGGGdddk..','.kGGGGGGGGdddk..','.kGGGGGGGddddk..','.kdGGGGGddddddk.','..kddddddddddk..','...kkkkkkkkkk...'], 16, 16, 2);
 const SPR_SIGN = norm(['..kkkkkkkkkkkk..','..kbbbbbbbbbbk..','..kbkkkbkkkbbk..','..kbbbbbbbbbbk..','..kbkkbkkkkbbk..','..kbbbbbbbbbbk..','..kkkkkkkkkkkk..','......kBBk......','......kBBk......','......kBBk......','.....kkkkkk.....'], 16, 16, 1);
 const SPR_CHEST = norm(['...kkkkkkkkkk...','..kbbbbbbbbbbk..','..kbyBBBBBBybk..','..kkkkkyykkkkk..','..kbbbkyykbbbk..','..kbybbkkbbybk..','..kbBBBBBBBBbk..','..kkkkkkkkkkkk..'], 16, 16, 3);
 const SPR_CHEST_OPEN = norm(['..kkkkkkkkkkkk..','..kBBBBBBBBBBk..','..kbbbbbbbbbbk..','..kkkkkkkkkkkk..','..kyywyyyyywyk..','..kbbbkyykbbbk..','..kbybbkkbbybk..','..kbBBBBBBBBbk..','..kkkkkkkkkkkk..'], 16, 16, 3);
-const PAL_TREE = {k:K, l:'#a7f070', g:'#38b764', G:'#257179', t:WOOD};
+const PAL_TREE = {k:K, L:'#a7f070', g:'#38b764', G:'#257179', D:'#1d4d55', t:WOOD, T:WOODD, F:'#38b764'};
+const PAL_TREE_F = {...PAL_TREE, F:'#b13e53'};
 const PAL_PINE = {k:K, l:'#38b764', g:'#257179', G:'#1d4d55', t:WOOD};
 const PAL_SECRET = {k:K, l:'#a7f070', g:'#38b764', G:'#2a7a5a', t:WOOD};
 const PAL_ROCK = {k:K, G:'#94b0c2', d:'#566c86', w:'#f4f4f4'};
@@ -769,51 +829,94 @@ function sprC(key, rows, pal, opt = {}) {
 
 /* ---- Dessin des tuiles et bâtiments (couche statique, échelle 1) ---- */
 function rect(c, col, x, y, w, h) { c.fillStyle = col; c.fillRect(x, y, w, h); }
+let WPHASE = 0;
+function shadow(c, cx, cy, w, h) {
+  for (let i = 0; i < h; i++) { const k = 1 - Math.abs((i + .5) / h * 2 - 1), ww = Math.round(w * (.55 + .45 * k)); rect(c, 'rgba(10,20,30,.24)', Math.round(cx - ww / 2), cy + i, ww, 1); }
+}
 function drawTile(c, m, t, x, y) {
   const X = x * TS, Y = y * TS;
-  const dots = (col, n, seed, s = 1) => { for (let i = 0; i < n; i++) rect(c, col, X + Math.floor(hash(x * 7 + i + seed, y * 13 + i) * (TS - s)), Y + Math.floor(hash(y * 5 + i, x * 11 + i + seed) * (TS - s)), s, s); };
-  const grass = () => { rect(c, '#38b764', X, Y, TS, TS); dots('#2f9a58', 4, 2, 2); dots('#a7f070', 2, 1, 1); };
   const at = (dx, dy) => { const nx = x + dx, ny = y + dy; return nx < 0 || ny < 0 || nx >= MW || ny >= MH ? t : m[ny * MW + nx]; };
+  const dots = (col, n, seed, s = 1) => { for (let i = 0; i < n; i++) rect(c, col, X + Math.floor(hash(x * 7 + i + seed, y * 13 + i) * (TS - s)), Y + Math.floor(hash(y * 5 + i, x * 11 + i + seed) * (TS - s)), s, s); };
+  const grass = () => {
+    const v = hash(x, y);
+    rect(c, v < .33 ? '#38b764' : v < .66 ? '#35b062' : '#3bbb68', X, Y, TS, TS);
+    for (let i = 0; i < 3; i++) {
+      const bx = X + 1 + Math.floor(hash(x * 5 + i, y * 7) * 12), by = Y + 2 + Math.floor(hash(y * 3 + i, x * 11) * 11);
+      rect(c, '#2a8f52', bx, by, 1, 2); rect(c, '#2a8f52', bx + 2, by, 1, 2); rect(c, '#2a8f52', bx + 1, by + 1, 1, 2);
+    }
+    if (hash(x + 9, y + 3) < .5) rect(c, '#a7f070', X + Math.floor(hash(x, y + 5) * 14), Y + Math.floor(hash(y, x + 5) * 14), 1, 1);
+  };
+  const dark = () => { rect(c, '#257179', X, Y, TS, TS); dots('#1d5c63', 6, 3, 2); dots('#2f8a6a', 3, 4, 1); };
+  const wet = n => n === T.WATER || n === T.BRIDGE || n === T.STONE;
   const water = () => {
     rect(c, '#3b5dc9', X, Y, TS, TS);
-    for (let i = 0; i < 2; i++) { const a = hash(x + i * 3, y * 2 + i); rect(c, '#41a6f6', X + Math.floor(a * 10), Y + 3 + i * 7, 5, 1); }
-    const wet = n => n === T.WATER || n === T.BRIDGE || n === T.STONE;
-    if (!wet(at(0, -1))) rect(c, '#73eff7', X, Y, TS, 1);
-    if (!wet(at(0, 1))) rect(c, '#29366f', X, Y + TS - 1, TS, 1);
-    if (!wet(at(-1, 0))) rect(c, '#73eff7', X, Y, 1, TS);
-    if (!wet(at(1, 0))) rect(c, '#73eff7', X + TS - 1, Y, 1, TS);
+    if (hash(x * 3, y * 5) < .4) rect(c, '#3554b8', X + Math.floor(hash(x, y * 3) * 10), Y + Math.floor(hash(y, x * 3) * 10), 5, 3);
+    for (let i = 0; i < 2; i++) { const a = hash(x + i * 3, y * 2 + i); rect(c, '#41a6f6', X + (Math.floor(a * 10) + WPHASE * 2) % 12, Y + 3 + i * 7 + (WPHASE === 1 ? 1 : 0), 4, 1); }
+    if (!wet(at(0, -1))) { rect(c, '#29366f', X, Y, TS, 2); rect(c, '#73eff7', X, Y + 2, TS, 1); for (let i = 0; i < 3; i++) rect(c, '#f4f4f4', X + ((i * 5 + WPHASE * 2 + x) % 15), Y + 2, 1, 1); }
+    if (!wet(at(0, 1))) rect(c, '#73eff7', X, Y + TS - 1, TS, 1);
+    if (!wet(at(-1, 0))) { rect(c, '#73eff7', X, Y, 1, TS); if (WPHASE !== 2) rect(c, '#f4f4f4', X, Y + 4 + WPHASE * 5, 1, 2); }
+    if (!wet(at(1, 0))) { rect(c, '#73eff7', X + TS - 1, Y, 1, TS); if (WPHASE !== 0) rect(c, '#f4f4f4', X + TS - 1, Y + 3 + WPHASE * 4, 1, 2); }
   };
   switch (t) {
-    case T.GRASS: grass(); break;
-    case T.FLOWER: grass(); { const cols = ['#f4f4f4', '#ffcd75', '#ef7d57', '#73eff7', '#b86fd6']; for (let i = 0; i < 3; i++) { const a = hash(x * 3 + i, y * 9), b = hash(y * 3 + i, x * 9); rect(c, cols[Math.floor(hash(x + i, y) * cols.length)], X + 2 + Math.floor(a * 11), Y + 2 + Math.floor(b * 11), 2, 2); } } break;
-    case T.TREE: grass(); drawSprite(c, SPR_TREE, PAL_TREE, X, Y); break;
-    case T.PINE: rect(c, '#257179', X, Y, TS, TS); drawSprite(c, SPR_PINE, PAL_PINE, X, Y); break;
-    case T.SECRET: rect(c, '#257179', X, Y, TS, TS); drawSprite(c, SPR_PINE, PAL_SECRET, X, Y); break;
-    case T.DARK: rect(c, '#257179', X, Y, TS, TS); dots('#1d5c63', 5, 3, 2); dots('#38b764', 2, 4, 1); break;
+    case T.GRASS: case T.TREE: grass(); break;
+    case T.FLOWER: grass(); {
+      const cols = ['#f4f4f4', '#ffcd75', '#ef7d57', '#73eff7', '#b86fd6'];
+      for (let i = 0; i < 2; i++) {
+        const fx = X + 2 + Math.floor(hash(x * 3 + i, y * 9) * 10), fy = Y + 2 + Math.floor(hash(y * 3 + i, x * 9) * 10), col = cols[Math.floor(hash(x + i, y) * cols.length)];
+        rect(c, '#2a8f52', fx + 1, fy + 2, 1, 2); rect(c, col, fx, fy + 1, 3, 1); rect(c, col, fx + 1, fy, 1, 3); rect(c, '#ffcd75', fx + 1, fy + 1, 1, 1);
+      }
+    } break;
+    case T.PINE: case T.SECRET: case T.DARK: dark(); break;
     case T.WATER: water(); break;
-    case T.STONE: water(); rect(c, K, X + 3, Y + 4, 10, 8); rect(c, '#94b0c2', X + 4, Y + 5, 8, 6); rect(c, '#f4f4f4', X + 5, Y + 5, 3, 1); rect(c, '#566c86', X + 4, Y + 10, 8, 1); break;
-    case T.PATH: rect(c, '#c9a26b', X, Y, TS, TS); dots('#a8834f', 5, 5, 2); dots('#e3c48f', 3, 6, 1); break;
-    case T.PLAZA: rect(c, '#566c86', X, Y, TS, TS); for (let j = 0; j < 4; j++) for (let i = 0; i < 4; i++) { const o = j % 2 ? 2 : 0; rect(c, hash(x * 4 + i, y * 4 + j) < .5 ? '#94b0c2' : '#a9c1cf', X + i * 4 + o, Y + j * 4, 3, 3); } break;
-    case T.SAND: rect(c, '#f0d58f', X, Y, TS, TS); dots('#d9b77e', 5, 7, 1); break;
-    case T.ROCK: rect(c, '#566c86', X, Y, TS, TS); dots('#333c57', 4, 8, 2); drawSprite(c, SPR_ROCK, PAL_ROCK, X, Y); break;
-    case T.BRIDGE: water(); rect(c, WOODD, X, Y + 1, TS, 14); for (let i = 0; i < 4; i++) rect(c, WOOD, X + i * 4, Y + 2, 3, 12); rect(c, K, X, Y + 1, TS, 1); rect(c, K, X, Y + 14, TS, 1); break;
+    case T.STONE: water(); shadow(c, X + 8, Y + 11, 11, 2); rect(c, K, X + 3, Y + 4, 10, 8); rect(c, '#94b0c2', X + 4, Y + 5, 8, 6); rect(c, '#f4f4f4', X + 5, Y + 5, 3, 1); rect(c, '#566c86', X + 4, Y + 10, 8, 1); break;
+    case T.PATH: {
+      rect(c, '#c9a26b', X, Y, TS, TS); dots('#a8834f', 4, 5, 2); dots('#e3c48f', 3, 6, 1);
+      const paved = n => n === T.PATH || n === T.PLAZA || n === T.BRIDGE;
+      if (!paved(at(0, -1))) { rect(c, '#a8834f', X, Y, TS, 1); rect(c, '#38b764', X + 3, Y, 2, 1); rect(c, '#38b764', X + 11, Y, 1, 1); }
+      if (!paved(at(0, 1))) { rect(c, '#a8834f', X, Y + TS - 1, TS, 1); rect(c, '#38b764', X + 6, Y + TS - 1, 2, 1); }
+      if (!paved(at(-1, 0))) { rect(c, '#a8834f', X, Y, 1, TS); rect(c, '#38b764', X, Y + 5, 1, 2); }
+      if (!paved(at(1, 0))) { rect(c, '#a8834f', X + TS - 1, Y, 1, TS); rect(c, '#38b764', X + TS - 1, Y + 10, 1, 2); }
+    } break;
+    case T.PLAZA:
+      rect(c, '#566c86', X, Y, TS, TS);
+      for (let j = 0; j < 4; j++) for (let i = 0; i < 4; i++) { const o = j % 2 ? 2 : 0, v = hash(x * 4 + i, y * 4 + j); rect(c, v < .4 ? '#94b0c2' : v < .8 ? '#a9c1cf' : '#8aa4b6', X + i * 4 + o, Y + j * 4, 3, 3); rect(c, '#c6d6e0', X + i * 4 + o, Y + j * 4, 1, 1); }
+      break;
+    case T.SAND: rect(c, '#f0d58f', X, Y, TS, TS); dots('#d9b77e', 5, 7, 1); if (hash(x, y * 7) < .15) rect(c, '#f4f4f4', X + 6, Y + 9, 2, 1); break;
+    case T.ROCK: rect(c, '#6b7f96', X, Y, TS, TS); dots('#566c86', 5, 8, 2); dots('#94b0c2', 2, 9, 1); break;
+    case T.BRIDGE: water(); rect(c, 'rgba(10,20,30,.35)', X, Y + 15, TS, 1); rect(c, WOODD, X, Y + 1, TS, 14); for (let i = 0; i < 4; i++) { rect(c, WOOD, X + i * 4, Y + 2, 3, 12); rect(c, '#a8834f', X + i * 4, Y + 2, 3, 1); } rect(c, K, X, Y + 1, TS, 1); rect(c, K, X, Y + 14, TS, 1); for (const px of [X + 1, X + 9]) { rect(c, K, px, Y - 1, 2, 3); rect(c, K, px, Y + 13, 2, 3); } break;
   }
 }
 function drawHouse(c, X, Y, w, h, o) {
-  const rH = Math.round(h * .375);
-  rect(c, K, X + 1, Y + rH - 1, w - 2, h - rH + 1); rect(c, o.wall, X + 2, Y + rH, w - 4, h - rH - 1);
-  rect(c, 'rgba(0,0,0,.18)', X + w - 6, Y + rH, 4, h - rH - 1);
+  const top = Y - 10, rH = 22, wallY = top + rH - 2, wallB = Y + h;
+  rect(c, K, X + 1, wallY, w - 2, wallB - wallY);
+  rect(c, o.wall, X + 2, wallY, w - 4, wallB - wallY - 1);
+  const dk = mix(o.wall, '#1a1c2c', .14);
+  for (let yy = wallY + 4; yy < wallB - 3; yy += 4) { rect(c, dk, X + 2, yy, w - 4, 1); for (let xx = X + 4 + ((yy >> 2) % 2) * 4; xx < X + w - 3; xx += 8) rect(c, dk, xx, yy - 3, 1, 3); }
+  rect(c, 'rgba(26,28,44,.22)', X + w - 7, wallY, 5, wallB - wallY - 1);
+  rect(c, 'rgba(255,255,255,.28)', X + 2, wallY, 2, wallB - wallY - 1);
+  rect(c, '#566c86', X + 1, wallB - 3, w - 2, 2); rect(c, '#94b0c2', X + 2, wallB - 3, w - 4, 1);
+  const hi = mix(o.roof, '#ffffff', .28);
   for (let i = 0; i < rH; i++) {
-    const ins = Math.max(0, Math.round((rH - 1 - i) * .7));
-    rect(c, K, X + ins, Y + i, w - ins * 2, 1);
-    if (i > 0 && w - ins * 2 - 2 > 0) rect(c, i % 3 === 1 ? o.roofD : o.roof, X + ins + 1, Y + i, w - ins * 2 - 2, 1);
+    const ins = Math.max(-1, Math.round((rH - 1 - i) * .55) - 1), x0 = X + ins, ww = w - ins * 2;
+    if (ww <= 2) continue;
+    rect(c, K, x0, top + i, ww, 1);
+    if (i === 0 || i === rH - 1) continue;
+    rect(c, i % 4 === 0 ? o.roofD : o.roof, x0 + 1, top + i, ww - 2, 1);
+    if (i % 4 !== 0) rect(c, hi, x0 + 1, top + i, Math.max(1, Math.floor((ww - 2) * .22)), 1);
+    if (i % 4 === 2) for (let sx = x0 + 3 + ((i >> 2) % 2) * 3; sx < x0 + ww - 2; sx += 6) rect(c, o.roofD, sx, top + i, 1, 2);
   }
-  rect(c, K, X, Y + rH - 1, w, 2); rect(c, o.roofD, X + 1, Y + rH - 1, w - 2, 1);
-  if (o.chimney) { rect(c, K, X + w - 10, Y + 1, 5, 6); rect(c, '#b13e53', X + w - 9, Y + 2, 3, 4); }
-  const dx = X + (w >> 1) - 3, dy = Y + h - 9;
-  rect(c, K, dx - 1, dy - 1, 8, 9); rect(c, WOOD, dx, dy, 6, 8); rect(c, WOODD, dx + 3, dy, 1, 8); rect(c, '#ffcd75', dx + 4, dy + 4, 1, 1);
-  if (w >= 32) for (const wx of [X + 4, X + w - 10]) { const wy = Y + rH + 4; rect(c, K, wx - 1, wy - 1, 7, 7); rect(c, '#73eff7', wx, wy, 5, 5); rect(c, '#f4f4f4', wx, wy, 2, 2); rect(c, K, wx + 2, wy, 1, 5); }
-  if (o.icon) { const sx = X + (w >> 1) - 5, sy = Y + rH + 1; rect(c, K, sx, sy, 10, 10); rect(c, o.signBg || '#f4f4f4', sx + 1, sy + 1, 8, 8); drawSprite(c, o.icon.rows, o.icon.pal, sx + 1, sy + 1); }
+  rect(c, K, X - 1, wallY - 1, w + 2, 2); rect(c, o.roofD, X, wallY - 1, w, 1);
+  if (o.chimney) { rect(c, K, X + w - 10, top + 3, 6, 8); rect(c, '#b13e53', X + w - 9, top + 4, 4, 7); rect(c, '#5d275d', X + w - 7, top + 4, 2, 7); rect(c, '#566c86', X + w - 11, top + 2, 8, 2); }
+  const dx = X + (w >> 1) - 4, dy = wallB - 10;
+  rect(c, K, dx - 1, dy - 1, 10, 10); rect(c, WOOD, dx, dy, 8, 9); rect(c, WOODD, dx + 4, dy, 1, 9); rect(c, '#a8834f', dx, dy, 8, 1); rect(c, '#ffcd75', dx + 6, dy + 4, 1, 1);
+  rect(c, '#94b0c2', dx - 2, wallB - 1, 12, 1);
+  if (w >= 32) for (const wx of [X + 3, X + w - 10]) {
+    const wy = wallY + 4;
+    rect(c, K, wx - 1, wy - 1, 8, 8); rect(c, '#41a6f6', wx, wy, 6, 6); rect(c, '#73eff7', wx, wy, 6, 3); rect(c, '#f4f4f4', wx + 1, wy + 1, 2, 1);
+    rect(c, K, wx + 3, wy, 1, 6); rect(c, K, wx, wy + 3, 6, 1);
+    rect(c, K, wx - 1, wy + 6, 8, 3); rect(c, WOOD, wx, wy + 7, 6, 1); rect(c, '#38b764', wx, wy + 6, 6, 1); rect(c, '#ef7d57', wx + 1, wy + 5, 1, 1); rect(c, '#ffcd75', wx + 4, wy + 5, 1, 1);
+  }
+  if (o.icon) { const sx = X + (w >> 1) - 5, sy = wallY + 1; rect(c, K, sx, sy, 10, 10); rect(c, o.signBg || '#f4f4f4', sx + 1, sy + 1, 8, 8); drawSprite(c, o.icon.rows, o.icon.pal, sx + 1, sy + 1); }
 }
 function drawMarket(c, X, Y) {
   rect(c, K, X + 2, Y + 18, 44, 14); rect(c, WOOD, X + 3, Y + 19, 42, 12); rect(c, WOODD, X + 3, Y + 24, 42, 1); rect(c, WOODD, X + 3, Y + 28, 42, 1);
@@ -886,7 +989,7 @@ function drawStatic(c, o) {
   else if (o.type === 'lair') { rect(c, '#257179', X + 1, Y + 9, 14, 6); rect(c, '#257179', X + 3, Y + 7, 10, 9); rect(c, '#1d5c63', X + 4, Y + 12, 8, 3); rect(c, '#f4f4f4', X + 2, Y + 13, 3, 1); rect(c, '#f4f4f4', X + 12, Y + 10, 2, 1); }
 }
 
-function defaultWorld() { return {x:20, y:16, seen:'', found:[], chests:{}, skins:['classique'], skin:'classique', built:0}; }
+function defaultWorld() { return {x:20, y:16, seen:'', found:[], chests:{}, skins:['classique'], skin:'classique', built:0, look:{...DEFAULT_LOOK}}; }
 
 /* ---- Construction du monde ---- */
 const WORLD = {map: null, objs: [], at: null, layer: null, sig: '', seen: null, villagers: []};
@@ -899,7 +1002,7 @@ function buildObjects() {
   add({id:'board', type:'building', kind:'board', x:23, y:15, w:1, h:1, name:'Tableau des quêtes'});
   add({id:'lab', type:'building', kind:'lab', x:14, y:15, w:2, h:2, name:"Labo de l'alchimiste"});
   add({id:'fire', type:'fire', x:25, y:23, w:1, h:1, name:'Feu de camp'});
-  add({id:'sage', type:'npc', x:19, y:17, w:1, h:1, name:'Vieux sage'});
+  for (const n of NPCS) add({...n, type:'npc', w:1, h:1});
   for (const s of SIGNS) add({...s, type:'sign', w:1, h:1, name:'Panneau'});
   const built = S.world.built || 0;
   PLOTS.forEach(([x, y], i) => add({id:'plot' + i, type: i < built ? 'village' : 'plot', x, y, w:2, h:2, idx:i, v:VILLAGE[i], name: i < built ? VILLAGE[i].name : 'Terrain à bâtir'}));
@@ -908,32 +1011,59 @@ function buildObjects() {
   return objs;
 }
 const worldSig = () => S.categories.map(c => c.id).join(',') + '|' + (S.world.built || 0);
+let SPR_C = null;
+const UPRIGHT = new Set(['building', 'village', 'sign']);
+function objCanvas(o) {
+  const mt = 18, ms = 6, c = document.createElement('canvas');
+  c.width = o.w * TS + ms * 2; c.height = o.h * TS + mt + 2;
+  const x = c.getContext('2d'); x.translate(ms - o.x * TS, mt - o.y * TS); drawStatic(x, o);
+  return {c, ox: ms, oy: mt};
+}
+function renderGround(map, phase) {
+  WPHASE = phase;
+  const cv = document.createElement('canvas'); cv.width = MW * TS; cv.height = MH * TS;
+  const c = cv.getContext('2d');
+  for (let y = 0; y < MH; y++) for (let x = 0; x < MW; x++) drawTile(c, map, map[y * MW + x], x, y);
+  for (let y = 0; y < MH; y++) for (let x = 0; x < MW; x++) {
+    const t = map[y * MW + x], X = x * TS, Y = y * TS;
+    if (t === T.TREE) shadow(c, X + 9, Y + 12, 15, 4);
+    else if (t === T.PINE || t === T.SECRET) shadow(c, X + 9, Y + 12, 13, 3);
+    else if (t === T.ROCK) shadow(c, X + 9, Y + 12, 14, 3);
+  }
+  for (const o of WORLD.objs) {
+    const X = o.x * TS, Y = o.y * TS;
+    if (o.type === 'building' || o.type === 'village') { rect(c, 'rgba(10,20,30,.22)', X + 3, Y + o.h * TS - 2, o.w * TS, 4); rect(c, 'rgba(10,20,30,.22)', X + o.w * TS, Y + 6, 3, o.h * TS - 6); }
+    if (o.type === 'sign') shadow(c, X + 8, Y + 13, 8, 2);
+    if (o.type === 'plot' || o.type === 'lair') drawStatic(c, o);
+  }
+  return cv;
+}
 function ensureWorld() {
   const sig = worldSig();
-  if (sig === WORLD.sig && WORLD.layer) return;
+  if (sig === WORLD.sig && WORLD.ground) return;
   WORLD.sig = sig;
   const map = genMap();
   WORLD.objs = buildObjects();
   for (const o of WORLD.objs) for (let y = o.y - 1; y <= o.y + o.h; y++) for (let x = o.x - 1; x <= o.x + o.w; x++) {
     if (x < 1 || y < 1 || x >= MW - 1 || y >= MH - 1) continue;
     const i = y * MW + x, t = map[i], foot = x >= o.x && x < o.x + o.w && y >= o.y && y < o.y + o.h;
-    if (foot) { if (o.type !== 'chest' || !WALKABLE.has(t)) map[i] = T.GRASS; }
+    if (foot) { if ((o.type !== 'chest' && o.type !== 'npc') || !WALKABLE.has(t)) map[i] = T.GRASS; }
     else if (t === T.TREE || t === T.PINE || t === T.ROCK) map[i] = T.GRASS;
   }
   WORLD.map = map;
   WORLD.at = new Map();
   for (const o of WORLD.objs) for (let y = o.y; y < o.y + o.h; y++) for (let x = o.x; x < o.x + o.w; x++) WORLD.at.set(y * MW + x, o);
-  const cv = document.createElement('canvas'); cv.width = MW * TS; cv.height = MH * TS;
-  const c = cv.getContext('2d');
-  for (let y = 0; y < MH; y++) for (let x = 0; x < MW; x++) drawTile(c, map, map[y * MW + x], x, y);
-  for (const o of WORLD.objs) drawStatic(c, o);
-  WORLD.layer = cv;
+  WORLD.ground = [0, 1, 2].map(ph => renderGround(map, ph));
+  WORLD.layer = WORLD.ground[0];
+  WORLD.objC = new Map();
+  for (const o of WORLD.objs) if (UPRIGHT.has(o.type)) WORLD.objC.set(o.id, objCanvas(o));
+  SPR_C = {tree: sprC('tree2', SPR_TREE, PAL_TREE), treeF: sprC('tree2f', SPR_TREE, PAL_TREE_F), pine: sprC('pine', SPR_PINE, PAL_PINE), secret: sprC('secret', SPR_PINE, PAL_SECRET), rock: sprC('rock', SPR_ROCK, PAL_ROCK)};
   if (!WORLD.seen) {
     WORLD.seen = new Uint8Array(MW * MH);
     const s = S.world.seen || '';
     for (let i = 0; i < s.length && i < WORLD.seen.length; i++) WORLD.seen[i] = s.charCodeAt(i) === 49 ? 1 : 0;
   }
-  if (!WORLD.villagers.length) WORLD.villagers = VILL_PALS.map((pal, i) => { const [x, y] = [[23, 21], [25, 17], [22, 19]][i]; return {x, y, fx:x * TS, fy:y * TS, tgt:null, pal, i, wait:1 + i, flip:false}; });
+  if (!WORLD.villagers.length) WORLD.villagers = VILL_LOOKS.map((v, i) => { const [x, y] = [[23, 21], [25, 17], [22, 19]][i]; return {x, y, fx:x * TS, fy:y * TS, tgt:null, look:v.look, out:v.out, i, wait:1 + i, flip:false, dir:'down', step:0}; });
   placeHero();
 }
 const inMap = (x, y) => x >= 0 && y >= 0 && x < MW && y < MH;
@@ -1042,7 +1172,7 @@ function hintText(o) {
     case 'lair': { const c = UI.game.ms.cats.find(x => x.cat.id === o.catId); return c ? `${RAGE_TXT[rageLv(c.ratio)]} · ${Math.round(c.ratio * 100)} % du budget « ${c.cat.name} ».` : ''; }
     case 'chest': return S.world.chests[o.chestId] ? 'Un coffre vide.' : condMet(o, UI.game) ? 'Il brille… il peut être ouvert !' : 'Un coffre verrouillé.';
     case 'fire': return S.checkins[today()] ? 'Le feu crépite : journée sans dépense pointée.' : 'Un feu de camp. Repose-toi ici les jours sans dépense.';
-    case 'npc': return 'Un vieil homme qui connaît bien les monstres.';
+    case 'npc': return {sage:'Un vieil homme qui connaît bien les monstres.', market:'La marchande tient le marché. Parle-lui pour noter une dépense.', bank:'Le banquier connaît tes écarts au franc près.', archives:"L'archiviste garde le journal de toutes tes dépenses.", lab:"L'alchimiste s'occupe de tes suivis personnalisés.", board:'Le crieur annonce les quêtes du jour.'}[o.role] || '';
     case 'plot': return 'Un terrain à bâtir pour le village.';
     case 'village': return o.v.desc;
   }
@@ -1065,9 +1195,19 @@ function interact(o) {
       if (o.kind === 'archives') return openPanel('journal');
       if (o.kind === 'board') return openPanel('quetes');
       if (o.kind === 'lab') return openPanel('suivis');
-      return D(`Bienvenue chez toi, ${heroName()}. Tenue actuelle : ${SKINS[S.world.skin].name}.`, btn('Tenues', 'panel', 'data-p="skins"') + btn('Budgets & options', 'panel', 'data-p="options"', 'cyan') + btn('Règles', 'rules', '', 'grey'));
+      return D(`Bienvenue chez toi, ${heroName()}. Tenue actuelle : ${SKINS[S.world.skin].name}.`, btn('♞ Apparence', 'panel', 'data-p="look"') + btn('Tenues', 'panel', 'data-p="skins"', 'grey') + btn('Budgets & options', 'panel', 'data-p="options"', 'cyan') + btn('Règles', 'rules', '', 'grey'));
     case 'sign': return D(o.text);
-    case 'npc': SFX.click(); UI.tipIdx = ((UI.tipIdx ?? Math.floor(Math.random() * TIPS.length)) + 1) % TIPS.length; return D(`« ${TIPS[UI.tipIdx]} »`, btn('Un autre conseil', 'A', '', 'grey'));
+    case 'npc': {
+      SFX.click();
+      const ms = g.ms, r = o.role;
+      if (r === 'sage') { UI.tipIdx = ((UI.tipIdx ?? Math.floor(Math.random() * TIPS.length)) + 1) % TIPS.length; return D(`« ${TIPS[UI.tipIdx]} »`, btn('Un autre conseil', 'A', '', 'grey')); }
+      if (r === 'market') return D(`Bienvenue au marché, ${heroName()} ! Qu'est-ce que tu as acheté aujourd'hui ? Dis-le-moi, je note tout.`, btn('⚔ Noter une dépense', 'panel', 'data-p="add"', 'green'));
+      if (r === 'bank') return D(`Ce mois-ci : ${fmt(ms.spent)} dépensés sur ${fmt(ms.budget)}, soit un écart de ${fmtS(ms.budget - ms.spent)}.${ms.status === 'current' && ms.elapsed ? ` À ce rythme, tu finiras à ${fmt(ms.projection)}.` : ''}`, btn('⚖ Voir les écarts', 'panel', 'data-p="ecarts"'));
+      if (r === 'archives') return D(`J'ai ${ms.count} dépense${ms.count > 1 ? 's' : ''} dans mes registres pour ${ymLabel(ms.ym)}. Tout est classé, jour par jour.`, btn('✎ Ouvrir le journal', 'panel', 'data-p="journal"', 'cyan'));
+      if (r === 'lab') return D(`Mes fioles mesurent tout : ${esc(S.trackers.map(t => t.name).join(', ')) || "rien pour l'instant"}. Une mesure par jour, et c'est +5 XP !`, btn('⚗ Mes suivis', 'panel', 'data-p="suivis"', 'cyan'));
+      if (r === 'board') { const done = S.habits.filter(hb => habitDone(today(), hb.id)).length; return D(`Avis à la population ! Quêtes du jour : ${done}/${S.habits.length} accomplies.${done === S.habits.length && S.habits.length ? ' Journée parfaite, bravo !' : ''}`, btn('★ Tableau des quêtes', 'panel', 'data-p="quetes"')); }
+      return;
+    }
     case 'fire': {
       const t = today(), hasExp = S.expenses.some(e => e.date === t);
       if (S.checkins[t]) return D('Le feu crépite doucement. Les monstres dorment : journée sans dépense pointée.', btn('Annuler le pointage', 'zero', '', 'grey'));
@@ -1140,11 +1280,12 @@ function updateWorld(dt) {
   for (const v of WORLD.villagers) {
     if (v.tgt) {
       const tx = v.tgt[0] * TS, ty = v.tgt[1] * TS, sp = 28 * dt, ddx = tx - v.fx, ddy = ty - v.fy, d = Math.hypot(ddx, ddy);
+      v.step += dt;
       if (d <= sp) { v.fx = tx; v.fy = ty; v.x = v.tgt[0]; v.y = v.tgt[1]; v.tgt = null; v.wait = 1 + Math.random() * 3; }
       else { v.fx += ddx / d * sp; v.fy += ddy / d * sp; }
     } else if ((v.wait -= dt) <= 0) {
       const [dx, dy] = Object.values(DIRS)[Math.floor(Math.random() * 4)], nx = v.x + dx, ny = v.y + dy;
-      if (nx >= 18 && nx <= 30 && ny >= 13 && ny <= 26 && walkable(nx, ny) && !(nx === h.x && ny === h.y)) { v.tgt = [nx, ny]; if (dx) v.flip = dx < 0; }
+      if (nx >= 18 && nx <= 30 && ny >= 13 && ny <= 26 && walkable(nx, ny) && !(nx === h.x && ny === h.y)) { v.tgt = [nx, ny]; v.dir = dx > 0 ? 'right' : dx < 0 ? 'left' : dy > 0 ? 'down' : 'up'; v.flip = dx < 0; }
       else v.wait = .5;
     }
   }
@@ -1152,73 +1293,105 @@ function updateWorld(dt) {
   for (const p of particles) { p.x += p.vx * dt; p.y += p.vy * dt; p.vy += (p.g || 0) * dt; }
 }
 function drawWorld(now) {
-  const cv = $('#world'); if (!cv || !WORLD.layer) return;
+  const cv = $('#world'); if (!cv || !WORLD.ground) return;
   const ctx = cv.getContext('2d'), z = viewZ, g = UI.game, h = HERO_S;
   ctx.imageSmoothingEnabled = false;
   const vw = cv.width / z, vh = cv.height / z;
   const camX = Math.round(clamp(h.fx + 8 - vw / 2, 0, Math.max(0, MW * TS - vw)));
-  const camY = Math.round(clamp(h.fy + 8 - vh / 2, 0, Math.max(0, MH * TS - vh)));
+  const camY = Math.round(clamp(h.fy + 4 - vh / 2, 0, Math.max(0, MH * TS - vh)));
   const sw = Math.min(Math.ceil(vw) + 1, MW * TS - camX), sh = Math.min(Math.ceil(vh) + 1, MH * TS - camY);
   ctx.fillStyle = K; ctx.fillRect(0, 0, cv.width, cv.height);
-  ctx.drawImage(WORLD.layer, camX, camY, sw, sh, 0, 0, sw * z, sh * z);
-  const S_ = (wx) => Math.round((wx - camX) * z), S2 = (wy) => Math.round((wy - camY) * z);
-  const put = (spr, wx, wy) => ctx.drawImage(spr, S_(wx), S2(wy), spr.width * z, spr.height * z);
-  const box = (col, wx, wy, w, hh) => { ctx.fillStyle = col; ctx.fillRect(S_(wx), S2(wy), w * z, hh * z); };
-  const tick = Math.floor(now / 160), visible = (o) => o.x * TS + o.w * TS >= camX - 16 && o.x * TS <= camX + vw + 16 && o.y * TS + o.h * TS >= camY - 16 && o.y * TS <= camY + vh + 16;
-  // reflets sur l'eau
-  const x0 = Math.floor(camX / TS), y0 = Math.floor(camY / TS);
-  for (let y = y0; y <= y0 + Math.ceil(vh / TS) && y < MH; y++) for (let x = x0; x <= x0 + Math.ceil(vw / TS) && x < MW; x++) {
+  ctx.drawImage(WORLD.ground[Math.floor(now / 520) % 3], camX, camY, sw, sh, 0, 0, sw * z, sh * z);
+  const SX = wx => Math.round((wx - camX) * z), SY = wy => Math.round((wy - camY) * z);
+  const put = (spr, wx, wy) => ctx.drawImage(spr, SX(wx), SY(wy), spr.width * z, spr.height * z);
+  const box = (col, wx, wy, w, hh) => { ctx.fillStyle = col; ctx.fillRect(SX(wx), SY(wy), Math.round(w * z), Math.round(hh * z)); };
+  const shadowAt = (cx, cy, w) => { const c = 'rgba(10,20,30,.26)'; box(c, cx - w / 2 + 1, cy, w - 2, 1); box(c, cx - w / 2, cy + 1, w, 1); box(c, cx - w / 2 + 1, cy + 2, w - 2, 1); };
+  const bang = (X, Y, col) => { box(K, X + 6, Y, 4, 8); box(col, X + 7, Y + 1, 2, 4); box(col, X + 7, Y + 6, 2, 1); };
+  const tick = Math.floor(now / 160);
+  const x0 = Math.max(0, Math.floor(camX / TS) - 1), y0 = Math.max(0, Math.floor(camY / TS) - 1);
+  const x1 = Math.min(MW - 1, Math.ceil((camX + vw) / TS) + 1), y1 = Math.min(MH - 1, Math.ceil((camY + vh) / TS) + 2);
+  for (let y = y0; y <= y1; y++) for (let x = x0; x <= x1; x++) {
     if (WORLD.map[y * MW + x] !== T.WATER) continue;
-    const a = hash(x * 31 + (tick >> 2), y * 17); if (a < .35) box('#73eff7', x * TS + Math.floor(a * 30) % 12, y * TS + Math.floor(a * 97) % 13, 2, 1);
+    const a = hash(x * 31 + (tick >> 2), y * 17); if (a < .3) box('#f4f4f4', x * TS + Math.floor(a * 40) % 13, y * TS + 4 + Math.floor(a * 97) % 9, 2, 1);
   }
-  const t = today(), habitsLeft = S.habits.some(hb => !habitDone(t, hb.id));
+  const list = [];
+  for (let y = y0; y <= y1; y++) for (let x = x0; x <= x1; x++) {
+    const t = WORLD.map[y * MW + x], X = x * TS, Y = y * TS;
+    if (t === T.TREE) { const spr = hash(x, y) < .28 ? SPR_C.treeF : SPR_C.tree; list.push([Y + 15, () => put(spr, X, Y - 4)]); }
+    else if (t === T.PINE) list.push([Y + 14, () => put(SPR_C.pine, X, Y - 2)]);
+    else if (t === T.SECRET) list.push([Y + 14, () => put(SPR_C.secret, X, Y - 2)]);
+    else if (t === T.ROCK) list.push([Y + 14, () => put(SPR_C.rock, X, Y)]);
+  }
+  const td = today(), habitsLeft = S.habits.some(hb => !habitDone(td, hb.id));
   const cats = g ? Object.fromEntries(g.ms.cats.map(c => [c.cat.id, c])) : {};
+  const vis = o => o.x + o.w >= x0 && o.x <= x1 && o.y + o.h >= y0 && o.y <= y1 + 1;
   for (const o of WORLD.objs) {
-    if (!visible(o)) continue;
-    const X = o.x * TS, Y = o.y * TS;
-    if (o.type === 'chest') {
+    if (!vis(o)) continue;
+    const X = o.x * TS, Y = o.y * TS, base = (o.y + o.h) * TS;
+    const oc = WORLD.objC.get(o.id);
+    if (oc) list.push([base - 1, () => put(oc.c, X - oc.ox, Y - oc.oy)]);
+    if (o.type === 'building' && o.kind === 'board' && habitsLeft && S.habits.length) list.push([base, () => bang(X, Y - 10 + (tick >> 1) % 2, '#ffcd75')]);
+    else if (o.type === 'chest') list.push([base - 1, () => {
       const open = !!S.world.chests[o.chestId];
+      shadowAt(X + 8, Y + 12, 12);
       put(sprC(open ? 'chestO' : 'chest', open ? SPR_CHEST_OPEN : SPR_CHEST, PAL_WOOD), X, Y);
-      if (!open && g && condMet(o, g)) { const k = tick % 6; box('#f4f4f4', X + 3 + k * 2, Y + 2 - (k % 3), 1, 1); box('#ffcd75', X + 12 - k, Y + 1 + (k % 2), 1, 1); }
-    } else if (o.type === 'fire') {
-      const lit = !!S.checkins[t], f = tick % 2;
-      box(K, X + 2, Y + 11, 12, 4); box(WOOD, X + 3, Y + 12, 10, 2); box(WOODD, X + 7, Y + 12, 2, 2);
-      if (lit) { box('#ef7d57', X + 5, Y + 4 + f, 6, 8 - f); box('#ffcd75', X + 6, Y + 7, 4, 5); box('#f4f4f4', X + 7, Y + 9, 2, 2); box('#ef7d57', X + 7 + f, Y + 2 + f, 2, 2); }
-      else { box('#b13e53', X + 6, Y + 10, 2, 2); box('#ef7d57', X + 9, Y + 10, 1, 1); box('#566c86', X + 8 + f, Y + 5 - f * 2, 2, 2); }
-    } else if (o.type === 'npc') {
-      put(sprC('sage', VILLAGER, SAGE_PAL), X, Y + ((tick >> 2) % 2));
-    } else if (o.type === 'building' && o.kind === 'board' && habitsLeft && S.habits.length) {
-      const b = (tick >> 1) % 2; box(K, X + 6, Y - 9 + b, 4, 8); box('#ffcd75', X + 7, Y - 8 + b, 2, 4); box('#ffcd75', X + 7, Y - 3 + b, 2, 1);
-    } else if (o.type === 'lair') {
-      const c = cats[o.catId]; if (!c) continue;
-      const m = MONS[c.cat.monster] || MONS.slime, lv = rageLv(c.ratio), rage = lv === 4;
-      const shaking = (UI.shake && UI.shake.id === o.catId && now < UI.shake.until) || rage;
+      if (!open && g && condMet(o, g)) { const k = tick % 6; box('#f4f4f4', X + 3 + k * 2, Y + 2 - (k % 3), 1, 1); box('#ffcd75', X + 12 - k, Y + 1 + (k % 2), 1, 1); box('#ffcd75', X + 7, Y - 2 - (k % 2), 1, 1); }
+    }]);
+    else if (o.type === 'fire') list.push([base - 1, () => {
+      const lit = !!S.checkins[td], f = tick % 2;
+      for (const [sx, sy] of [[1, 12], [12, 12], [3, 14], [10, 14], [6, 15]]) { box(K, X + sx, Y + sy, 3, 2); box('#94b0c2', X + sx, Y + sy, 2, 1); }
+      box(K, X + 3, Y + 10, 10, 4); box(WOOD, X + 4, Y + 11, 8, 2); box(WOODD, X + 7, Y + 11, 2, 2);
+      if (lit) { box('#b13e53', X + 5, Y + 5 + f, 6, 6 - f); box('#ef7d57', X + 5, Y + 4 + f, 6, 6); box('#ffcd75', X + 6, Y + 6, 4, 4); box('#f4f4f4', X + 7, Y + 8, 2, 2); box('#ef7d57', X + 7 + f, Y + 2 + f, 2, 2); box('#ffcd75', X + 5 - f, Y + 3, 1, 1); }
+      else { box('#b13e53', X + 6, Y + 9, 2, 2); box('#ef7d57', X + 9, Y + 9, 1, 1); box('#566c86', X + 8 + f, Y + 4 - f * 2, 2, 2); }
+    }]);
+    else if (o.type === 'npc') list.push([base, () => {
+      let view = 'down', flip = false;
+      if (UI.near === o && adjacentTo(o, h.x, h.y)) { const dx = h.x - o.x, dy = h.y - o.y; view = dy < 0 ? 'up' : dy > 0 ? 'down' : 'side'; flip = dx < 0; }
+      const blink = ((now + o.x * 997) % 3400) < 140;
+      shadowAt(X + 8, Y + 13, 12);
+      put(charCanvas(o.look, o.out, view, 0, {blink, flip}), X, Y - 9 + (Math.floor(now / 700 + o.x) % 2));
+    }]);
+    else if (o.type === 'lair') list.push([base, () => {
+      const c = cats[o.catId]; if (!c) return;
+      const m = MONS[c.cat.monster] || MONS.slime, lv = rageLv(c.ratio);
+      const shaking = (UI.shake && UI.shake.id === o.catId && now < UI.shake.until) || lv === 4;
       const ox = shaking ? (tick % 2 ? 1 : -1) : 0, bob = (tick >> 2) % 2;
-      put(sprC('m' + c.cat.monster + c.cat.color + (rage && tick % 4 < 2), m.rows, monPal(c.cat.color, rage && tick % 4 < 2)), X + ox, Y - 2 + (lv === 1 ? 0 : bob));
-      if (lv === 1 && c.spent < c.budget * .5) { const zt = (tick >> 1) % 6; box('#f4f4f4', X + 11 + (zt >> 1), Y - 3 - zt, 3, 1); box('#f4f4f4', X + 12 + (zt >> 1), Y - 2 - zt, 1, 1); box('#f4f4f4', X + 11 + (zt >> 1), Y - 1 - zt, 3, 1); }
-      if (lv >= 3) { const col = lv === 4 ? '#b13e53' : '#ffcd75'; box(K, X + 6, Y - 12 + bob, 4, 8); box(col, X + 7, Y - 11 + bob, 2, 4); box(col, X + 7, Y - 6 + bob, 2, 1); }
-    }
+      const hov = m.hover ? -5 + ((tick >> 1) % 4 < 2 ? 0 : 2) : (lv === 1 ? 0 : bob);
+      shadowAt(X + 8, Y + 12, m.hover ? 10 : 14);
+      put(sprC('m2' + c.cat.monster + c.cat.color + lv, m.rows, monPalette(c.cat.color, lv, c.cat.monster)), X - 2 + ox, Y - 6 + hov);
+      if (lv === 1) { const zt = (tick >> 1) % 6; box('#f4f4f4', X + 12 + (zt >> 1), Y - 8 - zt, 3, 1); box('#f4f4f4', X + 13 + (zt >> 1), Y - 7 - zt, 1, 1); box('#f4f4f4', X + 12 + (zt >> 1), Y - 6 - zt, 3, 1); }
+      if (lv === 3) bang(X, Y - 18 + bob, '#ffcd75');
+      if (lv === 4) { bang(X - 3, Y - 18 + bob, '#b13e53'); bang(X + 3, Y - 18 + bob, '#b13e53'); for (let i = 0; i < 3; i++) { const p = (tick + i * 3) % 9; box('rgba(244,244,244,.6)', X + 2 + i * 5, Y - 4 - p, 2, 2); } }
+    }]);
   }
-  for (const v of WORLD.villagers) put(sprC('vil' + v.i + v.flip, VILLAGER, v.pal, {flip: v.flip}), Math.round(v.fx), Math.round(v.fy));
-  // héros
-  const moving = !!h.tgt, frameB = moving && Math.floor(h.step * 8) % 2;
-  const hurt = UI.hurtUntil && now < UI.hurtUntil && tick % 2;
-  const skin = S.world.skin;
-  put(sprC('hero' + skin + frameB + h.flip + (g && g.hp <= 0), frameB ? HERO_B : HERO, heroPal(skin), {flip: h.flip, grey: g && g.hp <= 0, flash: !!hurt}), Math.round(h.fx), Math.round(h.fy) - 2);
+  for (const v of WORLD.villagers) list.push([v.fy + 16, () => {
+    const view = v.dir === 'up' ? 'up' : v.dir === 'down' ? 'down' : 'side';
+    const fr = v.tgt ? (view === 'side' ? [1, 0][Math.floor(v.step * 6) % 2] : [1, 0, 2, 0][Math.floor(v.step * 6) % 4]) : 0;
+    shadowAt(v.fx + 8, v.fy + 13, 12);
+    put(charCanvas(v.look, v.out, view, fr, {flip: v.flip, blink: ((now + v.i * 1300) % 3700) < 140}), Math.round(v.fx), Math.round(v.fy) - 9 - (fr ? 1 : 0));
+  }]);
+  list.push([h.fy + 16.5, () => {
+    const view = h.dir === 'up' ? 'up' : h.dir === 'down' ? 'down' : 'side', moving = !!h.tgt;
+    const fr = moving ? (view === 'side' ? [1, 0][Math.floor(h.step * 8) % 2] : [1, 0, 2, 0][Math.floor(h.step * 8) % 4]) : 0;
+    const ko = g && g.hp <= 0, hurt = UI.hurtUntil && now < UI.hurtUntil && tick % 2;
+    shadowAt(h.fx + 8, h.fy + 13, 12);
+    put(charCanvas(heroLook(), heroOutfit(), view, fr, {flip: h.dir === 'left', blink: !moving && (now % 3900) < 150, grey: ko, flash: !!hurt}), Math.round(h.fx), Math.round(h.fy) - 9 - (fr ? 1 : 0));
+  }]);
+  list.sort((a, b) => a[0] - b[0]);
+  for (const [, f] of list) f();
   for (const p of particles) box(p.c, Math.round(p.x), Math.round(p.y), p.s || 2, p.s || 2);
-  // nuit
   const hr = new Date().getHours();
   if (hr < 6 || hr >= 20) {
     ctx.fillStyle = 'rgba(16,20,52,.42)'; ctx.fillRect(0, 0, cv.width, cv.height);
+    for (const o of WORLD.objs) if ((o.type === 'building' || o.type === 'village') && o.w >= 2 && vis(o) && o.kind !== 'market') { const wy = o.y * TS + 14; box('rgba(255,205,117,.55)', o.x * TS + 3, wy, 6, 6); box('rgba(255,205,117,.55)', o.x * TS + o.w * TS - 10, wy, 6, 6); }
     const f = WORLD.objs.find(o => o.type === 'fire');
-    if (f && S.checkins[t]) for (let r = 3; r >= 1; r--) box('rgba(255,205,117,.08)', f.x * TS + 8 - r * 10, f.y * TS + 8 - r * 10, r * 20, r * 20);
+    if (f && S.checkins[td]) for (let r = 3; r >= 1; r--) box('rgba(255,205,117,.08)', f.x * TS + 8 - r * 10, f.y * TS + 8 - r * 10, r * 20, r * 20);
   }
-  // étiquette du lieu proche
   const n = UI.near;
   if (n) {
-    const label = objName(n), fs = Math.max(8, 5 * z);
+    const label = objName(n), fs = Math.max(8, 5 * z), lift = UPRIGHT.has(n.type) && n.type !== 'sign' ? 16 : n.type === 'npc' ? 10 : 8;
     ctx.font = `${fs}px 'Press Start 2P', monospace`; ctx.textBaseline = 'top';
-    const tw = ctx.measureText(label).width, lx = clamp(S_((n.x + n.w / 2) * TS) - tw / 2 - fs * .5, 4, cv.width - tw - fs - 4), ly = Math.max(4, S2(n.y * TS) - fs * 2.6);
+    const tw = ctx.measureText(label).width, lx = clamp(SX((n.x + n.w / 2) * TS) - tw / 2 - fs * .5, 4, cv.width - tw - fs - 4), ly = Math.max(4, SY(n.y * TS - lift) - fs * 2.2);
     ctx.fillStyle = 'rgba(26,28,44,.9)'; ctx.fillRect(lx, ly, tw + fs, fs * 1.8);
     ctx.fillStyle = '#ffcd75'; ctx.fillText(label, lx + fs * .5, ly + fs * .45);
   }
@@ -1268,13 +1441,26 @@ function travel(o) {
   reveal(x, y); proximity();
 }
 function skinsHTML() {
-  return `<p class="muted" style="margin-top:0">Ouvre les coffres cachés dans le monde pour débloquer de nouvelles tenues.</p><div class="trophies">${Object.entries(SKINS).map(([k, s]) => {
+  const L = heroLook();
+  return `<p class="muted" style="margin-top:0">Ouvre les coffres cachés dans le monde pour débloquer de nouvelles tenues. Pour changer ton visage, ta coiffure ou ta silhouette : <button class="btn sm cyan" data-act="panel" data-p="look">♞ Apparence</button></p><div class="trophies">${Object.entries(SKINS).map(([k, s]) => {
     const on = S.world.skins.includes(k), src = CHESTS.find(c => c.skin === k), known = src && S.world.found.includes('chest:' + src.id);
-    return `<button class="trophy ${on ? '' : 'locked'} ${S.world.skin === k ? 'sel' : ''}" ${on ? `data-act="skin" data-id="${k}"` : 'disabled'} style="border:0;color:inherit;text-align:left;font-family:inherit;cursor:${on ? 'pointer' : 'default'}">${img(spriteURL('hero' + k, HERO, heroPal(k), 4, on ? {} : {grey: true}), 40)}<div><div class="t1">${on ? s.name : '???'}</div><div class="t2">${on ? (S.world.skin === k ? 'Équipée' : 'Toucher pour porter') : (known ? esc(src.name) : 'Coffre à trouver')}</div></div></button>`;
+    return `<button class="trophy ${on ? '' : 'locked'} ${S.world.skin === k ? 'sel' : ''}" ${on ? `data-act="skin" data-id="${k}"` : 'disabled'} style="border:0;color:inherit;text-align:left;font-family:inherit;cursor:${on ? 'pointer' : 'default'}">${charImg(L, outfitOf(k, L), 54, 'down', on ? {} : {grey: true})}<div><div class="t1">${on ? s.name : '???'}</div><div class="t2">${on ? (S.world.skin === k ? 'Équipée' : 'Toucher pour porter') : (known ? esc(src.name) : 'Coffre à trouver')}</div></div></button>`;
   }).join('')}</div>`;
 }
-
-
+function lookHTML() {
+  const L = heroLook(), out = heroOutfit(), bare = {...out, acc: null};
+  const opt = (k, v, inner, title = '') => `<button class="sw ${String(L[k]) === String(v) ? 'sel' : ''}" data-act="look" data-k="${k}" data-v="${v}" title="${esc(title)}" aria-label="${esc(title)}">${inner}</button>`;
+  const sw = col => `<i style="background:${col}"></i>`;
+  return `<div class="look-prev">${['down', 'side', 'up'].map(v => charImg(L, out, 96, v)).join('')}</div>
+    <h3>Peau</h3><div class="sws">${SKIN_TONES.map((t, i) => opt('skin', i, sw(t[0]), 'Teint ' + (i + 1))).join('')}</div>
+    <h3>Coiffure</h3><div class="sws">${Object.entries(HAIRS).map(([k, hh]) => opt('hair', k, charImg({...L, hair: k}, bare, 48), hh.name)).join('')}</div>
+    <h3>Couleur des cheveux</h3><div class="sws">${Object.entries(HAIR_COLS).map(([k, c]) => opt('hairCol', k, sw(c[0]), k)).join('')}</div>
+    <h3>Yeux</h3><div class="sws">${Object.entries(EYE_COLS).map(([k, c]) => opt('eyes', k, sw(c), k)).join('')}</div>
+    <h3>Silhouette</h3><div class="sws">${[['A', 'Pantalon'], ['B', 'Jupe']].map(([k, n]) => opt('body', k, charImg({...L, body: k}, out, 48) + `<span style="margin-left:6px">${n}</span>`, n)).join('')}</div>
+    <h3>Couleur de la tenue « Aventurier »</h3><div class="sws">${Object.entries(TUNIC_COLS).map(([k, c]) => opt('tunic', k, sw(c[0]), k)).join('')}</div>
+    <p class="muted" style="font-size:17px">Tenue portée : <b class="gold">${esc((SKINS[S.world.skin] || SKINS.classique).name)}</b>. <button class="btn sm grey" data-act="panel" data-p="skins">Changer de tenue</button></p>
+    <button class="btn gold big" data-act="close">✓ Terminé</button>`;
+}
 /* ---------------- RENDU ---------------- */
 let sayTimer = null, lastSay = '';
 function say(txt) {
@@ -1611,7 +1797,7 @@ function viewOptions() {
     <h2>♞ Héros</h2>
     <label class="f" for="o-name">Nom du héros</label>
     <input id="o-name" class="full" value="${esc(S.heroName)}" maxlength="20" data-chg="heroName" placeholder="Héros">
-    <div class="row" style="margin-top:12px"><button class="btn ${S.sound ? 'green' : 'grey'}" data-act="sound">♪ Son : ${S.sound ? 'oui' : 'non'}</button><button class="btn cyan" data-act="rules">? Règles du jeu</button></div>
+    <div class="row" style="margin-top:12px"><button class="btn ${S.sound ? 'green' : 'grey'}" data-act="sound">♪ Son : ${S.sound ? 'oui' : 'non'}</button><button class="btn gold" data-act="panel" data-p="look">♞ Apparence</button><button class="btn cyan" data-act="rules">? Règles du jeu</button></div>
   </section>
   <section class="box">
     <h2>☠ Catégories & budgets mensuels</h2>
@@ -1662,10 +1848,10 @@ function paintDlg() {
 }
 
 /* ---- Panneaux (lieux du monde) ---- */
-const PANELS = {add:'⚔ Marché · nouvelle dépense', ecarts:'⚖ Banque des Écarts', journal:'✎ Archives', quetes:'★ Tableau des quêtes', suivis:"⚗ Labo de l'alchimiste", options:'⌂ Maison · options', map:'▦ Carte du monde', skins:'♞ Garde-robe'};
+const PANELS = {add:'⚔ Marché · nouvelle dépense', ecarts:'⚖ Banque des Écarts', journal:'✎ Archives', quetes:'★ Tableau des quêtes', suivis:"⚗ Labo de l'alchimiste", options:'⌂ Maison · options', map:'▦ Carte du monde', skins:'♞ Garde-robe', look:'♞ Apparence du héros'};
 function panelHTML(kind) {
   const g = UI.game;
-  const body = kind === 'add' ? addFormHTML(true) : kind === 'ecarts' ? viewEcarts() : kind === 'journal' ? viewJournal() : kind === 'quetes' ? viewQuetes(g) : kind === 'suivis' ? viewSuivis() : kind === 'options' ? viewOptions() : kind === 'map' ? worldMapHTML() : skinsHTML();
+  const body = kind === 'add' ? addFormHTML(true) : kind === 'ecarts' ? viewEcarts() : kind === 'journal' ? viewJournal() : kind === 'quetes' ? viewQuetes(g) : kind === 'suivis' ? viewSuivis() : kind === 'options' ? viewOptions() : kind === 'map' ? worldMapHTML() : kind === 'look' ? lookHTML() : skinsHTML();
   return `<div class="row between panel-head"><h2 style="margin:0">${PANELS[kind]}</h2><button class="icon-btn" data-act="close" aria-label="Fermer">✕</button></div>${body}`;
 }
 function postPanel() { drawDailyChart(); drawSparks(); drawWorldMap(); }
@@ -1807,6 +1993,7 @@ const ACT = {
   worldmap: () => { SFX.click(); openPanel('map'); },
   travel: a => travel(WORLD.objs.find(o => o.id === a.dataset.id)),
   panel: a => openPanel(a.dataset.p),
+  look: a => { const k = a.dataset.k; S.world.look = {...heroLook(), [k]: k === 'skin' ? +a.dataset.v : a.dataset.v}; SFX.click(); commit(); },
   skin: a => { if (!S.world.skins.includes(a.dataset.id)) return; S.world.skin = a.dataset.id; SFX.quest(); commit(); toast('♞ Nouvelle tenue', SKINS[S.world.skin].name); },
   addCat: a => { UI.pickCat = a.dataset.id; openPanel('add'); setTimeout(() => { const i = $('#modal [name=amount]'); if (i) i.focus(); }, 50); },
   edit: a => editExpense(a.dataset.id),
@@ -1908,7 +2095,7 @@ document.addEventListener('submit', e => {
     S.budgets[UI.viewYM] = S.budgets[UI.viewYM] || {}; S.budgets[UI.viewYM][id] = parseAmt(v('budget'));
     commit(); SFX.coin();
   } else if (k === 'welcome') {
-    S.heroName = v('name').trim().slice(0, 20) || 'Héros'; closeModal(); commit(); SFX.lvl();
+    S.heroName = v('name').trim().slice(0, 20) || 'Héros'; closeModal(); commit(); SFX.lvl(); setTimeout(() => openPanel('look'), 200);
   }
 });
 document.addEventListener('change', e => {

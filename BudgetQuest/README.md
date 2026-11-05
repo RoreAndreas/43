@@ -68,6 +68,45 @@ Un bâtiment construit reste en place même si le trésor baisse ensuite.
 
 **Exploration** : chaque lieu découvert rapporte 10 XP. Le bouton CARTE affiche la carte (les zones non explorées restent noires) et permet le voyage rapide vers les lieux déjà découverts.
 
+## Personnages (style RPG 16 bits)
+
+- **Créateur de héros** (Maison → Apparence, ou Options) :
+  - 5 teints de peau ;
+  - 6 coiffures : court, afro, tresses, chignon, long, rasé ;
+  - 8 couleurs de cheveux et 4 couleurs d'yeux ;
+  - silhouette pantalon ou jupe ;
+  - couleur de la tenue « Aventurier ».
+- **Le héros** est vu de face, de dos ou de profil. Il a une animation de marche dans les 4 directions et cligne des yeux.
+- **Tenues** : elles se gagnent dans les coffres (bandeau, capuche, couronne…) et se portent sur l'apparence que tu as choisie.
+- **PNJ** : chacun tient un lieu et te parle de tes chiffres.
+
+| PNJ | Lieu | Ce qu'il dit |
+|---|---|---|
+| Awa | Marché | Te propose de noter une dépense |
+| M. Diallo | Banque | Écart du mois et projection |
+| Mme Fatou | Archives | Nombre de dépenses notées ce mois |
+| Zeph | Labo | Tes suivis en cours |
+| Kwame le crieur | Tableau des quêtes | Avancement des quêtes du jour |
+| Amadou le sage | Village | Conseils |
+
+Ils se tournent vers toi quand tu leur parles.
+- **Monstres** : ils sont redessinés en 20 × 20 pixels, avec 4 humeurs selon le budget de leur catégorie.
+
+| Budget consommé | Humeur du monstre |
+|---|---|
+| Moins de 50 % | Dort (Zzz) |
+| De 50 à 80 % | Éveillé |
+| De 80 à 100 % | Inquiet (sourcils froncés, « ! ») |
+| Plus de 100 % | Déchaîné (teinte rouge, yeux brillants, crocs, vapeur) |
+
+- **Décor** :
+  - profondeur : le héros passe derrière les arbres et les maisons ;
+  - ombres au sol ;
+  - eau animée avec écume ;
+  - maisons aux toits en tuiles avec jardinières ;
+  - arbres fruitiers ;
+  - fenêtres éclairées la nuit.
+
 ## Règles du jeu
 
 - Chaque **catégorie** est un monstre. Plus tu dépenses, plus il enrage. À 100 % du budget, il se **déchaîne** et blesse ton héros.
