@@ -24,49 +24,27 @@ Pour les sauvegarder ou les passer d'un appareil à l'autre, utilise **Options �
 | **Suivis** | Compteurs personnalisés (sommeil, eau, cafés…), avec un objectif « au moins » ou « au plus » |
 | **Options** | Nom du héros, son, catégories (monstre, couleur, budget mensuel), sauvegarde |
 
-## Le monde ouvert
+## Le monde : le jardin de l'Open Space, et le village à sa droite
 
-Ton héros se déplace sur une carte de 48 × 36 cases vue de dessus.
-- **Sur téléphone** : touche une case pour y aller, ou utilise la croix directionnelle et le bouton A.
-- **Sur ordinateur** : clique, ou utilise les flèches (ou ZQSD/WASD) et Entrée.
+Le monde reprend le tracé et le moteur du **jardin** (« Dehors ») de l'[Open Space](https://github.com/RoreAndreas/Openspace43). C'est un portage de `src/engine/outside.ts` et `outsideDraw.ts`.
+- Le sol est vu de dessus en 3/4 : une prairie au vent qui s'arrête au bord d'une falaise.
+- Au-dessus, la **mer** est peinte en perspective jusqu'à l'horizon : houle, écume, reflet du soleil, voiliers, le phare au loin.
+- Le ciel et la lumière suivent l'heure de l'appareil : jour, soir ou nuit. La nuit, les bornes et les fenêtres s'allument, et Nessie nage au large.
 
-Les onglets restent là comme raccourcis.
+Le monde se parcourt de gauche à droite, et la caméra suit Roré :
 
-| Lieu | Ce qu'il fait |
+| Zone | Ce qu'on y trouve |
 |---|---|
-| Marché (place du village) | Noter une dépense |
-| Banque des Écarts | Écarts et projection |
-| Archives | Journal et calendrier |
-| Tableau des quêtes | Habitudes et trophées. Un « ! » s'affiche s'il reste des quêtes à faire aujourd'hui |
-| Labo de l'alchimiste | Suivis personnalisés |
-| Maison du héros | Tenues, budgets et options, règles |
-| Feu de camp | Pointer une journée sans dépense. Le feu est allumé quand c'est fait |
-| Vieux sage | Conseils |
-| Repaires des monstres | Un monstre par catégorie. Il dort, s'agite ou se déchaîne selon ce que tu as dépensé dans sa catégorie |
+| **Le jardin** (à l'identique) | Le banc du promontoire face au large (pour pointer une journée sans dépense), le vieux tronc, la manche à air, le chemin de la barque, les pins parasols. Le **pavillon 43, l'Open Space**, est à droite : sa porte ouvre l'apparence, les tenues et les options. |
+| **Le village**, juste à droite du pavillon | Le chemin de gravier continue. Zaza tient le marché (noter une dépense), Hares la Banque des Écarts, Margaux les Archives, Boulon son labo (les suivis), Rook le tableau des quêtes. On y trouve aussi les terrains que le trésor fait construire, du puits au château. |
+| **La prairie des monstres**, au bord de la falaise | Les repaires des catégories du budget. |
 
-**Coffres** : 9 coffres sont répartis dans le monde. Ils s'ouvrent selon des conditions :
-- séries de 3, 7 ou 30 jours ;
-- journées sans dépense ;
-- jours sous le budget du jour ;
-- trophées ;
-- niveau.
+**Pour se déplacer** :
+- touche le sol, un bâtiment ou un robot ;
+- ou utilise la croix directionnelle et le bouton A ;
+- ou les flèches (ZQSD) et Entrée.
 
-Ils donnent de l'XP et des tenues. Certains sont cachés dans la forêt, sur une île ou au sommet du col.
-
-**Village** : 9 terrains à bâtir. Ton trésor (économies des mois terminés) y construit dans l'ordre :
-- Puits (5 000 F)
-- Potager (15 000 F)
-- Maison du fermier (30 000 F)
-- Boulangerie (60 000 F)
-- Forge (100 000 F)
-- Fontaine (175 000 F)
-- Moulin (300 000 F)
-- Tour de guet (500 000 F)
-- Château (1 000 000 F)
-
-Un bâtiment construit reste en place même si le trésor baisse ensuite.
-
-**Exploration** : chaque lieu découvert rapporte 10 XP. Le bouton CARTE affiche la carte (les zones non explorées restent noires) et permet le voyage rapide vers les lieux déjà découverts.
+Le bouton CARTE montre toute la côte et permet le voyage rapide vers les lieux déjà découverts. Les 9 coffres sont répartis sur toute la côte, dont un tout au bout du jardin.
 
 ## Personnages : les robots de l'Open Space
 
