@@ -383,12 +383,12 @@ const TEAM = {
 };
 // Les postes du village : chaque membre de l'équipe tient un lieu (Nyx se balade).
 const TEAM_POSTS = [
-  {id:'npc_market', who:'styliste_extravagant', role:'market', x:29, y:10},
-  {id:'npc_bank', who:'hares', role:'bank', x:34, y:10},
-  {id:'npc_arch', who:'analyste_strategique', role:'archives', x:38, y:11},
-  {id:'npc_lab', who:'robot_ingenieur', role:'lab', x:29, y:13},
-  {id:'npc_board', who:'explorateur_futuriste', role:'board', x:35, y:12},
-  {id:'sage', who:'mage_du_code', role:'sage', x:12, y:9},
+  {id:'npc_market', who:'styliste_extravagant', role:'market', x:20, y:12},
+  {id:'npc_bank', who:'hares', role:'bank', x:27, y:14},
+  {id:'npc_arch', who:'analyste_strategique', role:'archives', x:17, y:14},
+  {id:'npc_lab', who:'robot_ingenieur', role:'lab', x:33, y:19},
+  {id:'npc_board', who:'explorateur_futuriste', role:'board', x:24, y:11},
+  {id:'sage', who:'mage_du_code', role:'sage', x:21, y:9},
 ];
 const ROLE_TITLE = {market:'tient le marché', bank:'garde la Banque des Écarts', archives:'tient les Archives', lab:"s'occupe du Labo", board:'crie les quêtes du jour', sage:'donne des conseils'};
 // La famille : cousins, frères et sœurs, apprentis, et d'autres robots de la même espèce, qui vivent dans le monde.
@@ -417,7 +417,7 @@ const FAMILY = [
   {id:'mosaique',name:'Mosaïque',kin:'robot du village',         zone:'forest', idle:'pose', outfit:{body:ROLE_COLORS.design, colors:{accent:ROLE_COLORS.design}, parts:['beret']},
    lines:['Ces pins mériteraient un peu de rose.', 'Je peins le village. Le château sera magnifique.']},
 ];
-const ZONES = {village:[25, 8, 46, 15], east:[47, 8, 68, 15], forest:[3, 8, 16, 15], lake:[5, 9, 22, 15], mountain:[50, 9, 68, 15], south:[25, 12, 46, 15]};
+const ZONES = {village:[8, 10, 42, 29], east:[44, 10, 63, 29], forest:[2, 9, 30, 20], lake:[10, 8, 40, 16], mountain:[44, 15, 63, 29], south:[4, 18, 42, 29]};
 
 /* ---- Roré, le héros : son apparence (créateur) et ses tenues (coffres) ---- */
 const LOOK_EYES = {orange:'#ff8a3d', cyan:'#35e0ff', vert:'#41f509', rouge:'#ff6b5e', violet:'#c58bff', jaune:'#ffd84d'};
@@ -939,16 +939,15 @@ const SFX = {
 };
 
 /* ================================================================
-   LE MONDE — le jardin de l'Open Space et le village, à sa droite
+   LE MONDE — deux cartes au bord de la mer, dans le style du jardin de l'Open Space
    Portage de src/engine/outside.ts et outsideDraw.ts (RoreAndreas/Openspace43) :
    le sol vu de dessus en 3/4, le fond (ciel, mer jusqu'à l'horizon) en perspective.
-   De gauche à droite : le jardin (le pavillon 43, l'Open Space), le village, la prairie des monstres.
+   Le village est la suite, vers la droite, du jardin et du pavillon 43 de l'Open Space ; il fonctionne seul.
+   Une carte de 64 × 30 cases qui défile dans les deux sens : le village, puis la prairie des monstres.
    ================================================================ */
-const TS = 16, MH = 16, MW = 69, WW = MW * TS, WH = MH * TS;
-const GOFF = 48;                     // le jardin d'origine commence ici (ses coordonnées + GOFF)
+const TS = 16, VIEW_H = 256;
+const GOFF = 48;                     // dans le jardin, ses coordonnées d'origine + GOFF
 const HORIZON = 46, GRASS_ROW = 5;
-const HOUSE = {x0: 232 + GOFF, x1: 324 + GOFF, y1: 6 * TS};      // le pavillon 43
-const OUT_DOOR = {col: 16 + 3, row: 5, x: 16 * TS + GOFF, w: 2 * TS};
 const DIRS = {up:[0,-1], down:[0,1], left:[-1,0], right:[1,0]};
 const GP = {ink:'#15121d', shadow:'rgba(8,6,16,0.38)', wood:'#c08a57', woodHi:'#d9a46c', woodLight:'#e7bb84', woodFront:'#9b6a3e', woodDark:'#77502e', woodLeg:'#563821',
   orange:'#ff8a3d', orangeHi:'#ffb27a', orangeLight:'#ffd2a8', orangeDark:'#d9622a', orangeDeep:'#9e4019',
@@ -962,47 +961,10 @@ function disc(g, cx, cy, r, c) { for (let dy = -r; dy <= r; dy++) { const w = Ma
 const mkC = (w, h) => { const c = document.createElement('canvas'); c.width = w; c.height = h; const g = c.getContext('2d'); g.imageSmoothingEnabled = false; return [c, g]; };
 const smooth = k => { k = Math.max(0, Math.min(1, k)); return k * k * (3 - 2 * k); };
 const bumpF = u => (Math.abs(u) >= 1 ? 0 : Math.pow(1 - u * u, 1.5));
+const wobble = x => -6 * Math.sin(x * 0.02) + 1.6 * Math.sin(x * 0.23) + 1.2 * Math.sin(x * 0.071 + 1);
+const path = l => l.map(([x, y]) => ({x, y}));
 
-/* ---- La côte : le bord de la falaise, pour chaque x (en pixels du monde) ---- */
-function coastY(x) {
-  const l = x - GOFF;
-  const base = 118 - 6 * Math.sin(l * 0.02) - 15 * bumpF((l - 112) / 36) + 1.6 * Math.sin(l * 0.23) + 1.2 * Math.sin(l * 0.071 + 1)
-    - 12 * bumpF((l - 600) / 40) - 14 * bumpF((l - 860) / 44);
-  // derrière le pavillon, le terrain remonte jusqu'à l'horizon ; il redescend après, pour que le village voie la mer
-  const k = smooth((l - 188) / 52) * (1 - smooth((l - 340) / 56));
-  return base + (HORIZON - 2 - base) * k;
-}
-const EDGE = []; for (let x = 0; x < WW; x++) EDGE.push(Math.round(coastY(x)));
-const edgeAt = x => EDGE[Math.max(0, Math.min(WW - 1, Math.round(x)))];
-const SEA_BOTTOM = Math.max(...EDGE);
-const seaDepth = y => Math.max(0, Math.min(1, (y - HORIZON) / (SEA_BOTTOM - HORIZON)));
-const inHouse = (x, y) => x >= HOUSE.x0 - 4 && x <= HOUSE.x1 + 4 && y < HOUSE.y1 + 8;
-function groundOK(tx, ty) {
-  if (tx < 0 || ty < GRASS_ROW || tx >= MW || ty >= MH) return false;
-  let e = -Infinity; for (let k = 0; k <= TS; k += 4) e = Math.max(e, coastY(tx * TS + k));
-  const house = (tx + 1) * TS > HOUSE.x0 && tx * TS < HOUSE.x1 && ty * TS < HOUSE.y1;
-  return ty * TS >= e + 4 && !house;
-}
-
-/* ---- Le chemin de gravier : celui du jardin, puis il file vers le village et la prairie ---- */
-const PATHS = [
-  [[320, 97], [320, 124], [288, 146], [234, 158], [188, 154], [168, 146]],
-  [[234, 158], [198, 176], [152, 190], [118, 206]],
-  [[152, 190], [112, 168], [90, 146], [88, 128]],
-  [[320, 124], [372, 140], [430, 156], [500, 166], [560, 170], [612, 176], [660, 186], [720, 194], [790, 198], [860, 192], [940, 184], [1020, 180], [1100, 178]],
-  [[500, 166], [520, 204], [560, 222], [620, 214], [612, 176]],
-].map(l => l.map(([x, y]) => ({x, y})));
-function toPath(x, y) {
-  let best = Infinity;
-  for (const line of PATHS) for (let i = 0; i < line.length - 1; i++) {
-    const a = line[i], b = line[i + 1], dx = b.x - a.x, dy = b.y - a.y;
-    const k = Math.max(0, Math.min(1, ((x - a.x) * dx + (y - a.y) * dy) / (dx * dx + dy * dy)));
-    best = Math.min(best, Math.hypot(a.x + dx * k - x, a.y + dy * k - y));
-  }
-  return best;
-}
-
-/* ---- Le contenu : le jardin d'origine, le village, la prairie ---- */
+/* ---- Les cartes ---- */
 const VILLAGE = [
   {name:'Puits', cost:5000, kind:'well', desc:"De l'eau fraîche pour tout le village."},
   {name:'Potager', cost:15000, kind:'garden', desc:'Des légumes maison : moins de courses au marché !'},
@@ -1014,47 +976,86 @@ const VILLAGE = [
   {name:'Tour de guet', cost:500000, kind:'tower', desc:"D'ici, on voit venir les monstres de loin."},
   {name:'Château', cost:1000000, kind:'castle', desc:"Un million d'économies. Tu es une légende."},
 ];
-const PLOTS = [[24, 10], [31, 14], [37, 14], [41, 8], [43, 8]].concat([[25, 14], [40, 13], [44, 14], [45, 10]]);
-const LAIRS = [[49, 9], [53, 12], [57, 9], [61, 12], [65, 9], [51, 15], [59, 15], [66, 14], [48, 13], [63, 15], [55, 8], [60, 8]];
+const MAPS = {
+  village: {
+    id:'village', name:'Le village', mw:64, mh:30,
+    // à gauche, le terrain remonte encore jusqu'à l'horizon : c'est la suite du pavillon 43 du jardin de l'Open Space
+    coast: x => { const base = 118 + wobble(x) - 16 * bumpF((x - 300) / 48) - 14 * bumpF((x - 760) / 44) + 6 * bumpF((x - 560) / 70); return base + (HORIZON - 2 - base) * (1 - smooth((x - 10) / 80)); },
+    house: null, sun: 540, lighthouse: 930,
+    islands: [[160, 200, 4], [420, 440, 2], [640, 700, 5], [980, 1010, 3]],
+    paths: [
+      [[0, 214], [140, 214], [260, 222], [306, 236]], [[414, 236], [520, 228], [640, 222], [760, 226], [880, 232], [1024, 232]],
+      [[360, 186], [330, 150], [300, 136]], [[330, 290], [300, 340], [260, 400], [216, 462]], [[392, 292], [460, 350], [540, 400], [620, 444]],
+      [[140, 214], [126, 300], [160, 380], [216, 462]], [[620, 444], [700, 380], [716, 300], [640, 222]], [[216, 462], [420, 470], [620, 444]],
+      [[96, 214], [96, 182]],
+    ].map(path),
+    plaza: {x: 360, y: 240, r: 60},
+    ropes: [[262, 278, 294], [328, 344], [732, 748, 764, 780]], bushes: [[0, 470, 40], [120, 476, 30], [300, 478, 50], [520, 476, 40], [760, 478, 60], [940, 476, 40], [600, 300, 18], [860, 360, 24], [40, 120, 30]],
+    bollards: [[8, 12], [14, 12], [30, 13], [36, 13], [42, 13], [19, 16], [26, 16], [12, 20], [34, 22]],
+    objects: () => {
+      const o = [];
+      o.push({id:'home', type:'building', kind:'home', x:5, y:9, w:2, h:2, name:'La maison de Roré'});
+      o.push({id:'market', type:'building', kind:'market', x:19, y:11, w:3, h:1, name:'Marché'});
+      o.push({id:'bank', type:'building', kind:'bank', x:26, y:12, w:2, h:2, name:'Banque des Écarts'});
+      o.push({id:'archives', type:'building', kind:'archives', x:15, y:13, w:2, h:2, name:'Archives'});
+      o.push({id:'board', type:'building', kind:'board', x:23, y:11, w:1, h:1, name:'Tableau des quêtes'});
+      o.push({id:'lab', type:'building', kind:'lab', x:31, y:18, w:2, h:2, name:'Labo de Boulon'});
+      o.push({id:'fire', type:'fire', kind:'bench', x:17, y:8, w:3, h:1, name:'Le belvédère, face au large'});
+      o.push({id:'sg_garden', type:'sign', kind:'sign', x:1, y:11, w:1, h:1, name:'Panneau', text:"← Le jardin et le pavillon 43 : l'Open Space. Le village en est la suite, vers la droite : c'est par ce chemin que Roré est arrivé."});
+      o.push({id:'sg_secret', type:'sign', kind:'sign', x:2, y:15, w:1, h:1, name:'Panneau', text:"Là-haut, où le terrain remonte vers le pavillon de l'Open Space, le vent cache quelque chose…"});
+      o.push({id:'sg_prairie', type:'sign', kind:'sign', x:44, y:13, w:1, h:1, name:'Panneau', text:"→ La prairie des monstres. Chaque catégorie de ton budget y a son repaire : plus tu dépenses, plus son monstre s'énerve."});
+      o.push({id:'sg_village', type:'sign', kind:'sign', x:22, y:17, w:1, h:1, name:'Panneau', text:'Le village grandit avec ton trésor : chaque mois terminé sous le budget finance une nouvelle construction, dans le quartier sud.'});
+      return o;
+    },
+    plots: [[8, 19], [12, 22], [22, 22], [6, 25], [16, 26], [28, 26], [36, 23], [40, 19], [40, 26]],
+    lairs: [[48, 11], [52, 14], [56, 11], [60, 14], [50, 18], [58, 18], [46, 22], [54, 22], [62, 20], [48, 26], [56, 26], [62, 26]],
+    trees: [['pine', 3, 8], ['tree', 10, 9], ['pine', 26, 9], ['tree', 34, 10], ['tree', 40, 9], ['pine', 3, 17], ['tree', 9, 16], ['tree', 20, 19], ['pine', 26, 20],
+      ['tree', 37, 16], ['pine', 43, 17], ['tree', 3, 21], ['tree', 18, 23], ['pine', 32, 24], ['tree', 44, 25], ['pine', 2, 28], ['tree', 12, 28], ['pine', 24, 28], ['tree', 34, 28],
+      ['pine', 47, 9], ['tree', 51, 10], ['pine', 59, 10], ['tree', 63, 11], ['tree', 49, 16], ['pine', 55, 16], ['tree', 61, 17], ['pine', 52, 20], ['tree', 59, 23], ['pine', 50, 28], ['tree', 60, 29],
+      ['pine', 1, 6], ['tree', 8, 6]],
+  },
+};
 const CHESTS = [
-  {id:'start',  x:16, y:7,  name:'Coffre du débutant',           xp:50},
-  {id:'s3',     x:46, y:12, name:'Coffre du Régulier',           xp:75,  skin:'foret',   cond:{k:'best', n:3, txt:'série de 3 jours'}},
-  {id:'zero',   x:12, y:15, name:'Coffre du Moine',              xp:100, skin:'ocean',   cond:{k:'zeroDays', n:3, txt:'3 journées sans dépense'}},
-  {id:'s7',     x:68, y:10, name:"Coffre de l'Assidu",           xp:150, skin:'or',      cond:{k:'best', n:7, txt:'série de 7 jours'}},
-  {id:'secret', x:0,  y:10, name:'Coffre secret du bout du monde', xp:150, skin:'ombre'},
-  {id:'island', x:3,  y:9,  name:'Coffre du pêcheur',            xp:200, cond:{k:'victories', n:10, txt:'10 jours sous le budget du jour'}},
-  {id:'cave',   x:24, y:7,  name:'Coffre sous le grand arbre',  xp:300, skin:'royal',   cond:{k:'best', n:30, txt:'série de 30 jours'}},
-  {id:'troph',  x:39, y:15, name:'Coffre des Trophées',          xp:250, cond:{k:'trophies', n:7, txt:'7 trophées'}},
-  {id:'legend', x:68, y:15, name:'Coffre de la Légende',         xp:500, skin:'legende', cond:{k:'level', n:10, txt:'niveau 10'}},
+  {id:'start',  x:7,  y:10, name:'Coffre du débutant',            xp:50},
+  {id:'zero',   x:15, y:9,  name:'Coffre du Moine',               xp:100, skin:'ocean',   cond:{k:'zeroDays', n:3, txt:'3 journées sans dépense'}},
+  {id:'secret', x:0,  y:6,  name:"Coffre secret de l'Open Space", xp:150, skin:'ombre'},
+  {id:'island', x:36, y:9,  name:'Coffre du pêcheur',             xp:200, cond:{k:'victories', n:10, txt:'10 jours sous le budget du jour'}},
+  {id:'cave',   x:10, y:10, name:'Coffre sous le grand arbre',    xp:300, skin:'royal',   cond:{k:'best', n:30, txt:'série de 30 jours'}},
+  {id:'s3',     x:42, y:11, name:'Coffre du Régulier',            xp:75,  skin:'foret',   cond:{k:'best', n:3, txt:'série de 3 jours'}},
+  {id:'s7',     x:63, y:13, name:"Coffre de l'Assidu",            xp:150, skin:'or',      cond:{k:'best', n:7, txt:'série de 7 jours'}},
+  {id:'troph',  x:4,  y:28, name:'Coffre des Trophées',           xp:250, cond:{k:'trophies', n:7, txt:'7 trophées'}},
+  {id:'legend', x:63, y:28, name:'Coffre de la Légende',          xp:500, skin:'legende', cond:{k:'level', n:10, txt:'niveau 10'}},
 ];
-const SIGNS = [
-  {id:'sg_open',    x:24, y:9,  text:"← Le jardin et le pavillon 43 : l'Open Space. → Le village, puis la prairie des monstres, au bord de la falaise."},
-  {id:'sg_prairie', x:47, y:11, text:"La prairie des monstres. Chaque catégorie de ton budget y a son repaire : plus tu dépenses, plus son monstre s'énerve."},
-  {id:'sg_secret',  x:2,  y:12, text:"Le vent du large souffle fort, tout au bout du jardin, derrière le chemin de la barque… On dit qu'il y cache quelque chose."},
-  {id:'sg_village', x:33, y:15, text:"Le village grandit avec ton trésor : chaque mois terminé sous le budget finance une nouvelle construction."},
-];
-const GARDEN_DECOR = [ // le jardin de l'Open Space, à l'identique (cases du jardin + 3)
-  {id:'pine-1', kind:'pine', x:24, y:2}, {id:'tree-1', kind:'tree', x:24, y:6}, {id:'tree-2', kind:'tree', x:16, y:5},
-  {id:'pine-2', kind:'pine', x:4, y:12}, {id:'tree-3', kind:'tree', x:22, y:11}, {id:'pine-3', kind:'pine', x:15, y:13},
-  {id:'tree-4', kind:'tree', x:9, y:15}, {id:'tree-5', kind:'tree', x:23, y:15},
-  {id:'log', kind:'log', x:6, y:13, w:2, text:"Un vieux tronc, à l'ombre des pins : on s'y assoit."},
-  {id:'fishing', kind:'fishing', x:4, y:8, text:"Le chemin de la barque : il descend jusqu'au ponton. La barque 43 t'attend en bas, comme à l'Open Space."},
-  {id:'windsock', kind:'windsock', x:14, y:8, text:"La manche à air : elle dit d'où vient le vent du large."},
-];
-const MORE_TREES = [['tree', 26, 8], ['pine', 46, 6], ['tree', 39, 11], ['tree', 32, 11], ['pine', 30, 6], ['tree', 36, 6], ['pine', 48, 10], ['tree', 52, 14], ['tree', 56, 11],
-  ['pine', 62, 10], ['tree', 67, 12], ['pine', 54, 15], ['tree', 64, 13], ['pine', 58, 13], ['tree', 50, 11], ['pine', 1, 14], ['tree', 20, 13]];
-const BOLLARDS = [[18, 6], [21, 6], [17, 10], [10, 10], [27, 10], [33, 11], [38, 12], [44, 12]];
-const TIPS = [
-  "Note aussi les petites dépenses : ce sont elles qui font déborder les monstres.",
-  "Quand un monstre dépasse 80 %, ralentis sur sa catégorie jusqu'à la fin du mois.",
-  "Avant un achat plaisir, attends 24 heures. Souvent, l'envie passe.",
-  "Règle 50/30/20 : besoins, envies, épargne. Les monstres adorent les envies.",
-  "Une journée sans dépense, c'est un moment sur le banc face au large, et 35 XP.",
-  "Regarde les Écarts au milieu du mois : il est encore temps de corriger.",
-  "Les coffres s'ouvrent avec les séries. Pointe ta journée, même sans dépense !",
-  "Ton trésor construit le village. Un mois sous le budget, c'est un pas vers le château.",
-  "Explore tout : chaque lieu découvert rapporte 10 XP.",
-];
+const TOTAL_TILES = Object.values(MAPS).reduce((a, m) => a + m.mw * m.mh, 0);
+
+/* ---- La carte en cours : ses dimensions et sa côte (changent quand on passe d'une carte à l'autre) ---- */
+let CUR = MAPS.village, MW = CUR.mw, MH = CUR.mh, WW = MW * TS, WH = MH * TS, EDGE = [], SEA_BOTTOM = 120, PATHS = CUR.paths, HOUSE = CUR.house, SUN_X = CUR.sun, LIGHTHOUSE_X = CUR.lighthouse;
+function useMap(id) {
+  CUR = MAPS[id]; MW = CUR.mw; MH = CUR.mh; WW = MW * TS; WH = MH * TS; PATHS = CUR.paths; HOUSE = CUR.house; SUN_X = CUR.sun; LIGHTHOUSE_X = CUR.lighthouse;
+  if (!CUR._edge) { CUR._edge = []; for (let x = 0; x < WW; x++) CUR._edge.push(Math.round(CUR.coast(x))); CUR._seaBottom = Math.max(...CUR._edge); }
+  EDGE = CUR._edge; SEA_BOTTOM = CUR._seaBottom;
+}
+useMap('village');
+const coastY = x => CUR.coast(x);
+const edgeAt = x => EDGE[Math.max(0, Math.min(WW - 1, Math.round(x)))];
+const seaDepth = y => Math.max(0, Math.min(1, (y - HORIZON) / (SEA_BOTTOM - HORIZON)));
+const inHouse = (x, y) => !!HOUSE && x >= HOUSE.x0 - 4 && x <= HOUSE.x1 + 4 && y < HOUSE.y1 + 8;
+function groundOK(tx, ty) {
+  if (tx < 0 || ty < GRASS_ROW || tx >= MW || ty >= MH) return false;
+  let e = -Infinity; for (let k = 0; k <= TS; k += 4) e = Math.max(e, coastY(tx * TS + k));
+  const house = HOUSE && (tx + 1) * TS > HOUSE.x0 && tx * TS < HOUSE.x1 && ty * TS < HOUSE.y1;
+  return ty * TS >= e + 4 && !house;
+}
+function toPath(x, y) {
+  let best = Infinity;
+  for (const line of PATHS) for (let i = 0; i < line.length - 1; i++) {
+    const a = line[i], b = line[i + 1], dx = b.x - a.x, dy = b.y - a.y;
+    const k = Math.max(0, Math.min(1, ((x - a.x) * dx + (y - a.y) * dy) / (dx * dx + dy * dy)));
+    best = Math.min(best, Math.hypot(a.x + dx * k - x, a.y + dy * k - y));
+  }
+  return best;
+}
+
 const SPR_CHEST = norm(['...kkkkkkkkkk...','..kbbbbbbbbbbk..','..kbyBBBBBBybk..','..kkkkkyykkkkk..','..kbbbkyykbbbk..','..kbybbkkbbybk..','..kbBBBBBBBBbk..','..kkkkkkkkkkkk..'], 16, 16, 3);
 const SPR_CHEST_OPEN = norm(['..kkkkkkkkkkkk..','..kBBBBBBBBBBk..','..kbbbbbbbbbbk..','..kkkkkkkkkkkk..','..kyywyyyyywyk..','..kbbbkyykbbbk..','..kbybbkkbbybk..','..kbBBBBBBBBbk..','..kkkkkkkkkkkk..'], 16, 16, 3);
 const _sprCanvas = new Map();
@@ -1149,13 +1150,15 @@ function kioskSprite(kind, tod) { // une petite annexe du pavillon : banque, arc
   const [c, g] = mkC(36, 48), r = seeded(kind.length * 7);
   rr(g, 1, 6, 34, 6, '#3a3a48'); rr(g, 2, 7, 32, 3, '#8a8a92'); for (let i = 0; i < 40; i++) rp(g, 2 + Math.floor(r() * 32), 7 + Math.floor(r() * 3), ['#9c9ca4', '#76767e', '#a8a8b0'][Math.floor(r() * 3)]);
   hl(g, 1, 6, 34, '#a9b2bf'); rr(g, 0, 11, 36, 2, '#2e2e3c');
-  if (kind === 'bank') { rr(g, 2, 13, 32, 30, '#efe9de'); vl(g, 2, 13, 30, '#d9d0c0'); vl(g, 33, 13, 30, '#d9d0c0'); for (const x of [5, 29]) { rr(g, x, 13, 3, 30, '#f7f3ea'); vl(g, x + 2, 13, 30, '#d9d0c0'); } }
+  if (kind === 'home') for (let x = 2; x < 34; x += 3) { rr(g, x, 13, 2, 30, x % 6 ? '#b07c4c' : '#9a6a3e'); vl(g, x + 2, 13, 30, '#6b4528'); }
+  else if (kind === 'bank') { rr(g, 2, 13, 32, 30, '#efe9de'); vl(g, 2, 13, 30, '#d9d0c0'); vl(g, 33, 13, 30, '#d9d0c0'); for (const x of [5, 29]) { rr(g, x, 13, 3, 30, '#f7f3ea'); vl(g, x + 2, 13, 30, '#d9d0c0'); } }
   else if (kind === 'archives') for (let x = 2; x < 34; x += 3) { rr(g, x, 13, 2, 30, x % 6 ? '#b07c4c' : '#9a6a3e'); vl(g, x + 2, 13, 30, '#6b4528'); }
   else { rr(g, 2, 13, 32, 30, '#3a3a48'); for (let y = 15; y < 43; y += 5) hl(g, 2, y, 32, '#4a4a5c'); }
   // la porte vitrée, l'enseigne
   rr(g, 12, 27, 12, 16, '#2e2e3c'); glass(g, 13, 28, 10, 15, tod); vl(g, 18, 28, 15, '#2e2e3c');
-  rr(g, 10, 15, 16, 10, '#2e2e3c'); rr(g, 11, 16, 14, 8, kind === 'bank' ? '#ffd166' : kind === 'archives' ? '#f6f2e9' : '#0d2630');
-  iconOn(g, kind === 'bank' ? 'ecarts' : kind === 'archives' ? 'journal' : 'suivis', 14, 16, kind === 'bank' ? '#9e4019' : kind === 'archives' ? '#223455' : '#35e0ff');
+  rr(g, 10, 15, 16, 10, '#2e2e3c'); rr(g, 11, 16, 14, 8, kind === 'bank' ? '#ffd166' : kind === 'archives' ? '#f6f2e9' : kind === 'home' ? GP.orange : '#0d2630');
+  iconOn(g, kind === 'bank' ? 'ecarts' : kind === 'archives' ? 'journal' : kind === 'home' ? 'quetes' : 'suivis', 14, 16, kind === 'bank' ? '#9e4019' : kind === 'archives' ? '#223455' : kind === 'home' ? '#ffffff' : '#35e0ff');
+  if (kind === 'home') { rr(g, 4, 28, 6, 8, '#2e2e3c'); glass(g, 5, 29, 4, 6, tod); rr(g, 26, 28, 6, 8, '#2e2e3c'); glass(g, 27, 29, 4, 6, tod); rr(g, 12, 43, 12, 2, GP.orangeDeep); }
   if (kind === 'archives') { rr(g, 4, 28, 6, 10, '#2e2e3c'); for (let i = 0; i < 3; i++) hl(g, 5, 30 + i * 3, 4, ['#e5484d', '#ffd166', '#4FB3FF'][i]); }
   if (kind === 'lab') { rr(g, 27, 1, 2, 6, '#cfd2e0'); rr(g, 24, 0, 8, 3, '#cfd2e0'); rp(g, 28, -1, '#35e0ff'); for (const x of [5, 30]) rr(g, x, 30, 2, 2, '#35e0ff'); }
   rr(g, 2, 43, 32, 4, '#a7a29a'); hl(g, 2, 43, 32, '#c2bdb4');
@@ -1194,13 +1197,13 @@ function villageSprite(v, tod) {
   return rOutline(c, GP.ink);
 }
 
-/* ---- Le fond, selon l'heure : le ciel, la mer, la prairie, le chemin, le pavillon ---- */
+
+/* ---- Le fond, selon l'heure : le ciel, la mer, la prairie, le chemin ---- */
 const SKY = {day:['#5fa8e6', '#7cbaec', '#9bcdf1', '#bcdff5', '#dcedf7'], evening:['#2e2a5e', '#56397a', '#9a4c7c', '#e0755f', '#ffb77a'], night:['#080b22', '#0c1230', '#111a3e', '#18234c', '#202d5a']};
 const SEA = {day:['#a6d2ea', '#2a78b2'], evening:['#f0a88a', '#3e3470'], night:['#28335e', '#0d1734']};
 const LAND = {day:['#86a6b6', '#9ab8c6'], evening:['#7a4f78', '#8e5e84'], night:['#161d3c', '#1d2648']};
 const GLINT = {day:'#ffffff', evening:'#ffd2a0', night:'#dfe6ff'};
 const AMBIENT = {day:'#ffffff', evening:'#b79db3', night:'#36447c'};
-const SUN_X = 150 + GOFF, LIGHTHOUSE_X = 28 + GOFF;
 function timeOfDay() { const h = new Date().getHours(); return h >= 8 && h < 18 ? 'day' : (h >= 18 && h < 21) || (h >= 6 && h < 8) ? 'evening' : 'night'; }
 function drawBackdrop(g, tod, r) {
   const sky = SKY[tod], bh = Math.ceil(HORIZON / sky.length);
@@ -1211,7 +1214,7 @@ function drawBackdrop(g, tod, r) {
   else if (tod === 'evening') { disc(g, SUN_X, HORIZON - 2, 12, '#ffcf8a'); disc(g, SUN_X, HORIZON - 2, 9, '#fff0c8'); }
   else { disc(g, SUN_X, 14, 5, '#eef2ff'); disc(g, SUN_X + 2, 13, 4, sky[0]); }
   const [far, near] = SEA[tod];
-  for (let y = HORIZON; y < WH; y++) rr(g, 0, y, WW, 1, mix(far, near, Math.pow(seaDepth(y), .7)));
+  for (let y = HORIZON; y < SEA_BOTTOM + 4; y++) rr(g, 0, y, WW, 1, mix(far, near, Math.pow(seaDepth(y), .7)));
   for (let y = HORIZON + 2; y < SEA_BOTTOM;) {
     const p = seaDepth(y), len = 1 + Math.round(p * 6), gap = 6 + Math.round(p * 16), col = mix(mix(far, near, Math.pow(p, .7)), '#ffffff', .12 + .08 * (1 - p));
     for (let x = Math.floor(r() * gap); x < WW; x += gap + Math.floor(r() * gap)) hl(g, x, y, len, col);
@@ -1224,50 +1227,31 @@ function drawBackdrop(g, tod, r) {
     if (top < HORIZON) { rr(g, x, top, 1, HORIZON - top + 1, rock); rp(g, x, top, rockHi); }
   }
   rr(g, LIGHTHOUSE_X - 1, HORIZON - 20, 3, 11, '#f1ede6'); rr(g, LIGHTHOUSE_X - 1, HORIZON - 16, 3, 2, '#d24a40'); rr(g, LIGHTHOUSE_X - 2, HORIZON - 22, 5, 2, '#2e2e3c'); rp(g, LIGHTHOUSE_X, HORIZON - 23, '#2e2e3c');
-  for (const [a, b, h] of [[92 + GOFF, 116 + GOFF, 3], [520, 560, 4], [700, 716, 2], [880, 930, 5], [1040, 1070, 3]]) for (let x = a; x < b; x++) { const top = Math.round(HORIZON - h * Math.sin(((x - a) / (b - a)) * Math.PI)); if (top < HORIZON) rr(g, x, top, 1, HORIZON - top, land); }
+  for (const [a, b, h] of CUR.islands) for (let x = a; x < b; x++) { const top = Math.round(HORIZON - h * Math.sin(((x - a) / (b - a)) * Math.PI)); if (top < HORIZON) rr(g, x, top, 1, HORIZON - top, land); }
 }
 function drawGroundLayer(tod, objs) {
   const [c, g] = mkC(WW, WH), r = seeded(43);
   drawBackdrop(g, tod, r);
   for (let x = 0; x < WW; x++) rr(g, x, edgeAt(x), 1, WH - edgeAt(x), '#5b9a47');
   const onGround = (x, y) => y > edgeAt(x) + 1;
-  for (let i = 0; i < 330; i++) {
+  const area = WW * WH / (432 * 256);
+  for (let i = 0; i < 130 * area; i++) {
     const x = Math.floor(r() * WW), y = 40 + Math.floor(r() * (WH - 40)), w = 10 + Math.floor(r() * 26), h = 5 + Math.floor(r() * 7), col = ['#63a34e', '#53913f', '#5f9f49', '#6aa850'][Math.floor(r() * 4)];
     for (let k = 0; k < w; k++) { const top = Math.max(y, edgeAt(x + k) + 2); if (top < y + h) rr(g, x + k, top, 1, y + h - top, col); }
   }
-  for (let i = 0; i < 4000; i++) { const x = Math.floor(r() * WW), y = 40 + Math.floor(r() * (WH - 40)); if (onGround(x, y) && onGround(x + 1, y)) hl(g, x, y, 2, r() < .5 ? '#4a8a3c' : '#70b25a'); }
+  for (let i = 0; i < 1600 * area; i++) { const x = Math.floor(r() * WW), y = 40 + Math.floor(r() * (WH - 40)); if (onGround(x, y) && onGround(x + 1, y)) hl(g, x, y, 2, r() < .5 ? '#4a8a3c' : '#70b25a'); }
   for (let x = 0; x < WW; x++) { const e = edgeAt(x); rp(g, x, e, '#3f6a34'); rp(g, x, e + 1, '#7a5a3a'); if (r() < .35) rp(g, x, e - 1, '#5b9a47'); if (r() < .12) rp(g, x, e - 2, '#70b25a'); }
-  for (let i = 0; i < 50; i++) { const x = Math.floor(r() * WW), e = edgeAt(x); if (x > HOUSE.x0 - 20 && x < HOUSE.x1 + 40) continue; rr(g, x, e - 1, 3 + Math.floor(r() * 3), 3, '#9a9488'); hl(g, x, e - 1, 3, '#c2bdb4'); }
+  for (let i = 0; i < 50; i++) { const x = Math.floor(r() * WW), e = edgeAt(x); if (e < HORIZON + 6) continue; rr(g, x, e - 1, 3 + Math.floor(r() * 3), 3, '#9a9488'); hl(g, x, e - 1, 3, '#c2bdb4'); }
   for (const [rad, col] of [[8, '#a8936a'], [6, '#d9c8a0']]) for (const line of PATHS) for (let i = 0; i < line.length - 1; i++) {
     const a = line[i], b = line[i + 1], n = Math.ceil(Math.hypot(b.x - a.x, b.y - a.y) / 1.5);
     for (let k = 0; k <= n; k++) disc(g, Math.round(a.x + ((b.x - a.x) * k) / n), Math.round(a.y + ((b.y - a.y) * k) / n), rad, col);
   }
-  for (let i = 0; i < 9000; i++) { const x = Math.floor(r() * WW), y = 90 + Math.floor(r() * 150); if (toPath(x, y) < 6) rp(g, x, y, r() < .5 ? '#c4b089' : '#efe2c2'); }
-  // la place du village : des dalles autour du marché
-  for (let y = 158; y < 186; y += 4) for (let x = 440; x < 640; x += 6) { const d = Math.hypot((x - 540) / 100, (y - 172) / 16); if (d < 1 && toPath(x, y) < 30) { rr(g, x + (y % 8 ? 3 : 0), y, 5, 3, '#cfc0a0'); hl(g, x + (y % 8 ? 3 : 0), y, 5, '#e6dac0'); } }
-  // le pavillon 43, à droite du jardin (outsideDraw.ts), tel qu'à l'Open Space
-  g.save(); g.translate(GOFF, 0);
-  rr(g, 232, 30, 92, 11, '#3a3a48'); rr(g, 234, 31, 88, 8, '#8a8a92');
-  for (let i = 0; i < 160; i++) rp(g, 234 + Math.floor(r() * 88), 31 + Math.floor(r() * 8), ['#9c9ca4', '#76767e', '#a8a8b0', '#6a6a72'][Math.floor(r() * 4)]);
-  hl(g, 232, 30, 92, '#a9b2bf'); rr(g, 230, 40, 96, 3, '#2e2e3c'); hl(g, 230, 40, 96, '#4a4a5c');
-  for (let x = 236; x < 252; x += 3) { rr(g, x, 43, 2, 47, x % 6 ? '#b07c4c' : '#9a6a3e'); vl(g, x + 2, 43, 47, '#6b4528'); }
-  rr(g, 240, 50, 8, 32, '#2e2e3c'); glass(g, 241, 51, 6, 30, tod);
-  rr(g, 252, 43, 40, 47, '#efe9de'); for (let i = 0; i < 40; i++) rp(g, 253 + Math.floor(r() * 38), 44 + Math.floor(r() * 45), '#e2dacb');
-  vl(g, 252, 43, 47, '#d9d0c0'); vl(g, 291, 43, 47, '#d9d0c0');
-  rr(g, 292, 43, 28, 47, '#2e2e3c'); glass(g, 294, 45, 24, 42, tod); vl(g, 306, 45, 42, '#2e2e3c'); rr(g, 294, 81, 24, 6, rgba('#4a3a30', .35)); rr(g, 310, 72, 5, 9, '#3f7a42'); rr(g, 311, 69, 3, 4, '#5a9a52');
-  rr(g, 234, 90, 88, 6, '#a7a29a'); hl(g, 234, 90, 88, '#c2bdb4'); rr(g, 232, 43, 4, 53, '#7a5236'); rr(g, 320, 43, 4, 53, '#232330');
-  sign43(g, 256 + 4, 47);
-  const dx = 256;
-  rr(g, dx - 6, 69, 44, 3, '#2e2e3c'); hl(g, dx - 6, 71, 44, '#ffe9c2'); rr(g, dx - 2, 72, 36, 24, '#2e2e3c');
-  rr(g, dx, 73, 15, 23, '#ffd9a0'); rr(g, dx + 17, 73, 15, 23, '#ffd9a0'); rr(g, dx, 85, 15, 11, '#e8bf80'); rr(g, dx + 17, 85, 15, 11, '#e8bf80'); hl(g, dx, 73, 32, '#fff0d4');
-  rr(g, dx + 11, 81, 2, 6, GP.orangeHi); rr(g, dx + 19, 81, 2, 6, GP.orangeHi); rr(g, dx + 2, 96, 28, 6, GP.orangeDeep); for (let i = 0; i < 3; i++) hl(g, dx + 4, 97 + i * 2, 24, i % 2 ? GP.orangeDark : GP.orange);
-  g.fillStyle = 'rgba(16,24,12,0.22)'; g.fillRect(234, 96, 20, 3); g.fillRect(292, 96, 30, 3);
-  bush(g, 236, 102, 14, r); bush(g, 296, 102, 22, r);
-  g.restore();
-  for (const [bx, by, bw] of [[0, 250, 26], [198, 254, 30], [348, 252, 44], [244, 120, 18], [470, 252, 30], [700, 250, 36], [930, 252, 30], [1060, 248, 30]]) bush(g, bx, by, bw, r);
-  // les terrains à bâtir et les repaires : à plat, sur l'herbe
+  if (CUR.plaza) { const P = CUR.plaza; disc(g, P.x, P.y, P.r + 2, '#a8936a'); disc(g, P.x, P.y, P.r, '#d9c8a0'); for (let y = P.y - P.r; y < P.y + P.r; y += 4) for (let x = P.x - P.r; x < P.x + P.r; x += 6) { const ox = (y >> 2) % 2 ? 3 : 0; if (Math.hypot(x + ox + 2 - P.x, y + 1 - P.y) < P.r - 3) { rr(g, x + ox, y, 5, 3, '#cfc0a0'); hl(g, x + ox, y, 5, '#e6dac0'); } } }
+  for (let i = 0; i < 3000 * area; i++) { const x = Math.floor(r() * WW), y = 90 + Math.floor(r() * (WH - 90)); if (toPath(x, y) < 6) rp(g, x, y, r() < .5 ? '#c4b089' : '#efe2c2'); }
+  for (const [bx, by, bw] of CUR.bushes) bush(g, bx, by, bw, r);
   for (const o of objs) {
     const X = o.x * TS, Y = o.y * TS;
+    if (o.type === 'building' || o.type === 'village') { g.fillStyle = 'rgba(16,24,12,0.22)'; g.fillRect(X - 2, Y + o.h * TS - 1, o.w * TS + 6, 3); }
     if (o.type === 'plot') {
       rr(g, X + 2, Y + 4, o.w * TS - 4, o.h * TS - 6, '#7a5a3a'); rr(g, X + 3, Y + 5, o.w * TS - 6, o.h * TS - 8, '#8f6a44');
       for (const [sx, sy] of [[2, 2], [o.w * TS - 4, 2], [2, o.h * TS - 6], [o.w * TS - 4, o.h * TS - 6]]) { rr(g, X + sx, Y + sy, 2, 5, GP.woodDark); rp(g, X + sx, Y + sy, '#ffffff'); }
@@ -1279,36 +1263,24 @@ function drawGroundLayer(tod, objs) {
   return c;
 }
 
-/* ---- Construction du monde ---- */
+/* ---- Construction de la carte ---- */
 const WORLD = {map: null, objs: [], at: null, layer: null, sig: '', seen: null, villagers: [], ground: {}, spr: null, blades: [], flowers: []};
 function buildObjects() {
-  const objs = [], add = o => objs.push(o);
-  add({id:'home', type:'building', kind:'home', x:17, y:2, w:7, h:4, name:"Le pavillon 43 · l'Open Space"});
-  add({id:'market', type:'building', kind:'market', x:28, y:9, w:3, h:1, name:'Marché'});
-  add({id:'bank', type:'building', kind:'bank', x:33, y:8, w:2, h:2, name:'Banque des Écarts'});
-  add({id:'archives', type:'building', kind:'archives', x:37, y:9, w:2, h:2, name:'Archives'});
-  add({id:'board', type:'building', kind:'board', x:34, y:12, w:1, h:1, name:'Tableau des quêtes'});
-  add({id:'lab', type:'building', kind:'lab', x:27, y:12, w:2, h:2, name:'Labo de Boulon'});
-  add({id:'fire', type:'fire', kind:'bench', x:9, y:7, w:3, h:1, name:'Le banc face au large'});
-  for (const p of TEAM_POSTS) { const m = TEAM[p.who]; add({...p, type:'npc', w:1, h:1, name: m.name, key: p.who, outfit: m.outfit, idle: m.idle, lines: m.lines}); }
-  for (const s of SIGNS) add({...s, type:'sign', kind:'sign', w:1, h:1, name:'Panneau'});
-  for (const d of GARDEN_DECOR) if (d.kind === 'log' || d.kind === 'fishing' || d.kind === 'windsock') add({...d, type:'sign', w: d.w || 1, h:1, name: {log:'Le vieux tronc', fishing:'Le chemin de la barque', windsock:'La manche à air'}[d.kind]});
+  const objs = CUR.objects();
+  for (const p of TEAM_POSTS) { const m = TEAM[p.who]; objs.push({...p, type:'npc', w:1, h:1, name: m.name, key: p.who, outfit: m.outfit, idle: m.idle, lines: m.lines}); }
   const built = S.world.built || 0;
-  PLOTS.forEach(([x, y], i) => add({id:'plot' + i, type: i < built ? 'village' : 'plot', x, y, w:2, h:2, idx:i, v:VILLAGE[i], name: i < built ? VILLAGE[i].name : 'Terrain à bâtir'}));
-  S.categories.slice(0, LAIRS.length).forEach((c, i) => add({id:'lair:' + c.id, type:'lair', catId:c.id, x:LAIRS[i][0], y:LAIRS[i][1], w:1, h:1, name:'Repaire'}));
-  for (const ch of CHESTS) add({...ch, chestId:ch.id, id:'chest:' + ch.id, type:'chest', w:1, h:1});
+  CUR.plots.forEach(([x, y], i) => objs.push({id:'plot' + i, type: i < built ? 'village' : 'plot', x, y, w:2, h:2, idx:i, v:VILLAGE[i], name: i < built ? VILLAGE[i].name : 'Terrain à bâtir'}));
+  S.categories.slice(0, CUR.lairs.length).forEach((c, i) => objs.push({id:'lair:' + c.id, type:'lair', catId:c.id, x:CUR.lairs[i][0], y:CUR.lairs[i][1], w:1, h:1, name:'Repaire'}));
+  for (const ch of CHESTS) objs.push({...ch, chestId:ch.id, id:'chest:' + ch.id, type:'chest', w:1, h:1});
   const taken = new Set(); for (const o of objs) for (let y = o.y; y < o.y + o.h; y++) for (let x = o.x; x < o.x + o.w; x++) taken.add(y * MW + x);
-  const trees = [...GARDEN_DECOR.filter(d => d.kind === 'tree' || d.kind === 'pine').map(d => [d.kind, d.x, d.y, d.id]), ...MORE_TREES.map(([k, x, y], i) => [k, x, y, 'more-' + i])];
-  for (const [kind, x, y, id] of trees) {
-    if (taken.has(y * MW + x)) continue;
-    const solid = groundOK(x, y); // un arbre hors de la prairie (derrière le pavillon) reste un décor qu'on ne touche pas
-    add({id, type:'tree', kind, x, y, w:1, h:1, solid, name: kind === 'pine' ? 'Un pin parasol' : 'Un arbre'});
+  CUR.trees.forEach(([kind, x, y], i) => {
+    if (taken.has(y * MW + x)) return;
+    objs.push({id:'tree-' + i, type:'tree', kind, x, y, w:1, h:1, solid: groundOK(x, y), name: kind === 'pine' ? 'Un pin parasol' : 'Un arbre'});
     taken.add(y * MW + x);
-  }
+  });
   return objs;
 }
 const worldSig = () => S.categories.map(c => c.id).join(',') + '|' + (S.world.built || 0);
-const UPRIGHT = new Set(['building', 'village', 'sign', 'fire']);
 function ensureWorld() {
   const sig = worldSig();
   if (sig === WORLD.sig && WORLD.map) return;
@@ -1323,20 +1295,21 @@ function ensureWorld() {
   if (!WORLD.spr) {
     WORLD.spr = {bench: benchBackSprite(), log: logSprite(), fishing: fishingSprite(), bollard: bollardSprite(), windsock: windsockPole(), board: boardSprite(), stall: stallSprite(), round: LEAVES_PAL.map(roundTree), pine: pineTree()};
     const r = seeded(11), blocked = (x, y) => WORLD.objs.some(o => o.type !== 'lair' && x >= o.x * TS - 2 && x < (o.x + o.w) * TS + 2 && y >= o.y * TS && y < (o.y + o.h) * TS + 2);
-    const ok = (x, y) => !inHouse(x, y) && y > edgeAt(x) + 3 && toPath(x, y) > 8 && !blocked(x, y);
+    const ok = (x, y) => y > edgeAt(x) + 3 && toPath(x, y) > 8 && !blocked(x, y) && (!CUR.plaza || Math.hypot(x - CUR.plaza.x, y - CUR.plaza.y) > CUR.plaza.r + 3);
+    const area = WW * WH / (432 * 256);
     WORLD.blades = []; WORLD.flowers = [];
-    for (let i = 0; i < 4200 && WORLD.blades.length < 2000; i++) { const x = 2 + Math.floor(r() * (WW - 4)), y = 44 + Math.floor(r() * (WH - 46)); if (!ok(x, y)) continue; const tall = y - edgeAt(x) < 14 || y > WH - 18; WORLD.blades.push({x, y, h: tall ? 5 + Math.floor(r() * 3) : 3 + Math.floor(r() * 3), c: Math.floor(r() * 3), tall}); }
+    for (let i = 0; i < 1400 * area && WORLD.blades.length < 740 * area; i++) { const x = 2 + Math.floor(r() * (WW - 4)), y = 44 + Math.floor(r() * (WH - 46)); if (!ok(x, y)) continue; const tall = y - edgeAt(x) < 14 || y > WH - 18; WORLD.blades.push({x, y, h: tall ? 5 + Math.floor(r() * 3) : 3 + Math.floor(r() * 3), c: Math.floor(r() * 3), tall}); }
     const cols = ['#ff6fa8', '#ffd166', '#ffffff', '#a98bff', '#ff8a3d', '#6fc3ff'];
-    for (let k = 0; k < 44; k++) { const cx = 14 + Math.floor(r() * (WW - 28)), cy = 130 + Math.floor(r() * 110); if (!ok(cx, cy)) continue; const col = cols[Math.floor(r() * cols.length)]; for (let i = 0; i < 10; i++) { const x = cx + Math.floor((r() - .5) * 22), y = cy + Math.floor((r() - .5) * 12); if (ok(x, y)) WORLD.flowers.push({x, y, col: r() < .2 ? '#ffffff' : col}); } }
+    for (let k = 0; k < 16 * area; k++) { const cx = 14 + Math.floor(r() * (WW - 28)), cy = 130 + Math.floor(r() * (WH - 140)); if (!ok(cx, cy)) continue; const col = cols[Math.floor(r() * cols.length)]; for (let i = 0; i < 10; i++) { const x = cx + Math.floor((r() - .5) * 22), y = cy + Math.floor((r() - .5) * 12); if (ok(x, y)) WORLD.flowers.push({x, y, col: r() < .2 ? '#ffffff' : col}); } }
   }
+  if (S.world.mapv !== 4) { S.world.mapv = 4; S.world.x = 2; S.world.y = 13; S.world.seen = ''; HERO_S.placed = false; }
   if (!WORLD.seen) {
     WORLD.seen = new Uint8Array(MW * MH);
-    const s = S.world.mapv === 3 ? (S.world.seen || '') : '';
+    const s = S.world.seen || '';
     for (let i = 0; i < s.length && i < WORLD.seen.length; i++) WORLD.seen[i] = s.charCodeAt(i) === 49 ? 1 : 0;
   }
-  if (S.world.mapv !== 3) { S.world.mapv = 3; S.world.x = 19; S.world.y = 6; S.world.seen = ''; HERO_S.placed = false; }
   if (!WORLD.villagers.length) {
-    const spot = (zone, i) => { const [x0, y0, x1, y1] = ZONES[zone], cells = []; for (let y = y0; y <= y1; y++) for (let x = x0; x <= x1; x++) if (walkable(x, y)) cells.push([x, y]); return cells.length ? cells[Math.floor(hash(i * 7 + 3, i * 13 + 5) * cells.length)] : [19, 6]; };
+    const spot = (zone, i) => { const [x0, y0, x1, y1] = ZONES[zone], cells = []; for (let y = y0; y <= y1; y++) for (let x = x0; x <= x1; x++) if (walkable(x, y)) cells.push([x, y]); return cells.length ? cells[Math.floor(hash(i * 7 + 3, i * 13 + 5) * cells.length)] : [2, 13]; };
     const list = [{id:'nyx', name:'Nyx', kin:"membre de l'Open Space", key:'hacker_cyberpunk', outfit:TEAM.hacker_cyberpunk.outfit, idle:'bounce', zone:'village', lines:TEAM.hacker_cyberpunk.lines}, ...FAMILY.map(f => ({...f, key:'fam:' + f.id}))];
     WORLD.villagers = list.map((v, i) => { const [x, y] = spot(v.zone, i + 1); return {...v, type:'wander', w:1, h:1, x, y, fx:x * TS, fy:y * TS, tgt:null, i, wait:1 + (i % 3), flip:false, dir:'down', step:0}; });
   }
@@ -1344,8 +1317,7 @@ function ensureWorld() {
 }
 const inMap = (x, y) => x >= 0 && y >= 0 && x < MW && y < MH;
 const walkable = (x, y) => inMap(x, y) && WORLD.map[y * MW + x] === 1 && !WORLD.at.has(y * MW + x);
-
-function defaultWorld() { return {x:19, y:6, seen:'', found:[], chests:{}, skins:['classique'], skin:'classique', built:0, look:{...DEFAULT_LOOK}, mapv:3}; }
+function defaultWorld() { return {x:2, y:13, seen:'', found:[], chests:{}, skins:['classique'], skin:'classique', built:0, look:{...DEFAULT_LOOK}, mapv:4}; }
 function adjacentTo(o, x, y) {
   return ((x >= o.x && x < o.x + o.w) && (y === o.y - 1 || y === o.y + o.h)) || ((y >= o.y && y < o.y + o.h) && (x === o.x - 1 || x === o.x + o.w));
 }
@@ -1366,14 +1338,14 @@ function findPath(sx, sy, goal) {
 }
 
 /* ---- Héros ---- */
-const HERO_S = {x:19, y:6, fx:304, fy:96, path:[], tgt:null, dir:'down', flip:false, step:0, pending:null, placed:false};
+const HERO_S = {x:2, y:13, fx:32, fy:208, path:[], tgt:null, dir:'down', flip:false, step:0, pending:null, placed:false};
 function placeHero() {
   const h = HERO_S;
-  let x = h.placed ? h.x : (S.world.x ?? 19), y = h.placed ? h.y : (S.world.y ?? 6);
+  let x = h.placed ? h.x : (S.world.x ?? 2), y = h.placed ? h.y : (S.world.y ?? 13);
   if (!walkable(x, y)) {
     let best = null;
     for (let r = 1; r < 12 && !best; r++) for (let dy = -r; dy <= r && !best; dy++) for (let dx = -r; dx <= r; dx++) if (walkable(x + dx, y + dy)) { best = [x + dx, y + dy]; break; }
-    [x, y] = best || [19, 6];
+    [x, y] = best || [2, 13];
   }
   if (!h.placed || x !== h.x || y !== h.y) { h.x = x; h.y = y; h.fx = x * TS; h.fy = y * TS; h.tgt = null; h.path = []; }
   h.placed = true;
@@ -1448,7 +1420,7 @@ function objName(o) {
 }
 function hintText(o) {
   switch (o.type) {
-    case 'building': return {home:"Le pavillon 43 : l'Open Space. Change d'apparence, de tenue, ou règle tes budgets.", market:'Le marché du village : note ici tes dépenses.', bank:'La banque compare ton budget au réel : écarts, projections, plus grosses dépenses.', archives:'Les archives gardent le journal de toutes tes dépenses, jour par jour.', board:'Le tableau des quêtes : tes habitudes du jour et tes trophées.', lab:'Le labo de Boulon mesure tout : sommeil, eau, cafés… tes suivis personnalisés.'}[o.kind];
+    case 'building': return {home:"La maison de Roré : change d'apparence, de tenue, ou règle tes budgets.", market:'Le marché du village : note ici tes dépenses.', bank:'La banque compare ton budget au réel : écarts, projections, plus grosses dépenses.', archives:'Les archives gardent le journal de toutes tes dépenses, jour par jour.', board:'Le tableau des quêtes : tes habitudes du jour et tes trophées.', lab:'Le labo de Boulon mesure tout : sommeil, eau, cafés… tes suivis personnalisés.'}[o.kind];
     case 'lair': { const c = UI.game.ms.cats.find(x => x.cat.id === o.catId); return c ? `${RAGE_TXT[rageLv(c.ratio)]} · ${Math.round(c.ratio * 100)} % du budget « ${c.cat.name} ».` : ''; }
     case 'chest': return S.world.chests[o.chestId] ? 'Un coffre vide.' : condMet(o, UI.game) ? 'Il brille… il peut être ouvert !' : 'Un coffre verrouillé.';
     case 'fire': return S.checkins[today()] ? 'Journée sans dépense pointée. La mer est calme.' : 'Le banc du promontoire, face au large. Viens-y les jours sans dépense.';
@@ -1476,7 +1448,7 @@ function interact(o) {
       if (o.kind === 'archives') return openPanel('journal');
       if (o.kind === 'board') return openPanel('quetes');
       if (o.kind === 'lab') return openPanel('suivis');
-      return D(`Le pavillon 43, l'Open Space. ${heroName()} y range sa tenue : ${SKINS[S.world.skin].name}. Le village continue à droite.`, btn('♞ Apparence', 'panel', 'data-p="look"') + btn('Tenues', 'panel', 'data-p="skins"', 'grey') + btn('Budgets & options', 'panel', 'data-p="options"', 'cyan') + btn('Règles', 'rules', '', 'grey'));
+      return D(`La maison de ${heroName()}, au village. Tenue du jour : ${SKINS[S.world.skin].name}. Le jardin de l'Open Space est juste à gauche, au bout du chemin.`, btn('♞ Apparence', 'panel', 'data-p="look"') + btn('Tenues', 'panel', 'data-p="skins"', 'grey') + btn('Budgets & options', 'panel', 'data-p="options"', 'cyan') + btn('Règles', 'rules', '', 'grey'));
     case 'sign': return D(o.text);
     case 'wander': {
       SFX.click(); UI.talkAt = performance.now();
@@ -1579,12 +1551,13 @@ function sizeWorld() {
   const cv = $('#world'); if (!cv) return;
   const dpr = window.devicePixelRatio || 1, cssW = cv.clientWidth || 360, bw = Math.round(cssW * dpr);
   viewZ = Math.max(1, Math.floor(bw / 340));
-  const bh = WH * viewZ;
+  const bh = VIEW_H * viewZ;
   cv.style.height = (bh / dpr) + 'px';
   if (cv.width !== bw || cv.height !== bh) { cv.width = bw; cv.height = bh; }
   const vw = Math.ceil(bw / viewZ);
-  if (!VIEW || VIEW.w !== vw) { const [c, g] = mkC(vw, WH), [lc, lg] = mkC(vw, WH); VIEW = {c, g, lc, lg, w: vw}; }
+  if (!VIEW || VIEW.w !== vw) { const [c, g] = mkC(vw, VIEW_H), [lc, lg] = mkC(vw, VIEW_H); VIEW = {c, g, lc, lg, w: vw}; }
 }
+const camY = () => Math.round(clamp(HERO_S.fy + 8 - VIEW_H / 2, 0, Math.max(0, WH - VIEW_H)));
 const camX = () => Math.round(clamp(HERO_S.fx + 8 - (VIEW ? VIEW.w : 360) / 2, 0, Math.max(0, WW - (VIEW ? VIEW.w : 360))));
 const _kiosk = {}, _vill = {};
 const kioskOf = (kind, tod) => _kiosk[kind + tod] || (_kiosk[kind + tod] = kioskSprite(kind, tod));
@@ -1605,20 +1578,21 @@ function drawWorld(now) {
   const tod = timeOfDay();
   if (!WORLD.ground[tod]) WORLD.ground[tod] = drawGroundLayer(tod, WORLD.objs);
   const t = now / 1000, gust = (Math.sin(t * .55) + Math.sin(t * 1.37 + 1.3)) * .5, tick = Math.floor(now / 160);
-  const g = VIEW.g, vw = VIEW.w, cx0 = camX(), h = HERO_S, gm = UI.game;
-  UI.camX = cx0;
+  const g = VIEW.g, vw = VIEW.w, cx0 = camX(), cy0 = camY(), h = HERO_S, gm = UI.game;
+  UI.camX = cx0; UI.camY = cy0;
   g.setTransform(1, 0, 0, 1, 0, 0); g.globalAlpha = 1; g.globalCompositeOperation = 'source-over';
-  g.drawImage(WORLD.ground[tod], cx0, 0, vw, WH, 0, 0, vw, WH);
-  g.translate(-cx0, 0);
-  const L = cx0 - 60, R = cx0 + vw + 60;
-  gSky(g, t, tod, cx0, vw); gSea(g, t, tod, L, R); gShadows(g, t, cx0, vw); gRopes(g, t, gust, L, R); gGrass(g, t, gust, L, R); gMoored(g, t);
+  g.drawImage(WORLD.ground[tod], cx0, cy0, vw, VIEW_H, 0, 0, vw, VIEW_H);
+  g.translate(-cx0, -cy0);
+  const L = cx0 - 60, R = cx0 + vw + 60, TOP = cy0 - 60, BOT = cy0 + VIEW_H + 60;
+  if (cy0 < SEA_BOTTOM) { gSky(g, t, tod, cx0, vw); gSea(g, t, tod, L, R); }
+  gShadows(g, t, cx0, vw, cy0); gRopes(g, t, gust, L, R); gGrass(g, t, gust, L, R, TOP, BOT);
   const items = [], S_ = WORLD.spr, td = today();
   const cats = gm ? Object.fromEntries(gm.ms.cats.map(c => [c.cat.id, c])) : {};
   const habitsLeft = S.habits.some(hb => !habitDone(td, hb.id));
   const bang = (X, Y, col) => { rr(g, X + 6, Y, 4, 8, GP.ink); rr(g, X + 7, Y + 1, 2, 4, col); rr(g, X + 7, Y + 6, 2, 1, col); };
   for (const o of WORLD.objs) {
     const X = o.x * TS, Y = o.y * TS, cx = X + 8, by = (o.y + o.h) * TS - 2;
-    if (X + o.w * TS < L || X > R) continue;
+    if (X + o.w * TS < L || X > R || Y + o.h * TS < TOP || Y > BOT + 50) continue;
     if (o.type === 'tree') {
       const sway = () => Math.round(Math.sin(t * 1.6 + X) * .8 + gust * (o.kind === 'pine' ? 2.2 : 1.8));
       items.push([by, () => {
@@ -1631,7 +1605,6 @@ function drawWorld(now) {
       if (o.kind === 'log') items.push([(o.y + 1) * TS - 4, () => g.drawImage(spr, X - 1, (o.y + 1) * TS - 12)]);
       else items.push([by, () => { g.drawImage(spr, cx - Math.floor(spr.width / 2), by - spr.height + 1); if (o.kind === 'windsock') gWindsock(g, cx - 4 + 4, by - spr.height + 4, t, gust); }]);
     } else if (o.type === 'building') {
-      if (o.kind === 'home') continue;
       if (o.kind === 'market') items.push([by, () => g.drawImage(S_.stall, X - 2, by - 44 + 3)]);
       else if (o.kind === 'board') items.push([by, () => { g.drawImage(S_.board, X - 3, by - 28 + 1); if (habitsLeft && S.habits.length) bang(X, by - 40 + (tick >> 1) % 2, '#ffd166'); }]);
       else items.push([by, () => g.drawImage(kioskOf(o.kind, tod), X - 2, by - 48 + 3)]);
@@ -1665,9 +1638,9 @@ function drawWorld(now) {
       if (lv === 4) { bang(X - 3, Y - 16 + bob, '#e5484d'); bang(X + 3, Y - 16 + bob, '#e5484d'); for (let i = 0; i < 3; i++) { const p = (tick + i * 3) % 9; g.fillStyle = 'rgba(244,244,244,.6)'; g.fillRect(X + 2 + i * 5, Y - 2 - p, 2, 2); } }
     }]);
   }
-  for (const [bx, by2] of BOLLARDS) { const X = bx * TS + 8 - 3, Y = (by2 + 1) * TS - 12; if (X > L && X < R) items.push([Y + 11, () => g.drawImage(S_.bollard, X, Y)]); }
+  for (const [bx, by2] of CUR.bollards) { const X = bx * TS + 8 - 3, Y = (by2 + 1) * TS - 12; if (X > L && X < R) items.push([Y + 11, () => g.drawImage(S_.bollard, X, Y)]); }
   for (const v of WORLD.villagers) {
-    if (v.fx < L || v.fx > R) continue;
+    if (v.fx < L || v.fx > R || v.fy < TOP || v.fy > BOT) continue;
     items.push([v.fy + 14, () => {
       const talking = UI.near === v && adjacentTo(v, h.x, h.y);
       let dir = v.dir, pose = v.tgt ? 'walk' : 'stand', fr = v.tgt ? Math.floor(v.step * 7) % 4 : 0, eyes, hop = 0;
@@ -1688,27 +1661,27 @@ function drawWorld(now) {
   }]);
   items.sort((a, b) => a[0] - b[0]);
   for (const [, f] of items) f();
-  if (tod !== 'night') gButterflies(g, t, cx0, vw);
+  if (tod !== 'night') gButterflies(g, t, cx0, vw, cy0);
   for (const p of particles) { g.fillStyle = p.c; g.fillRect(Math.round(p.x), Math.round(p.y), p.s || 2, p.s || 2); }
-  if (tod !== 'day') gLighting(g, t, tod, cx0, vw);
-  if (tod === 'night') gFireflies(g, t, cx0, vw);
+  if (tod !== 'day') gLighting(g, t, tod, cx0, vw, cy0);
+  if (tod === 'night') gFireflies(g, t, cx0, vw, cy0);
   // à l'écran, agrandi sans flou
   const ctx = cv.getContext('2d'), z = viewZ;
   ctx.imageSmoothingEnabled = false;
-  ctx.drawImage(VIEW.c, 0, 0, vw, WH, 0, 0, vw * z, WH * z);
+  ctx.drawImage(VIEW.c, 0, 0, vw, VIEW_H, 0, 0, vw * z, VIEW_H * z);
   const n = UI.near;
   if (n) {
-    const label = objName(n), fs = Math.max(8, 4 * z), lift = n.type === 'building' ? (n.kind === 'home' ? -10 : 40) : n.type === 'village' ? 44 : n.type === 'npc' || n.type === 'wander' ? 26 : 14;
+    const label = objName(n), fs = Math.max(8, 4 * z), lift = n.type === 'building' ? (n.kind === 'board' ? 26 : 40) : n.type === 'village' ? 44 : n.type === 'npc' || n.type === 'wander' ? 26 : 14;
     const nx = n.type === 'wander' ? n.fx : n.x * TS, ny = n.type === 'wander' ? n.fy : n.y * TS;
     ctx.font = `${fs}px 'Press Start 2P', monospace`; ctx.textBaseline = 'top';
-    const tw = ctx.measureText(label).width, lx = clamp((nx + n.w * TS / 2 - cx0) * z - tw / 2 - fs * .5, 4, cv.width - tw - fs - 4), ly = Math.max(4, (ny + TS - lift) * z - fs * 2.6);
+    const tw = ctx.measureText(label).width, lx = clamp((nx + n.w * TS / 2 - cx0) * z - tw / 2 - fs * .5, 4, cv.width - tw - fs - 4), ly = Math.max(4, (ny + TS - lift - cy0) * z - fs * 2.6);
     ctx.fillStyle = 'rgba(21,18,29,.88)'; ctx.fillRect(lx, ly, tw + fs, fs * 1.8);
     ctx.fillStyle = '#ffd166'; ctx.fillText(label, lx + fs * .5, ly + fs * .45);
   }
 }
 function gSky(g, t, tod, cx0, vw) {
   if (tod !== 'night') {
-    g.save(); g.beginPath(); g.rect(cx0, 0, HOUSE.x0 - 2 - cx0, HORIZON); g.rect(HOUSE.x0 - 2, 0, 96, 30); g.rect(HOUSE.x1 + 2, 0, Math.max(0, cx0 + vw - HOUSE.x1 - 2), HORIZON - 4); g.clip();
+    g.save(); g.beginPath(); g.rect(cx0, 0, vw, HORIZON); g.clip();
     const col = tod === 'day' ? ['#ffffff', '#e4f1fa'] : ['#ffc9a8', '#d98a8a'];
     for (let k = 0; k < 12; k++) {
       const y = [10, 24, 6, 30][k % 4], w = [34, 24, 18, 40][k % 4], x = ((t * (1.2 + (k % 4) * .5) + k * 97) % (WW + 60)) - 50;
@@ -1778,9 +1751,9 @@ function gNessie(g, t, L, R) {
   for (let q = -1; q <= 3; q++) { dot(hx + dir * q, top, body); dot(hx + dir * q, top - 1, body); }
   dot(hx + dir, top - 1, '#e8ff9a'); dot(hx - dir * 2, top - 2, '#ff7aa4'); dot(hx - dir * 3, top - 1, '#ff7aa4'); dot(hx - dir * 2, top + 1, '#ff7aa4');
 }
-function gShadows(g, t, cx0, vw) {
+function gShadows(g, t, cx0, vw, cy0) {
   g.fillStyle = 'rgba(12,32,20,0.10)';
-  for (let k = 0; k < 4; k++) { const y = [170, 224, 196, 240][k], x = ((t * (7 + k * 3) + k * 290) % (WW + 120)) - 60; if (x < cx0 - 60 || x > cx0 + vw + 60) continue; g.beginPath(); g.ellipse(x, y, 46 - k * 4, 10 - k, 0, 0, Math.PI * 2); g.fill(); }
+  for (let k = 0; k < 4; k++) { const y = cy0 + [130, 200, 170, 230][k], x = ((t * (7 + k * 3) + k * 290) % (WW + 120)) - 60; if (x < cx0 - 60 || x > cx0 + vw + 60) continue; g.beginPath(); g.ellipse(x, y, 46 - k * 4, 10 - k, 0, 0, Math.PI * 2); g.fill(); }
 }
 function gRopes(g, t, gust, L, R) {
   for (const xs of [[54, 70], [110, 126], [202, 218, 234], [620, 636, 652, 668], [884, 900, 916, 932]]) {
@@ -1794,17 +1767,17 @@ function gRopes(g, t, gust, L, R) {
     }
   }
 }
-function gGrass(g, t, gust, L, R) {
+function gGrass(g, t, gust, L, R, TOP, BOT) {
   const tip = ['#a9e07a', '#bde88a', '#8fd06a'], tipHi = ['#d8f5a8', '#e2f8b8', '#c8f09a'], dry = ['#c8d870', '#d8c870', '#b8d068'], base = ['#3f7a3c', '#46853f', '#3a7038'];
   for (const b of WORLD.blades) {
-    if (b.x < L || b.x > R) continue;
+    if (b.x < L || b.x > R || b.y < TOP || b.y > BOT) continue;
     const wave = Math.sin(t * 1.9 - b.x * .045 + b.y * .012), lean = Math.round(gust * (b.tall ? 2 : 1.4) + wave * (b.tall ? 1.4 : 1));
     const top = b.tall ? dry[b.c] : wave > .75 ? tipHi[b.c] : tip[b.c];
     g.fillStyle = base[b.c]; g.fillRect(b.x, b.y, 1, 1); g.fillRect(b.x, b.y - 1, 1, 1);
     for (let k = 2; k < b.h; k++) { const bend = Math.round(lean * ((k - 1) / (b.h - 1)) ** 1.3); g.fillStyle = k >= b.h - 2 ? top : base[b.c]; g.fillRect(b.x + bend, b.y - k, 1, 1); }
   }
   for (const f of WORLD.flowers) {
-    if (f.x < L || f.x > R) continue;
+    if (f.x < L || f.x > R || f.y < TOP || f.y > BOT) continue;
     const s = Math.round(gust * 1.3 + Math.sin(t * 1.9 - f.x * .045 + f.y * .012));
     rp(g, f.x, f.y, '#2f6b3a'); rp(g, f.x + (s > 1 ? 1 : s < -1 ? -1 : 0), f.y - 1, '#2f6b3a'); rr(g, f.x + s, f.y - 3, 2, 2, f.col);
   }
@@ -1828,34 +1801,31 @@ function gMoored(g, t) {
   for (let k = 0; k <= 15; k++) rp(g, cx - 7 + k, top - 6 + Math.sin((k / 15) * Math.PI) * (2.5 + Math.sin(t * 2) * .4), '#e8dcc0');
   for (const [x, d] of [[cx - 8, -1], [cx + 8, 1]]) for (let k = 0; k < 6; k++) rp(g, x + d * Math.round(k * .4), top - 5 + k, '#d8ccb0');
 }
-function gButterflies(g, t, cx0, vw) {
+function gButterflies(g, t, cx0, vw, cy0) {
   const cols = ['#ffd166', '#ff6fa8', '#ffffff', '#a98bff', '#ff8a3d'];
   for (let i = 0; i < 6; i++) {
     const x = cx0 + 30 + i * (vw / 6) + Math.sin(t * (.35 + i * .07) + i * 2) * 40 + Math.sin(t * 1.3 + i) * 4;
-    const y = 172 + (i % 3) * 22 + Math.sin(t * (.5 + i * .05) + i) * 14 + Math.sin(t * 6 + i) * 1.5, up = Math.floor(t * 9 + i) % 2;
+    const y = Math.max(cy0, 0) + 140 + (i % 3) * 26 + Math.sin(t * (.5 + i * .05) + i) * 14 + Math.sin(t * 6 + i) * 1.5, up = Math.floor(t * 9 + i) % 2;
     g.fillStyle = cols[i % 5]; g.fillRect(Math.round(x) - 2, Math.round(y) - (up ? 2 : 0), 2, up ? 2 : 1); g.fillRect(Math.round(x) + 1, Math.round(y) - (up ? 2 : 0), 2, up ? 2 : 1); rp(g, x, y, '#2b2836');
   }
 }
-function gFireflies(g, t, cx0, vw) {
+function gFireflies(g, t, cx0, vw, cy0) {
   for (let i = 0; i < 18; i++) {
-    const x = cx0 + 20 + ((i * 97) % Math.max(40, vw - 40)) + Math.sin(t * .6 + i * 1.7) * 12, y = 150 + ((i * 53) % 90) + Math.sin(t * .8 + i * 2.1) * 8, a = Math.max(0, Math.sin(t * 1.8 + i * 1.3));
+    const x = cx0 + 20 + ((i * 97) % Math.max(40, vw - 40)) + Math.sin(t * .6 + i * 1.7) * 12, y = cy0 + 120 + ((i * 53) % 120) + Math.sin(t * .8 + i * 2.1) * 8, a = Math.max(0, Math.sin(t * 1.8 + i * 1.3));
     if (a < .2) continue;
     g.fillStyle = rgba('#ffe97a', .4 + a * .6); g.fillRect(Math.round(x), Math.round(y), 1, 1); g.fillStyle = rgba('#ffe97a', a * .25); g.fillRect(Math.round(x) - 1, Math.round(y) - 1, 3, 3);
   }
 }
-function gLighting(g, t, tod, cx0, vw) {
+function gLighting(g, t, tod, cx0, vw, cy0) {
   const l = VIEW.lg;
-  l.setTransform(1, 0, 0, 1, -cx0, 0); l.globalCompositeOperation = 'source-over';
-  l.fillStyle = '#ffffff'; l.fillRect(cx0, 0, vw, WH);
-  l.fillStyle = mix(AMBIENT[tod], '#ffffff', .25); l.fillRect(cx0, 0, vw, WH);
+  l.setTransform(1, 0, 0, 1, -cx0, -cy0); l.globalCompositeOperation = 'source-over';
+  l.fillStyle = '#ffffff'; l.fillRect(cx0, cy0, vw, VIEW_H);
+  l.fillStyle = mix(AMBIENT[tod], '#ffffff', .25); l.fillRect(cx0, cy0, vw, VIEW_H);
   l.fillStyle = AMBIENT[tod];
   for (let x = cx0; x < cx0 + vw; x++) l.fillRect(x, edgeAt(x) - 2, 1, WH - edgeAt(x) + 2);
-  l.fillRect(HOUSE.x0 - 2, 28, 96, 72);
   l.globalCompositeOperation = 'lighter';
   const add = (x, y, r, color, a) => { if (x + r < cx0 || x - r > cx0 + vw) return; const grd = l.createRadialGradient(x, y, 0, x, y, r); grd.addColorStop(0, rgba(color, a)); grd.addColorStop(.55, rgba(color, a * .45)); grd.addColorStop(1, rgba(color, 0)); l.fillStyle = grd; l.fillRect(x - r, y - r, r * 2, r * 2); };
-  const night = tod === 'night';
-  add(306 + GOFF, 70, 36, '#ffcf8a', night ? .9 : .65); add(244 + GOFF, 68, 20, '#ffcf8a', night ? .7 : .5); add(272 + GOFF, 88, 36, '#ffd9a0', .9); add(272 + GOFF, 112, 30, '#ffd9a0', .45);
-  for (const [bx, by] of BOLLARDS) add(bx * TS + 8, (by + 1) * TS - 10, 24, '#ffd9a0', .8);
+    for (const [bx, by] of CUR.bollards) add(bx * TS + 8, (by + 1) * TS - 10, 24, '#ffd9a0', .8);
   for (const o of WORLD.objs) {
     if (o.type === 'building' && o.kind !== 'home' && o.kind !== 'board') add(o.x * TS + o.w * 8, (o.y + o.h) * TS - 14, 26, '#ffd9a0', .7);
     if (o.type === 'village' && o.v.kind !== 'garden') add(o.x * TS + 16, (o.y + 2) * TS - 16, 22, '#ffcf8a', .6);
@@ -1864,7 +1834,7 @@ function gLighting(g, t, tod, cx0, vw) {
   add(HERO_S.fx + 8, HERO_S.fy + 1, 8, GP.orange, .45);
   for (const v of WORLD.villagers) add(v.fx + 8, v.fy + 1, 7, (v.outfit.eyes || GP.orange), .4);
   if ((t % 4) < .6) add(LIGHTHOUSE_X, HORIZON - 22, 10, '#fff2c0', .9);
-  g.globalCompositeOperation = 'multiply'; g.drawImage(VIEW.lc, cx0, 0); g.globalCompositeOperation = 'source-over';
+  g.globalCompositeOperation = 'multiply'; g.drawImage(VIEW.lc, cx0, cy0); g.globalCompositeOperation = 'source-over';
 }
 
 let lastT = performance.now();
@@ -1882,7 +1852,7 @@ window.addEventListener('resize', () => { if (UI.tab === 'jeu') sizeWorld(); });
 function worldMapHTML() {
   const found = S.world.found, places = WORLD.objs.filter(o => isFindable(o) && found.includes(o.id));
   const pct = Math.round(WORLD.seen.reduce((a, b) => a + b, 0) / WORLD.seen.length * 100);
-  return `<p class="muted" style="margin-top:0">De gauche à droite : le jardin et le pavillon 43 (l'Open Space), le village, la prairie des monstres. Exploré : <b class="gold">${pct} %</b> · ${places.length} lieux découverts. Touche un lieu découvert pour t'y rendre.</p>
+  return `<p class="muted" style="margin-top:0">Le village (la suite du jardin de l'Open Space, vers la droite), puis la prairie des monstres. Exploré : <b class="gold">${pct} %</b> · ${places.length} lieux découverts. Touche un lieu découvert pour t'y rendre.</p>
     <canvas id="wmap" width="${WW / 2}" height="${WH / 2}" style="width:100%;height:auto;display:block;box-shadow:0 0 0 3px var(--d);image-rendering:pixelated"></canvas>
     <div class="chips" style="margin-top:12px">${places.map(o => `<button class="chip" data-act="travel" data-id="${esc(o.id)}">${esc(objName(o))}</button>`).join('')}</div>`;
 }
@@ -1950,7 +1920,7 @@ const RAGE_TXT = ['', 'CALME', 'AGITÉ', 'ENRAGÉ', 'DÉCHAÎNÉ !'];
 function heroLine(g) {
   const ms = g.ms, n = heroName();
   const todaySpent = ms.daily[ms.elapsed] || 0;
-  if (!S.expenses.length && !Object.keys(S.checkins).length) return `Bienvenue, ${n} ! Tu sors de l'Open Space. Le village continue à droite du pavillon : Zaza tient le marché pour noter tes dépenses, et plus loin, au bord de la falaise, la prairie des monstres. Des coffres sont cachés partout…`;
+  if (!S.expenses.length && !Object.keys(S.checkins).length) return `Bienvenue, ${n} ! Roré arrive au village par le chemin du jardin de l'Open Space. Zaza tient le marché, sur la place, pour noter tes dépenses ; à droite, au bord de la falaise, la prairie des monstres. Des coffres sont cachés partout…`;
   if (g.hp <= 0) return `${n} est K.O. ! Les monstres ont pris le dessus ce mois-ci. Freine les dépenses et accomplis des quêtes pour regagner des PV.`;
   const broken = ms.cats.filter(c => c.budget > 0 && c.spent > c.budget).sort((a, b) => b.ratio - a.ratio);
   if (broken.length) return `ALERTE ! ${monName(broken[0])} est déchaîné : budget dépassé de ${fmt(broken[0].spent - broken[0].budget)}.` + (broken.length > 1 ? ` ${broken.length - 1} autre(s) monstre(s) aussi.` : '');
@@ -2390,7 +2360,7 @@ function rulesHTML() {
     <li><b>PV</b> : remis à 100 chaque mois. Monstre déchaîné : −10 à −40 PV. Jour à plus de 150 % du budget moyen : −5 PV. Chaque quête rend +1 PV (max +30/mois).</li>
     <li><b>Trésor</b> = économies cumulées (budget − réel) des mois terminés.</li>
     <li><b>Série</b> : nombre de jours d'affilée où tu as noté au moins une dépense ou pointé une journée sans dépense.</li>
-    <li><b>Monde</b> : le jardin de l'Open Space, et le village à sa droite, face à la mer. Touche le sol pour marcher (ou flèches / ZQSD, Entrée pour interagir). Marché = noter une dépense · Banque = écarts · Archives = journal · Tableau = quêtes · Labo = suivis · Pavillon 43 = tenues et options · Banc face au large = journée sans dépense.</li>
+    <li><b>Monde</b> : le village face à la mer, la suite du jardin de l'Open Space. Touche le sol pour marcher (ou flèches / ZQSD, Entrée pour interagir). Marché = noter une dépense · Banque = écarts · Archives = journal · Tableau = quêtes · Labo = suivis · Maison de Roré = apparence, tenues et options · Belvédère = journée sans dépense.</li>
     <li><b>Exploration</b> : chaque lieu découvert rapporte 10 XP. Les <b>coffres</b> s'ouvrent quand tu remplis leur condition (séries, journées sans dépense…) et donnent de l'XP et des tenues. Certains sont bien cachés…</li>
     <li><b>Village</b> : ton trésor construit de nouveaux bâtiments, du puits (5 000 F) au château (1 000 000 F).</li>
   </ul><button class="btn gold big" data-act="close">Compris !</button>`;
@@ -2606,10 +2576,10 @@ document.addEventListener('pointerdown', e => {
   if (e.target.id === 'world' && WORLD.layer) {
     const cv = e.target, r = cv.getBoundingClientRect(), z = viewZ;
     const bx = (e.clientX - r.left) * cv.width / r.width, by = (e.clientY - r.top) * cv.height / r.height;
-    const wx = bx / z + (UI.camX ?? camX()), wy = by / z;
+    const wx = bx / z + (UI.camX ?? camX()), wy = by / z + (UI.camY ?? camY());
     // un clic sur un grand décor (pavillon, échoppe, arbre) vise l'objet dont le dessin est touché
     let tx = Math.floor(wx / TS), ty = Math.floor(wy / TS);
-    const hit = WORLD.objs.find(o => (o.type === 'building' || o.type === 'village' || (o.type === 'tree' && o.solid)) && wx >= o.x * TS - 2 && wx < (o.x + o.w) * TS + 2 && wy >= (o.y + o.h) * TS - (o.type === 'building' && o.kind !== 'home' ? 46 : o.type === 'village' ? 44 : o.type === 'tree' ? 38 : o.h * TS) && wy < (o.y + o.h) * TS);
+    const hit = WORLD.objs.find(o => (o.type === 'building' || o.type === 'village' || (o.type === 'tree' && o.solid)) && wx >= o.x * TS - 2 && wx < (o.x + o.w) * TS + 2 && wy >= (o.y + o.h) * TS - (o.type === 'building' ? (o.kind === 'board' ? 26 : 46) : o.type === 'village' ? 44 : o.type === 'tree' ? 38 : o.h * TS) && wy < (o.y + o.h) * TS);
     if (hit) { tx = hit.x; ty = hit.y + hit.h - 1; }
     goTo(tx, ty);
   }

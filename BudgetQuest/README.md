@@ -24,27 +24,34 @@ Pour les sauvegarder ou les passer d'un appareil à l'autre, utilise **Options �
 | **Suivis** | Compteurs personnalisés (sommeil, eau, cafés…), avec un objectif « au moins » ou « au plus » |
 | **Options** | Nom du héros, son, catégories (monstre, couleur, budget mensuel), sauvegarde |
 
-## Le monde : le jardin de l'Open Space, et le village à sa droite
+## Le monde : le village, la suite du jardin de l'Open Space
 
-Le monde reprend le tracé et le moteur du **jardin** (« Dehors ») de l'[Open Space](https://github.com/RoreAndreas/Openspace43). C'est un portage de `src/engine/outside.ts` et `outsideDraw.ts`.
-- Le sol est vu de dessus en 3/4 : une prairie au vent qui s'arrête au bord d'une falaise.
-- Au-dessus, la **mer** est peinte en perspective jusqu'à l'horizon : houle, écume, reflet du soleil, voiliers, le phare au loin.
-- Le ciel et la lumière suivent l'heure de l'appareil : jour, soir ou nuit. La nuit, les bornes et les fenêtres s'allument, et Nessie nage au large.
+Le monde est **le village**, une carte autonome de 64 × 30 cases. Elle prolonge vers la droite le jardin et le pavillon 43 de l'[Open Space](https://github.com/RoreAndreas/Openspace43) :
+- à gauche, le terrain remonte encore vers l'horizon, comme derrière le pavillon ;
+- le chemin de gravier arrive du jardin, et un panneau indique « ← l'Open Space ».
 
-Le monde se parcourt de gauche à droite, et la caméra suit Roré :
+Le jardin lui-même n'est pas dans l'app : le village fonctionne seul.
 
-| Zone | Ce qu'on y trouve |
+Le dessin reprend le moteur du jardin (portage de `src/engine/outside.ts` et `outsideDraw.ts`) :
+- le sol est vu de dessus en 3/4 : prairie au vent, falaise, pins parasols ;
+- la **mer** est peinte en perspective jusqu'à l'horizon : houle, écume, reflet du soleil, voiliers, phare ;
+- la lumière suit l'heure de l'appareil, et Nessie nage au large la nuit ;
+- la caméra suit Roré dans les deux sens.
+
+| Quartier | Ce qu'on y trouve |
 |---|---|
-| **Le jardin** (à l'identique) | Le banc du promontoire face au large (pour pointer une journée sans dépense), le vieux tronc, la manche à air, le chemin de la barque, les pins parasols. Le **pavillon 43, l'Open Space**, est à droite : sa porte ouvre l'apparence, les tenues et les options. |
-| **Le village**, juste à droite du pavillon | Le chemin de gravier continue. Zaza tient le marché (noter une dépense), Hares la Banque des Écarts, Margaux les Archives, Boulon son labo (les suivis), Rook le tableau des quêtes. On y trouve aussi les terrains que le trésor fait construire, du puits au château. |
-| **La prairie des monstres**, au bord de la falaise | Les repaires des catégories du budget. |
+| **L'entrée**, à gauche | La maison de Roré (apparence, tenues, options) et le chemin qui vient du jardin |
+| **La place** | Zaza au marché (noter une dépense), Hares à la Banque des Écarts, Margaux aux Archives, Rook au tableau des quêtes |
+| **Le belvédère**, au bord de la falaise | Le banc face au large, pour pointer une journée sans dépense, et Merlain qui donne des conseils |
+| **Le quartier sud** | Le labo de Boulon (les suivis) et les 9 terrains que le trésor fait construire, du puits au château |
+| **La prairie des monstres**, à droite | Les repaires des catégories du budget |
 
 **Pour se déplacer** :
 - touche le sol, un bâtiment ou un robot ;
 - ou utilise la croix directionnelle et le bouton A ;
 - ou les flèches (ZQSD) et Entrée.
 
-Le bouton CARTE montre toute la côte et permet le voyage rapide vers les lieux déjà découverts. Les 9 coffres sont répartis sur toute la côte, dont un tout au bout du jardin.
+Le bouton CARTE montre tout le village et permet le voyage rapide vers les lieux déjà découverts. Les 9 coffres sont cachés dans tout le village, dont un tout en haut à gauche, du côté de l'Open Space.
 
 ## Personnages : les robots de l'Open Space
 
