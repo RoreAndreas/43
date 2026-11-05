@@ -1,0 +1,1283 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#1a1c2c">
+<title>Budget Quest</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap" rel="stylesheet">
+<style>
+:root{
+  --k:#1a1c2c;--p:#5d275d;--r:#b13e53;--o:#ef7d57;--y:#ffcd75;--l:#a7f070;--g:#38b764;--t:#257179;
+  --n:#29366f;--b:#3b5dc9;--c:#41a6f6;--C:#73eff7;--w:#f4f4f4;--G:#94b0c2;--d:#566c86;--D:#333c57;
+  --px:'Press Start 2P',ui-monospace,monospace;
+  --vt:'VT323',ui-monospace,monospace;
+}
+*{box-sizing:border-box}
+html{background:var(--k)}
+body{margin:0 auto;max-width:920px;background:var(--k);color:var(--w);font-family:var(--vt);font-size:21px;line-height:1.15;
+  padding:0 0 calc(84px + env(safe-area-inset-bottom));-webkit-tap-highlight-color:transparent;overflow-x:hidden}
+img.px,canvas{image-rendering:pixelated;image-rendering:crisp-edges}
+h1,h2,h3{font-family:var(--px);font-weight:normal;margin:0 0 12px;line-height:1.5}
+h2{font-size:11px;color:var(--y);letter-spacing:.5px}
+h3{font-size:9px;color:var(--G)}
+small,.muted{color:var(--G)}
+.box{background:var(--D);margin:16px 16px;padding:12px;position:relative;
+  box-shadow:0 -4px 0 0 var(--w),0 4px 0 0 var(--w),-4px 0 0 0 var(--w),4px 0 0 0 var(--w),inset 0 -4px 0 0 rgba(0,0,0,.25)}
+.box.dark{background:#22263a}
+.box.say{background:var(--k);min-height:64px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:0}
+@media (max-width:700px){.grid2{grid-template-columns:1fr}}
+.row{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.between{justify-content:space-between}
+.grow{flex:1;min-width:0}
+.right{text-align:right}
+.pos{color:var(--l)} .neg{color:var(--o)} .gold{color:var(--y)}
+
+/* Buttons */
+.btn{font-family:var(--px);font-size:10px;line-height:1.4;padding:10px 12px;background:var(--b);color:var(--w);border:0;cursor:pointer;
+  box-shadow:inset -3px -3px 0 0 rgba(0,0,0,.4),0 0 0 3px var(--k);margin:3px}
+.btn:active{transform:translateY(2px);box-shadow:inset 3px 3px 0 0 rgba(0,0,0,.4),0 0 0 3px var(--k)}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.btn.green{background:var(--g)} .btn.red{background:var(--r)} .btn.gold{background:var(--y);color:var(--k)}
+.btn.grey{background:var(--d)} .btn.cyan{background:var(--t)}
+.btn.big{font-size:12px;padding:14px 16px;width:calc(100% - 6px)}
+.btn.sm{font-size:8px;padding:7px 8px}
+.icon-btn{background:none;border:0;color:var(--G);font-family:var(--vt);font-size:22px;cursor:pointer;padding:2px 6px}
+.icon-btn:hover{color:var(--w)}
+
+/* Inputs */
+input,select{font-family:var(--vt);font-size:22px;background:var(--k);color:var(--w);border:0;padding:6px 8px;
+  box-shadow:0 0 0 3px var(--d);outline:none;max-width:100%;border-radius:0}
+input:focus,select:focus{box-shadow:0 0 0 3px var(--y)}
+input[type=date]{color-scheme:dark}
+label.f{display:block;margin:10px 0 4px;color:var(--G);font-size:19px}
+.full{width:100%}
+.amount-row{display:flex;align-items:center;gap:8px}
+.amount-row input{font-size:40px;width:100%;text-align:right;color:var(--y);padding:4px 10px}
+.amount-row .cur{font-family:var(--px);font-size:10px;color:var(--y)}
+.chips{display:flex;flex-wrap:wrap;gap:4px;margin:10px 0}
+.chip{font-family:var(--vt);font-size:19px;background:var(--k);color:var(--G);border:0;padding:4px 8px;cursor:pointer;box-shadow:0 0 0 2px var(--d)}
+.chip:active{background:var(--d);color:var(--w)}
+
+/* Category picker */
+.catpick{display:grid;grid-template-columns:repeat(auto-fill,minmax(76px,1fr));gap:8px;margin:8px 0}
+.catbtn{background:var(--k);border:0;color:var(--G);padding:6px 2px;cursor:pointer;font-family:var(--vt);font-size:17px;
+  box-shadow:0 0 0 2px var(--d);display:flex;flex-direction:column;align-items:center;gap:2px;min-width:0}
+.catbtn span{max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.catbtn.sel{box-shadow:0 0 0 3px var(--y);color:var(--w);background:#2a2f48}
+
+/* Bars */
+.bar{height:14px;background:var(--k);box-shadow:0 0 0 2px var(--w);position:relative;overflow:hidden;flex:1;min-width:60px}
+.bar>i{display:block;height:100%;background:var(--g);
+  background-image:repeating-linear-gradient(90deg,transparent 0 6px,rgba(0,0,0,.25) 6px 8px);transition:width .4s steps(8)}
+.bar.hp>i{background-color:var(--r)} .bar.xp>i{background-color:var(--c)}
+.bar>.mark{position:absolute;top:-2px;bottom:-2px;width:2px;background:var(--y)}
+.stat{display:flex;align-items:center;gap:8px;margin:6px 0}
+.stat>span:first-child{font-family:var(--px);font-size:9px;width:26px}
+.stat>b{font-weight:normal;min-width:84px;text-align:right}
+
+/* HUD */
+.hud{display:flex;gap:12px;align-items:center}
+.hud .who{font-family:var(--px);font-size:11px;line-height:1.6}
+.hud .ttl{color:var(--y);font-family:var(--vt);font-size:21px;line-height:1.1}
+.hud .badges{display:flex;gap:14px;align-items:center;flex-wrap:wrap;margin-top:2px}
+.hud .badges span{display:inline-flex;align-items:center;gap:4px}
+
+/* Arena */
+.arena-wrap{padding:0;overflow:hidden}
+#arena{display:block;width:100%;height:auto}
+#say{min-height:2.3em}
+.say .speaker{font-family:var(--px);font-size:9px;color:var(--y);margin-bottom:6px}
+.blink{animation:blink 1s steps(2) infinite}
+@keyframes blink{50%{opacity:0}}
+
+/* Monsters */
+.mons{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:14px}
+.mon{background:var(--k);padding:10px;box-shadow:0 0 0 2px var(--d);display:flex;gap:10px;align-items:center;min-width:0}
+.mon .info{flex:1;min-width:0}
+.mon .nm{font-size:20px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mon .st{font-family:var(--px);font-size:7px;margin:3px 0 5px}
+.mon.lv1 .st{color:var(--l)} .mon.lv2 .st{color:var(--y)} .mon.lv3 .st{color:var(--o)} .mon.lv4 .st{color:var(--r)}
+.mon.lv4{box-shadow:0 0 0 2px var(--r)}
+.mon.lv4 img{animation:shake .3s steps(2) infinite}
+.mon.lv3 img{animation:shake 1.2s steps(2) infinite}
+@keyframes shake{0%{transform:translateX(-2px)}50%{transform:translateX(2px)}}
+.mon .bar>i{background-color:var(--g)}
+.mon.lv2 .bar>i{background-color:var(--y)} .mon.lv3 .bar>i{background-color:var(--o)} .mon.lv4 .bar>i{background-color:var(--r)}
+
+/* Today */
+.big-num{font-size:40px;color:var(--y);line-height:1}
+.kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:10px 0}
+.kpi{background:var(--k);padding:8px;text-align:center;box-shadow:0 0 0 2px var(--d)}
+.kpi .v{font-size:24px} .kpi .l{font-size:16px;color:var(--G)}
+@media (max-width:420px){.kpi .v{font-size:20px}}
+
+/* Calendar */
+.cal{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}
+.cal .dow{text-align:center;font-family:var(--px);font-size:8px;color:var(--G);padding:4px 0}
+.cal button{aspect-ratio:1;border:0;background:var(--k);color:var(--w);font-family:var(--vt);font-size:17px;cursor:pointer;
+  padding:2px;display:flex;flex-direction:column;justify-content:space-between;align-items:flex-start;min-width:0;overflow:hidden}
+.cal button .amt{font-size:14px;align-self:flex-end;opacity:.9}
+.cal button.today{box-shadow:0 0 0 2px var(--y)}
+.cal button.sel{box-shadow:0 0 0 3px var(--w)}
+.cal .c0{background:#22263a;color:var(--d)}
+.cal .cz{background:var(--t)} .cal .c1{background:var(--g)} .cal .c2{background:#6f9a3e} .cal .c3{background:var(--o);color:var(--k)} .cal .c4{background:var(--r)}
+.cal .miss{background:var(--k);color:var(--d)}
+.legend{display:flex;flex-wrap:wrap;gap:10px;margin-top:10px;font-size:16px;color:var(--G)}
+.legend i{display:inline-block;width:12px;height:12px;margin-right:4px;vertical-align:-1px}
+
+/* Lists */
+.list{list-style:none;margin:0;padding:0}
+.list li{display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:2px dashed var(--d)}
+.list li:last-child{border-bottom:0}
+.dayhead{display:flex;justify-content:space-between;font-family:var(--px);font-size:9px;color:var(--y);margin:14px 0 4px}
+.monthnav{display:flex;align-items:center;justify-content:space-between;gap:6px}
+.monthnav .m{font-family:var(--px);font-size:11px;text-align:center;flex:1;text-transform:capitalize}
+
+/* Variance rows */
+.var{padding:8px 0;border-bottom:2px dashed var(--d)}
+.var:last-child{border-bottom:0}
+.var .bar{margin:6px 0}
+.var .bar>i{background-color:var(--g)} .var.over .bar>i{background-color:var(--r)} .var.warn .bar>i{background-color:var(--y)}
+
+/* Habits */
+.habit{background:var(--k);padding:10px;margin:10px 0;box-shadow:0 0 0 2px var(--d)}
+.habit.done{box-shadow:0 0 0 2px var(--l)}
+.check{width:44px;height:44px;border:0;background:var(--D);cursor:pointer;box-shadow:inset -3px -3px 0 rgba(0,0,0,.4),0 0 0 3px var(--k);
+  display:flex;align-items:center;justify-content:center;flex:none}
+.check.on{background:var(--g)}
+.week{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-top:8px}
+.week button{border:0;background:var(--D);color:var(--G);font-family:var(--vt);font-size:16px;padding:4px 0;cursor:pointer}
+.week button.on{background:var(--g);color:var(--k)}
+.week button.t{box-shadow:0 0 0 2px var(--y)}
+
+/* Trophies */
+.trophies{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px}
+.trophy{background:var(--k);padding:8px;display:flex;gap:8px;align-items:center;box-shadow:0 0 0 2px var(--d);min-width:0}
+.trophy.locked{opacity:.45}
+.trophy .t1{font-family:var(--px);font-size:8px;color:var(--y);line-height:1.5}
+.trophy .t2{font-size:16px;color:var(--G)}
+
+/* Settings */
+.catrow{display:grid;grid-template-columns:48px 1fr;gap:10px;align-items:start;padding:10px 0;border-bottom:2px dashed var(--d)}
+.catrow .fields{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.catrow .fields .wide{grid-column:1/-1}
+.catrow .fields input,.catrow .fields select{width:100%}
+
+/* Nav */
+nav#tabs{position:fixed;left:0;right:0;bottom:0;background:var(--k);box-shadow:0 -4px 0 0 var(--w);display:flex;justify-content:center;
+  padding:6px 4px calc(6px + env(safe-area-inset-bottom));z-index:10}
+nav#tabs .in{display:flex;max-width:920px;width:100%}
+nav#tabs button{flex:1;background:none;border:0;color:var(--d);font-family:var(--px);font-size:7px;padding:6px 0;cursor:pointer;
+  display:flex;flex-direction:column;align-items:center;gap:6px;min-width:0}
+nav#tabs button img{opacity:.5}
+nav#tabs button.on{color:var(--y)} nav#tabs button.on img{opacity:1}
+
+/* Toasts / floaters / dialog */
+#toasts{position:fixed;top:10px;left:0;right:0;display:flex;flex-direction:column;align-items:center;gap:10px;z-index:50;pointer-events:none}
+.toast{background:var(--k);color:var(--w);padding:10px 14px;max-width:calc(100% - 40px);font-size:20px;
+  box-shadow:0 -4px 0 0 var(--y),0 4px 0 0 var(--y),-4px 0 0 0 var(--y),4px 0 0 0 var(--y);animation:pop .25s steps(3)}
+.toast b{font-family:var(--px);font-size:9px;color:var(--y);display:block;margin-bottom:4px;font-weight:normal}
+@keyframes pop{from{transform:scale(.6)}to{transform:scale(1)}}
+.floater{position:fixed;left:50%;top:38%;transform:translateX(-50%);font-family:var(--px);font-size:16px;color:var(--C);
+  text-shadow:3px 3px 0 var(--k);pointer-events:none;z-index:60;animation:floatup 1.2s steps(12) forwards}
+@keyframes floatup{from{opacity:1;margin-top:0}to{opacity:0;margin-top:-80px}}
+dialog{background:var(--D);color:var(--w);border:0;padding:16px;width:min(520px,calc(100% - 40px));max-height:calc(100% - 40px);
+  box-shadow:0 -4px 0 0 var(--w),0 4px 0 0 var(--w),-4px 0 0 0 var(--w),4px 0 0 0 var(--w)}
+dialog::backdrop{background:rgba(10,12,24,.75)}
+.levelup{text-align:center}
+.levelup h1{font-size:18px;color:var(--y);animation:blink .6s steps(2) 4}
+.banner{background:var(--r);color:var(--w);padding:8px 12px;margin:12px 16px;font-size:18px}
+.rules li{margin:6px 0}
+.empty{color:var(--G);text-align:center;padding:12px}
+</style>
+</head>
+<body>
+<div id="banner"></div>
+<header id="hud"></header>
+<main id="view"></main>
+<nav id="tabs"><div class="in"></div></nav>
+<div id="toasts"></div>
+<dialog id="modal"></dialog>
+
+<script>
+'use strict';
+/* ============================================================
+   BUDGET QUEST — tracker de dépenses RPG en pixel art (FCFA)
+   Données : localStorage du navigateur (exportables en JSON/CSV)
+   ============================================================ */
+
+const STORE_KEY = 'budgetquest.v1';
+const $ = (s, r = document) => r.querySelector(s);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const uid = () => Math.random().toString(36).slice(2, 9) + Date.now().toString(36).slice(-4);
+const pad = n => String(n).padStart(2, '0');
+const dstr = d => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+const today = () => dstr(new Date());
+const ymOf = ds => ds.slice(0, 7);
+const parseD = ds => { const [y, m, d] = ds.split('-').map(Number); return new Date(y, m - 1, d); };
+const addDays = (ds, n) => { const d = parseD(ds); d.setDate(d.getDate() + n); return dstr(d); };
+const dim = ym => { const [y, m] = ym.split('-').map(Number); return new Date(y, m, 0).getDate(); };
+const addMonths = (ym, n) => { const [y, m] = ym.split('-').map(Number); const d = new Date(y, m - 1 + n, 1); return `${d.getFullYear()}-${pad(d.getMonth() + 1)}`; };
+const MONTHS = ['janvier','février','mars','avril','mai','juin','juillet','août','septembre','octobre','novembre','décembre'];
+const DOW1 = ['D','L','M','M','J','V','S'];
+const ymLabel = ym => { const [y, m] = ym.split('-').map(Number); return `${MONTHS[m - 1]} ${y}`; };
+const dayLabel = ds => { const d = parseD(ds); return `${['dim.','lun.','mar.','mer.','jeu.','ven.','sam.'][d.getDay()]} ${d.getDate()} ${MONTHS[d.getMonth()]}`; };
+const NF = new Intl.NumberFormat('fr-FR', {maximumFractionDigits: 0});
+const num = n => NF.format(Math.round(n)).replace(/[  ]/g, ' ');
+const fmt = n => num(n) + ' F';
+const fmtS = n => (n > 0 ? '+' : n < 0 ? '−' : '') + num(Math.abs(n)) + ' F';
+const kfmt = n => n >= 1e6 ? (Math.round(n / 1e5) / 10).toString().replace('.', ',') + 'M' : n >= 1000 ? (Math.round(n / 100) / 10).toString().replace('.', ',') + 'k' : String(Math.round(n));
+const parseAmt = s => { const v = parseInt(String(s).replace(/[^\d]/g, ''), 10); return isNaN(v) ? 0 : v; };
+const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+
+/* ---------------- PIXEL ART ---------------- */
+const SWEET = {k:'#1a1c2c',p:'#5d275d',r:'#b13e53',o:'#ef7d57',y:'#ffcd75',l:'#a7f070',g:'#38b764',t:'#257179',n:'#29366f',b:'#3b5dc9',c:'#41a6f6',C:'#73eff7',w:'#f4f4f4',G:'#94b0c2',d:'#566c86',D:'#333c57'};
+
+function norm(rows, w = 16, h = 16, padBottom = 0) {
+  let r = rows.map(x => (x + '.'.repeat(w)).slice(0, w));
+  for (let i = 0; i < padBottom; i++) r.push('.'.repeat(w));
+  while (r.length < h) r.unshift('.'.repeat(w));
+  return r.slice(-h);
+}
+
+const HERO = norm([
+  '................',
+  '......kkkk......',
+  '.....kggggk.....',
+  '....kggwgggk..w.',
+  '....kgggggGk..w.',
+  '....kkkkkkkk..w.',
+  '....kssssssk..w.',
+  '....ksessesk..w.',
+  '....kssssssk..w.',
+  '...rkkbbbbkkr.w.',
+  '..rrkbbybbbkrry.',
+  '..rkbbbybbbbkrs.',
+  '..rkbbbbbbbbkr..',
+  '...kkbbkkbbkk...',
+  '....kGGk.kGGk...',
+  '....kkkk.kkkk...',
+]);
+const HERO_PAL = {k:SWEET.k,g:SWEET.G,G:SWEET.d,w:SWEET.w,s:'#f4b183',e:SWEET.k,r:SWEET.r,b:SWEET.b,y:SWEET.y};
+
+const MONS = {
+  slime: {name:'Gelée', rows: norm([
+    '......kkkk......',
+    '....kkaaaakk....',
+    '...kaaawaaaak...',
+    '..kaaawwaaaaak..',
+    '..kaaaaaaaaaak..',
+    '.kaaakaaakaaaak.',
+    '.kaaakaaakaaaak.',
+    '.kaaaaaaaaaaaak.',
+    '.kaaaakkkaaaaak.',
+    '.kAaaaaaaaaaaAk.',
+    '..kkkkkkkkkkkk..',
+  ], 16, 16, 1)},
+  bat: {name:'Chauve-souris', rows: norm([
+    'k..............k',
+    'kk....k..k....kk',
+    'kak..kakkak..kak',
+    'kaak.kaaaak.kaak',
+    'kaaakayaayakaaak',
+    'kaaaaaaaaaaaaaak',
+    '.kaakawaawakaak.',
+    '..kk.kaaaak.kk..',
+    '......kkkk......',
+  ], 16, 16, 4)},
+  ghost: {name:'Spectre', rows: norm([
+    '.....kkkkkk.....',
+    '....kaaaaaak....',
+    '...kaaaaaaaak...',
+    '..kaaaaaaaaaak..',
+    '..kaakkaakkaak..',
+    '..kaakkaakkaak..',
+    '..kaaaaaaaaaak..',
+    '..kaaaakkaaaak..',
+    '..kaaaaaaaaaak..',
+    '..kAaaaaaaaaAk..',
+    '..kaaakaakaaak..',
+    '..kk.kk.kk.kk...',
+  ], 16, 16, 2)},
+  skull: {name:'Crâne', rows: norm([
+    '.....kkkkkk.....',
+    '....kaaaaaak....',
+    '...kaaaaaaaak...',
+    '..kaaaaaaaaaak..',
+    '..kakkkaakkkak..',
+    '..kakrkaakrkak..',
+    '..kakkkaakkkak..',
+    '..kaaaakkaaaak..',
+    '...kAaaaaaaAk...',
+    '....kakakakak...',
+    '....kkkkkkkkk...',
+  ], 16, 16, 1)},
+  mimic: {name:'Mimic', rows: norm([
+    '...kkkkkkkkkk...',
+    '..kAaaaaaaaaAk..',
+    '..kaaeaaaaeaak..',
+    '..kkkkkyykkkkk..',
+    '..kwkwkyykwkwk..',
+    '..krrrrrrrrrrk..',
+    '..kkwkwkkwkwkk..',
+    '..kaaaaaaaaaak..',
+    '..kAaaayyaaaAk..',
+    '..kkkkkkkkkkkk..',
+  ], 16, 16, 1)},
+  mushroom: {name:'Champi', rows: norm([
+    '.....kkkkkk.....',
+    '...kkaawaaakk...',
+    '..kaawwaaaawak..',
+    '.kaaaaaawwaaaak.',
+    '.kawwaaaaaaaaak.',
+    '.kkkkkkkkkkkkkk.',
+    '...kssssssssk...',
+    '...ksessssesk...',
+    '...kssskksssk...',
+    '...kssssssssk...',
+    '....kkkkkkkk....',
+  ], 16, 16, 1)},
+};
+const COLORS = {
+  vert:['#38b764','#257179'], lime:['#a7f070','#38b764'], bleu:['#41a6f6','#3b5dc9'], cyan:['#73eff7','#41a6f6'],
+  violet:['#b86fd6','#5d275d'], rouge:['#ef7d57','#b13e53'], or:['#ffcd75','#ef7d57'], gris:['#94b0c2','#566c86'], blanc:['#f4f4f4','#94b0c2'],
+};
+const monPal = (color, rage) => {
+  const [a, A] = rage ? ['#b13e53', '#5d275d'] : (COLORS[color] || COLORS.vert);
+  return {k:SWEET.k, a, A, w:SWEET.w, e:SWEET.k, r:SWEET.r, y:SWEET.y, s:'#f4e4c4'};
+};
+
+const ICONS = {
+  jeu:   ['......xx','.....xxx','....xxx.','x..xxx..','.xxxx...','..xx....','.x.xx...','x.......'],
+  journal:['........','.xx..xx.','x..xx..x','x..xx..x','x..xx..x','x..xx..x','.xx..xx.','...xx...'],
+  ecarts:['......xx','......xx','...xx.xx','...xx.xx','xx.xx.xx','xx.xx.xx','xx.xx.xx','xxxxxxxx'],
+  quetes:['...xx...','...xx...','xxxxxxxx','.xxxxxx.','..xxxx..','.xxxxxx.','.xx..xx.','x......x'],
+  suivis:['..xxxx..','...xx...','...xx...','..x..x..','.x....x.','x.xxxx.x','x.xxxx.x','.xxxxxx.'],
+  options:['...xx...','.xxxxxx.','.xx..xx.','xx....xx','xx....xx','.xx..xx.','.xxxxxx.','...xx...'],
+};
+const SMALL = {
+  heart: {rows:['.kk.kk..','krwkrrk.','krrrrrk.','krrrrrk.','.krrrk..','..krk...','...k....','........'], pal:{k:SWEET.k,r:SWEET.r,w:SWEET.w}},
+  coin:  {rows:['..kkkk..','.kyyyyk.','kywyyyok','kyyyyyok','kyyyyyok','kyyyyook','.kooook.','..kkkk..'], pal:{k:SWEET.k,y:SWEET.y,w:SWEET.w,o:SWEET.o}},
+  flame: {rows:['...x....','..xx....','..xxx.x.','.xxyxxx.','.xyyyxx.','xxyyyyxx','xxyyyyxx','.xxxxxx.'], pal:{x:SWEET.o,y:SWEET.y}},
+  trophy:{rows:['.xxxxxx.','xxxxxxxx','x.xwxx.x','.xxxxxx.','..xxxx..','...xx...','..xxxx..','.xxxxxx.'], pal:{x:SWEET.y,w:SWEET.w}},
+  trophyOff:{rows:['.xxxxxx.','xxxxxxxx','x.xxxx.x','.xxxxxx.','..xxxx..','...xx...','..xxxx..','.xxxxxx.'], pal:{x:SWEET.d}},
+  check: {rows:['........','.......x','......xx','x....xx.','xx..xx..','.xxxx...','..xx....','........'], pal:{x:SWEET.w}},
+  star:  {rows:['...xx...','...xx...','xxxxxxxx','.xxxxxx.','..xxxx..','.xxxxxx.','.xx..xx.','x......x'], pal:{x:SWEET.C}},
+};
+
+function drawSprite(ctx, rows, pal, ox, oy, s = 1, opt = {}) {
+  const H = rows.length, W = rows[0].length;
+  for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {
+    const ch = rows[y][x]; if (ch === '.') continue;
+    let col = pal[ch]; if (!col) continue;
+    if (opt.grey) { const v = parseInt(col.slice(1, 3), 16) * .3 + parseInt(col.slice(3, 5), 16) * .59 + parseInt(col.slice(5, 7), 16) * .11; const h = Math.round(v * .7).toString(16).padStart(2, '0'); col = '#' + h + h + h; }
+    if (opt.flash) col = SWEET.w;
+    let px = opt.flip ? W - 1 - x : x, py = y;
+    if (opt.ko) { px = H - 1 - y; py = x; }
+    ctx.fillStyle = col; ctx.fillRect(ox + px * s, oy + py * s, s, s);
+  }
+}
+const _spriteCache = new Map();
+function spriteURL(key, rows, pal, s = 1, opt = {}) {
+  const k = key + '|' + s + '|' + JSON.stringify(opt);
+  if (_spriteCache.has(k)) return _spriteCache.get(k);
+  const c = document.createElement('canvas'); c.width = rows[0].length * s; c.height = rows.length * s;
+  drawSprite(c.getContext('2d'), rows, pal, 0, 0, s, opt);
+  const u = c.toDataURL(); _spriteCache.set(k, u); return u;
+}
+const img = (url, size, cls = '') => `<img class="px ${cls}" src="${url}" width="${size}" height="${size}" alt="">`;
+const monImg = (cat, size = 48, rage = false) => img(spriteURL('m:' + cat.monster + cat.color + rage, (MONS[cat.monster] || MONS.slime).rows, monPal(cat.color, rage), 4), size);
+const heroImg = (size = 48, opt = {}) => img(spriteURL('hero', HERO, HERO_PAL, 4, opt), size);
+const smallImg = (name, size = 16) => img(spriteURL('s:' + name, SMALL[name].rows, SMALL[name].pal, 4), size);
+const iconImg = (name, color = SWEET.w, size = 24) => img(spriteURL('i:' + name + color, ICONS[name], {x: color}, 4), size);
+
+/* ---------------- STATE ---------------- */
+function defaultState() {
+  return {
+    version: 1, createdAt: today(), heroName: '', sound: true, lastLevel: 1, seenAch: [], lastCat: 'alim',
+    categories: [
+      {id:'alim',   name:'Alimentation', monster:'slime',    color:'vert',   budget:60000},
+      {id:'transp', name:'Transport',    monster:'bat',      color:'bleu',   budget:25000},
+      {id:'loge',   name:'Logement',     monster:'skull',    color:'gris',   budget:100000},
+      {id:'fact',   name:'Factures',     monster:'ghost',    color:'cyan',   budget:30000},
+      {id:'lois',   name:'Loisirs',      monster:'mushroom', color:'rouge',  budget:20000},
+      {id:'sante',  name:'Santé',        monster:'slime',    color:'lime',   budget:15000},
+      {id:'shop',   name:'Shopping',     monster:'mimic',    color:'or',     budget:20000},
+      {id:'div',    name:'Divers',       monster:'bat',      color:'violet', budget:10000},
+    ],
+    budgets: {},          // { 'YYYY-MM': { catId: montant } } — s'applique à partir de ce mois
+    expenses: [],         // { id, date, amount, catId, note }
+    checkins: {},         // { 'YYYY-MM-DD': true } — journées sans dépense
+    habits: [
+      {id: uid(), name: 'Aucun achat impulsif'},
+      {id: uid(), name: 'Sport 20 min'},
+      {id: uid(), name: 'Lire 10 pages'},
+    ],
+    habitLog: {},         // { date: { habitId: true } }
+    trackers: [
+      {id: uid(), name: 'Sommeil', unit: 'h', goal: 8, dir: 'min'},
+      {id: uid(), name: 'Eau', unit: 'verres', goal: 8, dir: 'min'},
+    ],
+    trackerLog: {},       // { date: { trackerId: valeur } }
+  };
+}
+function migrate(s) {
+  const d = defaultState();
+  for (const k of Object.keys(d)) if (s[k] === undefined) s[k] = d[k];
+  for (const k of ['categories','expenses','habits','trackers','seenAch']) if (!Array.isArray(s[k])) s[k] = d[k];
+  for (const k of ['budgets','checkins','habitLog','trackerLog']) if (!s[k] || typeof s[k] !== 'object' || Array.isArray(s[k])) s[k] = {};
+  s.expenses = s.expenses.filter(e => e && typeof e.date === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(e.date)).map(e => ({...e, amount: Math.max(0, Math.round(+e.amount || 0))}));
+  return s;
+}
+let storageOK = true;
+function load() {
+  try {
+    const raw = localStorage.getItem(STORE_KEY);
+    if (raw) return migrate(JSON.parse(raw));
+  } catch (e) { storageOK = false; }
+  return null;
+}
+function save() {
+  try { localStorage.setItem(STORE_KEY, JSON.stringify(S)); storageOK = true; }
+  catch (e) { storageOK = false; }
+  $('#banner').innerHTML = storageOK ? '' : `<div class="banner">⚠ Impossible d'enregistrer dans ce navigateur (navigation privée ?). Exporte tes données depuis Options pour ne rien perdre.</div>`;
+}
+let S = load() || defaultState();
+
+const UI = { tab: 'jeu', viewYM: ymOf(today()), selDay: null, draft: {amount: '', note: '', date: ''}, pickCat: null, prevGame: null, trackerDate: today() };
+try { const t = localStorage.getItem(STORE_KEY + '.tab'); if (t) UI.tab = t; } catch (e) {}
+
+/* ---------------- CALCULS ---------------- */
+function getBudget(ym, cat) {
+  let best = null;
+  for (const k in S.budgets) if (k <= ym && S.budgets[k] && S.budgets[k][cat.id] != null && (best === null || k > best)) best = k;
+  return best ? S.budgets[best][cat.id] : (cat.budget || 0);
+}
+const totalBudget = ym => S.categories.reduce((a, c) => a + getBudget(ym, c), 0);
+
+function monthStats(ym) {
+  const D = dim(ym), t = today(), tym = ymOf(t);
+  const cats = S.categories.map(c => ({cat: c, budget: getBudget(ym, c), spent: 0, count: 0}));
+  const cmap = Object.fromEntries(cats.map(x => [x.cat.id, x]));
+  const daily = new Array(D + 1).fill(0);
+  let other = 0, count = 0;
+  for (const e of S.expenses) {
+    if (ymOf(e.date) !== ym) continue;
+    daily[+e.date.slice(8)] += e.amount; count++;
+    const c = cmap[e.catId]; if (c) { c.spent += e.amount; c.count++; } else other += e.amount;
+  }
+  for (const c of cats) c.ratio = c.budget > 0 ? c.spent / c.budget : (c.spent > 0 ? 9 : 0);
+  const budget = cats.reduce((a, x) => a + x.budget, 0);
+  const spent = daily.reduce((a, b) => a + b, 0);
+  const status = ym < tym ? 'past' : ym > tym ? 'future' : 'current';
+  const elapsed = status === 'past' ? D : status === 'future' ? 0 : +t.slice(8);
+  const allowance = budget / D;
+  let spentBefore = 0; for (let d = 1; d < elapsed; d++) spentBefore += daily[d];
+  const remainingDays = status === 'current' ? D - elapsed + 1 : status === 'future' ? D : 0;
+  const todayAllowance = status === 'current' ? Math.max(0, (budget - spentBefore) / remainingDays) : allowance;
+  const projection = status === 'past' ? spent : elapsed > 0 ? spent / elapsed * D : 0;
+  return {ym, D, cats, daily, budget, spent, other, count, status, elapsed, allowance, todayAllowance, projection, remaining: budget - spent, remainingDays};
+}
+
+const TITLES = [[1,'Apprenti'],[3,'Écuyer'],[5,'Chevalier'],[8,'Gardien du Trésor'],[12,"Paladin de l'Épargne"],[16,'Seigneur du FCFA'],[20,'Légende vivante']];
+const titleFor = L => TITLES.filter(t => L >= t[0]).pop()[1];
+
+const ACH = [
+  {id:'first',  name:'Premier pas',      desc:'Noter une 1re dépense',               test:g => g.nExp >= 1},
+  {id:'s3',     name:'Régulier',         desc:'Série de 3 jours',                     test:g => g.best >= 3},
+  {id:'s7',     name:'Assidu',           desc:'Série de 7 jours',                     test:g => g.best >= 7},
+  {id:'s30',    name:'Marathonien',      desc:'Série de 30 jours',                    test:g => g.best >= 30},
+  {id:'zero',   name:'Moine',            desc:'1 journée sans dépense',               test:g => g.zeroDays >= 1},
+  {id:'zero10', name:'Ascète',           desc:'10 journées sans dépense',             test:g => g.zeroDays >= 10},
+  {id:'vic10',  name:'Stratège',         desc:'10 jours sous le budget du jour',      test:g => g.victories >= 10},
+  {id:'month',  name:'Économe',          desc:'Finir un mois sous le budget',         test:g => g.underMonths >= 1},
+  {id:'perfect',name:'Dompteur',         desc:'Un mois sans aucun monstre déchaîné',  test:g => g.perfectMonths >= 1},
+  {id:'lv5',    name:'Chevalier',        desc:'Atteindre le niveau 5',                test:g => g.level >= 5},
+  {id:'lv10',   name:'Paladin',          desc:'Atteindre le niveau 10',               test:g => g.level >= 10},
+  {id:'h50',    name:'Quêteur',          desc:'50 quêtes accomplies',                 test:g => g.nHabit >= 50},
+  {id:'t30',    name:'Alchimiste',       desc:'30 mesures de suivi',                  test:g => g.nTrack >= 30},
+  {id:'e100',   name:'Chroniqueur',      desc:'100 dépenses notées',                  test:g => g.nExp >= 100},
+];
+
+function habitDone(date, id) { return !!(S.habitLog[date] && S.habitLog[date][id]); }
+function habitStreak(id) {
+  let d = today(); if (!habitDone(d, id)) d = addDays(d, -1);
+  let n = 0; while (habitDone(d, id)) { n++; d = addDays(d, -1); }
+  return n;
+}
+
+function computeGame() {
+  const t = today(), tym = ymOf(t);
+  const byDate = new Map();
+  for (const e of S.expenses) { const o = byDate.get(e.date) || {n: 0, sum: 0}; o.n++; o.sum += e.amount; byDate.set(e.date, o); }
+  let start = S.createdAt || t;
+  for (const d of byDate.keys()) if (d < start) start = d;
+  for (const d in S.checkins) if (d < start) start = d;
+  if (start > t) start = t;
+  let xp = 0, streak = 0, best = 0, victories = 0, zeroDays = 0, checkDays = 0;
+  const allow = {};
+  for (let d = start; d <= t; d = addDays(d, 1)) {
+    const o = byDate.get(d), n = o ? o.n : 0, sum = o ? o.sum : 0;
+    const checked = n > 0 || !!S.checkins[d];
+    xp += 5 * Math.min(n, 10);
+    if (checked) {
+      checkDays++; xp += 20; streak++; if (streak > best) best = streak;
+      if (streak % 7 === 0) xp += 100;
+      if (n === 0) { xp += 15; zeroDays++; }
+      if (d < t) {
+        const ym = ymOf(d);
+        if (!(ym in allow)) allow[ym] = totalBudget(ym) / dim(ym);
+        if (sum <= allow[ym]) { xp += 25; victories++; }
+      }
+    } else if (d < t) streak = 0;
+  }
+  const habitIds = new Set(S.habits.map(h => h.id));
+  let nHabit = 0, habitsThisMonth = 0;
+  for (const d in S.habitLog) {
+    let c = 0; for (const id in S.habitLog[d]) if (S.habitLog[d][id] && habitIds.has(id)) c++;
+    nHabit += c; if (ymOf(d) === tym) habitsThisMonth += c;
+    if (S.habits.length >= 2 && c === S.habits.length) xp += 20; // journée parfaite
+  }
+  xp += 15 * nHabit;
+  const trackIds = new Set(S.trackers.map(x => x.id));
+  let nTrack = 0;
+  for (const d in S.trackerLog) for (const id in S.trackerLog[d]) if (trackIds.has(id) && S.trackerLog[d][id] !== '' && S.trackerLog[d][id] != null) nTrack++;
+  xp += 5 * nTrack;
+
+  let level = 1; while (50 * level * (level + 1) <= xp) level++;
+  const base = 50 * (level - 1) * level;
+
+  // PV du mois en cours
+  const ms = monthStats(tym);
+  let dmg = 0;
+  for (const c of ms.cats) {
+    if (c.budget > 0 && c.spent > c.budget) dmg += Math.min(40, 10 + Math.round((c.spent - c.budget) / c.budget * 50));
+    else if (c.budget === 0 && c.spent > 0) dmg += 10;
+  }
+  for (let d = 1; d < ms.elapsed; d++) if (ms.daily[d] > ms.allowance * 1.5) dmg += 5;
+  const heal = Math.min(30, habitsThisMonth);
+  const hp = clamp(100 - dmg + heal, 0, 100);
+
+  // Trésor = économies cumulées des mois terminés (avec activité)
+  let treasure = 0, underMonths = 0, perfectMonths = 0;
+  for (let ym = ymOf(start); ym < tym; ym = addMonths(ym, 1)) {
+    const m = monthStats(ym); if (!m.count) continue;
+    treasure += m.budget - m.spent;
+    if (m.spent <= m.budget) underMonths++;
+    if (m.cats.every(c => c.spent <= c.budget)) perfectMonths++;
+  }
+  const g = {xp, level, xpIn: xp - base, xpNext: 100 * level, streak, best, victories, zeroDays, checkDays, nExp: S.expenses.length,
+    nHabit, nTrack, hp, treasure, underMonths, perfectMonths, ms, checkedToday: (byDate.has(t) || !!S.checkins[t])};
+  g.unlocked = ACH.filter(a => a.test(g)).map(a => a.id);
+  return g;
+}
+
+/* ---------------- SON 8-BIT ---------------- */
+let AC = null;
+function beep(seq) {
+  if (!S.sound) return;
+  try {
+    AC = AC || new (window.AudioContext || window.webkitAudioContext)();
+    const t0 = AC.currentTime + .01;
+    for (const [f, d, st, type = 'square', vol = .05] of seq) {
+      const o = AC.createOscillator(), g = AC.createGain();
+      o.type = type; o.frequency.setValueAtTime(f, t0 + st);
+      g.gain.setValueAtTime(vol, t0 + st); g.gain.exponentialRampToValueAtTime(.0001, t0 + st + d);
+      o.connect(g).connect(AC.destination); o.start(t0 + st); o.stop(t0 + st + d + .02);
+    }
+  } catch (e) {}
+}
+const SFX = {
+  spend: () => beep([[330, .07, 0], [262, .12, .07]]),
+  hit:   () => beep([[200, .12, 0, 'sawtooth', .07], [100, .2, .1, 'sawtooth', .07]]),
+  coin:  () => beep([[988, .07, 0], [1319, .2, .07]]),
+  quest: () => beep([[659, .07, 0], [784, .07, .07], [1047, .18, .14]]),
+  lvl:   () => beep([[523, .1, 0], [659, .1, .1], [784, .1, .2], [1047, .35, .3]]),
+  click: () => beep([[440, .03, 0, 'square', .025]]),
+};
+
+/* ---------------- ARÈNE (canvas) ---------------- */
+const AW = 192, AH = 88, GROUND = 70;
+let frame = 0, anim = null, particles = [];
+const STARS = Array.from({length: 22}, (_, i) => [(i * 53 + 17) % AW, (i * 29 + 5) % 40, i % 3]);
+function arenaFocus(ms) {
+  let top = null;
+  for (const c of ms.cats) if (!top || c.ratio > top.ratio) top = c;
+  if (top && top.ratio === 0 && UI.lastSpendCat) top = ms.cats.find(c => c.cat.id === UI.lastSpendCat) || top;
+  return top;
+}
+function drawArena() {
+  const cv = $('#arena'); if (!cv || !UI.game) return;
+  const ctx = cv.getContext('2d'), f = frame, g = UI.game, ms = g.ms;
+  const h = new Date().getHours();
+  const night = h < 6 || h >= 20, dusk = (h >= 18 && h < 20) || h === 6;
+  const bands = night ? ['#1a1c2c', '#1d2238', '#22294a', '#29366f'] : dusk ? ['#5d275d', '#8a3358', '#b13e53', '#ef7d57'] : ['#3b5dc9', '#41a6f6', '#5ec8f8', '#73eff7'];
+  bands.forEach((c, i) => { ctx.fillStyle = c; ctx.fillRect(0, i * 14, AW, 14); });
+  ctx.fillStyle = bands[3]; ctx.fillRect(0, 56, AW, GROUND - 56);
+  if (night) {
+    for (const [x, y, k] of STARS) { if ((f >> 3) % 3 === k && (x + f) % 5 === 0) continue; ctx.fillStyle = k ? '#94b0c2' : '#f4f4f4'; ctx.fillRect(x, y, 1, 1); }
+    ctx.fillStyle = '#f4f4f4'; ctx.fillRect(158, 8, 8, 8); ctx.fillStyle = bands[1]; ctx.fillRect(161, 7, 7, 7);
+  } else {
+    ctx.fillStyle = '#ffcd75'; ctx.fillRect(154, 9, 10, 10); ctx.fillRect(152, 11, 14, 6); ctx.fillRect(156, 7, 6, 14);
+  }
+  // nuages
+  ctx.fillStyle = night ? '#333c57' : '#f4f4f4';
+  for (const [sp, y, w] of [[.25, 12, 18], [.15, 24, 26], [.35, 6, 12]]) {
+    const x = Math.floor((f * sp + y * 37) % (AW + 40)) - 30;
+    ctx.fillRect(x, y, w, 4); ctx.fillRect(x + 4, y - 3, w - 10, 3);
+  }
+  // montagnes
+  for (let x = 0; x < AW; x += 4) {
+    const hh = 12 + Math.round((Math.sin(x * .045) + Math.sin(x * .11 + 1.3)) * 5);
+    ctx.fillStyle = night ? '#29366f' : '#566c86'; ctx.fillRect(x, GROUND - hh, 4, hh);
+    ctx.fillStyle = night ? '#333c57' : '#94b0c2'; ctx.fillRect(x, GROUND - hh, 4, 2);
+  }
+  // sol
+  ctx.fillStyle = '#38b764'; ctx.fillRect(0, GROUND, AW, AH - GROUND);
+  ctx.fillStyle = '#a7f070'; ctx.fillRect(0, GROUND, AW, 2);
+  ctx.fillStyle = '#257179';
+  for (let x = 0; x < AW; x += 8) for (let y = GROUND + 5; y < AH; y += 6) ctx.fillRect(x + ((y / 6) % 2) * 4, y, 2, 2);
+
+  const bob = (f >> 2) % 2;
+  const top = arenaFocus(ms);
+  const a = anim && anim.until > f ? anim : null;
+  const k = a ? a.until - f : 0;
+  // héros
+  let hx = 26, hy = GROUND - 32 + bob;
+  const ko = g.hp <= 0;
+  if (a && a.type === 'heal') hy -= [0, 3, 6, 8, 9, 8, 6, 3, 0][k % 9] || 0;
+  if (a && a.type === 'attack') hx += [0, 6, 12, 16, 12, 6, 0, 0][k % 8] || 0;
+  if (ko) drawSprite(ctx, HERO, HERO_PAL, hx - 4, GROUND - 16, 2, {ko: true, grey: true});
+  else drawSprite(ctx, HERO, HERO_PAL, hx, hy, 2, {flash: a && a.type === 'hurt' && k % 2});
+  // barre PV héros
+  ctx.fillStyle = '#1a1c2c'; ctx.fillRect(hx, GROUND - 40, 32, 4);
+  ctx.fillStyle = '#b13e53'; ctx.fillRect(hx + 1, GROUND - 39, Math.round(30 * g.hp / 100), 2);
+  // monstre
+  if (top) {
+    const m = MONS[top.cat.monster] || MONS.slime, rage = top.ratio >= 1;
+    let mx = AW - 26 - 32, my = GROUND - 32 + (1 - bob);
+    if ((a && a.type === 'spend') || rage) mx += (f % 2 ? 2 : -2) * (a ? 1 : .5);
+    drawSprite(ctx, m.rows, monPal(top.cat.color, rage && f % 6 < 3), mx, my, 2, {flash: a && a.type === 'attack' && k < 4 && k % 2});
+    ctx.fillStyle = '#1a1c2c'; ctx.fillRect(mx, GROUND - 40, 32, 4);
+    const rr = Math.min(1, top.ratio);
+    ctx.fillStyle = top.ratio >= 1 ? '#b13e53' : top.ratio >= .8 ? '#ef7d57' : top.ratio >= .5 ? '#ffcd75' : '#a7f070';
+    ctx.fillRect(mx + 1, GROUND - 39, Math.round(30 * rr), 2);
+  }
+  // particules
+  particles = particles.filter(p => p.life-- > 0);
+  for (const p of particles) { p.x += p.vx; p.y += p.vy; p.vy += p.g || 0; ctx.fillStyle = p.c; ctx.fillRect(Math.round(p.x), Math.round(p.y), p.s || 2, p.s || 2); }
+}
+function burst(type) {
+  anim = {type, until: frame + (type === 'heal' ? 9 : 8)};
+  if (type === 'spend') for (let i = 0; i < 10; i++) particles.push({x: 50, y: GROUND - 20, vx: 3 + Math.random() * 3, vy: -2 - Math.random() * 2, g: .25, c: '#ffcd75', life: 18});
+  if (type === 'heal') for (let i = 0; i < 12; i++) particles.push({x: 30 + Math.random() * 28, y: GROUND - 10 - Math.random() * 30, vx: 0, vy: -.6, c: i % 2 ? '#a7f070' : '#73eff7', life: 14, s: 1 + (i % 2)});
+  if (type === 'hurt') for (let i = 0; i < 8; i++) particles.push({x: 42, y: GROUND - 22, vx: -1 - Math.random() * 2, vy: -1 - Math.random() * 2, g: .2, c: '#b13e53', life: 14});
+}
+setInterval(() => { frame++; if (UI.tab === 'jeu') drawArena(); }, 110);
+
+/* ---------------- RENDU ---------------- */
+let sayTimer = null, lastSay = '';
+function say(txt) {
+  const el = $('#say'); if (!el) return;
+  if (txt === lastSay) { el.textContent = txt; return; }
+  lastSay = txt; clearInterval(sayTimer);
+  let i = 0; el.textContent = '';
+  sayTimer = setInterval(() => { i += 2; const e = $('#say'); if (!e) return clearInterval(sayTimer); e.textContent = txt.slice(0, i); if (i >= txt.length) clearInterval(sayTimer); }, 22);
+}
+const heroName = () => S.heroName || 'Héros';
+const monName = c => `${(MONS[c.cat.monster] || MONS.slime).name} « ${c.cat.name} »`;
+function rageLv(r) { return r >= 1 ? 4 : r >= .8 ? 3 : r >= .5 ? 2 : 1; }
+const RAGE_TXT = ['', 'CALME', 'AGITÉ', 'ENRAGÉ', 'DÉCHAÎNÉ !'];
+
+function heroLine(g) {
+  const ms = g.ms, n = heroName();
+  const todaySpent = ms.daily[ms.elapsed] || 0;
+  if (!S.expenses.length && !Object.keys(S.checkins).length) return `Bienvenue, ${n} ! Chaque catégorie de ton budget est un monstre. Note ta première dépense pour commencer l'aventure.`;
+  if (g.hp <= 0) return `${n} est K.O. ! Les monstres ont pris le dessus ce mois-ci. Freine les dépenses et accomplis des quêtes pour regagner des PV.`;
+  const broken = ms.cats.filter(c => c.budget > 0 && c.spent > c.budget).sort((a, b) => b.ratio - a.ratio);
+  if (broken.length) return `ALERTE ! ${monName(broken[0])} est déchaîné : budget dépassé de ${fmt(broken[0].spent - broken[0].budget)}.` + (broken.length > 1 ? ` ${broken.length - 1} autre(s) monstre(s) aussi.` : '');
+  if (todaySpent > ms.todayAllowance && ms.todayAllowance >= 0) return `Aïe : ${fmt(todaySpent - ms.todayAllowance)} au-dessus du budget du jour. Les jours suivants auront un peu moins — on se rattrape !`;
+  if (!g.checkedToday) return `Il te reste ${fmt(ms.todayAllowance)} pour aujourd'hui. Pense à noter tes dépenses ou à pointer une journée sans dépense.`;
+  const top = arenaFocus(ms);
+  if (top && top.ratio >= .8) return `${monName(top)} s'agite… plus que ${fmt(top.budget - top.spent)} avant qu'il se déchaîne.`;
+  if (g.streak >= 3) return `Série de ${g.streak} jours ! Il te reste ${fmt(Math.max(0, ms.todayAllowance - todaySpent))} pour aujourd'hui. Continue comme ça, ${n}.`;
+  return `Tout est calme. Il te reste ${fmt(ms.remaining)} pour finir ${ymLabel(ms.ym)}.`;
+}
+
+function renderHUD(g) {
+  const pct = Math.round(g.xpIn / g.xpNext * 100);
+  $('#hud').innerHTML = `<div class="box hud">
+    <div>${heroImg(56, g.hp <= 0 ? {grey: true} : {})}</div>
+    <div class="grow">
+      <div class="row between"><div class="who">${esc(heroName())}<div class="ttl">Niv. ${g.level} · ${titleFor(g.level)}</div></div></div>
+      <div class="stat"><span>PV</span><div class="bar hp"><i style="width:${g.hp}%"></i></div><b>${g.hp}/100</b></div>
+      <div class="stat"><span>XP</span><div class="bar xp"><i style="width:${pct}%"></i></div><b>${g.xpIn}/${g.xpNext}</b></div>
+      <div class="badges">
+        <span title="Série de jours pointés">${smallImg('flame', 18)} ${g.streak} j</span>
+        <span title="Trésor : économies des mois terminés">${smallImg('coin', 18)} <span class="${g.treasure < 0 ? 'neg' : 'gold'}">${fmtS(g.treasure)}</span></span>
+        <span title="Trophées">${smallImg('trophy', 18)} ${g.unlocked.length}/${ACH.length}</span>
+      </div>
+    </div></div>`;
+}
+
+const TABS = [['jeu','Jeu'],['journal','Journal'],['ecarts','Écarts'],['quetes','Quêtes'],['suivis','Suivis'],['options','Options']];
+function renderTabs() {
+  $('#tabs .in').innerHTML = TABS.map(([id, l]) => `<button data-act="tab" data-id="${id}" class="${UI.tab === id ? 'on' : ''}">${iconImg(id, UI.tab === id ? SWEET.y : SWEET.G, 22)}<span>${l}</span></button>`).join('');
+}
+
+function monthNav() {
+  return `<div class="monthnav"><button class="btn sm grey" data-act="month" data-d="-1">◀</button><div class="m">${ymLabel(UI.viewYM)}</div><button class="btn sm grey" data-act="month" data-d="1">▶</button></div>`;
+}
+
+/* ---- Onglet JEU ---- */
+function viewJeu(g) {
+  const ms = g.ms, t = today();
+  const todaySpent = ms.daily[ms.elapsed] || 0;
+  const left = ms.todayAllowance - todaySpent;
+  const dayPct = ms.todayAllowance > 0 ? Math.min(100, todaySpent / ms.todayAllowance * 100) : (todaySpent > 0 ? 100 : 0);
+  if (!UI.pickCat || !S.categories.find(c => c.id === UI.pickCat)) UI.pickCat = S.categories.find(c => c.id === S.lastCat) ? S.lastCat : (S.categories[0] || {}).id;
+  const hasExpToday = S.expenses.some(e => e.date === t);
+  const sorted = [...ms.cats].sort((a, b) => b.ratio - a.ratio);
+  return `
+  <section class="box arena-wrap"><canvas id="arena" width="${AW}" height="${AH}"></canvas></section>
+  <section class="box say"><div class="speaker">${esc(heroName()).toUpperCase()} <span class="blink">▼</span></div><div id="say"></div></section>
+
+  <div class="grid2">
+  <section class="box">
+    <h2>☀ Aujourd'hui · ${dayLabel(t)}</h2>
+    <div class="muted">Budget du jour</div>
+    <div class="big-num">${fmt(ms.todayAllowance)}</div>
+    <div class="bar" style="margin:10px 0"><i style="width:${dayPct}%;background-color:${left < 0 ? 'var(--r)' : dayPct > 80 ? 'var(--y)' : 'var(--g)'}"></i></div>
+    <div class="kpis">
+      <div class="kpi"><div class="v">${kfmt(todaySpent)}</div><div class="l">dépensé</div></div>
+      <div class="kpi"><div class="v ${left < 0 ? 'neg' : 'pos'}">${left < 0 ? '−' : ''}${kfmt(Math.abs(left))}</div><div class="l">${left < 0 ? 'dépassé' : 'reste'}</div></div>
+      <div class="kpi"><div class="v">${ms.remainingDays}</div><div class="l">jours restants</div></div>
+    </div>
+    <div class="muted" style="font-size:18px">Reste du mois : <b class="${ms.remaining < 0 ? 'neg' : 'gold'}">${fmt(ms.remaining)}</b> sur ${fmt(ms.budget)}</div>
+    <button class="btn ${S.checkins[t] ? 'grey' : 'cyan'} big" style="margin-top:12px" data-act="zero" ${hasExpToday ? 'disabled title="Tu as déjà des dépenses aujourd\'hui"' : ''}>${S.checkins[t] ? '✓ Journée sans dépense pointée' : '✦ Journée sans dépense'}</button>
+  </section>
+
+  <form class="box" data-form="add" autocomplete="off">
+    <h2>⚔ Nouvelle dépense</h2>
+    <div class="amount-row"><input name="amount" inputmode="numeric" placeholder="0" value="${esc(UI.draft.amount)}" aria-label="Montant"><span class="cur">FCFA</span></div>
+    <div class="chips">${[100, 500, 1000, 2000, 5000, 10000].map(v => `<button type="button" class="chip" data-act="chip" data-v="${v}">+${num(v)}</button>`).join('')}<button type="button" class="chip" data-act="chip" data-v="0">C</button></div>
+    <div class="catpick">${S.categories.map(c => `<button type="button" class="catbtn ${UI.pickCat === c.id ? 'sel' : ''}" data-act="pickcat" data-id="${c.id}">${monImg(c, 36)}<span>${esc(c.name)}</span></button>`).join('')}</div>
+    <input class="full" name="note" placeholder="Note (taxi, marché, crédit…)" value="${esc(UI.draft.note)}" maxlength="80">
+    <div class="row" style="margin-top:10px"><label class="muted" for="f-date">Date</label><input id="f-date" type="date" name="date" value="${esc(UI.draft.date || t)}" max="${addDays(t, 365)}" class="grow"></div>
+    <button class="btn green big" style="margin-top:12px">⚔ Enregistrer</button>
+  </form>
+  </div>
+
+  <section class="box">
+    <h2>★ Quêtes du jour</h2>
+    ${S.habits.length ? `<ul class="list">${S.habits.map(h => { const on = habitDone(t, h.id); return `<li><button class="check ${on ? 'on' : ''}" data-act="habit" data-id="${h.id}" data-date="${t}" aria-label="Accomplir">${on ? smallImg('check', 20) : ''}</button><span class="grow">${esc(h.name)}</span><span class="muted">${smallImg('flame', 14)} ${habitStreak(h.id)}</span></li>`; }).join('')}</ul>` : `<div class="empty">Aucune quête. Ajoute-en dans l'onglet Quêtes.</div>`}
+  </section>
+
+  <section class="box">
+    <h2>☠ Monstres de ${ymLabel(ms.ym)}</h2>
+    <div class="mons">${sorted.map(c => monCard(c)).join('')}</div>
+    ${ms.other ? `<p class="muted">+ ${fmt(ms.other)} dans des catégories supprimées.</p>` : ''}
+  </section>`;
+}
+function monCard(c) {
+  const lv = rageLv(c.ratio);
+  return `<div class="mon lv${lv}">${monImg(c.cat, 48, lv === 4)}<div class="info">
+    <div class="nm">${esc(c.cat.name)}</div><div class="st">${RAGE_TXT[lv]} · ${Math.round(c.ratio * 100)}%</div>
+    <div class="bar"><i style="width:${Math.min(100, c.ratio * 100)}%"></i></div>
+    <div style="font-size:17px;margin-top:4px">${kfmt(c.spent)} / ${kfmt(c.budget)} · <span class="${c.budget - c.spent < 0 ? 'neg' : 'pos'}">${c.budget - c.spent < 0 ? 'dépassé ' + kfmt(c.spent - c.budget) : 'reste ' + kfmt(c.budget - c.spent)}</span></div>
+  </div></div>`;
+}
+
+/* ---- Onglet JOURNAL ---- */
+function viewJournal() {
+  const ym = UI.viewYM, ms = monthStats(ym), D = ms.D, t = today();
+  const first = new Date(+ym.slice(0, 4), +ym.slice(5) - 1, 1).getDay(); // 0 = dimanche
+  const offset = (first + 6) % 7; // lundi en premier
+  let cells = ['L','M','M','J','V','S','D'].map(d => `<div class="dow">${d}</div>`).join('');
+  for (let i = 0; i < offset; i++) cells += '<div></div>';
+  for (let d = 1; d <= D; d++) {
+    const ds = `${ym}-${pad(d)}`, sp = ms.daily[d];
+    const checked = sp > 0 || S.checkins[ds] || S.expenses.some(e => e.date === ds);
+    let cls = 'c0';
+    if (ds <= t) {
+      if (!checked) cls = ds < t ? 'miss' : 'c0';
+      else if (sp === 0) cls = 'cz';
+      else { const r = sp / (ms.allowance || 1); cls = r <= .5 ? 'c1' : r <= 1 ? 'c2' : r <= 1.5 ? 'c3' : 'c4'; }
+    } else if (sp > 0) cls = 'c2';
+    cells += `<button class="${cls} ${ds === t ? 'today' : ''} ${ds === UI.selDay ? 'sel' : ''}" data-act="day" data-d="${ds}"><span>${d}</span>${sp ? `<span class="amt">${kfmt(sp)}</span>` : ''}</button>`;
+  }
+  const exps = S.expenses.filter(e => ymOf(e.date) === ym).sort((a, b) => b.date.localeCompare(a.date) || (b.ts || 0) - (a.ts || 0));
+  const days = UI.selDay && ymOf(UI.selDay) === ym ? [UI.selDay] : [...new Set(exps.map(e => e.date))];
+  const catOf = id => S.categories.find(c => c.id === id);
+  const list = days.map(ds => {
+    const items = exps.filter(e => e.date === ds);
+    const tot = items.reduce((a, e) => a + e.amount, 0);
+    return `<div class="dayhead"><span>${dayLabel(ds)}</span><span>${fmt(tot)}</span></div>` + (items.length ? `<ul class="list">${items.map(e => {
+      const c = catOf(e.catId);
+      return `<li>${c ? monImg(c, 28) : smallImg('coin', 28)}<div class="grow"><div>${esc(e.note || (c ? c.name : 'Catégorie supprimée'))}</div><small>${esc(c ? c.name : '—')}</small></div><b style="font-weight:normal">${fmt(e.amount)}</b><button class="icon-btn" data-act="edit" data-id="${e.id}" aria-label="Modifier">✎</button></li>`;
+    }).join('')}</ul>` : `<div class="empty">${S.checkins[ds] ? '✦ Journée sans dépense' : 'Aucune dépense ce jour.'}</div>`);
+  }).join('');
+  return `
+  <section class="box">${monthNav()}</section>
+  <section class="box">
+    <h2>▦ Calendrier</h2>
+    <div class="cal">${cells}</div>
+    <div class="legend"><span><i style="background:var(--t)"></i>0 F</span><span><i style="background:var(--g)"></i>≤ 50 %</span><span><i style="background:#6f9a3e"></i>≤ 100 %</span><span><i style="background:var(--o)"></i>≤ 150 %</span><span><i style="background:var(--r)"></i>&gt; 150 %</span><span><i style="background:var(--k);box-shadow:0 0 0 1px var(--d)"></i>non pointé</span></div>
+    <p class="muted" style="font-size:17px">% du budget quotidien moyen (${fmt(ms.allowance)} / jour). Touche un jour pour le détail.</p>
+  </section>
+  <section class="box">
+    <div class="row between"><h2 style="margin:0">✎ ${UI.selDay && ymOf(UI.selDay) === ym ? 'Détail du jour' : 'Toutes les dépenses'}</h2>
+    ${UI.selDay && ymOf(UI.selDay) === ym ? `<div><button class="btn sm green" data-act="addOn" data-d="${UI.selDay}">+ Ajouter</button><button class="btn sm grey" data-act="day" data-d="">Tout voir</button></div>` : `<span class="muted">${exps.length} entrées · ${fmt(ms.spent)}</span>`}</div>
+    ${list || '<div class="empty">Aucune dépense ce mois-ci.</div>'}
+  </section>`;
+}
+
+/* ---- Onglet ÉCARTS ---- */
+function viewEcarts() {
+  const ms = monthStats(UI.viewYM);
+  const ecart = ms.budget - ms.spent, pct = ms.budget ? ms.spent / ms.budget * 100 : 0;
+  const projEcart = ms.budget - ms.projection;
+  const top = S.expenses.filter(e => ymOf(e.date) === ms.ym).sort((a, b) => b.amount - a.amount).slice(0, 5);
+  const catOf = id => S.categories.find(c => c.id === id);
+  const verdict = ms.status === 'future' ? 'Mois à venir.' :
+    ms.status === 'past' ? (ecart >= 0 ? `Mois terminé avec ${fmt(ecart)} d'économies. Victoire !` : `Mois terminé avec ${fmt(-ecart)} de dépassement.`) :
+    (projEcart >= 0 ? `À ce rythme, tu finis le mois à ${fmt(ms.projection)}, soit ${fmt(projEcart)} sous le budget.` : `Attention : à ce rythme, tu finis à ${fmt(ms.projection)}, soit ${fmt(-projEcart)} au-dessus du budget.`);
+  const rows = [...ms.cats].sort((a, b) => (a.budget - a.spent) - (b.budget - b.spent)).map(c => {
+    const e = c.budget - c.spent, r = c.ratio;
+    const proj = ms.status === 'current' && ms.elapsed ? c.spent / ms.elapsed * ms.D : c.spent;
+    const mark = ms.status === 'current' && c.budget ? Math.min(100, ms.elapsed / ms.D * 100) : null;
+    return `<div class="var ${r > 1 ? 'over' : r > .8 ? 'warn' : ''}">
+      <div class="row between"><div class="row">${monImg(c.cat, 28, r > 1)}<span>${esc(c.cat.name)}</span></div><b style="font-weight:normal" class="${e < 0 ? 'neg' : 'pos'}">${fmtS(e)}</b></div>
+      <div class="bar"><i style="width:${Math.min(100, r * 100)}%"></i>${mark != null ? `<span class="mark" style="left:${mark}%"></span>` : ''}</div>
+      <small>Réel ${fmt(c.spent)} / budget ${fmt(c.budget)} · ${Math.round(r * 100)} %${ms.status === 'current' ? ` · projection ${fmt(proj)}` : ''}</small>
+    </div>`;
+  }).join('');
+  return `
+  <section class="box">${monthNav()}</section>
+  <section class="box">
+    <h2>⚖ Bilan du mois</h2>
+    <div class="kpis">
+      <div class="kpi"><div class="v">${kfmt(ms.budget)}</div><div class="l">budget</div></div>
+      <div class="kpi"><div class="v">${kfmt(ms.spent)}</div><div class="l">réel</div></div>
+      <div class="kpi"><div class="v ${ecart < 0 ? 'neg' : 'pos'}">${ecart < 0 ? '−' : '+'}${kfmt(Math.abs(ecart))}</div><div class="l">écart</div></div>
+    </div>
+    <div class="bar"><i style="width:${Math.min(100, pct)}%;background-color:${pct > 100 ? 'var(--r)' : pct > 80 ? 'var(--y)' : 'var(--g)'}"></i>${ms.status === 'current' ? `<span class="mark" style="left:${ms.elapsed / ms.D * 100}%"></span>` : ''}</div>
+    <p style="margin:10px 0 0">${Math.round(pct)} % du budget consommé${ms.status === 'current' ? ` après ${ms.elapsed}/${ms.D} jours (${Math.round(ms.elapsed / ms.D * 100)} % du mois — repère jaune)` : ''}.</p>
+    <p class="${ms.status === 'current' && projEcart < 0 ? 'neg' : 'pos'}" style="margin:6px 0 0">${verdict}</p>
+    <p class="muted" style="font-size:17px;margin:6px 0 0">Écart = budget − réel : positif = économie, négatif = dépassement.</p>
+  </section>
+  <section class="box">
+    <h2>▮ Dépenses par jour</h2>
+    <canvas id="dchart" width="${ms.D * 6 + 2}" height="64" style="width:100%;height:auto;display:block"></canvas>
+    <div class="row between muted" style="font-size:16px"><span>1</span><span>${Math.ceil(ms.D / 2)}</span><span>${ms.D}</span></div>
+    <div class="legend"><span><i style="background:var(--g)"></i>sous le budget du jour</span><span><i style="background:var(--r)"></i>au-dessus</span><span><i style="background:var(--y)"></i>budget moyen ${fmt(ms.allowance)}/j</span></div>
+  </section>
+  <section class="box">
+    <h2>☠ Écarts par catégorie</h2>
+    ${rows}
+    ${ms.status === 'current' ? '<p class="muted" style="font-size:17px">Le repère jaune indique où tu devrais être aujourd\'hui pour finir pile au budget.</p>' : ''}
+  </section>
+  <section class="box">
+    <h2>$ Plus grosses dépenses</h2>
+    ${top.length ? `<ul class="list">${top.map(e => { const c = catOf(e.catId); return `<li>${c ? monImg(c, 28) : smallImg('coin', 28)}<div class="grow">${esc(e.note || (c ? c.name : '—'))}<br><small>${dayLabel(e.date)} · ${esc(c ? c.name : '—')}</small></div><span>${fmt(e.amount)}</span></li>`; }).join('')}</ul>` : '<div class="empty">Rien pour l\'instant.</div>'}
+  </section>`;
+}
+function drawDailyChart() {
+  const cv = $('#dchart'); if (!cv) return;
+  const ms = monthStats(UI.viewYM), ctx = cv.getContext('2d'), H = cv.height;
+  ctx.fillStyle = '#1a1c2c'; ctx.fillRect(0, 0, cv.width, H);
+  const max = Math.max(ms.allowance * 1.6, ...ms.daily) || 1;
+  for (let d = 1; d <= ms.D; d++) {
+    const v = ms.daily[d], h = Math.round(v / max * (H - 4));
+    const ds = `${ms.ym}-${pad(d)}`;
+    ctx.fillStyle = ds > today() ? '#333c57' : '#22263a'; ctx.fillRect(1 + (d - 1) * 6, 2, 5, H - 4);
+    if (h > 0) { ctx.fillStyle = v > ms.allowance ? '#b13e53' : '#38b764'; ctx.fillRect(1 + (d - 1) * 6, H - 2 - h, 5, h); ctx.fillStyle = v > ms.allowance ? '#ef7d57' : '#a7f070'; ctx.fillRect(1 + (d - 1) * 6, H - 2 - h, 5, 1); }
+  }
+  const y = H - 2 - Math.round(ms.allowance / max * (H - 4));
+  ctx.fillStyle = '#ffcd75'; for (let x = 0; x < cv.width; x += 3) ctx.fillRect(x, y, 2, 1);
+}
+
+/* ---- Onglet QUÊTES ---- */
+function viewQuetes(g) {
+  const t = today();
+  const week = Array.from({length: 7}, (_, i) => addDays(t, i - 6));
+  const habits = S.habits.map(h => {
+    const on = habitDone(t, h.id);
+    return `<div class="habit ${on ? 'done' : ''}">
+      <div class="row"><button class="check ${on ? 'on' : ''}" data-act="habit" data-id="${h.id}" data-date="${t}" aria-label="Accomplir aujourd'hui">${on ? smallImg('check', 20) : ''}</button>
+      <div class="grow"><div>${esc(h.name)}</div><small>${smallImg('flame', 12)} série ${habitStreak(h.id)} j · +15 XP</small></div>
+      <button class="icon-btn" data-act="renHabit" data-id="${h.id}" aria-label="Renommer">✎</button><button class="icon-btn" data-act="delHabit" data-id="${h.id}" aria-label="Supprimer">✕</button></div>
+      <div class="week">${week.map(d => `<button class="${habitDone(d, h.id) ? 'on' : ''} ${d === t ? 't' : ''}" data-act="habit" data-id="${h.id}" data-date="${d}">${DOW1[parseD(d).getDay()]}<br>${+d.slice(8)}</button>`).join('')}</div>
+    </div>`;
+  }).join('');
+  return `
+  <section class="box">
+    <h2>★ Quêtes quotidiennes</h2>
+    <p class="muted" style="margin-top:0">Chaque quête accomplie : +15 XP et +1 PV (max +30 PV/mois). Toutes les quêtes d'une journée : +20 XP bonus. Touche un jour de la semaine pour rattraper un oubli.</p>
+    ${habits || '<div class="empty">Aucune quête pour l\'instant.</div>'}
+    <form data-form="habit" class="row" style="margin-top:12px"><input name="name" class="grow" placeholder="Nouvelle quête (ex. cuisiner maison)" maxlength="50" required><button class="btn green">+ Ajouter</button></form>
+  </section>
+  <section class="box">
+    <h2>🏆 Trophées · ${g.unlocked.length}/${ACH.length}</h2>
+    <div class="trophies">${ACH.map(a => { const on = g.unlocked.includes(a.id); return `<div class="trophy ${on ? '' : 'locked'}">${smallImg(on ? 'trophy' : 'trophyOff', 28)}<div><div class="t1">${esc(a.name)}</div><div class="t2">${esc(a.desc)}</div></div></div>`; }).join('')}</div>
+  </section>
+  <section class="box">
+    <h2>✦ Statistiques</h2>
+    <ul class="list">
+      <li><span class="grow">XP totale</span><span>${num(g.xp)}</span></li>
+      <li><span class="grow">Meilleure série</span><span>${g.best} j</span></li>
+      <li><span class="grow">Jours pointés</span><span>${g.checkDays}</span></li>
+      <li><span class="grow">Jours sous le budget du jour</span><span>${g.victories}</span></li>
+      <li><span class="grow">Journées sans dépense</span><span>${g.zeroDays}</span></li>
+      <li><span class="grow">Quêtes accomplies</span><span>${g.nHabit}</span></li>
+      <li><span class="grow">Mois sous le budget</span><span>${g.underMonths}</span></li>
+    </ul>
+  </section>`;
+}
+
+/* ---- Onglet SUIVIS ---- */
+function viewSuivis() {
+  const t = today(), d = UI.trackerDate || t;
+  const cards = S.trackers.map(tr => {
+    const v = S.trackerLog[d] ? S.trackerLog[d][tr.id] : undefined;
+    const last7 = Array.from({length: 7}, (_, i) => { const x = S.trackerLog[addDays(t, -i)]; return x ? x[tr.id] : undefined; }).filter(x => x !== undefined && x !== '');
+    const avg = last7.length ? last7.reduce((a, b) => a + +b, 0) / last7.length : null;
+    const ok = (val) => tr.goal == null || tr.goal === '' ? null : tr.dir === 'max' ? +val <= +tr.goal : +val >= +tr.goal;
+    const okToday = v !== undefined && v !== '' ? ok(v) : null;
+    return `<div class="habit ${okToday ? 'done' : ''}">
+      <div class="row between"><div><div>${esc(tr.name)} <small>(${esc(tr.unit || '')})</small></div>
+      <small>${tr.goal !== '' && tr.goal != null ? `Objectif : ${tr.dir === 'max' ? '≤' : '≥'} ${esc(tr.goal)} ${esc(tr.unit || '')}` : 'Sans objectif'} · moy. 7 j : ${avg == null ? '—' : (Math.round(avg * 10) / 10).toString().replace('.', ',')}</small></div>
+      <div><button class="icon-btn" data-act="editTracker" data-id="${tr.id}" aria-label="Modifier">✎</button><button class="icon-btn" data-act="delTracker" data-id="${tr.id}" aria-label="Supprimer">✕</button></div></div>
+      <canvas class="spark" data-id="${tr.id}" width="${14 * 5 + 1}" height="24" style="width:100%;height:48px;display:block;margin:8px 0"></canvas>
+      <form data-form="track" data-id="${tr.id}" class="row"><input name="v" type="number" step="any" inputmode="decimal" class="grow" placeholder="Valeur" value="${v !== undefined ? esc(v) : ''}"><button class="btn sm green">OK</button>${v !== undefined ? `<button type="button" class="btn sm grey" data-act="clearTrack" data-id="${tr.id}">✕</button>` : ''}</form>
+    </div>`;
+  }).join('');
+  return `
+  <section class="box">
+    <h2>⚗ Suivis personnalisés</h2>
+    <p class="muted" style="margin-top:0">Mesure ce que tu veux (sommeil, eau, cafés, humeur…). Chaque mesure : +5 XP. Les 14 derniers jours s'affichent en barres.</p>
+    <div class="row"><label class="muted" for="t-date">Jour</label><input id="t-date" type="date" value="${d}" max="${t}" data-chg="trackerDate" class="grow"></div>
+    ${cards || '<div class="empty">Aucun suivi.</div>'}
+  </section>
+  <section class="box">
+    <h2>+ Nouveau suivi</h2>
+    <form data-form="tracker">
+      <input name="name" class="full" placeholder="Nom (ex. Cafés)" maxlength="40" required>
+      <div class="row" style="margin-top:8px"><input name="unit" class="grow" placeholder="Unité (ex. tasses)" maxlength="15">
+      <select name="dir"><option value="min">au moins</option><option value="max">au plus</option></select>
+      <input name="goal" type="number" step="any" inputmode="decimal" placeholder="Objectif" style="width:110px"></div>
+      <button class="btn green big" style="margin-top:10px">+ Créer le suivi</button>
+    </form>
+  </section>`;
+}
+function drawSparks() {
+  document.querySelectorAll('canvas.spark').forEach(cv => {
+    const tr = S.trackers.find(x => x.id === cv.dataset.id); if (!tr) return;
+    const ctx = cv.getContext('2d'), H = cv.height, t = today();
+    const vals = Array.from({length: 14}, (_, i) => { const x = S.trackerLog[addDays(t, i - 13)]; const v = x ? x[tr.id] : undefined; return v === undefined || v === '' ? null : +v; });
+    const goal = tr.goal === '' || tr.goal == null ? null : +tr.goal;
+    const max = Math.max(goal || 0, ...vals.filter(v => v != null), 1);
+    ctx.fillStyle = '#1a1c2c'; ctx.fillRect(0, 0, cv.width, H);
+    vals.forEach((v, i) => {
+      ctx.fillStyle = '#22263a'; ctx.fillRect(1 + i * 5, 1, 4, H - 2);
+      if (v == null) return;
+      const h = Math.max(1, Math.round(v / max * (H - 2)));
+      const good = goal == null ? true : tr.dir === 'max' ? v <= goal : v >= goal;
+      ctx.fillStyle = good ? '#38b764' : '#ef7d57'; ctx.fillRect(1 + i * 5, H - 1 - h, 4, h);
+    });
+    if (goal != null) { const y = H - 1 - Math.round(goal / max * (H - 2)); ctx.fillStyle = '#ffcd75'; for (let x = 0; x < cv.width; x += 3) ctx.fillRect(x, y, 2, 1); }
+  });
+}
+
+/* ---- Onglet OPTIONS ---- */
+function viewOptions() {
+  const ym = UI.viewYM;
+  const monOpts = sel => Object.entries(MONS).map(([k, m]) => `<option value="${k}" ${k === sel ? 'selected' : ''}>${m.name}</option>`).join('');
+  const colOpts = sel => Object.keys(COLORS).map(k => `<option value="${k}" ${k === sel ? 'selected' : ''}>${k}</option>`).join('');
+  return `
+  <section class="box">
+    <h2>♞ Héros</h2>
+    <label class="f" for="o-name">Nom du héros</label>
+    <input id="o-name" class="full" value="${esc(S.heroName)}" maxlength="20" data-chg="heroName" placeholder="Héros">
+    <div class="row" style="margin-top:12px"><button class="btn ${S.sound ? 'green' : 'grey'}" data-act="sound">♪ Son : ${S.sound ? 'oui' : 'non'}</button><button class="btn cyan" data-act="rules">? Règles du jeu</button></div>
+  </section>
+  <section class="box">
+    <h2>☠ Catégories & budgets mensuels</h2>
+    ${monthNav()}
+    <p class="muted" style="font-size:17px">Les budgets saisis s'appliquent à <b>${ymLabel(ym)}</b> et aux mois suivants (les mois précédents ne changent pas). Total : <b class="gold">${fmt(totalBudget(ym))}</b> / mois.</p>
+    ${S.categories.map(c => `<div class="catrow">${monImg(c, 48)}<div class="fields">
+      <input class="wide" value="${esc(c.name)}" maxlength="24" data-chg="catName" data-id="${c.id}" aria-label="Nom">
+      <select data-chg="catMon" data-id="${c.id}" aria-label="Monstre">${monOpts(c.monster)}</select>
+      <select data-chg="catCol" data-id="${c.id}" aria-label="Couleur">${colOpts(c.color)}</select>
+      <div class="wide row"><input class="grow" inputmode="numeric" value="${num(getBudget(ym, c))}" data-chg="catBud" data-id="${c.id}" aria-label="Budget"><span class="muted">F / mois</span><button class="icon-btn" data-act="delCat" data-id="${c.id}" aria-label="Supprimer">✕</button></div>
+    </div></div>`).join('')}
+    <form data-form="cat" style="margin-top:12px">
+      <h3>+ Nouvelle catégorie</h3>
+      <div class="row"><input name="name" class="grow" placeholder="Nom (ex. Tontine)" maxlength="24" required><input name="budget" inputmode="numeric" placeholder="Budget" style="width:130px"></div>
+      <div class="row" style="margin-top:8px"><select name="monster" class="grow">${monOpts('slime')}</select><select name="color" class="grow">${colOpts('vert')}</select></div>
+      <button class="btn green big" style="margin-top:10px">+ Ajouter</button>
+    </form>
+  </section>
+  <section class="box">
+    <h2>▤ Sauvegarde</h2>
+    <p class="muted" style="margin-top:0">Tes données restent dans ce navigateur, sur cet appareil. Exporte régulièrement pour les garder en sécurité ou les transférer sur un autre appareil.</p>
+    <div class="row"><button class="btn gold" data-act="export">⬇ Export JSON</button><button class="btn cyan" data-act="csv">⬇ Export CSV</button><button class="btn grey" data-act="import">⬆ Importer</button></div>
+    <input type="file" id="importFile" accept="application/json,.json" hidden>
+    <div style="margin-top:14px"><button class="btn red" data-act="reset">✕ Tout effacer</button></div>
+  </section>`;
+}
+
+function render() {
+  const g = computeGame(); UI.game = g;
+  renderHUD(g); renderTabs();
+  const v = $('#view');
+  v.innerHTML = UI.tab === 'jeu' ? viewJeu(g) : UI.tab === 'journal' ? viewJournal() : UI.tab === 'ecarts' ? viewEcarts() : UI.tab === 'quetes' ? viewQuetes(g) : UI.tab === 'suivis' ? viewSuivis() : viewOptions();
+  if (UI.tab === 'jeu') { drawArena(); say(heroLine(g)); }
+  if (UI.tab === 'ecarts') drawDailyChart();
+  if (UI.tab === 'suivis') drawSparks();
+  return g;
+}
+
+/* ---------------- PROGRESSION / FEEDBACK ---------------- */
+function toast(title, msg) {
+  const el = document.createElement('div'); el.className = 'toast';
+  el.innerHTML = `<b>${esc(title)}</b>${esc(msg)}`;
+  $('#toasts').appendChild(el); setTimeout(() => el.remove(), 3200);
+}
+function floater(txt, color) {
+  const el = document.createElement('div'); el.className = 'floater'; el.textContent = txt; if (color) el.style.color = color;
+  document.body.appendChild(el); setTimeout(() => el.remove(), 1300);
+}
+function commit(fx) {
+  const before = UI.game || computeGame();
+  save();
+  const g = render();
+  const dxp = g.xp - before.xp;
+  if (dxp > 0) floater(`+${dxp} XP`);
+  if (fx) fx(g, before);
+  if (g.level > (S.lastLevel || 1)) {
+    S.lastLevel = g.level; save(); SFX.lvl();
+    setTimeout(() => openModal(`<div class="levelup"><h1>NIVEAU ${g.level} !</h1>${heroImg(96)}<p>${titleFor(g.level) !== titleFor(g.level - 1) ? `${esc(heroName())} devient <b class="gold">${titleFor(g.level)}</b> !` : `${esc(heroName())} gagne en puissance.`}</p><p class="muted">Prochain niveau dans ${g.xpNext - g.xpIn} XP.</p><button class="btn gold big" data-act="close">Continuer</button></div>`), 400);
+  } else if (g.level < S.lastLevel) { S.lastLevel = g.level; save(); }
+  const fresh = g.unlocked.filter(id => !S.seenAch.includes(id));
+  if (fresh.length) {
+    S.seenAch.push(...fresh); save();
+    fresh.forEach((id, i) => setTimeout(() => { const a = ACH.find(x => x.id === id); toast('🏆 Trophée débloqué', `${a.name} — ${a.desc}`); SFX.quest(); }, 600 + i * 700));
+  }
+}
+
+/* ---------------- MODALE ---------------- */
+function openModal(html) {
+  const m = $('#modal'); m.innerHTML = html;
+  if (typeof m.showModal === 'function') { if (!m.open) m.showModal(); } else m.setAttribute('open', '');
+}
+function closeModal() { const m = $('#modal'); if (m.open) { if (typeof m.close === 'function') m.close(); else m.removeAttribute('open'); } }
+
+function rulesHTML() {
+  return `<h2>? Comment jouer</h2><ul class="rules">
+    <li>Chaque <b>catégorie de budget</b> est un monstre. Chaque dépense augmente sa <b>rage</b>. À 100 % du budget, il se <b class="neg">déchaîne</b> et blesse ton héros.</li>
+    <li><b>Budget du jour</b> = ce qui reste du mois ÷ jours restants. Il se recalcule chaque jour.</li>
+    <li><b>XP</b> : +5 par dépense notée · +20 par jour pointé · +25 par jour sous le budget quotidien · +15 par journée sans dépense · +100 tous les 7 jours de série · +15 par quête · +5 par mesure de suivi.</li>
+    <li><b>PV</b> : remis à 100 chaque mois. Monstre déchaîné : −10 à −40 PV. Jour à plus de 150 % du budget moyen : −5 PV. Chaque quête rend +1 PV (max +30/mois).</li>
+    <li><b>Trésor</b> = économies cumulées (budget − réel) des mois terminés.</li>
+    <li><b>Série</b> : nombre de jours d'affilée où tu as noté au moins une dépense ou pointé une journée sans dépense.</li>
+  </ul><button class="btn gold big" data-act="close">Compris !</button>`;
+}
+function welcome() {
+  openModal(`<div class="levelup"><h1 style="animation:none">BUDGET QUEST</h1>${heroImg(96)}<p>Une aventure où tes dépenses sont des monstres à dompter.</p></div>
+    <form data-form="welcome"><label class="f" for="w-name">Comment s'appelle ton héros ?</label><input id="w-name" name="name" class="full" maxlength="20" placeholder="Héros" autofocus>
+    <p class="muted" style="font-size:17px">Des budgets par défaut (280 000 F/mois au total) sont déjà en place : ajuste-les dans <b>Options</b>.</p>
+    <button class="btn gold big">▶ Commencer l'aventure</button></form>`);
+}
+function editExpense(id) {
+  const e = S.expenses.find(x => x.id === id); if (!e) return;
+  openModal(`<h2>✎ Modifier la dépense</h2><form data-form="edit" data-id="${e.id}" autocomplete="off">
+    <label class="f">Montant (FCFA)</label><input name="amount" class="full" inputmode="numeric" value="${num(e.amount)}" required>
+    <label class="f">Catégorie</label><select name="catId" class="full">${S.categories.map(c => `<option value="${c.id}" ${c.id === e.catId ? 'selected' : ''}>${esc(c.name)}</option>`).join('')}${S.categories.some(c => c.id === e.catId) ? '' : '<option value="" selected>— supprimée —</option>'}</select>
+    <label class="f">Note</label><input name="note" class="full" value="${esc(e.note)}" maxlength="80">
+    <label class="f">Date</label><input name="date" type="date" class="full" value="${e.date}" required>
+    <div class="row" style="margin-top:14px"><button class="btn green">✓ Enregistrer</button><button type="button" class="btn red" data-act="delExp" data-id="${e.id}">✕ Supprimer</button><button type="button" class="btn grey" data-act="close">Annuler</button></div>
+  </form>`);
+}
+function editTracker(id) {
+  const tr = S.trackers.find(x => x.id === id); if (!tr) return;
+  openModal(`<h2>✎ Modifier le suivi</h2><form data-form="trackerEdit" data-id="${tr.id}">
+    <label class="f">Nom</label><input name="name" class="full" value="${esc(tr.name)}" maxlength="40" required>
+    <label class="f">Unité</label><input name="unit" class="full" value="${esc(tr.unit || '')}" maxlength="15">
+    <label class="f">Objectif</label><div class="row"><select name="dir"><option value="min" ${tr.dir !== 'max' ? 'selected' : ''}>au moins</option><option value="max" ${tr.dir === 'max' ? 'selected' : ''}>au plus</option></select><input name="goal" type="number" step="any" class="grow" value="${tr.goal ?? ''}"></div>
+    <div class="row" style="margin-top:14px"><button class="btn green">✓ Enregistrer</button><button type="button" class="btn grey" data-act="close">Annuler</button></div>
+  </form>`);
+}
+
+/* ---------------- ACTIONS ---------------- */
+function download(name, text, type) {
+  const blob = new Blob([text], {type}); const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob); a.download = name; document.body.appendChild(a); a.click();
+  setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 500);
+}
+function addExpense(amount, catId, note, date) {
+  const before = monthStats(ymOf(date)).cats.find(c => c.cat.id === catId);
+  S.expenses.push({id: uid(), date, amount, catId, note: note.trim(), ts: Date.now()});
+  delete S.checkins[date];
+  S.lastCat = catId; UI.lastSpendCat = catId;
+  const after = monthStats(ymOf(date)).cats.find(c => c.cat.id === catId);
+  const broke = before && after && before.spent <= before.budget && after.spent > after.budget;
+  return {broke, after};
+}
+
+const ACT = {
+  tab: a => { UI.tab = a.dataset.id; try { localStorage.setItem(STORE_KEY + '.tab', UI.tab); } catch (e) {} SFX.click(); render(); window.scrollTo(0, 0); },
+  month: a => { UI.viewYM = addMonths(UI.viewYM, +a.dataset.d); UI.selDay = null; render(); },
+  chip: a => {
+    const inp = $('form[data-form=add] [name=amount]');
+    const v = +a.dataset.v; const n = v === 0 ? 0 : parseAmt(inp.value) + v;
+    inp.value = n ? num(n) : ''; UI.draft.amount = inp.value; SFX.click();
+  },
+  pickcat: a => { UI.pickCat = a.dataset.id; document.querySelectorAll('.catbtn').forEach(b => b.classList.toggle('sel', b.dataset.id === UI.pickCat)); SFX.click(); },
+  zero: () => {
+    const t = today();
+    if (S.checkins[t]) delete S.checkins[t]; else S.checkins[t] = true;
+    commit(g => { if (S.checkins[t]) { burst('heal'); SFX.quest(); toast('✦ Journée sans dépense', 'Les monstres dorment. +35 XP'); } });
+  },
+  habit: a => {
+    const {id, date} = a.dataset;
+    S.habitLog[date] = S.habitLog[date] || {};
+    if (S.habitLog[date][id]) { delete S.habitLog[date][id]; if (!Object.keys(S.habitLog[date]).length) delete S.habitLog[date]; }
+    else S.habitLog[date][id] = true;
+    const on = habitDone(date, id);
+    commit(() => { if (on) { burst('heal'); SFX.quest(); } });
+  },
+  day: a => { UI.selDay = a.dataset.d || null; render(); },
+  addOn: a => { UI.draft.date = a.dataset.d; UI.tab = 'jeu'; render(); window.scrollTo(0, 0); setTimeout(() => { const i = $('form[data-form=add] [name=amount]'); if (i) i.focus(); }, 50); },
+  edit: a => editExpense(a.dataset.id),
+  delExp: a => { if (!confirm('Supprimer cette dépense ?')) return; S.expenses = S.expenses.filter(e => e.id !== a.dataset.id); closeModal(); commit(); },
+  close: () => closeModal(),
+  renHabit: a => { const h = S.habits.find(x => x.id === a.dataset.id); const n = prompt('Nouveau nom de la quête :', h.name); if (n && n.trim()) { h.name = n.trim().slice(0, 50); commit(); } },
+  delHabit: a => { const h = S.habits.find(x => x.id === a.dataset.id); if (!confirm(`Supprimer la quête « ${h.name} » ? Son historique ne comptera plus.`)) return; S.habits = S.habits.filter(x => x.id !== h.id); commit(); },
+  editTracker: a => editTracker(a.dataset.id),
+  delTracker: a => { const tr = S.trackers.find(x => x.id === a.dataset.id); if (!confirm(`Supprimer le suivi « ${tr.name} » ?`)) return; S.trackers = S.trackers.filter(x => x.id !== tr.id); commit(); },
+  clearTrack: a => { const d = UI.trackerDate; if (S.trackerLog[d]) { delete S.trackerLog[d][a.dataset.id]; if (!Object.keys(S.trackerLog[d]).length) delete S.trackerLog[d]; } commit(); },
+  delCat: a => {
+    const c = S.categories.find(x => x.id === a.dataset.id);
+    const n = S.expenses.filter(e => e.catId === c.id).length;
+    if (S.categories.length <= 1) return alert('Il faut garder au moins une catégorie.');
+    if (n) return alert(`Impossible : ${n} dépense(s) utilisent « ${c.name} ». Renomme-la plutôt, ou modifie ces dépenses depuis le Journal.`);
+    if (!confirm(`Supprimer la catégorie « ${c.name} » ?`)) return;
+    S.categories = S.categories.filter(x => x.id !== c.id);
+    for (const k in S.budgets) delete S.budgets[k][c.id];
+    commit();
+  },
+  sound: () => { S.sound = !S.sound; save(); render(); SFX.click(); },
+  rules: () => openModal(rulesHTML()),
+  export: () => download(`budget-quest-${today()}.json`, JSON.stringify(S, null, 2), 'application/json'),
+  csv: () => {
+    const catOf = id => (S.categories.find(c => c.id === id) || {}).name || '';
+    const q = s => `"${String(s).replace(/"/g, '""')}"`;
+    const rows = [['date', 'montant_fcfa', 'categorie', 'note'].join(';'), ...[...S.expenses].sort((a, b) => a.date.localeCompare(b.date)).map(e => [e.date, e.amount, q(catOf(e.catId)), q(e.note || '')].join(';'))];
+    download(`depenses-${today()}.csv`, '﻿' + rows.join('\r\n'), 'text/csv;charset=utf-8');
+  },
+  import: () => $('#importFile').click(),
+  reset: () => {
+    if (!confirm('Effacer TOUTES les données (dépenses, quêtes, suivis, progression) ?')) return;
+    if (!confirm('Vraiment ? Pense à exporter avant. Cette action est définitive.')) return;
+    S = defaultState(); UI.game = null; save(); render(); welcome();
+  },
+};
+
+document.addEventListener('click', e => {
+  const a = e.target.closest('[data-act]'); if (!a || a.disabled) return;
+  const f = ACT[a.dataset.act]; if (f) { e.preventDefault(); f(a, e); }
+});
+document.addEventListener('input', e => {
+  const t = e.target;
+  if (t.closest('form[data-form=add]')) {
+    if (t.name === 'amount') { const n = parseAmt(t.value); t.value = n ? num(n) : ''; }
+    UI.draft[t.name] = t.value;
+  }
+  if (t.name === 'amount' && t.closest('form[data-form=edit]')) { const n = parseAmt(t.value); t.value = n ? num(n) : ''; }
+  if (t.dataset.chg === 'catBud') { const n = parseAmt(t.value); t.value = n || t.value === '' ? num(n) : ''; }
+});
+document.addEventListener('change', e => {
+  const t = e.target, k = t.dataset.chg; if (!k) return;
+  const c = t.dataset.id ? S.categories.find(x => x.id === t.dataset.id) : null;
+  if (k === 'heroName') { S.heroName = t.value.trim().slice(0, 20); commit(); }
+  else if (k === 'catName' && c) { if (t.value.trim()) c.name = t.value.trim().slice(0, 24); commit(); }
+  else if (k === 'catMon' && c) { c.monster = t.value; commit(); }
+  else if (k === 'catCol' && c) { c.color = t.value; commit(); }
+  else if (k === 'catBud' && c) { S.budgets[UI.viewYM] = S.budgets[UI.viewYM] || {}; S.budgets[UI.viewYM][c.id] = parseAmt(t.value); commit(); }
+  else if (k === 'trackerDate') { UI.trackerDate = t.value && t.value <= today() ? t.value : today(); render(); }
+});
+document.addEventListener('submit', e => {
+  const f = e.target, k = f.dataset.form; if (!k) return;
+  e.preventDefault();
+  const fd = new FormData(f), v = n => (fd.get(n) || '').toString();
+  if (k === 'add') {
+    const amount = parseAmt(v('amount')), date = v('date') || today();
+    if (!amount) { floater('Montant ?', '#ef7d57'); f.amount.focus(); return; }
+    if (!UI.pickCat) return;
+    const {broke, after} = addExpense(amount, UI.pickCat, v('note'), date);
+    UI.draft = {amount: '', note: '', date: ''};
+    commit(() => {
+      if (broke) { burst('hurt'); SFX.hit(); toast('☠ Monstre déchaîné !', `${monName(after)} a dépassé son budget.`); }
+      else { burst('spend'); SFX.spend(); }
+      if (date !== today()) toast('✎ Dépense ajoutée', `${fmt(amount)} le ${dayLabel(date)}`);
+    });
+  } else if (k === 'edit') {
+    const e2 = S.expenses.find(x => x.id === f.dataset.id); if (!e2) return;
+    const amount = parseAmt(v('amount')); if (!amount) return;
+    e2.amount = amount; if (v('catId')) e2.catId = v('catId'); e2.note = v('note').trim(); e2.date = v('date') || e2.date;
+    delete S.checkins[e2.date];
+    closeModal(); commit();
+  } else if (k === 'habit') {
+    S.habits.push({id: uid(), name: v('name').trim().slice(0, 50)}); commit(); SFX.coin();
+  } else if (k === 'tracker') {
+    S.trackers.push({id: uid(), name: v('name').trim(), unit: v('unit').trim(), goal: v('goal') === '' ? '' : +v('goal'), dir: v('dir') || 'min'}); commit(); SFX.coin();
+  } else if (k === 'trackerEdit') {
+    const tr = S.trackers.find(x => x.id === f.dataset.id); if (!tr) return;
+    tr.name = v('name').trim() || tr.name; tr.unit = v('unit').trim(); tr.goal = v('goal') === '' ? '' : +v('goal'); tr.dir = v('dir') || 'min';
+    closeModal(); commit();
+  } else if (k === 'track') {
+    const val = v('v'); if (val === '' || isNaN(+val)) return;
+    const d = UI.trackerDate || today();
+    S.trackerLog[d] = S.trackerLog[d] || {}; S.trackerLog[d][f.dataset.id] = +val;
+    commit(() => SFX.coin());
+  } else if (k === 'cat') {
+    const id = uid();
+    S.categories.push({id, name: v('name').trim().slice(0, 24), monster: v('monster') || 'slime', color: v('color') || 'vert', budget: 0});
+    S.budgets[UI.viewYM] = S.budgets[UI.viewYM] || {}; S.budgets[UI.viewYM][id] = parseAmt(v('budget'));
+    commit(); SFX.coin();
+  } else if (k === 'welcome') {
+    S.heroName = v('name').trim().slice(0, 20) || 'Héros'; closeModal(); commit(); SFX.lvl();
+  }
+});
+document.addEventListener('change', e => {
+  if (e.target.id !== 'importFile') return;
+  const file = e.target.files[0]; if (!file) return;
+  const r = new FileReader();
+  r.onload = () => {
+    try {
+      const data = JSON.parse(r.result);
+      if (!data || !Array.isArray(data.expenses) || !Array.isArray(data.categories)) throw new Error('format');
+      if (!confirm(`Importer ${data.expenses.length} dépenses ? Les données actuelles seront remplacées.`)) return;
+      S = migrate(data); UI.game = null; save(); render(); toast('⬆ Import réussi', `${S.expenses.length} dépenses chargées.`);
+    } catch (err) { alert('Fichier invalide : ce n\'est pas une sauvegarde Budget Quest.'); }
+  };
+  r.readAsText(file); e.target.value = '';
+});
+$('#modal').addEventListener('cancel', e => { if (!S.heroName) e.preventDefault(); });
+
+// Rafraîchit au changement de jour (app laissée ouverte)
+let lastDay = today();
+setInterval(() => { if (today() !== lastDay) { lastDay = today(); UI.game = null; render(); } }, 60000);
+document.addEventListener('visibilitychange', () => { if (!document.hidden && today() !== lastDay) { lastDay = today(); render(); } });
+
+save();
+render();
+if (!S.heroName) welcome();
+</script>
+</body>
+</html>
