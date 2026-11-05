@@ -87,8 +87,20 @@ label.f{display:block;margin:10px 0 4px;color:var(--G);font-size:19px}
 .hud .badges span{display:inline-flex;align-items:center;gap:4px}
 
 /* Arena */
-.arena-wrap{padding:0;overflow:hidden}
-#arena{display:block;width:100%;height:auto}
+.map-wrap{padding:0;overflow:hidden}
+#world{display:block;width:100%;height:300px;touch-action:manipulation;cursor:pointer;background:var(--k)}
+.mapbtn{position:absolute;top:6px;right:6px;margin:0;opacity:.92}
+.dpad{position:absolute;left:8px;bottom:8px;display:grid;grid-template-columns:repeat(3,38px);grid-template-rows:repeat(3,38px);
+  grid-template-areas:". u ." "l . r" ". d .";gap:2px;opacity:.8}
+.dpad button,.abtn{border:0;background:rgba(26,28,44,.75);color:var(--w);font-size:16px;cursor:pointer;box-shadow:inset -3px -3px 0 rgba(0,0,0,.4),0 0 0 2px var(--w);
+  touch-action:none;user-select:none;-webkit-user-select:none}
+.dpad button:active,.abtn:active{background:var(--d)}
+.dpad .du{grid-area:u}.dpad .dl{grid-area:l}.dpad .dr{grid-area:r}.dpad .dd{grid-area:d}
+.abtn{position:absolute;right:12px;bottom:14px;width:52px;height:52px;font-family:var(--px);font-size:14px;background:rgba(177,62,83,.85);opacity:.9}
+@media (hover:hover) and (pointer:fine){.dpad{display:none}}
+.panel-head{position:sticky;top:-16px;background:var(--D);padding:6px 0 8px;margin:-6px 0 4px;z-index:2}
+.trophy.sel{box-shadow:0 0 0 3px var(--y)}
+#sayBtns:empty{display:none}
 #say{min-height:2.3em}
 .say .speaker{font-family:var(--px);font-size:9px;color:var(--y);margin-bottom:6px}
 .blink{animation:blink 1s steps(2) infinite}
@@ -391,7 +403,7 @@ function spriteURL(key, rows, pal, s = 1, opt = {}) {
 }
 const img = (url, size, cls = '') => `<img class="px ${cls}" src="${url}" width="${size}" height="${size}" alt="">`;
 const monImg = (cat, size = 48, rage = false) => img(spriteURL('m:' + cat.monster + cat.color + rage, (MONS[cat.monster] || MONS.slime).rows, monPal(cat.color, rage), 4), size);
-const heroImg = (size = 48, opt = {}) => img(spriteURL('hero', HERO, HERO_PAL, 4, opt), size);
+const heroImg = (size = 48, opt = {}) => { const sk = (S && S.world && S.world.skin) || 'classique'; return img(spriteURL('hero' + sk, HERO, heroPal(sk), 4, opt), size); };
 const smallImg = (name, size = 16) => img(spriteURL('s:' + name, SMALL[name].rows, SMALL[name].pal, 4), size);
 const iconImg = (name, color = SWEET.w, size = 24) => img(spriteURL('i:' + name + color, ICONS[name], {x: color}, 4), size);
 
@@ -399,6 +411,7 @@ const iconImg = (name, color = SWEET.w, size = 24) => img(spriteURL('i:' + name 
 function defaultState() {
   return {
     version: 1, createdAt: today(), heroName: '', sound: true, lastLevel: 1, seenAch: [], lastCat: 'alim',
+    world: defaultWorld(),
     categories: [
       {id:'alim',   name:'Alimentation', monster:'slime',    color:'vert',   budget:60000},
       {id:'transp', name:'Transport',    monster:'bat',      color:'bleu',   budget:25000},
@@ -430,6 +443,13 @@ function migrate(s) {
   for (const k of Object.keys(d)) if (s[k] === undefined) s[k] = d[k];
   for (const k of ['categories','expenses','habits','trackers','seenAch']) if (!Array.isArray(s[k])) s[k] = d[k];
   for (const k of ['budgets','checkins','habitLog','trackerLog']) if (!s[k] || typeof s[k] !== 'object' || Array.isArray(s[k])) s[k] = {};
+  if (!s.world || typeof s.world !== 'object') s.world = defaultWorld();
+  const dw = defaultWorld();
+  for (const k of Object.keys(dw)) if (s.world[k] === undefined) s.world[k] = dw[k];
+  if (!Array.isArray(s.world.found)) s.world.found = [];
+  if (!Array.isArray(s.world.skins) || !s.world.skins.includes('classique')) s.world.skins = ['classique', ...(Array.isArray(s.world.skins) ? s.world.skins : [])];
+  if (!s.world.chests || typeof s.world.chests !== 'object') s.world.chests = {};
+  if (!SKINS[s.world.skin]) s.world.skin = 'classique';
   s.expenses = s.expenses.filter(e => e && typeof e.date === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(e.date)).map(e => ({...e, amount: Math.max(0, Math.round(+e.amount || 0))}));
   return s;
 }
@@ -446,7 +466,7 @@ function save() {
   catch (e) { storageOK = false; }
   $('#banner').innerHTML = storageOK ? '' : `<div class="banner">⚠ Impossible d'enregistrer dans ce navigateur (navigation privée ?). Exporte tes données depuis Options pour ne rien perdre.</div>`;
 }
-let S = load() || defaultState();
+let S = null; // initialisé au démarrage (bas du fichier)
 
 const UI = { tab: 'jeu', viewYM: ymOf(today()), selDay: null, draft: {amount: '', note: '', date: ''}, pickCat: null, prevGame: null, trackerDate: today() };
 try { const t = localStorage.getItem(STORE_KEY + '.tab'); if (t) UI.tab = t; } catch (e) {}
@@ -501,6 +521,9 @@ const ACH = [
   {id:'h50',    name:'Quêteur',          desc:'50 quêtes accomplies',                 test:g => g.nHabit >= 50},
   {id:'t30',    name:'Alchimiste',       desc:'30 mesures de suivi',                  test:g => g.nTrack >= 30},
   {id:'e100',   name:'Chroniqueur',      desc:'100 dépenses notées',                  test:g => g.nExp >= 100},
+  {id:'explore',name:'Cartographe',      desc:'Explorer 60 % du monde',               test:g => g.explored >= .6},
+  {id:'chest5', name:'Chasseur de trésors', desc:'Ouvrir 5 coffres',                  test:g => g.nChests >= 5},
+  {id:'village3',name:'Bâtisseur',       desc:'3 bâtiments dans le village',          test:g => g.built >= 3},
 ];
 
 function habitDone(date, id) { return !!(S.habitLog[date] && S.habitLog[date][id]); }
@@ -547,6 +570,13 @@ function computeGame() {
   let nTrack = 0;
   for (const d in S.trackerLog) for (const id in S.trackerLog[d]) if (trackIds.has(id) && S.trackerLog[d][id] !== '' && S.trackerLog[d][id] != null) nTrack++;
   xp += 5 * nTrack;
+  // Monde : coffres ouverts et lieux découverts
+  const W_ = S.world;
+  let nChests = 0;
+  for (const id in W_.chests) { const ch = CHESTS.find(x => x.id === id); if (ch) { xp += ch.xp; nChests++; } }
+  xp += 10 * W_.found.length;
+  let seenN = 0; for (let i = 0; i < W_.seen.length; i++) if (W_.seen.charCodeAt(i) === 49) seenN++;
+  const explored = seenN / (MW * MH);
 
   let level = 1; while (50 * level * (level + 1) <= xp) level++;
   const base = 50 * (level - 1) * level;
@@ -570,7 +600,9 @@ function computeGame() {
     if (m.spent <= m.budget) underMonths++;
     if (m.cats.every(c => c.spent <= c.budget)) perfectMonths++;
   }
+  const builtNow = VILLAGE.filter(v => treasure >= v.cost).length;
   const g = {xp, level, xpIn: xp - base, xpNext: 100 * level, streak, best, victories, zeroDays, checkDays, nExp: S.expenses.length,
+    nChests, explored, builtNow, built: Math.max(W_.built || 0, builtNow),
     nHabit, nTrack, hp, treasure, underMonths, perfectMonths, ms, checkedToday: (byDate.has(t) || !!S.checkins[t])};
   g.unlocked = ACH.filter(a => a.test(g)).map(a => a.id);
   return g;
@@ -600,84 +632,648 @@ const SFX = {
   click: () => beep([[440, .03, 0, 'square', .025]]),
 };
 
-/* ---------------- ARÈNE (canvas) ---------------- */
-const AW = 192, AH = 88, GROUND = 70;
-let frame = 0, anim = null, particles = [];
-const STARS = Array.from({length: 22}, (_, i) => [(i * 53 + 17) % AW, (i * 29 + 5) % 40, i % 3]);
-function arenaFocus(ms) {
-  let top = null;
-  for (const c of ms.cats) if (!top || c.ratio > top.ratio) top = c;
-  if (top && top.ratio === 0 && UI.lastSpendCat) top = ms.cats.find(c => c.cat.id === UI.lastSpendCat) || top;
-  return top;
-}
-function drawArena() {
-  const cv = $('#arena'); if (!cv || !UI.game) return;
-  const ctx = cv.getContext('2d'), f = frame, g = UI.game, ms = g.ms;
-  const h = new Date().getHours();
-  const night = h < 6 || h >= 20, dusk = (h >= 18 && h < 20) || h === 6;
-  const bands = night ? ['#1a1c2c', '#1d2238', '#22294a', '#29366f'] : dusk ? ['#5d275d', '#8a3358', '#b13e53', '#ef7d57'] : ['#3b5dc9', '#41a6f6', '#5ec8f8', '#73eff7'];
-  bands.forEach((c, i) => { ctx.fillStyle = c; ctx.fillRect(0, i * 14, AW, 14); });
-  ctx.fillStyle = bands[3]; ctx.fillRect(0, 56, AW, GROUND - 56);
-  if (night) {
-    for (const [x, y, k] of STARS) { if ((f >> 3) % 3 === k && (x + f) % 5 === 0) continue; ctx.fillStyle = k ? '#94b0c2' : '#f4f4f4'; ctx.fillRect(x, y, 1, 1); }
-    ctx.fillStyle = '#f4f4f4'; ctx.fillRect(158, 8, 8, 8); ctx.fillStyle = bands[1]; ctx.fillRect(161, 7, 7, 7);
-  } else {
-    ctx.fillStyle = '#ffcd75'; ctx.fillRect(154, 9, 10, 10); ctx.fillRect(152, 11, 14, 6); ctx.fillRect(156, 7, 6, 14);
-  }
-  // nuages
-  ctx.fillStyle = night ? '#333c57' : '#f4f4f4';
-  for (const [sp, y, w] of [[.25, 12, 18], [.15, 24, 26], [.35, 6, 12]]) {
-    const x = Math.floor((f * sp + y * 37) % (AW + 40)) - 30;
-    ctx.fillRect(x, y, w, 4); ctx.fillRect(x + 4, y - 3, w - 10, 3);
-  }
-  // montagnes
-  for (let x = 0; x < AW; x += 4) {
-    const hh = 12 + Math.round((Math.sin(x * .045) + Math.sin(x * .11 + 1.3)) * 5);
-    ctx.fillStyle = night ? '#29366f' : '#566c86'; ctx.fillRect(x, GROUND - hh, 4, hh);
-    ctx.fillStyle = night ? '#333c57' : '#94b0c2'; ctx.fillRect(x, GROUND - hh, 4, 2);
-  }
-  // sol
-  ctx.fillStyle = '#38b764'; ctx.fillRect(0, GROUND, AW, AH - GROUND);
-  ctx.fillStyle = '#a7f070'; ctx.fillRect(0, GROUND, AW, 2);
-  ctx.fillStyle = '#257179';
-  for (let x = 0; x < AW; x += 8) for (let y = GROUND + 5; y < AH; y += 6) ctx.fillRect(x + ((y / 6) % 2) * 4, y, 2, 2);
+/* ================================================================
+   MONDE OUVERT — carte en tuiles, vue de dessus
+   ================================================================ */
+const MW = 48, MH = 36, TS = 16;
+const T = {GRASS:0, FLOWER:1, TREE:2, WATER:3, PATH:4, SAND:5, BRIDGE:6, ROCK:7, PINE:8, SECRET:9, STONE:10, DARK:11, PLAZA:12};
+const WALKABLE = new Set([T.GRASS, T.FLOWER, T.PATH, T.SAND, T.BRIDGE, T.SECRET, T.STONE, T.DARK, T.PLAZA]);
+const WOOD = '#8b5a2b', WOODD = '#5e3a1a', K = '#1a1c2c';
+const DIRS = {up:[0,-1], down:[0,1], left:[-1,0], right:[1,0]};
 
-  const bob = (f >> 2) % 2;
-  const top = arenaFocus(ms);
-  const a = anim && anim.until > f ? anim : null;
-  const k = a ? a.until - f : 0;
-  // héros
-  let hx = 26, hy = GROUND - 32 + bob;
-  const ko = g.hp <= 0;
-  if (a && a.type === 'heal') hy -= [0, 3, 6, 8, 9, 8, 6, 3, 0][k % 9] || 0;
-  if (a && a.type === 'attack') hx += [0, 6, 12, 16, 12, 6, 0, 0][k % 8] || 0;
-  if (ko) drawSprite(ctx, HERO, HERO_PAL, hx - 4, GROUND - 16, 2, {ko: true, grey: true});
-  else drawSprite(ctx, HERO, HERO_PAL, hx, hy, 2, {flash: a && a.type === 'hurt' && k % 2});
-  // barre PV héros
-  ctx.fillStyle = '#1a1c2c'; ctx.fillRect(hx, GROUND - 40, 32, 4);
-  ctx.fillStyle = '#b13e53'; ctx.fillRect(hx + 1, GROUND - 39, Math.round(30 * g.hp / 100), 2);
-  // monstre
-  if (top) {
-    const m = MONS[top.cat.monster] || MONS.slime, rage = top.ratio >= 1;
-    let mx = AW - 26 - 32, my = GROUND - 32 + (1 - bob);
-    if ((a && a.type === 'spend') || rage) mx += (f % 2 ? 2 : -2) * (a ? 1 : .5);
-    drawSprite(ctx, m.rows, monPal(top.cat.color, rage && f % 6 < 3), mx, my, 2, {flash: a && a.type === 'attack' && k < 4 && k % 2});
-    ctx.fillStyle = '#1a1c2c'; ctx.fillRect(mx, GROUND - 40, 32, 4);
-    const rr = Math.min(1, top.ratio);
-    ctx.fillStyle = top.ratio >= 1 ? '#b13e53' : top.ratio >= .8 ? '#ef7d57' : top.ratio >= .5 ? '#ffcd75' : '#a7f070';
-    ctx.fillRect(mx + 1, GROUND - 39, Math.round(30 * rr), 2);
+function seeded(seed) { let s = seed >>> 0; return () => (s = (Math.imul(s, 1664525) + 1013904223) >>> 0) / 4294967296; }
+function hash(x, y) { let h = Math.imul(x, 374761393) + Math.imul(y, 668265263); h = Math.imul(h ^ (h >>> 13), 1274126177); return ((h ^ (h >>> 16)) >>> 0) / 4294967296; }
+
+function genMap() {
+  const m = new Uint8Array(MW * MH), R = seeded(43);
+  const inb = (x, y) => x >= 0 && y >= 0 && x < MW && y < MH;
+  const set = (x, y, t) => { if (inb(x, y)) m[y * MW + x] = t; };
+  const get = (x, y) => inb(x, y) ? m[y * MW + x] : T.TREE;
+  for (let i = 0; i < m.length; i++) m[i] = R() < .07 ? T.FLOWER : T.GRASS;
+  for (let i = 0; i < 70; i++) set(2 + Math.floor(R() * (MW - 4)), 2 + Math.floor(R() * (MH - 4)), T.TREE);
+  for (let y = 0; y < MH; y++) for (let x = 0; x < MW; x++) if (x < 2 || y < 2 || x >= MW - 2 || y >= MH - 2) set(x, y, T.TREE);
+  // Forêt des Pins (nord-ouest)
+  for (let y = 2; y <= 12; y++) for (let x = 2; x <= 17; x++) set(x, y, R() < .82 ? T.PINE : T.DARK);
+  // Col du Crâne (nord-est)
+  for (let y = 2; y <= 10; y++) for (let x = 37; x <= 45; x++) set(x, y, (R() < .78 || y <= 3) ? T.ROCK : T.SAND);
+  // Lacs
+  const ell = (cx, cy, rx, ry) => {
+    for (let y = cy - ry - 2; y <= cy + ry + 2; y++) for (let x = cx - rx - 2; x <= cx + rx + 2; x++) {
+      const d = ((x - cx) / rx) ** 2 + ((y - cy) / ry) ** 2;
+      if (d <= 1) set(x, y, T.WATER); else if (d <= 1.45 && WALKABLE.has(get(x, y))) set(x, y, T.SAND);
+    }
+  };
+  ell(39, 29, 6, 4); ell(9, 28, 6, 4);
+  // Fleuve
+  for (let y = 0; y <= 27; y++) { const cx = 34 + Math.round(Math.sin(y * .35) * 1.5); set(cx, y, T.WATER); set(cx + 1, y, T.WATER); }
+  // Île et pierres du Lac Miroir
+  for (let y = 27; y <= 29; y++) for (let x = 8; x <= 10; x++) set(x, y, T.SAND);
+  for (let x = 11; x <= 15; x++) set(x, 28, T.STONE);
+  // Routes et place du village
+  for (let x = 3; x <= 44; x++) set(x, 18, get(x, 18) === T.WATER ? T.BRIDGE : T.PATH);
+  for (let y = 3; y <= 33; y++) set(24, y, get(24, y) === T.WATER ? T.BRIDGE : T.PATH);
+  for (let y = 16; y <= 20; y++) for (let x = 22; x <= 26; x++) set(x, y, T.PLAZA);
+  // Passage secret dans la forêt + clairière
+  for (let x = 9; x <= 17; x++) set(x, 8, T.SECRET);
+  for (let y = 5; y <= 8; y++) set(8, y, T.SECRET);
+  for (let y = 3; y <= 5; y++) for (let x = 5; x <= 10; x++) set(x, y, T.DARK);
+  set(18, 8, T.GRASS);
+  // Sentier du col
+  for (let y = 4; y <= 11; y++) set(40, y, T.PATH);
+  for (let x = 41; x <= 42; x++) set(x, 4, T.PATH);
+  return m;
+}
+
+/* ---- Contenu du monde ---- */
+const VILLAGE = [
+  {name:'Puits', cost:5000, kind:'well', desc:"De l'eau fraîche pour tout le village."},
+  {name:'Potager', cost:15000, kind:'garden', desc:'Des légumes maison : moins de courses au marché !'},
+  {name:'Maison du fermier', cost:30000, kind:'house', wall:'#f4f4f4', roof:'#ef7d57', roofD:'#b13e53', desc:"Un nouveau voisin s'installe au village."},
+  {name:'Boulangerie', cost:60000, kind:'house', wall:'#ffcd75', roof:'#b13e53', roofD:'#5d275d', chimney:true, desc:'Ça sent le pain chaud.'},
+  {name:'Forge', cost:100000, kind:'house', wall:'#94b0c2', roof:'#333c57', roofD:K, chimney:true, desc:'Le forgeron renforce ton armure.'},
+  {name:'Fontaine', cost:175000, kind:'fountain', desc:'Le symbole de ta prospérité.'},
+  {name:'Moulin', cost:300000, kind:'mill', desc:'Ses ailes tournent au rythme de ton épargne.'},
+  {name:'Tour de guet', cost:500000, kind:'tower', desc:"D'ici, on voit venir les monstres de loin."},
+  {name:'Château', cost:1000000, kind:'castle', desc:"Un million d'économies. Tu es une légende."},
+];
+const PLOTS = [[21,10],[27,10],[30,13],[30,21],[27,24],[21,24],[17,21],[17,13],[13,20]];
+const LAIRS = [[40,15],[38,22],[44,22],[43,13],[31,26],[28,30],[19,30],[6,15],[10,21],[4,21],[11,15],[45,26]];
+const CHESTS = [
+  {id:'start',  x:19, y:15, name:'Coffre du débutant',        xp:50},
+  {id:'s3',     x:31, y:9,  name:'Coffre du Régulier',        xp:75,  skin:'foret',   cond:{k:'best', n:3, txt:'série de 3 jours'}},
+  {id:'zero',   x:7,  y:20, name:'Coffre du Moine',           xp:100, skin:'ocean',   cond:{k:'zeroDays', n:3, txt:'3 journées sans dépense'}},
+  {id:'s7',     x:44, y:17, name:"Coffre de l'Assidu",        xp:150, skin:'or',      cond:{k:'best', n:7, txt:'série de 7 jours'}},
+  {id:'secret', x:7,  y:4,  name:'Coffre secret de la forêt', xp:150, skin:'ombre'},
+  {id:'island', x:9,  y:27, name:"Coffre de l'île",           xp:200, cond:{k:'victories', n:10, txt:'10 jours sous le budget du jour'}},
+  {id:'cave',   x:43, y:4,  name:'Coffre du Col du Crâne',    xp:300, skin:'royal',   cond:{k:'best', n:30, txt:'série de 30 jours'}},
+  {id:'troph',  x:28, y:33, name:'Coffre des Trophées',       xp:250, cond:{k:'trophies', n:7, txt:'7 trophées'}},
+  {id:'legend', x:3,  y:33, name:'Coffre de la Légende',      xp:500, skin:'legende', cond:{k:'level', n:10, txt:'niveau 10'}},
+];
+const SIGNS = [
+  {id:'sg_forest', x:18, y:10, text:"Forêt des Pins. On raconte que certains pins, plus clairs que les autres, s'écartent devant les héros curieux…"},
+  {id:'sg_cross',  x:25, y:13, text:"↑ Nord : Forêt des Pins & Col du Crâne · ← Ouest : Labo de l'alchimiste · → Est : Pont du Fleuve · ↓ Sud : les Lacs."},
+  {id:'sg_bridge', x:33, y:17, text:"Pont du Fleuve. Dans les plaines rôdent les monstres de tes dépenses. Plus tu dépenses, plus ils s'énervent."},
+  {id:'sg_lake',   x:16, y:26, text:"Lac Miroir. Quelques pierres affleurent à la surface… Le coffre de l'île ne s'ouvre qu'aux stratèges."},
+  {id:'sg_mount',  x:39, y:11, text:"Col du Crâne. Au sommet dort un coffre que seule une série de 30 jours peut ouvrir."},
+  {id:'sg_village',x:18, y:19, text:"Le village grandit avec ton trésor : chaque mois terminé sous le budget finance de nouveaux bâtiments."},
+];
+const TIPS = [
+  "Note aussi les petites dépenses : ce sont elles qui font déborder les monstres.",
+  "Quand un monstre dépasse 80 %, ralentis sur sa catégorie jusqu'à la fin du mois.",
+  "Avant un achat plaisir, attends 24 heures. Souvent, l'envie passe.",
+  "Règle 50/30/20 : besoins, envies, épargne. Les monstres adorent les envies.",
+  "Une journée sans dépense, c'est un feu de camp allumé et 35 XP.",
+  "Regarde les Écarts au milieu du mois : il est encore temps de corriger.",
+  "Les coffres s'ouvrent avec les séries. Pointe ta journée, même sans dépense !",
+  "Ton trésor construit le village. Un mois sous le budget, c'est un pas vers le château.",
+  "Explore tout : chaque lieu découvert rapporte 10 XP.",
+];
+const SKINS = {
+  classique:{name:'Classique',       cape:'#b13e53', tunic:'#3b5dc9', helm:'#94b0c2', helmD:'#566c86'},
+  foret:    {name:'Rôdeur des bois', cape:'#257179', tunic:'#38b764', helm:'#94b0c2', helmD:'#566c86'},
+  ocean:    {name:'Marin',           cape:'#41a6f6', tunic:'#29366f', helm:'#f4f4f4', helmD:'#94b0c2'},
+  or:       {name:'Chevalier doré',  cape:'#ef7d57', tunic:'#ffcd75', helm:'#ffcd75', helmD:'#ef7d57'},
+  ombre:    {name:'Ombre',           cape:'#333c57', tunic:'#5d275d', helm:'#566c86', helmD:'#333c57'},
+  royal:    {name:'Royal',           cape:'#5d275d', tunic:'#b13e53', helm:'#ffcd75', helmD:'#ef7d57'},
+  legende:  {name:'Légende',         cape:'#73eff7', tunic:'#f4f4f4', helm:'#ffcd75', helmD:'#ef7d57'},
+};
+const heroPal = skin => { const s = SKINS[skin] || SKINS.classique; return {...HERO_PAL, r:s.cape, b:s.tunic, g:s.helm, G:s.helmD}; };
+const HERO_B = HERO.slice(0, 14).concat(['...kGGk...kGGk..', '...kkkk...kkkk..']);
+const VILLAGER = HERO.map(r => r.slice(0, 14).replace(/[y]/g, 'b') + '..');
+const VILL_PALS = [
+  {...HERO_PAL, g:WOOD, G:WOODD, w:'#a8834f', r:'#38b764', b:'#38b764', s:'#c98a5a'},
+  {...HERO_PAL, g:K, G:'#333c57', w:'#566c86', r:'#ef7d57', b:'#ef7d57', s:'#8b5a2b'},
+  {...HERO_PAL, g:'#ffcd75', G:'#ef7d57', w:'#f4f4f4', r:'#41a6f6', b:'#41a6f6'},
+];
+const SAGE_PAL = {...HERO_PAL, g:'#f4f4f4', G:'#94b0c2', w:'#f4f4f4', r:'#5d275d', b:'#5d275d', y:'#ffcd75'};
+
+const SPR_TREE = norm(['................','.....kkkkkk.....','...kkllggggkk...','..kllgggggggGk..','.klggggggggggGk.','.kgggggggggggGk.','kggggggggggggGGk','kgggggggggggGGGk','kggggggggggGGGGk','.kggggggggGGGGk.','.kGgggggGGGGGGk.','..kkGGGGGGGGkk..','....kkkttkk.....','......kttk......','......kttk......','.....kkkkkk.....']);
+const SPR_PINE = norm(['.......kk.......','......klgk......','.....klggGk.....','....klgggGGk....','.....kggGGk.....','....klgggGGk....','...klggggGGGk...','..klgggggGGGGk..','....kggggGGk....','...klggggGGGk...','..klgggggGGGGk..','.klggggggGGGGGk.','.kkkkkkkkkkkkkk.','......kttk......','......kttk......','......kkkk......']);
+const SPR_ROCK = norm(['......kkkk......','....kkGwGGkk....','...kGwwGGGGdk...','..kGwGGGGGGddk..','..kGGGGGGGdddk..','.kGGGGGGGGdddk..','.kGGGGGGGddddk..','.kdGGGGGddddddk.','..kddddddddddk..','...kkkkkkkkkk...'], 16, 16, 2);
+const SPR_SIGN = norm(['..kkkkkkkkkkkk..','..kbbbbbbbbbbk..','..kbkkkbkkkbbk..','..kbbbbbbbbbbk..','..kbkkbkkkkbbk..','..kbbbbbbbbbbk..','..kkkkkkkkkkkk..','......kBBk......','......kBBk......','......kBBk......','.....kkkkkk.....'], 16, 16, 1);
+const SPR_CHEST = norm(['...kkkkkkkkkk...','..kbbbbbbbbbbk..','..kbyBBBBBBybk..','..kkkkkyykkkkk..','..kbbbkyykbbbk..','..kbybbkkbbybk..','..kbBBBBBBBBbk..','..kkkkkkkkkkkk..'], 16, 16, 3);
+const SPR_CHEST_OPEN = norm(['..kkkkkkkkkkkk..','..kBBBBBBBBBBk..','..kbbbbbbbbbbk..','..kkkkkkkkkkkk..','..kyywyyyyywyk..','..kbbbkyykbbbk..','..kbybbkkbbybk..','..kbBBBBBBBBbk..','..kkkkkkkkkkkk..'], 16, 16, 3);
+const PAL_TREE = {k:K, l:'#a7f070', g:'#38b764', G:'#257179', t:WOOD};
+const PAL_PINE = {k:K, l:'#38b764', g:'#257179', G:'#1d4d55', t:WOOD};
+const PAL_SECRET = {k:K, l:'#a7f070', g:'#38b764', G:'#2a7a5a', t:WOOD};
+const PAL_ROCK = {k:K, G:'#94b0c2', d:'#566c86', w:'#f4f4f4'};
+const PAL_WOOD = {k:K, b:WOOD, B:WOODD, y:'#ffcd75', w:'#f4f4f4'};
+
+const _sprCanvas = new Map();
+function sprC(key, rows, pal, opt = {}) {
+  const k = key + JSON.stringify(opt);
+  let c = _sprCanvas.get(k);
+  if (!c) { c = document.createElement('canvas'); c.width = rows[0].length; c.height = rows.length; drawSprite(c.getContext('2d'), rows, pal, 0, 0, 1, opt); _sprCanvas.set(k, c); }
+  return c;
+}
+
+/* ---- Dessin des tuiles et bâtiments (couche statique, échelle 1) ---- */
+function rect(c, col, x, y, w, h) { c.fillStyle = col; c.fillRect(x, y, w, h); }
+function drawTile(c, m, t, x, y) {
+  const X = x * TS, Y = y * TS;
+  const dots = (col, n, seed, s = 1) => { for (let i = 0; i < n; i++) rect(c, col, X + Math.floor(hash(x * 7 + i + seed, y * 13 + i) * (TS - s)), Y + Math.floor(hash(y * 5 + i, x * 11 + i + seed) * (TS - s)), s, s); };
+  const grass = () => { rect(c, '#38b764', X, Y, TS, TS); dots('#2f9a58', 4, 2, 2); dots('#a7f070', 2, 1, 1); };
+  const at = (dx, dy) => { const nx = x + dx, ny = y + dy; return nx < 0 || ny < 0 || nx >= MW || ny >= MH ? t : m[ny * MW + nx]; };
+  const water = () => {
+    rect(c, '#3b5dc9', X, Y, TS, TS);
+    for (let i = 0; i < 2; i++) { const a = hash(x + i * 3, y * 2 + i); rect(c, '#41a6f6', X + Math.floor(a * 10), Y + 3 + i * 7, 5, 1); }
+    const wet = n => n === T.WATER || n === T.BRIDGE || n === T.STONE;
+    if (!wet(at(0, -1))) rect(c, '#73eff7', X, Y, TS, 1);
+    if (!wet(at(0, 1))) rect(c, '#29366f', X, Y + TS - 1, TS, 1);
+    if (!wet(at(-1, 0))) rect(c, '#73eff7', X, Y, 1, TS);
+    if (!wet(at(1, 0))) rect(c, '#73eff7', X + TS - 1, Y, 1, TS);
+  };
+  switch (t) {
+    case T.GRASS: grass(); break;
+    case T.FLOWER: grass(); { const cols = ['#f4f4f4', '#ffcd75', '#ef7d57', '#73eff7', '#b86fd6']; for (let i = 0; i < 3; i++) { const a = hash(x * 3 + i, y * 9), b = hash(y * 3 + i, x * 9); rect(c, cols[Math.floor(hash(x + i, y) * cols.length)], X + 2 + Math.floor(a * 11), Y + 2 + Math.floor(b * 11), 2, 2); } } break;
+    case T.TREE: grass(); drawSprite(c, SPR_TREE, PAL_TREE, X, Y); break;
+    case T.PINE: rect(c, '#257179', X, Y, TS, TS); drawSprite(c, SPR_PINE, PAL_PINE, X, Y); break;
+    case T.SECRET: rect(c, '#257179', X, Y, TS, TS); drawSprite(c, SPR_PINE, PAL_SECRET, X, Y); break;
+    case T.DARK: rect(c, '#257179', X, Y, TS, TS); dots('#1d5c63', 5, 3, 2); dots('#38b764', 2, 4, 1); break;
+    case T.WATER: water(); break;
+    case T.STONE: water(); rect(c, K, X + 3, Y + 4, 10, 8); rect(c, '#94b0c2', X + 4, Y + 5, 8, 6); rect(c, '#f4f4f4', X + 5, Y + 5, 3, 1); rect(c, '#566c86', X + 4, Y + 10, 8, 1); break;
+    case T.PATH: rect(c, '#c9a26b', X, Y, TS, TS); dots('#a8834f', 5, 5, 2); dots('#e3c48f', 3, 6, 1); break;
+    case T.PLAZA: rect(c, '#566c86', X, Y, TS, TS); for (let j = 0; j < 4; j++) for (let i = 0; i < 4; i++) { const o = j % 2 ? 2 : 0; rect(c, hash(x * 4 + i, y * 4 + j) < .5 ? '#94b0c2' : '#a9c1cf', X + i * 4 + o, Y + j * 4, 3, 3); } break;
+    case T.SAND: rect(c, '#f0d58f', X, Y, TS, TS); dots('#d9b77e', 5, 7, 1); break;
+    case T.ROCK: rect(c, '#566c86', X, Y, TS, TS); dots('#333c57', 4, 8, 2); drawSprite(c, SPR_ROCK, PAL_ROCK, X, Y); break;
+    case T.BRIDGE: water(); rect(c, WOODD, X, Y + 1, TS, 14); for (let i = 0; i < 4; i++) rect(c, WOOD, X + i * 4, Y + 2, 3, 12); rect(c, K, X, Y + 1, TS, 1); rect(c, K, X, Y + 14, TS, 1); break;
   }
-  // particules
-  particles = particles.filter(p => p.life-- > 0);
-  for (const p of particles) { p.x += p.vx; p.y += p.vy; p.vy += p.g || 0; ctx.fillStyle = p.c; ctx.fillRect(Math.round(p.x), Math.round(p.y), p.s || 2, p.s || 2); }
 }
-function burst(type) {
-  anim = {type, until: frame + (type === 'heal' ? 9 : 8)};
-  if (type === 'spend') for (let i = 0; i < 10; i++) particles.push({x: 50, y: GROUND - 20, vx: 3 + Math.random() * 3, vy: -2 - Math.random() * 2, g: .25, c: '#ffcd75', life: 18});
-  if (type === 'heal') for (let i = 0; i < 12; i++) particles.push({x: 30 + Math.random() * 28, y: GROUND - 10 - Math.random() * 30, vx: 0, vy: -.6, c: i % 2 ? '#a7f070' : '#73eff7', life: 14, s: 1 + (i % 2)});
-  if (type === 'hurt') for (let i = 0; i < 8; i++) particles.push({x: 42, y: GROUND - 22, vx: -1 - Math.random() * 2, vy: -1 - Math.random() * 2, g: .2, c: '#b13e53', life: 14});
+function drawHouse(c, X, Y, w, h, o) {
+  const rH = Math.round(h * .375);
+  rect(c, K, X + 1, Y + rH - 1, w - 2, h - rH + 1); rect(c, o.wall, X + 2, Y + rH, w - 4, h - rH - 1);
+  rect(c, 'rgba(0,0,0,.18)', X + w - 6, Y + rH, 4, h - rH - 1);
+  for (let i = 0; i < rH; i++) {
+    const ins = Math.max(0, Math.round((rH - 1 - i) * .7));
+    rect(c, K, X + ins, Y + i, w - ins * 2, 1);
+    if (i > 0 && w - ins * 2 - 2 > 0) rect(c, i % 3 === 1 ? o.roofD : o.roof, X + ins + 1, Y + i, w - ins * 2 - 2, 1);
+  }
+  rect(c, K, X, Y + rH - 1, w, 2); rect(c, o.roofD, X + 1, Y + rH - 1, w - 2, 1);
+  if (o.chimney) { rect(c, K, X + w - 10, Y + 1, 5, 6); rect(c, '#b13e53', X + w - 9, Y + 2, 3, 4); }
+  const dx = X + (w >> 1) - 3, dy = Y + h - 9;
+  rect(c, K, dx - 1, dy - 1, 8, 9); rect(c, WOOD, dx, dy, 6, 8); rect(c, WOODD, dx + 3, dy, 1, 8); rect(c, '#ffcd75', dx + 4, dy + 4, 1, 1);
+  if (w >= 32) for (const wx of [X + 4, X + w - 10]) { const wy = Y + rH + 4; rect(c, K, wx - 1, wy - 1, 7, 7); rect(c, '#73eff7', wx, wy, 5, 5); rect(c, '#f4f4f4', wx, wy, 2, 2); rect(c, K, wx + 2, wy, 1, 5); }
+  if (o.icon) { const sx = X + (w >> 1) - 5, sy = Y + rH + 1; rect(c, K, sx, sy, 10, 10); rect(c, o.signBg || '#f4f4f4', sx + 1, sy + 1, 8, 8); drawSprite(c, o.icon.rows, o.icon.pal, sx + 1, sy + 1); }
 }
-setInterval(() => { frame++; if (UI.tab === 'jeu') drawArena(); }, 110);
+function drawMarket(c, X, Y) {
+  rect(c, K, X + 2, Y + 18, 44, 14); rect(c, WOOD, X + 3, Y + 19, 42, 12); rect(c, WOODD, X + 3, Y + 24, 42, 1); rect(c, WOODD, X + 3, Y + 28, 42, 1);
+  const goods = ['#b13e53', '#ffcd75', '#a7f070', '#ef7d57', '#38b764', '#f4f4f4'];
+  for (let i = 0; i < 8; i++) { rect(c, K, X + 4 + i * 5, Y + 14, 5, 5); rect(c, goods[i % 6], X + 5 + i * 5, Y + 15, 3, 3); }
+  for (const px of [X + 3, X + 42]) { rect(c, K, px, Y + 4, 3, 15); rect(c, WOODD, px + 1, Y + 5, 1, 13); }
+  rect(c, K, X, Y + 2, 48, 11);
+  for (let sx = 0; sx < 46; sx += 4) { const col = (sx / 4) % 2 ? '#f4f4f4' : '#b13e53'; rect(c, col, X + 1 + sx, Y + 3, Math.min(4, 46 - sx), 8); rect(c, K, X + 1 + sx, Y + 13, 4, 1); rect(c, col, X + 2 + sx, Y + 11, 2, 2); }
+  rect(c, K, X + 19, Y + 3, 10, 10); drawSprite(c, SMALL.coin.rows, SMALL.coin.pal, X + 20, Y + 4);
+}
+function drawBuilding(c, o) {
+  const X = o.x * TS, Y = o.y * TS, w = o.w * TS, h = o.h * TS;
+  const ic = (name, col) => ({rows: ICONS[name], pal: {x: col}});
+  switch (o.kind) {
+    case 'home': return drawHouse(c, X, Y, w, h, {wall:'#f4f4f4', roof:'#b13e53', roofD:'#5d275d', chimney:true, icon:SMALL.heart});
+    case 'bank': return drawHouse(c, X, Y, w, h, {wall:'#f4f4f4', roof:'#ffcd75', roofD:'#ef7d57', icon:SMALL.coin, signBg:'#333c57'});
+    case 'archives': return drawHouse(c, X, Y, w, h, {wall:'#94b0c2', roof:'#3b5dc9', roofD:'#29366f', icon:ic('journal', '#3b5dc9')});
+    case 'lab': return drawHouse(c, X, Y, w, h, {wall:'#73eff7', roof:'#5d275d', roofD:'#3a1a3a', chimney:true, icon:ic('suivis', '#5d275d')});
+    case 'market': return drawMarket(c, X, Y);
+    case 'board':
+      rect(c, K, X + 3, Y + 10, 2, 6); rect(c, K, X + 11, Y + 10, 2, 6);
+      rect(c, K, X + 1, Y + 2, 14, 10); rect(c, WOOD, X + 2, Y + 3, 12, 8);
+      rect(c, '#f4f4f4', X + 3, Y + 4, 4, 3); rect(c, '#ffcd75', X + 8, Y + 4, 5, 2); rect(c, '#f4f4f4', X + 8, Y + 7, 4, 3); rect(c, '#73eff7', X + 3, Y + 8, 3, 2);
+      return;
+  }
+}
+function drawVillage(c, o, v) {
+  const X = o.x * TS, Y = o.y * TS;
+  switch (v.kind) {
+    case 'house': return drawHouse(c, X, Y, 32, 32, v);
+    case 'well':
+      rect(c, K, X + 7, Y + 16, 18, 12); rect(c, '#94b0c2', X + 8, Y + 17, 16, 10); rect(c, '#566c86', X + 8, Y + 24, 16, 3); rect(c, '#29366f', X + 10, Y + 18, 12, 4);
+      rect(c, K, X + 8, Y + 6, 2, 11); rect(c, K, X + 22, Y + 6, 2, 11); rect(c, K, X + 5, Y + 3, 22, 5); rect(c, '#b13e53', X + 6, Y + 4, 20, 3);
+      rect(c, K, X + 14, Y + 9, 4, 4); rect(c, WOOD, X + 15, Y + 10, 2, 2); return;
+    case 'garden':
+      rect(c, K, X + 2, Y + 4, 28, 26); rect(c, '#a8834f', X + 3, Y + 5, 26, 24);
+      for (let r = 0; r < 4; r++) for (let i = 0; i < 5; i++) { rect(c, '#38b764', X + 5 + i * 5, Y + 7 + r * 6, 3, 2); rect(c, r % 2 ? '#ef7d57' : '#a7f070', X + 6 + i * 5, Y + 9 + r * 6, 1, 2); }
+      return;
+    case 'fountain':
+      rect(c, K, X + 3, Y + 14, 26, 15); rect(c, '#94b0c2', X + 4, Y + 15, 24, 13); rect(c, '#41a6f6', X + 6, Y + 17, 20, 8); rect(c, '#73eff7', X + 8, Y + 18, 6, 1);
+      rect(c, K, X + 14, Y + 5, 4, 12); rect(c, '#94b0c2', X + 15, Y + 6, 2, 10); rect(c, K, X + 10, Y + 4, 12, 3); rect(c, '#41a6f6', X + 11, Y + 5, 10, 1); return;
+    case 'mill':
+      drawHouse(c, X + 4, Y + 10, 24, 22, {wall:'#f4f4f4', roof:'#566c86', roofD:'#333c57'});
+      for (let i = -9; i <= 9; i++) { rect(c, K, X + 15 + i, Y + 10 + i, 2, 2); rect(c, K, X + 15 + i, Y + 10 - i, 2, 2); }
+      for (const [sx, sy] of [[-8, -8], [5, -8], [-8, 5], [5, 5]]) rect(c, '#f4f4f4', X + 15 + sx, Y + 10 + sy, 4, 4);
+      rect(c, '#ffcd75', X + 15, Y + 10, 2, 2); return;
+    case 'tower':
+      rect(c, K, X + 8, Y + 3, 16, 29); rect(c, '#94b0c2', X + 9, Y + 4, 14, 27); rect(c, '#566c86', X + 19, Y + 4, 4, 27);
+      for (let i = 0; i < 4; i++) { rect(c, K, X + 8 + i * 4, Y, 3, 4); rect(c, '#94b0c2', X + 9 + i * 4, Y + 1, 1, 3); }
+      rect(c, K, X + 14, Y + 9, 4, 6); rect(c, '#ffcd75', X + 15, Y + 10, 2, 4); rect(c, K, X + 13, Y + 24, 6, 8); rect(c, WOOD, X + 14, Y + 25, 4, 7); return;
+    case 'castle':
+      rect(c, K, X + 1, Y + 12, 30, 20); rect(c, '#94b0c2', X + 2, Y + 13, 28, 18);
+      for (const tx of [X, X + 22]) { rect(c, K, tx, Y + 4, 10, 28); rect(c, '#94b0c2', tx + 1, Y + 5, 8, 26); rect(c, '#566c86', tx + 6, Y + 5, 3, 26); for (let i = 0; i < 3; i++) rect(c, K, tx + i * 4, Y + 1, 2, 4); }
+      for (let i = 0; i < 3; i++) rect(c, K, X + 11 + i * 4, Y + 9, 2, 4);
+      rect(c, K, X + 12, Y + 20, 8, 12); rect(c, WOODD, X + 13, Y + 21, 6, 11); rect(c, K, X + 15, Y - 6, 1, 15); rect(c, '#b13e53', X + 16, Y - 6, 6, 4); return;
+  }
+}
+function drawPlot(c, o) {
+  const X = o.x * TS, Y = o.y * TS;
+  rect(c, K, X + 3, Y + 5, 26, 23); rect(c, '#a8834f', X + 4, Y + 6, 24, 21); rect(c, '#c9a26b', X + 6, Y + 8, 6, 2); rect(c, '#c9a26b', X + 18, Y + 18, 7, 2);
+  for (const [sx, sy] of [[3, 3], [27, 3], [3, 25], [27, 25]]) { rect(c, K, X + sx, Y + sy, 2, 5); rect(c, '#f4f4f4', X + sx, Y + sy, 2, 1); }
+  rect(c, K, X + 15, Y + 14, 2, 10); rect(c, K, X + 10, Y + 9, 12, 7); rect(c, WOOD, X + 11, Y + 10, 10, 5); rect(c, '#ffcd75', X + 15, Y + 11, 2, 2); rect(c, '#ffcd75', X + 15, Y + 14, 2, 1);
+}
+function drawStatic(c, o) {
+  const X = o.x * TS, Y = o.y * TS;
+  if (o.type === 'building') drawBuilding(c, o);
+  else if (o.type === 'village') drawVillage(c, o, o.v);
+  else if (o.type === 'plot') drawPlot(c, o);
+  else if (o.type === 'sign') drawSprite(c, SPR_SIGN, PAL_WOOD, X, Y);
+  else if (o.type === 'lair') { rect(c, '#257179', X + 1, Y + 9, 14, 6); rect(c, '#257179', X + 3, Y + 7, 10, 9); rect(c, '#1d5c63', X + 4, Y + 12, 8, 3); rect(c, '#f4f4f4', X + 2, Y + 13, 3, 1); rect(c, '#f4f4f4', X + 12, Y + 10, 2, 1); }
+}
+
+function defaultWorld() { return {x:20, y:16, seen:'', found:[], chests:{}, skins:['classique'], skin:'classique', built:0}; }
+
+/* ---- Construction du monde ---- */
+const WORLD = {map: null, objs: [], at: null, layer: null, sig: '', seen: null, villagers: []};
+function buildObjects() {
+  const objs = [], add = o => objs.push(o);
+  add({id:'home', type:'building', kind:'home', x:20, y:14, w:2, h:2, name:'Maison du héros'});
+  add({id:'market', type:'building', kind:'market', x:26, y:14, w:3, h:2, name:'Marché'});
+  add({id:'bank', type:'building', kind:'bank', x:20, y:20, w:2, h:2, name:'Banque des Écarts'});
+  add({id:'archives', type:'building', kind:'archives', x:27, y:20, w:2, h:2, name:'Archives'});
+  add({id:'board', type:'building', kind:'board', x:23, y:15, w:1, h:1, name:'Tableau des quêtes'});
+  add({id:'lab', type:'building', kind:'lab', x:14, y:15, w:2, h:2, name:"Labo de l'alchimiste"});
+  add({id:'fire', type:'fire', x:25, y:23, w:1, h:1, name:'Feu de camp'});
+  add({id:'sage', type:'npc', x:19, y:17, w:1, h:1, name:'Vieux sage'});
+  for (const s of SIGNS) add({...s, type:'sign', w:1, h:1, name:'Panneau'});
+  const built = S.world.built || 0;
+  PLOTS.forEach(([x, y], i) => add({id:'plot' + i, type: i < built ? 'village' : 'plot', x, y, w:2, h:2, idx:i, v:VILLAGE[i], name: i < built ? VILLAGE[i].name : 'Terrain à bâtir'}));
+  S.categories.slice(0, LAIRS.length).forEach((c, i) => add({id:'lair:' + c.id, type:'lair', catId:c.id, x:LAIRS[i][0], y:LAIRS[i][1], w:1, h:1, name:'Repaire'}));
+  for (const ch of CHESTS) add({...ch, chestId:ch.id, id:'chest:' + ch.id, type:'chest', w:1, h:1});
+  return objs;
+}
+const worldSig = () => S.categories.map(c => c.id).join(',') + '|' + (S.world.built || 0);
+function ensureWorld() {
+  const sig = worldSig();
+  if (sig === WORLD.sig && WORLD.layer) return;
+  WORLD.sig = sig;
+  const map = genMap();
+  WORLD.objs = buildObjects();
+  for (const o of WORLD.objs) for (let y = o.y - 1; y <= o.y + o.h; y++) for (let x = o.x - 1; x <= o.x + o.w; x++) {
+    if (x < 1 || y < 1 || x >= MW - 1 || y >= MH - 1) continue;
+    const i = y * MW + x, t = map[i], foot = x >= o.x && x < o.x + o.w && y >= o.y && y < o.y + o.h;
+    if (foot) { if (o.type !== 'chest' || !WALKABLE.has(t)) map[i] = T.GRASS; }
+    else if (t === T.TREE || t === T.PINE || t === T.ROCK) map[i] = T.GRASS;
+  }
+  WORLD.map = map;
+  WORLD.at = new Map();
+  for (const o of WORLD.objs) for (let y = o.y; y < o.y + o.h; y++) for (let x = o.x; x < o.x + o.w; x++) WORLD.at.set(y * MW + x, o);
+  const cv = document.createElement('canvas'); cv.width = MW * TS; cv.height = MH * TS;
+  const c = cv.getContext('2d');
+  for (let y = 0; y < MH; y++) for (let x = 0; x < MW; x++) drawTile(c, map, map[y * MW + x], x, y);
+  for (const o of WORLD.objs) drawStatic(c, o);
+  WORLD.layer = cv;
+  if (!WORLD.seen) {
+    WORLD.seen = new Uint8Array(MW * MH);
+    const s = S.world.seen || '';
+    for (let i = 0; i < s.length && i < WORLD.seen.length; i++) WORLD.seen[i] = s.charCodeAt(i) === 49 ? 1 : 0;
+  }
+  if (!WORLD.villagers.length) WORLD.villagers = VILL_PALS.map((pal, i) => { const [x, y] = [[23, 21], [25, 17], [22, 19]][i]; return {x, y, fx:x * TS, fy:y * TS, tgt:null, pal, i, wait:1 + i, flip:false}; });
+  placeHero();
+}
+const inMap = (x, y) => x >= 0 && y >= 0 && x < MW && y < MH;
+const walkable = (x, y) => inMap(x, y) && WALKABLE.has(WORLD.map[y * MW + x]) && !WORLD.at.has(y * MW + x);
+function adjacentTo(o, x, y) {
+  return ((x >= o.x && x < o.x + o.w) && (y === o.y - 1 || y === o.y + o.h)) || ((y >= o.y && y < o.y + o.h) && (x === o.x - 1 || x === o.x + o.w));
+}
+function findPath(sx, sy, goal) {
+  const prev = new Int32Array(MW * MH).fill(-2), q = [sy * MW + sx];
+  prev[q[0]] = -1;
+  for (let h = 0; h < q.length; h++) {
+    const i = q[h], x = i % MW, y = (i / MW) | 0;
+    if (goal(x, y)) { const p = []; let j = i; while (prev[j] !== -1) { p.push([j % MW, (j / MW) | 0]); j = prev[j]; } return p.reverse(); }
+    for (const [dx, dy] of Object.values(DIRS)) {
+      const nx = x + dx, ny = y + dy;
+      if (!walkable(nx, ny)) continue;
+      const ni = ny * MW + nx; if (prev[ni] !== -2) continue;
+      prev[ni] = i; q.push(ni);
+    }
+  }
+  return null;
+}
+
+/* ---- Héros ---- */
+const HERO_S = {x:20, y:16, fx:320, fy:256, path:[], tgt:null, dir:'down', flip:false, step:0, pending:null, placed:false};
+function placeHero() {
+  const h = HERO_S;
+  let x = h.placed ? h.x : (S.world.x ?? 20), y = h.placed ? h.y : (S.world.y ?? 16);
+  if (!walkable(x, y)) {
+    let best = null;
+    for (let r = 1; r < 12 && !best; r++) for (let dy = -r; dy <= r && !best; dy++) for (let dx = -r; dx <= r; dx++) if (walkable(x + dx, y + dy)) { best = [x + dx, y + dy]; break; }
+    [x, y] = best || [20, 16];
+  }
+  if (!h.placed || x !== h.x || y !== h.y) { h.x = x; h.y = y; h.fx = x * TS; h.fy = y * TS; h.tgt = null; h.path = []; }
+  h.placed = true;
+  reveal(x, y, true);
+}
+function reveal(cx, cy, quiet) {
+  const r = 4; let changed = false;
+  for (let y = cy - r; y <= cy + r; y++) for (let x = cx - r; x <= cx + r; x++) {
+    if (!inMap(x, y) || (x - cx) ** 2 + (y - cy) ** 2 > r * r + 1) continue;
+    const i = y * MW + x; if (!WORLD.seen[i]) { WORLD.seen[i] = 1; changed = true; }
+  }
+  if (changed) S.world.seen = Array.from(WORLD.seen).join('');
+  const found = S.world.found;
+  const fresh = WORLD.objs.filter(o => isFindable(o) && !found.includes(o.id) && Math.abs(o.x + (o.w >> 1) - cx) <= 3 && Math.abs(o.y + (o.h >> 1) - cy) <= 3);
+  if (fresh.length) {
+    found.push(...fresh.map(o => o.id));
+    if (!quiet) { fresh.forEach((o, i) => setTimeout(() => toast('✦ Lieu découvert', `${objName(o)} · +10 XP`), i * 500)); SFX.coin(); softCommit(); }
+    else save();
+  }
+  if (changed) UI.worldDirty = true;
+}
+const isFindable = o => ['building', 'fire', 'npc', 'lair', 'chest'].includes(o.type);
+function stepDir(dir) {
+  const h = HERO_S, [dx, dy] = DIRS[dir];
+  h.dir = dir; if (dx) h.flip = dx < 0;
+  const nx = h.x + dx, ny = h.y + dy;
+  if (walkable(nx, ny)) { h.path = [[nx, ny]]; h.pending = null; }
+  else { const o = inMap(nx, ny) && WORLD.at.get(ny * MW + nx); if (o) { UI.hold = null; interact(o); } }
+}
+function goTo(tx, ty) {
+  const h = HERO_S, o = inMap(tx, ty) ? WORLD.at.get(ty * MW + tx) : null;
+  if (o) {
+    if (adjacentTo(o, h.x, h.y)) { h.path = []; return interact(o); }
+    const p = findPath(h.x, h.y, (x, y) => adjacentTo(o, x, y));
+    if (p) { h.path = p; h.pending = o; }
+    return;
+  }
+  if (tx === h.x && ty === h.y) return interactNear();
+  const p = walkable(tx, ty) ? findPath(h.x, h.y, (x, y) => x === tx && y === ty) : findPath(h.x, h.y, (x, y) => Math.abs(x - tx) + Math.abs(y - ty) === 1);
+  if (p) { h.path = p; h.pending = null; }
+}
+function nearObject() {
+  const h = HERO_S, order = [h.dir, 'up', 'down', 'left', 'right'];
+  for (const d of order) { const [dx, dy] = DIRS[d], x = h.x + dx, y = h.y + dy; const o = inMap(x, y) && WORLD.at.get(y * MW + x); if (o) return o; }
+  return null;
+}
+function interactNear() { const o = nearObject(); if (o) interact(o); else { UI.dlg = null; UI.near = null; paintDlg(); } }
+function onArrive() {
+  const h = HERO_S;
+  S.world.x = h.x; S.world.y = h.y; UI.worldDirty = true;
+  reveal(h.x, h.y);
+  if (h.path.length) return;
+  if (h.pending) { const o = h.pending; h.pending = null; if (adjacentTo(o, h.x, h.y)) return interact(o); }
+  proximity();
+}
+function proximity() {
+  const o = nearObject();
+  if (UI.dlg && UI.dlg.obj && !adjacentTo(UI.dlg.obj, HERO_S.x, HERO_S.y)) UI.dlg = null;
+  if (o && (!UI.dlg || UI.dlg.obj !== o)) {
+    const verb = {building:'Entrer', chest:'Ouvrir', sign:'Lire', npc:'Parler', lair:'Observer', fire:'Se reposer', plot:'Regarder', village:'Regarder'}[o.type];
+    UI.dlg = {who: objName(o).toUpperCase(), text: o.type === 'sign' ? o.text : hintText(o), btns: o.type === 'sign' ? '' : `<button class="btn sm gold" data-act="A">A · ${verb}</button>`, obj: o};
+  }
+  UI.near = o;
+  paintDlg();
+}
+function objName(o) {
+  if (o.type === 'lair') { const c = UI.game && UI.game.ms.cats.find(x => x.cat.id === o.catId); return c ? monName(c) : 'Repaire'; }
+  if (o.type === 'chest' && o.chestId === 'secret' && !S.world.chests.secret) return 'Coffre mystérieux';
+  return o.name;
+}
+function hintText(o) {
+  switch (o.type) {
+    case 'building': return {home:'Ta maison. Change de tenue, règle tes budgets ou relis les règles.', market:'Le marché du village : note ici tes dépenses.', bank:'La banque compare ton budget au réel : écarts, projections, plus grosses dépenses.', archives:'Les archives gardent le journal de toutes tes dépenses, jour par jour.', board:'Le tableau des quêtes : tes habitudes du jour et tes trophées.', lab:"L'alchimiste mesure tout : sommeil, eau, cafés… tes suivis personnalisés."}[o.kind];
+    case 'lair': { const c = UI.game.ms.cats.find(x => x.cat.id === o.catId); return c ? `${RAGE_TXT[rageLv(c.ratio)]} · ${Math.round(c.ratio * 100)} % du budget « ${c.cat.name} ».` : ''; }
+    case 'chest': return S.world.chests[o.chestId] ? 'Un coffre vide.' : condMet(o, UI.game) ? 'Il brille… il peut être ouvert !' : 'Un coffre verrouillé.';
+    case 'fire': return S.checkins[today()] ? 'Le feu crépite : journée sans dépense pointée.' : 'Un feu de camp. Repose-toi ici les jours sans dépense.';
+    case 'npc': return 'Un vieil homme qui connaît bien les monstres.';
+    case 'plot': return 'Un terrain à bâtir pour le village.';
+    case 'village': return o.v.desc;
+  }
+  return '';
+}
+const condVal = (k, g) => k === 'trophies' ? g.unlocked.length : g[k];
+const condMet = (o, g) => !o.cond || condVal(o.cond.k, g) >= o.cond.n;
+const btn = (label, act, extra = '', cls = 'gold') => `<button class="btn sm ${cls}" data-act="${act}" ${extra}>${label}</button>`;
+
+function interact(o) {
+  const g = UI.game, h = HERO_S;
+  UI.near = o;
+  if (adjacentTo(o, h.x, h.y)) { const dx = o.x - h.x, dy = o.y - h.y; if (Math.abs(dx) >= Math.abs(dy) && dx) h.flip = dx < 0; }
+  const D = (text, btns = '') => { UI.dlg = {who: objName(o).toUpperCase(), text, btns, obj: o}; paintDlg(); };
+  switch (o.type) {
+    case 'building':
+      SFX.click();
+      if (o.kind === 'market') return openPanel('add');
+      if (o.kind === 'bank') return openPanel('ecarts');
+      if (o.kind === 'archives') return openPanel('journal');
+      if (o.kind === 'board') return openPanel('quetes');
+      if (o.kind === 'lab') return openPanel('suivis');
+      return D(`Bienvenue chez toi, ${heroName()}. Tenue actuelle : ${SKINS[S.world.skin].name}.`, btn('Tenues', 'panel', 'data-p="skins"') + btn('Budgets & options', 'panel', 'data-p="options"', 'cyan') + btn('Règles', 'rules', '', 'grey'));
+    case 'sign': return D(o.text);
+    case 'npc': SFX.click(); UI.tipIdx = ((UI.tipIdx ?? Math.floor(Math.random() * TIPS.length)) + 1) % TIPS.length; return D(`« ${TIPS[UI.tipIdx]} »`, btn('Un autre conseil', 'A', '', 'grey'));
+    case 'fire': {
+      const t = today(), hasExp = S.expenses.some(e => e.date === t);
+      if (S.checkins[t]) return D('Le feu crépite doucement. Les monstres dorment : journée sans dépense pointée.', btn('Annuler le pointage', 'zero', '', 'grey'));
+      if (hasExp) return D("Tu as déjà noté des dépenses aujourd'hui. Reviens demain pour une journée sans dépense !");
+      return D('Te reposer au coin du feu ? Pointe une journée sans dépense (+35 XP).', btn('✦ Journée sans dépense', 'zero', '', 'cyan'));
+    }
+    case 'plot': {
+      const b = S.world.built || 0, v = VILLAGE[b];
+      if (o.idx === b) return D(`Chantier : ${v.name}. Il sera construit quand ton trésor atteindra ${fmt(v.cost)} (tu as ${fmt(Math.max(0, g.treasure))}). Le trésor = économies des mois terminés.`);
+      return D(`Terrain réservé. Il faut d'abord construire : ${v ? v.name : '—'}.`);
+    }
+    case 'village': return D(`${o.v.desc} Construit grâce à ${fmt(o.v.cost)} d'économies.`);
+    case 'lair': {
+      const c = g.ms.cats.find(x => x.cat.id === o.catId); if (!c) return;
+      const lv = rageLv(c.ratio);
+      const mood = ['', 'Il dort paisiblement.', "Il ouvre un œil…", 'Il grogne : attention à cette catégorie !', 'Il est déchaîné ! Chaque franc de plus le rend plus fort.'][lv];
+      SFX.click();
+      return D(`${mood} ${fmt(c.spent)} / ${fmt(c.budget)} · ${c.budget - c.spent < 0 ? 'dépassé de ' + fmt(c.spent - c.budget) : 'reste ' + fmt(c.budget - c.spent)}.`, btn('+ Dépense ' + esc(c.cat.name), 'addCat', `data-id="${c.cat.id}"`, 'green') + btn('Écarts', 'panel', 'data-p="ecarts"', 'grey'));
+    }
+    case 'chest': {
+      const id = o.chestId;
+      if (S.world.chests[id]) return D(`Coffre vide. Ouvert le ${dayLabel(S.world.chests[id])}.`);
+      if (!condMet(o, g)) return D(`Verrouillé. Pour l'ouvrir : ${o.cond.txt} (${condVal(o.cond.k, g)}/${o.cond.n}).`);
+      S.world.chests[id] = today();
+      if (o.skin && !S.world.skins.includes(o.skin)) S.world.skins.push(o.skin);
+      SFX.lvl(); worldFx('chest', null, o);
+      softCommit();
+      return D(`Tu ouvres le ${o.name} : +${o.xp} XP${o.skin ? ` et la tenue « ${SKINS[o.skin].name} » !` : ' !'}`, o.skin ? btn('Porter la tenue', 'skin', `data-id="${o.skin}"`) : '');
+    }
+  }
+}
+
+/* ---- Effets ---- */
+let particles = [];
+function worldFx(type, catId, o) {
+  const h = HERO_S, cx = h.fx + 8, cy = h.fy + 6;
+  if (type === 'spend') for (let i = 0; i < 10; i++) particles.push({x:cx, y:cy, vx:(Math.random() - .5) * 60, vy:-40 - Math.random() * 40, g:120, c:'#ffcd75', life:.7});
+  if (type === 'heal') for (let i = 0; i < 14; i++) particles.push({x:cx + (Math.random() - .5) * 20, y:cy + Math.random() * 10, vx:0, vy:-20, c:i % 2 ? '#a7f070' : '#73eff7', life:.8, s:1 + (i % 2)});
+  if (type === 'hurt') for (let i = 0; i < 10; i++) particles.push({x:cx, y:cy, vx:(Math.random() - .5) * 70, vy:-30 - Math.random() * 30, g:100, c:'#b13e53', life:.6});
+  if (type === 'chest' && o) for (let i = 0; i < 18; i++) particles.push({x:o.x * TS + 8, y:o.y * TS + 6, vx:(Math.random() - .5) * 50, vy:-50 - Math.random() * 40, g:110, c:i % 3 ? '#ffcd75' : '#f4f4f4', life:1});
+  if (catId) UI.shake = {id: catId, until: performance.now() + 800};
+  if (type === 'hurt') UI.hurtUntil = performance.now() + 500;
+}
+
+/* ---- Boucle de rendu ---- */
+let viewZ = 4;
+function sizeWorld() {
+  const cv = $('#world'); if (!cv) return;
+  const dpr = window.devicePixelRatio || 1, cssW = cv.clientWidth || 360;
+  const cssH = Math.round(Math.min(window.innerHeight * .55, cssW * .8, 520));
+  cv.style.height = cssH + 'px';
+  const bw = Math.round(cssW * dpr), bh = Math.round(cssH * dpr);
+  if (cv.width !== bw || cv.height !== bh) { cv.width = bw; cv.height = bh; }
+  viewZ = Math.max(2, Math.floor(bw / (TS * (cssW > 600 ? 15 : 10.5))));
+}
+function updateWorld(dt) {
+  const h = HERO_S;
+  if (!h.tgt && h.path.length) {
+    const n = h.path[0];
+    if (walkable(n[0], n[1])) { h.tgt = h.path.shift(); const dx = h.tgt[0] - h.x, dy = h.tgt[1] - h.y; h.dir = dx > 0 ? 'right' : dx < 0 ? 'left' : dy > 0 ? 'down' : 'up'; if (dx) h.flip = dx < 0; }
+    else { h.path = []; h.pending = null; }
+  }
+  if (!h.tgt && !h.path.length && UI.hold && !$('#modal').open) stepDir(UI.hold);
+  if (h.tgt) {
+    const tx = h.tgt[0] * TS, ty = h.tgt[1] * TS, sp = 85 * dt, ddx = tx - h.fx, ddy = ty - h.fy, d = Math.hypot(ddx, ddy);
+    h.step += dt;
+    if (d <= sp) { h.fx = tx; h.fy = ty; h.x = h.tgt[0]; h.y = h.tgt[1]; h.tgt = null; onArrive(); }
+    else { h.fx += ddx / d * sp; h.fy += ddy / d * sp; }
+  }
+  for (const v of WORLD.villagers) {
+    if (v.tgt) {
+      const tx = v.tgt[0] * TS, ty = v.tgt[1] * TS, sp = 28 * dt, ddx = tx - v.fx, ddy = ty - v.fy, d = Math.hypot(ddx, ddy);
+      if (d <= sp) { v.fx = tx; v.fy = ty; v.x = v.tgt[0]; v.y = v.tgt[1]; v.tgt = null; v.wait = 1 + Math.random() * 3; }
+      else { v.fx += ddx / d * sp; v.fy += ddy / d * sp; }
+    } else if ((v.wait -= dt) <= 0) {
+      const [dx, dy] = Object.values(DIRS)[Math.floor(Math.random() * 4)], nx = v.x + dx, ny = v.y + dy;
+      if (nx >= 18 && nx <= 30 && ny >= 13 && ny <= 26 && walkable(nx, ny) && !(nx === h.x && ny === h.y)) { v.tgt = [nx, ny]; if (dx) v.flip = dx < 0; }
+      else v.wait = .5;
+    }
+  }
+  particles = particles.filter(p => (p.life -= dt) > 0);
+  for (const p of particles) { p.x += p.vx * dt; p.y += p.vy * dt; p.vy += (p.g || 0) * dt; }
+}
+function drawWorld(now) {
+  const cv = $('#world'); if (!cv || !WORLD.layer) return;
+  const ctx = cv.getContext('2d'), z = viewZ, g = UI.game, h = HERO_S;
+  ctx.imageSmoothingEnabled = false;
+  const vw = cv.width / z, vh = cv.height / z;
+  const camX = Math.round(clamp(h.fx + 8 - vw / 2, 0, Math.max(0, MW * TS - vw)));
+  const camY = Math.round(clamp(h.fy + 8 - vh / 2, 0, Math.max(0, MH * TS - vh)));
+  const sw = Math.min(Math.ceil(vw) + 1, MW * TS - camX), sh = Math.min(Math.ceil(vh) + 1, MH * TS - camY);
+  ctx.fillStyle = K; ctx.fillRect(0, 0, cv.width, cv.height);
+  ctx.drawImage(WORLD.layer, camX, camY, sw, sh, 0, 0, sw * z, sh * z);
+  const S_ = (wx) => Math.round((wx - camX) * z), S2 = (wy) => Math.round((wy - camY) * z);
+  const put = (spr, wx, wy) => ctx.drawImage(spr, S_(wx), S2(wy), spr.width * z, spr.height * z);
+  const box = (col, wx, wy, w, hh) => { ctx.fillStyle = col; ctx.fillRect(S_(wx), S2(wy), w * z, hh * z); };
+  const tick = Math.floor(now / 160), visible = (o) => o.x * TS + o.w * TS >= camX - 16 && o.x * TS <= camX + vw + 16 && o.y * TS + o.h * TS >= camY - 16 && o.y * TS <= camY + vh + 16;
+  // reflets sur l'eau
+  const x0 = Math.floor(camX / TS), y0 = Math.floor(camY / TS);
+  for (let y = y0; y <= y0 + Math.ceil(vh / TS) && y < MH; y++) for (let x = x0; x <= x0 + Math.ceil(vw / TS) && x < MW; x++) {
+    if (WORLD.map[y * MW + x] !== T.WATER) continue;
+    const a = hash(x * 31 + (tick >> 2), y * 17); if (a < .35) box('#73eff7', x * TS + Math.floor(a * 30) % 12, y * TS + Math.floor(a * 97) % 13, 2, 1);
+  }
+  const t = today(), habitsLeft = S.habits.some(hb => !habitDone(t, hb.id));
+  const cats = g ? Object.fromEntries(g.ms.cats.map(c => [c.cat.id, c])) : {};
+  for (const o of WORLD.objs) {
+    if (!visible(o)) continue;
+    const X = o.x * TS, Y = o.y * TS;
+    if (o.type === 'chest') {
+      const open = !!S.world.chests[o.chestId];
+      put(sprC(open ? 'chestO' : 'chest', open ? SPR_CHEST_OPEN : SPR_CHEST, PAL_WOOD), X, Y);
+      if (!open && g && condMet(o, g)) { const k = tick % 6; box('#f4f4f4', X + 3 + k * 2, Y + 2 - (k % 3), 1, 1); box('#ffcd75', X + 12 - k, Y + 1 + (k % 2), 1, 1); }
+    } else if (o.type === 'fire') {
+      const lit = !!S.checkins[t], f = tick % 2;
+      box(K, X + 2, Y + 11, 12, 4); box(WOOD, X + 3, Y + 12, 10, 2); box(WOODD, X + 7, Y + 12, 2, 2);
+      if (lit) { box('#ef7d57', X + 5, Y + 4 + f, 6, 8 - f); box('#ffcd75', X + 6, Y + 7, 4, 5); box('#f4f4f4', X + 7, Y + 9, 2, 2); box('#ef7d57', X + 7 + f, Y + 2 + f, 2, 2); }
+      else { box('#b13e53', X + 6, Y + 10, 2, 2); box('#ef7d57', X + 9, Y + 10, 1, 1); box('#566c86', X + 8 + f, Y + 5 - f * 2, 2, 2); }
+    } else if (o.type === 'npc') {
+      put(sprC('sage', VILLAGER, SAGE_PAL), X, Y + ((tick >> 2) % 2));
+    } else if (o.type === 'building' && o.kind === 'board' && habitsLeft && S.habits.length) {
+      const b = (tick >> 1) % 2; box(K, X + 6, Y - 9 + b, 4, 8); box('#ffcd75', X + 7, Y - 8 + b, 2, 4); box('#ffcd75', X + 7, Y - 3 + b, 2, 1);
+    } else if (o.type === 'lair') {
+      const c = cats[o.catId]; if (!c) continue;
+      const m = MONS[c.cat.monster] || MONS.slime, lv = rageLv(c.ratio), rage = lv === 4;
+      const shaking = (UI.shake && UI.shake.id === o.catId && now < UI.shake.until) || rage;
+      const ox = shaking ? (tick % 2 ? 1 : -1) : 0, bob = (tick >> 2) % 2;
+      put(sprC('m' + c.cat.monster + c.cat.color + (rage && tick % 4 < 2), m.rows, monPal(c.cat.color, rage && tick % 4 < 2)), X + ox, Y - 2 + (lv === 1 ? 0 : bob));
+      if (lv === 1 && c.spent < c.budget * .5) { const zt = (tick >> 1) % 6; box('#f4f4f4', X + 11 + (zt >> 1), Y - 3 - zt, 3, 1); box('#f4f4f4', X + 12 + (zt >> 1), Y - 2 - zt, 1, 1); box('#f4f4f4', X + 11 + (zt >> 1), Y - 1 - zt, 3, 1); }
+      if (lv >= 3) { const col = lv === 4 ? '#b13e53' : '#ffcd75'; box(K, X + 6, Y - 12 + bob, 4, 8); box(col, X + 7, Y - 11 + bob, 2, 4); box(col, X + 7, Y - 6 + bob, 2, 1); }
+    }
+  }
+  for (const v of WORLD.villagers) put(sprC('vil' + v.i + v.flip, VILLAGER, v.pal, {flip: v.flip}), Math.round(v.fx), Math.round(v.fy));
+  // héros
+  const moving = !!h.tgt, frameB = moving && Math.floor(h.step * 8) % 2;
+  const hurt = UI.hurtUntil && now < UI.hurtUntil && tick % 2;
+  const skin = S.world.skin;
+  put(sprC('hero' + skin + frameB + h.flip + (g && g.hp <= 0), frameB ? HERO_B : HERO, heroPal(skin), {flip: h.flip, grey: g && g.hp <= 0, flash: !!hurt}), Math.round(h.fx), Math.round(h.fy) - 2);
+  for (const p of particles) box(p.c, Math.round(p.x), Math.round(p.y), p.s || 2, p.s || 2);
+  // nuit
+  const hr = new Date().getHours();
+  if (hr < 6 || hr >= 20) {
+    ctx.fillStyle = 'rgba(16,20,52,.42)'; ctx.fillRect(0, 0, cv.width, cv.height);
+    const f = WORLD.objs.find(o => o.type === 'fire');
+    if (f && S.checkins[t]) for (let r = 3; r >= 1; r--) box('rgba(255,205,117,.08)', f.x * TS + 8 - r * 10, f.y * TS + 8 - r * 10, r * 20, r * 20);
+  }
+  // étiquette du lieu proche
+  const n = UI.near;
+  if (n) {
+    const label = objName(n), fs = Math.max(8, 5 * z);
+    ctx.font = `${fs}px 'Press Start 2P', monospace`; ctx.textBaseline = 'top';
+    const tw = ctx.measureText(label).width, lx = clamp(S_((n.x + n.w / 2) * TS) - tw / 2 - fs * .5, 4, cv.width - tw - fs - 4), ly = Math.max(4, S2(n.y * TS) - fs * 2.6);
+    ctx.fillStyle = 'rgba(26,28,44,.9)'; ctx.fillRect(lx, ly, tw + fs, fs * 1.8);
+    ctx.fillStyle = '#ffcd75'; ctx.fillText(label, lx + fs * .5, ly + fs * .45);
+  }
+}
+let lastT = performance.now();
+function loop(t) {
+  const dt = Math.min(.05, (t - lastT) / 1000); lastT = t;
+  if (UI.tab === 'jeu' && !document.hidden && WORLD.layer && $('#world')) { updateWorld(dt); drawWorld(t); }
+  requestAnimationFrame(loop);
+}
+requestAnimationFrame(loop);
+setInterval(() => { if (UI.worldDirty) { UI.worldDirty = false; save(); } }, 3000);
+window.addEventListener('pagehide', () => { if (UI.worldDirty) save(); });
+window.addEventListener('resize', () => { if (UI.tab === 'jeu') sizeWorld(); });
+
+/* ---- Carte du monde (voyage rapide) ---- */
+const MAPPX = 5;
+function worldMapHTML() {
+  const found = S.world.found, places = WORLD.objs.filter(o => isFindable(o) && found.includes(o.id));
+  const pct = Math.round(WORLD.seen.reduce((a, b) => a + b, 0) / WORLD.seen.length * 100);
+  return `<p class="muted" style="margin-top:0">Exploré : <b class="gold">${pct} %</b> · ${places.length} lieux découverts. Touche un lieu découvert (sur la carte ou ci-dessous) pour t'y rendre.</p>
+    <canvas id="wmap" width="${MW * MAPPX}" height="${MH * MAPPX}" style="width:100%;height:auto;display:block;box-shadow:0 0 0 3px var(--d)"></canvas>
+    <div class="chips" style="margin-top:12px">${places.map(o => `<button class="chip" data-act="travel" data-id="${esc(o.id)}">${esc(objName(o))}</button>`).join('')}</div>`;
+}
+function drawWorldMap() {
+  const cv = $('#wmap'); if (!cv) return;
+  const c = cv.getContext('2d'), P = MAPPX;
+  const col = {[T.GRASS]:'#38b764', [T.FLOWER]:'#38b764', [T.TREE]:'#257179', [T.WATER]:'#3b5dc9', [T.PATH]:'#c9a26b', [T.SAND]:'#f0d58f', [T.BRIDGE]:WOOD, [T.ROCK]:'#94b0c2', [T.PINE]:'#1d4d55', [T.SECRET]:'#1d4d55', [T.STONE]:'#566c86', [T.DARK]:'#1d4d55', [T.PLAZA]:'#94b0c2'};
+  for (let y = 0; y < MH; y++) for (let x = 0; x < MW; x++) { const i = y * MW + x; c.fillStyle = WORLD.seen[i] ? col[WORLD.map[i]] : K; c.fillRect(x * P, y * P, P, P); }
+  for (const o of WORLD.objs) {
+    if (!WORLD.seen[o.y * MW + o.x]) continue;
+    const mc = o.type === 'lair' ? '#b13e53' : o.type === 'chest' ? (S.world.chests[o.chestId] ? '#566c86' : '#ffcd75') : o.type === 'plot' ? '#a8834f' : o.type === 'sign' ? WOOD : '#f4f4f4';
+    c.fillStyle = K; c.fillRect(o.x * P - 1, o.y * P - 1, o.w * P + 2, o.h * P + 2); c.fillStyle = mc; c.fillRect(o.x * P, o.y * P, o.w * P, o.h * P);
+  }
+  c.fillStyle = '#ffcd75'; c.fillRect(HERO_S.x * P - 2, HERO_S.y * P - 2, P + 4, P + 4); c.fillStyle = '#f4f4f4'; c.fillRect(HERO_S.x * P, HERO_S.y * P, P, P);
+}
+function travel(o) {
+  if (!o) return;
+  const cands = [];
+  for (let y = o.y - 1; y <= o.y + o.h; y++) for (let x = o.x - 1; x <= o.x + o.w; x++) if (adjacentTo(o, x, y) && walkable(x, y)) cands.push([x, y]);
+  if (!cands.length) return;
+  cands.sort((a, b) => b[1] - a[1]);
+  const [x, y] = cands[0], h = HERO_S;
+  h.x = x; h.y = y; h.fx = x * TS; h.fy = y * TS; h.path = []; h.tgt = null; h.pending = null; h.dir = 'up';
+  S.world.x = x; S.world.y = y; UI.worldDirty = true;
+  closeModal(); SFX.quest(); worldFx('heal');
+  reveal(x, y); proximity();
+}
+function skinsHTML() {
+  return `<p class="muted" style="margin-top:0">Ouvre les coffres cachés dans le monde pour débloquer de nouvelles tenues.</p><div class="trophies">${Object.entries(SKINS).map(([k, s]) => {
+    const on = S.world.skins.includes(k), src = CHESTS.find(c => c.skin === k), known = src && S.world.found.includes('chest:' + src.id);
+    return `<button class="trophy ${on ? '' : 'locked'} ${S.world.skin === k ? 'sel' : ''}" ${on ? `data-act="skin" data-id="${k}"` : 'disabled'} style="border:0;color:inherit;text-align:left;font-family:inherit;cursor:${on ? 'pointer' : 'default'}">${img(spriteURL('hero' + k, HERO, heroPal(k), 4, on ? {} : {grey: true}), 40)}<div><div class="t1">${on ? s.name : '???'}</div><div class="t2">${on ? (S.world.skin === k ? 'Équipée' : 'Toucher pour porter') : (known ? esc(src.name) : 'Coffre à trouver')}</div></div></button>`;
+  }).join('')}</div>`;
+}
+
 
 /* ---------------- RENDU ---------------- */
 let sayTimer = null, lastSay = '';
@@ -696,13 +1292,13 @@ const RAGE_TXT = ['', 'CALME', 'AGITÉ', 'ENRAGÉ', 'DÉCHAÎNÉ !'];
 function heroLine(g) {
   const ms = g.ms, n = heroName();
   const todaySpent = ms.daily[ms.elapsed] || 0;
-  if (!S.expenses.length && !Object.keys(S.checkins).length) return `Bienvenue, ${n} ! Chaque catégorie de ton budget est un monstre. Note ta première dépense pour commencer l'aventure.`;
+  if (!S.expenses.length && !Object.keys(S.checkins).length) return `Bienvenue, ${n} ! Touche la carte pour te déplacer. Le Marché (sur la place) sert à noter tes dépenses, les monstres de tes catégories rôdent dans les plaines, et des coffres sont cachés partout…`;
   if (g.hp <= 0) return `${n} est K.O. ! Les monstres ont pris le dessus ce mois-ci. Freine les dépenses et accomplis des quêtes pour regagner des PV.`;
   const broken = ms.cats.filter(c => c.budget > 0 && c.spent > c.budget).sort((a, b) => b.ratio - a.ratio);
   if (broken.length) return `ALERTE ! ${monName(broken[0])} est déchaîné : budget dépassé de ${fmt(broken[0].spent - broken[0].budget)}.` + (broken.length > 1 ? ` ${broken.length - 1} autre(s) monstre(s) aussi.` : '');
   if (todaySpent > ms.todayAllowance && ms.todayAllowance >= 0) return `Aïe : ${fmt(todaySpent - ms.todayAllowance)} au-dessus du budget du jour. Les jours suivants auront un peu moins — on se rattrape !`;
   if (!g.checkedToday) return `Il te reste ${fmt(ms.todayAllowance)} pour aujourd'hui. Pense à noter tes dépenses ou à pointer une journée sans dépense.`;
-  const top = arenaFocus(ms);
+  const top = [...ms.cats].sort((a, b) => b.ratio - a.ratio)[0];
   if (top && top.ratio >= .8) return `${monName(top)} s'agite… plus que ${fmt(top.budget - top.spent)} avant qu'il se déchaîne.`;
   if (g.streak >= 3) return `Série de ${g.streak} jours ! Il te reste ${fmt(Math.max(0, ms.todayAllowance - todaySpent))} pour aujourd'hui. Continue comme ça, ${n}.`;
   return `Tout est calme. Il te reste ${fmt(ms.remaining)} pour finir ${ymLabel(ms.ym)}.`;
@@ -724,7 +1320,7 @@ function renderHUD(g) {
     </div></div>`;
 }
 
-const TABS = [['jeu','Jeu'],['journal','Journal'],['ecarts','Écarts'],['quetes','Quêtes'],['suivis','Suivis'],['options','Options']];
+const TABS = [['jeu','Monde'],['journal','Journal'],['ecarts','Écarts'],['quetes','Quêtes'],['suivis','Suivis'],['options','Options']];
 function renderTabs() {
   $('#tabs .in').innerHTML = TABS.map(([id, l]) => `<button data-act="tab" data-id="${id}" class="${UI.tab === id ? 'on' : ''}">${iconImg(id, UI.tab === id ? SWEET.y : SWEET.G, 22)}<span>${l}</span></button>`).join('');
 }
@@ -743,8 +1339,12 @@ function viewJeu(g) {
   const hasExpToday = S.expenses.some(e => e.date === t);
   const sorted = [...ms.cats].sort((a, b) => b.ratio - a.ratio);
   return `
-  <section class="box arena-wrap"><canvas id="arena" width="${AW}" height="${AH}"></canvas></section>
-  <section class="box say"><div class="speaker">${esc(heroName()).toUpperCase()} <span class="blink">▼</span></div><div id="say"></div></section>
+  <section class="box map-wrap"><canvas id="world"></canvas>
+    <button class="btn sm gold mapbtn" data-act="worldmap">CARTE</button>
+    <div class="dpad"><button data-dir="up" class="du" aria-label="Haut">▲</button><button data-dir="left" class="dl" aria-label="Gauche">◀</button><button data-dir="right" class="dr" aria-label="Droite">▶</button><button data-dir="down" class="dd" aria-label="Bas">▼</button></div>
+    <button class="abtn" data-act="A" aria-label="Interagir">A</button>
+  </section>
+  <section class="box say"><div class="speaker" id="sayWho"></div><div id="say"></div><div id="sayBtns" class="row" style="margin-top:8px"></div></section>
 
   <div class="grid2">
   <section class="box">
@@ -761,15 +1361,7 @@ function viewJeu(g) {
     <button class="btn ${S.checkins[t] ? 'grey' : 'cyan'} big" style="margin-top:12px" data-act="zero" ${hasExpToday ? 'disabled title="Tu as déjà des dépenses aujourd\'hui"' : ''}>${S.checkins[t] ? '✓ Journée sans dépense pointée' : '✦ Journée sans dépense'}</button>
   </section>
 
-  <form class="box" data-form="add" autocomplete="off">
-    <h2>⚔ Nouvelle dépense</h2>
-    <div class="amount-row"><input name="amount" inputmode="numeric" placeholder="0" value="${esc(UI.draft.amount)}" aria-label="Montant"><span class="cur">FCFA</span></div>
-    <div class="chips">${[100, 500, 1000, 2000, 5000, 10000].map(v => `<button type="button" class="chip" data-act="chip" data-v="${v}">+${num(v)}</button>`).join('')}<button type="button" class="chip" data-act="chip" data-v="0">C</button></div>
-    <div class="catpick">${S.categories.map(c => `<button type="button" class="catbtn ${UI.pickCat === c.id ? 'sel' : ''}" data-act="pickcat" data-id="${c.id}">${monImg(c, 36)}<span>${esc(c.name)}</span></button>`).join('')}</div>
-    <input class="full" name="note" placeholder="Note (taxi, marché, crédit…)" value="${esc(UI.draft.note)}" maxlength="80">
-    <div class="row" style="margin-top:10px"><label class="muted" for="f-date">Date</label><input id="f-date" type="date" name="date" value="${esc(UI.draft.date || t)}" max="${addDays(t, 365)}" class="grow"></div>
-    <button class="btn green big" style="margin-top:12px">⚔ Enregistrer</button>
-  </form>
+${addFormHTML()}
   </div>
 
   <section class="box">
@@ -790,6 +1382,22 @@ function monCard(c) {
     <div class="bar"><i style="width:${Math.min(100, c.ratio * 100)}%"></i></div>
     <div style="font-size:17px;margin-top:4px">${kfmt(c.spent)} / ${kfmt(c.budget)} · <span class="${c.budget - c.spent < 0 ? 'neg' : 'pos'}">${c.budget - c.spent < 0 ? 'dépassé ' + kfmt(c.spent - c.budget) : 'reste ' + kfmt(c.budget - c.spent)}</span></div>
   </div></div>`;
+}
+
+function addFormHTML(inModal = false) {
+  const t = today(), pfx = inModal ? 'm-' : 'f-';
+  if (!UI.pickCat || !S.categories.find(c => c.id === UI.pickCat)) UI.pickCat = S.categories.find(c => c.id === S.lastCat) ? S.lastCat : (S.categories[0] || {}).id;
+  return `
+  <form class="box" data-form="add" autocomplete="off">
+    <h2>⚔ Nouvelle dépense</h2>
+    <div class="amount-row"><input name="amount" inputmode="numeric" placeholder="0" value="${esc(UI.draft.amount)}" aria-label="Montant"><span class="cur">FCFA</span></div>
+    <div class="chips">${[100, 500, 1000, 2000, 5000, 10000].map(v => `<button type="button" class="chip" data-act="chip" data-v="${v}">+${num(v)}</button>`).join('')}<button type="button" class="chip" data-act="chip" data-v="0">C</button></div>
+    <div class="catpick">${S.categories.map(c => `<button type="button" class="catbtn ${UI.pickCat === c.id ? 'sel' : ''}" data-act="pickcat" data-id="${c.id}">${monImg(c, 36)}<span>${esc(c.name)}</span></button>`).join('')}</div>
+    <input class="full" name="note" placeholder="Note (taxi, marché, crédit…)" value="${esc(UI.draft.note)}" maxlength="80">
+    <div class="row" style="margin-top:10px"><label class="muted" for="${pfx}date">Date</label><input id="${pfx}date" type="date" name="date" value="${esc(UI.draft.date || t)}" max="${addDays(t, 365)}" class="grow"></div>
+    <button class="btn green big" style="margin-top:12px">⚔ Enregistrer</button>
+  </form>
+`;
 }
 
 /* ---- Onglet JOURNAL ---- */
@@ -1036,11 +1644,32 @@ function render() {
   renderHUD(g); renderTabs();
   const v = $('#view');
   v.innerHTML = UI.tab === 'jeu' ? viewJeu(g) : UI.tab === 'journal' ? viewJournal() : UI.tab === 'ecarts' ? viewEcarts() : UI.tab === 'quetes' ? viewQuetes(g) : UI.tab === 'suivis' ? viewSuivis() : viewOptions();
-  if (UI.tab === 'jeu') { drawArena(); say(heroLine(g)); }
+  if (UI.tab === 'jeu') { ensureWorld(); sizeWorld(); paintDlg(); }
   if (UI.tab === 'ecarts') drawDailyChart();
   if (UI.tab === 'suivis') drawSparks();
+  const m = $('#modal');
+  if (UI.panel && m.open && UI.panel !== 'add') { const st = m.scrollTop; m.innerHTML = panelHTML(UI.panel); m.scrollTop = st; postPanel(); }
   return g;
 }
+
+/* ---- Boîte de dialogue sous la carte ---- */
+function paintDlg() {
+  const w = $('#sayWho'); if (!w) return;
+  const d = UI.dlg || {who: heroName().toUpperCase(), text: heroLine(UI.game), btns: ''};
+  w.innerHTML = `${esc(d.who)} <span class="blink">▼</span>`;
+  $('#sayBtns').innerHTML = d.btns || '';
+  say(d.text);
+}
+
+/* ---- Panneaux (lieux du monde) ---- */
+const PANELS = {add:'⚔ Marché · nouvelle dépense', ecarts:'⚖ Banque des Écarts', journal:'✎ Archives', quetes:'★ Tableau des quêtes', suivis:"⚗ Labo de l'alchimiste", options:'⌂ Maison · options', map:'▦ Carte du monde', skins:'♞ Garde-robe'};
+function panelHTML(kind) {
+  const g = UI.game;
+  const body = kind === 'add' ? addFormHTML(true) : kind === 'ecarts' ? viewEcarts() : kind === 'journal' ? viewJournal() : kind === 'quetes' ? viewQuetes(g) : kind === 'suivis' ? viewSuivis() : kind === 'options' ? viewOptions() : kind === 'map' ? worldMapHTML() : skinsHTML();
+  return `<div class="row between panel-head"><h2 style="margin:0">${PANELS[kind]}</h2><button class="icon-btn" data-act="close" aria-label="Fermer">✕</button></div>${body}`;
+}
+function postPanel() { drawDailyChart(); drawSparks(); drawWorldMap(); }
+function openPanel(kind) { UI.hold = null; openModal(panelHTML(kind), kind); postPanel(); }
 
 /* ---------------- PROGRESSION / FEEDBACK ---------------- */
 function toast(title, msg) {
@@ -1059,23 +1688,40 @@ function commit(fx) {
   const dxp = g.xp - before.xp;
   if (dxp > 0) floater(`+${dxp} XP`);
   if (fx) fx(g, before);
-  if (g.level > (S.lastLevel || 1)) {
+  progress(g);
+}
+function softCommit() {
+  const before = UI.game || computeGame();
+  save();
+  const g = computeGame(); UI.game = g; renderHUD(g);
+  const dxp = g.xp - before.xp;
+  if (dxp > 0) floater(`+${dxp} XP`);
+  progress(g);
+}
+function progress(g, quiet = false) {
+  if (g.level > (S.lastLevel || 1) && !quiet) {
     S.lastLevel = g.level; save(); SFX.lvl();
-    setTimeout(() => openModal(`<div class="levelup"><h1>NIVEAU ${g.level} !</h1>${heroImg(96)}<p>${titleFor(g.level) !== titleFor(g.level - 1) ? `${esc(heroName())} devient <b class="gold">${titleFor(g.level)}</b> !` : `${esc(heroName())} gagne en puissance.`}</p><p class="muted">Prochain niveau dans ${g.xpNext - g.xpIn} XP.</p><button class="btn gold big" data-act="close">Continuer</button></div>`), 400);
-  } else if (g.level < S.lastLevel) { S.lastLevel = g.level; save(); }
+    setTimeout(() => queueModal(`<div class="levelup"><h1>NIVEAU ${g.level} !</h1>${heroImg(96)}<p>${titleFor(g.level) !== titleFor(g.level - 1) ? `${esc(heroName())} devient <b class="gold">${titleFor(g.level)}</b> !` : `${esc(heroName())} gagne en puissance.`}</p><p class="muted">Prochain niveau dans ${g.xpNext - g.xpIn} XP.</p><button class="btn gold big" data-act="close">Continuer</button></div>`), 400);
+  } else if (g.level !== S.lastLevel) { S.lastLevel = g.level; save(); }
   const fresh = g.unlocked.filter(id => !S.seenAch.includes(id));
   if (fresh.length) {
     S.seenAch.push(...fresh); save();
     fresh.forEach((id, i) => setTimeout(() => { const a = ACH.find(x => x.id === id); toast('🏆 Trophée débloqué', `${a.name} — ${a.desc}`); SFX.quest(); }, 600 + i * 700));
   }
+  if (g.builtNow > (S.world.built || 0)) {
+    const old = S.world.built || 0; S.world.built = g.builtNow; save();
+    for (let i = old; i < g.builtNow; i++) setTimeout(() => toast('🏗 Nouveau bâtiment au village', `${VILLAGE[i].name} — construit grâce à ton trésor !`), 900 + (i - old) * 700);
+    if (UI.tab === 'jeu') ensureWorld();
+  }
 }
 
 /* ---------------- MODALE ---------------- */
-function openModal(html) {
+function openModal(html, panel = null) {
+  UI.panel = panel; UI.hold = null;
   const m = $('#modal'); m.innerHTML = html;
   if (typeof m.showModal === 'function') { if (!m.open) m.showModal(); } else m.setAttribute('open', '');
 }
-function closeModal() { const m = $('#modal'); if (m.open) { if (typeof m.close === 'function') m.close(); else m.removeAttribute('open'); } }
+function closeModal() { UI.panel = null; const m = $('#modal'); if (m.open) { if (typeof m.close === 'function') m.close(); else m.removeAttribute('open'); } }
 
 function rulesHTML() {
   return `<h2>? Comment jouer</h2><ul class="rules">
@@ -1085,6 +1731,9 @@ function rulesHTML() {
     <li><b>PV</b> : remis à 100 chaque mois. Monstre déchaîné : −10 à −40 PV. Jour à plus de 150 % du budget moyen : −5 PV. Chaque quête rend +1 PV (max +30/mois).</li>
     <li><b>Trésor</b> = économies cumulées (budget − réel) des mois terminés.</li>
     <li><b>Série</b> : nombre de jours d'affilée où tu as noté au moins une dépense ou pointé une journée sans dépense.</li>
+    <li><b>Monde</b> : touche la carte pour marcher (ou flèches / ZQSD, Entrée pour interagir). Marché = noter une dépense · Banque = écarts · Archives = journal · Tableau = quêtes · Labo = suivis · Maison = tenues et options · Feu de camp = journée sans dépense.</li>
+    <li><b>Exploration</b> : chaque lieu découvert rapporte 10 XP. Les <b>coffres</b> s'ouvrent quand tu remplis leur condition (séries, journées sans dépense…) et donnent de l'XP et des tenues. Certains sont bien cachés…</li>
+    <li><b>Village</b> : ton trésor construit de nouveaux bâtiments, du puits (5 000 F) au château (1 000 000 F).</li>
   </ul><button class="btn gold big" data-act="close">Compris !</button>`;
 }
 function welcome() {
@@ -1123,7 +1772,7 @@ function addExpense(amount, catId, note, date) {
   const before = monthStats(ymOf(date)).cats.find(c => c.cat.id === catId);
   S.expenses.push({id: uid(), date, amount, catId, note: note.trim(), ts: Date.now()});
   delete S.checkins[date];
-  S.lastCat = catId; UI.lastSpendCat = catId;
+  S.lastCat = catId;
   const after = monthStats(ymOf(date)).cats.find(c => c.cat.id === catId);
   const broke = before && after && before.spent <= before.budget && after.spent > after.budget;
   return {broke, after};
@@ -1133,15 +1782,16 @@ const ACT = {
   tab: a => { UI.tab = a.dataset.id; try { localStorage.setItem(STORE_KEY + '.tab', UI.tab); } catch (e) {} SFX.click(); render(); window.scrollTo(0, 0); },
   month: a => { UI.viewYM = addMonths(UI.viewYM, +a.dataset.d); UI.selDay = null; render(); },
   chip: a => {
-    const inp = $('form[data-form=add] [name=amount]');
+    const inp = a.closest('form').querySelector('[name=amount]');
     const v = +a.dataset.v; const n = v === 0 ? 0 : parseAmt(inp.value) + v;
     inp.value = n ? num(n) : ''; UI.draft.amount = inp.value; SFX.click();
   },
-  pickcat: a => { UI.pickCat = a.dataset.id; document.querySelectorAll('.catbtn').forEach(b => b.classList.toggle('sel', b.dataset.id === UI.pickCat)); SFX.click(); },
+  pickcat: a => { UI.pickCat = a.dataset.id; a.closest('form').querySelectorAll('.catbtn').forEach(b => b.classList.toggle('sel', b.dataset.id === UI.pickCat)); SFX.click(); },
   zero: () => {
     const t = today();
     if (S.checkins[t]) delete S.checkins[t]; else S.checkins[t] = true;
-    commit(g => { if (S.checkins[t]) { burst('heal'); SFX.quest(); toast('✦ Journée sans dépense', 'Les monstres dorment. +35 XP'); } });
+    commit(g => { if (S.checkins[t]) { worldFx('heal'); SFX.quest(); toast('✦ Journée sans dépense', 'Les monstres dorment. +35 XP'); } });
+    if (UI.dlg && UI.dlg.obj && UI.dlg.obj.type === 'fire') interact(UI.dlg.obj);
   },
   habit: a => {
     const {id, date} = a.dataset;
@@ -1149,10 +1799,16 @@ const ACT = {
     if (S.habitLog[date][id]) { delete S.habitLog[date][id]; if (!Object.keys(S.habitLog[date]).length) delete S.habitLog[date]; }
     else S.habitLog[date][id] = true;
     const on = habitDone(date, id);
-    commit(() => { if (on) { burst('heal'); SFX.quest(); } });
+    commit(() => { if (on) { worldFx('heal'); SFX.quest(); } });
   },
   day: a => { UI.selDay = a.dataset.d || null; render(); },
-  addOn: a => { UI.draft.date = a.dataset.d; UI.tab = 'jeu'; render(); window.scrollTo(0, 0); setTimeout(() => { const i = $('form[data-form=add] [name=amount]'); if (i) i.focus(); }, 50); },
+  addOn: a => { UI.draft.date = a.dataset.d; openPanel('add'); setTimeout(() => { const i = $('#modal [name=amount]'); if (i) i.focus(); }, 50); },
+  A: () => { if (UI.near && adjacentTo(UI.near, HERO_S.x, HERO_S.y)) interact(UI.near); else interactNear(); },
+  worldmap: () => { SFX.click(); openPanel('map'); },
+  travel: a => travel(WORLD.objs.find(o => o.id === a.dataset.id)),
+  panel: a => openPanel(a.dataset.p),
+  skin: a => { if (!S.world.skins.includes(a.dataset.id)) return; S.world.skin = a.dataset.id; SFX.quest(); commit(); toast('♞ Nouvelle tenue', SKINS[S.world.skin].name); },
+  addCat: a => { UI.pickCat = a.dataset.id; openPanel('add'); setTimeout(() => { const i = $('#modal [name=amount]'); if (i) i.focus(); }, 50); },
   edit: a => editExpense(a.dataset.id),
   delExp: a => { if (!confirm('Supprimer cette dépense ?')) return; S.expenses = S.expenses.filter(e => e.id !== a.dataset.id); closeModal(); commit(); },
   close: () => closeModal(),
@@ -1221,9 +1877,10 @@ document.addEventListener('submit', e => {
     if (!UI.pickCat) return;
     const {broke, after} = addExpense(amount, UI.pickCat, v('note'), date);
     UI.draft = {amount: '', note: '', date: ''};
+    if (f.closest('dialog')) closeModal();
     commit(() => {
-      if (broke) { burst('hurt'); SFX.hit(); toast('☠ Monstre déchaîné !', `${monName(after)} a dépassé son budget.`); }
-      else { burst('spend'); SFX.spend(); }
+      if (broke) { worldFx('hurt', UI.pickCat); SFX.hit(); toast('☠ Monstre déchaîné !', `${monName(after)} a dépassé son budget.`); }
+      else { worldFx('spend', UI.pickCat); SFX.spend(); }
       if (date !== today()) toast('✎ Dépense ajoutée', `${fmt(amount)} le ${dayLabel(date)}`);
     });
   } else if (k === 'edit') {
@@ -1269,14 +1926,41 @@ document.addEventListener('change', e => {
   r.readAsText(file); e.target.value = '';
 });
 $('#modal').addEventListener('cancel', e => { if (!S.heroName) e.preventDefault(); });
+$('#modal').addEventListener('close', () => { UI.panel = null; if (UI.queued) { const q = UI.queued; UI.queued = null; setTimeout(() => openModal(q), 150); } });
+function queueModal(html) { if ($('#modal').open) UI.queued = html; else openModal(html); }
+
+/* ---- Contrôles du monde : toucher, croix directionnelle, clavier ---- */
+document.addEventListener('pointerdown', e => {
+  const d = e.target.closest('[data-dir]');
+  if (d) { e.preventDefault(); UI.hold = d.dataset.dir; if (!HERO_S.tgt && !HERO_S.path.length) stepDir(UI.hold); return; }
+  if (e.target.id === 'world' && WORLD.layer) {
+    const cv = e.target, r = cv.getBoundingClientRect(), z = viewZ;
+    const bx = (e.clientX - r.left) * cv.width / r.width, by = (e.clientY - r.top) * cv.height / r.height;
+    const vw = cv.width / z, vh = cv.height / z, h = HERO_S;
+    const camX = Math.round(clamp(h.fx + 8 - vw / 2, 0, Math.max(0, MW * TS - vw))), camY = Math.round(clamp(h.fy + 8 - vh / 2, 0, Math.max(0, MH * TS - vh)));
+    goTo(Math.floor((bx / z + camX) / TS), Math.floor((by / z + camY) / TS));
+  }
+});
+['pointerup', 'pointercancel'].forEach(ev => document.addEventListener(ev, () => { UI.hold = null; }));
+const KEYS = {ArrowUp:'up', ArrowDown:'down', ArrowLeft:'left', ArrowRight:'right', z:'up', w:'up', s:'down', q:'left', a:'left', d:'right'};
+document.addEventListener('keydown', e => {
+  const tag = document.activeElement ? document.activeElement.tagName : '';
+  if (UI.tab !== 'jeu' || $('#modal').open || /INPUT|SELECT|TEXTAREA/.test(tag) || e.ctrlKey || e.metaKey || e.altKey) return;
+  const k = KEYS[e.key.length === 1 ? e.key.toLowerCase() : e.key];
+  if (k) { e.preventDefault(); UI.hold = k; if (!HERO_S.tgt && !HERO_S.path.length) stepDir(k); }
+  else if ((e.key === 'Enter' || e.key === ' ' || e.key.toLowerCase() === 'e') && tag !== 'BUTTON') { e.preventDefault(); ACT.A(); }
+});
+document.addEventListener('keyup', e => { const k = KEYS[e.key.length === 1 ? e.key.toLowerCase() : e.key]; if (k && UI.hold === k) UI.hold = null; });
 
 // Rafraîchit au changement de jour (app laissée ouverte)
 let lastDay = today();
 setInterval(() => { if (today() !== lastDay) { lastDay = today(); UI.game = null; render(); } }, 60000);
 document.addEventListener('visibilitychange', () => { if (!document.hidden && today() !== lastDay) { lastDay = today(); render(); } });
 
+S = load() || defaultState();
 save();
 render();
+progress(UI.game, true);
 if (!S.heroName) welcome();
 </script>
 </body>
