@@ -26,7 +26,7 @@ body{background:#0c0a12;color:#fff;font-family:var(--vt);font-size:20px;line-hei
 img.px,canvas{image-rendering:pixelated;image-rendering:crisp-edges}
 button,input,select{font:inherit;color:inherit}
 /* ---- le moniteur ---- */
-#pc{flex:1;min-height:0;width:min(100%,1180px);display:flex;flex-direction:column;padding:10px 10px 52px;position:relative}
+#pc{flex:1;min-height:0;width:min(100% - 150px,1100px);display:flex;flex-direction:column;padding:12px 0 44px;position:relative;margin-right:120px}
 .bezel{flex:1;min-height:0;display:flex;flex-direction:column;background:linear-gradient(#34303c,#24212b);border-radius:14px;padding:10px 10px 0;
   box-shadow:0 0 0 2px #0a080e,inset 0 1px 0 #4e4958,0 18px 40px rgba(0,0,0,.6)}
 .screen{flex:1;min-height:0;display:flex;flex-direction:column;background:#000;border-radius:4px;overflow:hidden;position:relative;box-shadow:inset 0 0 0 2px #000}
@@ -36,9 +36,15 @@ button,input,select{font:inherit;color:inherit}
 .chin button{background:#2c2934;border:1px solid #4a4656;border-radius:4px;padding:3px 8px;cursor:pointer;color:#a8a2b6;font-family:var(--px);font-size:8px}
 .chin button.on{color:var(--gold);border-color:#8a7440}
 .stand{height:14px;width:34%;margin:0 auto;background:linear-gradient(#2a2730,#1a1820);clip-path:polygon(18% 0,82% 0,100% 100%,0 100%)}
-#mug{position:absolute;right:0;bottom:6px;width:104px;height:104px;pointer-events:none;z-index:4;filter:drop-shadow(0 6px 6px rgba(0,0,0,.5))}
+#mugWrap{position:absolute;right:-150px;bottom:6px;width:136px;height:136px;pointer-events:none;z-index:4}
+#mug{width:100%;height:100%;filter:drop-shadow(0 8px 8px rgba(0,0,0,.5))}
+.steam{position:absolute;left:18%;bottom:88%;width:60%;height:90%;display:flex;justify-content:space-around}
+.steam i{width:9px;height:100%;border-radius:9px;background:linear-gradient(transparent,rgba(255,255,255,.22) 40%,rgba(255,255,255,.3) 70%,transparent);filter:blur(5px);animation:steam 3.4s ease-in-out infinite}
+.steam i:nth-child(2){animation-delay:-1.1s}.steam i:nth-child(3){animation-delay:-2.2s}
+@keyframes steam{0%{transform:translateY(16px) scaleX(1) skewX(0);opacity:0}30%{opacity:1}60%{transform:translateY(-6px) skewX(14deg)}100%{transform:translateY(-26px) skewX(-10deg);opacity:0}}
+.room::before{content:'';position:absolute;right:0;bottom:0;width:60%;height:80%;background:radial-gradient(closest-side,rgba(255,170,90,.14),rgba(255,170,90,0))}
 /* ---- la scène ---- */
-.view{position:relative;height:clamp(210px,44vh,470px);flex:none;background:#000;touch-action:pan-y}
+.view{position:relative;flex:1 1 auto;min-height:170px;background:#000;touch-action:pan-y}
 #scene{width:100%;height:100%;display:block;cursor:grab;touch-action:pan-y}
 #scene:active{cursor:grabbing}
 #dlg{position:absolute;left:8px;right:8px;top:8px;display:flex;gap:10px;align-items:flex-start;padding:8px 10px;cursor:pointer;z-index:2;min-height:64px}
@@ -48,12 +54,15 @@ button,input,select{font:inherit;color:inherit}
 #dlgTxt{font-size:20px;line-height:1.05;min-height:2.1em}
 #dlg::after{content:'▼';position:absolute;right:8px;bottom:4px;font-size:12px;color:#fff;animation:blink 1s steps(2) infinite}
 @keyframes blink{50%{opacity:0}}
-#title{position:absolute;left:8px;bottom:8px;padding:4px 10px;font-family:var(--px);font-size:8px;z-index:2;pointer-events:none}
+#title{position:absolute;left:10px;top:10px;padding:6px 12px;font-family:var(--px);font-size:10px;z-index:2;pointer-events:none;text-transform:uppercase}
+#dlg:not([hidden])~#title{display:none}
 .hint{position:absolute;right:8px;bottom:8px;font-family:var(--px);font-size:7px;color:#fff;opacity:.75;text-shadow:1px 1px 0 #000;pointer-events:none;z-index:2}
 /* ---- les fenêtres bleues ---- */
 .ff{background:linear-gradient(180deg,var(--ffA) 0%,var(--ffB) 55%,var(--ffC) 100%);border:3px solid var(--edge);border-radius:7px;
   box-shadow:0 0 0 2px #06061a,inset 0 0 0 2px var(--edgeIn);color:#fff;text-shadow:2px 2px 0 rgba(0,0,0,.55)}
-.ui{flex:1;min-height:0;display:grid;grid-template-columns:minmax(132px,30%) 1fr;grid-template-rows:1fr auto;gap:6px;padding:6px;background:#06061a}
+.ui{flex:none;height:212px;min-height:0;display:grid;grid-template-columns:minmax(132px,30%) 1fr;grid-template-rows:1fr auto;grid-template-areas:'menu panel' 'menu status';gap:6px;padding:8px;background:#0b0910;transition:height .25s}
+body.open .ui{height:56%}
+#menu{grid-area:menu} #panel{grid-area:panel}
 #menu{display:flex;flex-direction:column;padding:6px 4px;overflow:auto;min-height:0}
 .mi{display:block;width:100%;text-align:left;background:none;border:0;padding:5px 6px 5px 28px;cursor:pointer;font-size:21px;position:relative;line-height:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-shadow:inherit}
 .mi.cur{color:var(--gold)}
@@ -62,7 +71,7 @@ button,input,select{font:inherit;color:inherit}
 .mi:focus-visible{outline:2px dashed var(--gold);outline-offset:-2px}
 #panel{padding:10px 12px;overflow:auto;min-height:0;overscroll-behavior:contain}
 #panel p{margin:6px 0}
-#status{grid-column:1/-1;display:flex;flex-wrap:wrap;gap:4px 16px;justify-content:space-around;padding:6px 10px;font-size:19px}
+#status{grid-area:status;display:flex;flex-wrap:wrap;gap:4px 16px;justify-content:space-around;padding:6px 10px;font-size:19px}
 #status b{font-family:var(--px);font-size:10px;font-weight:normal}
 .gold{color:var(--gold)} .red{color:var(--red)} .green{color:var(--green)} .dim{color:var(--dim)}
 .big{font-family:var(--px);font-size:14px;font-weight:normal}
@@ -79,8 +88,11 @@ button.li{cursor:pointer} button.li:hover{background:rgba(255,255,255,.08)}
 .li.off{opacity:.55} .li.sel{outline:2px solid var(--gold)}
 .li small{font-size:16px}
 .li>.grow{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.li.flat{background:none;padding:1px 0}
+.li.flat>.grow{flex:0 0 38%}
+.gauge.wide{flex:1;width:auto;height:7px;background:#06061a;border-color:#06061a}
 .wrap{flex-wrap:wrap;gap:0 8px}
-p.say{font-size:18px;margin:0 0 6px;border-bottom:1px solid rgba(255,255,255,.15);padding-bottom:6px}
+p.say{font-size:18px;margin:2px 0 4px}
 .gauge{display:inline-block;width:84px;height:8px;background:#0a0e3a;border:1px solid #9aa4e0;flex:none}
 .li.col .gauge{width:100%}
 .gauge i{display:block;height:100%}
@@ -130,29 +142,33 @@ canvas.spark{width:100%;height:30px}
 .banner{background:#7a1e2e;color:#fff;padding:6px 10px;font-size:18px;text-align:center}
 /* ---- au téléphone : la scène en haut, les fenêtres dessous ---- */
 @media (max-width:640px){
-  #pc{padding:6px 6px 40px}
+  #pc{padding:6px 6px 40px;width:100%;margin:0}
+  .view{flex:none;height:min(calc((100vw - 24px) * .86),46vh)}
+  .ui,body.open .ui{flex:1;height:auto;grid-template-areas:'menu panel' 'status status'}
+  #status b{font-size:9px}
   .bezel{padding:6px 6px 0;border-radius:10px}
   .view{height:clamp(190px,36vh,330px)}
-  .ui{grid-template-columns:116px 1fr;gap:5px;padding:5px}
+  .ui{grid-template-columns:128px 1fr;gap:5px;padding:5px}
   .cats{grid-template-columns:1fr 1fr}
   .cat{font-size:16px}
   .gauge{width:56px}
   .toast{padding:5px 10px;font-size:18px}
   .big{font-size:12px}
-  .mi{font-size:19px;padding:4px 4px 4px 24px}
+  .mi{font-size:18px;padding:4px 2px 4px 22px}
   .mi.sel::before{width:18px;height:13px;margin-top:-6px}
   #panel{padding:8px}
   #dlg{left:5px;right:5px;top:5px;padding:6px 8px;gap:8px;min-height:56px}
   #dlg .face{width:40px;height:40px}
   #dlgTxt{font-size:18px}
-  #status{font-size:17px;gap:2px 10px}
-  #mug{width:76px;height:76px;right:-4px;bottom:2px}
+  #status{font-size:16px;gap:2px 8px;padding:5px 6px}
+  #mugWrap{width:76px;height:76px;right:-4px;bottom:2px}
+  .steam{display:none}
   .chin{height:24px}
   .stand{height:8px}
   .room::after{height:46px}
 }
 @media (min-width:900px){ .ui{grid-template-columns:220px 1fr} }
-@media (min-width:1300px){ #mug{right:-96px;width:128px;height:128px;bottom:4px} }
+@media (max-width:900px) and (min-width:641px){ #pc{width:100%;margin:0;padding:8px 8px 44px} #mugWrap{right:-6px;width:96px;height:96px} .steam{display:none} }
 @media (prefers-reduced-motion:reduce){ .mi.sel::before,#dlg::after{animation:none} }
 </style>
 </head>
@@ -177,7 +193,7 @@ canvas.spark{width:100%;height:30px}
     <div class="chin"><span>ROR&middot;43</span><span class="led"></span><button id="musicBtn" data-act="music" aria-label="Musique">♪ MUSIQUE</button></div>
   </div>
   <div class="stand"></div>
-  <canvas id="mug" width="236" height="236" aria-hidden="true"></canvas>
+  <div id="mugWrap" aria-hidden="true"><div class="steam"><i></i><i></i><i></i></div><canvas id="mug" width="236" height="236"></canvas></div>
 </div>
 <div id="toasts" aria-live="polite"></div>
 <div id="modal" hidden><div id="modalBox" class="ff"></div></div>
@@ -959,7 +975,7 @@ function valleyCity(gFar, gMid, W, hz, bottom, level, style) {
   const riverX = y => cx + 40 * Math.sin((y - hz) * .07) - 10;
   for (let y = hz + 2; y < bottom; y++) { const p = (y - hz) / (bottom - hz), rw = 2 + p * 16, rx = riverX(y); R(y < hz + (bottom - hz) * .55 ? gFar : gMid, rx - rw / 2, y, rw, 1, mix('#c07890', '#8a5070', p)); if (r() < .3) R(y < hz + (bottom - hz) * .55 ? gFar : gMid, rx - rw / 3 + r() * rw * .6, y, 2, 1, '#e8a0b0'); }
   // des maisons de ville, vues un peu d'en haut : façade claire, toit à la Mansart, lucarne, cheminée ; plus grandes en s'approchant
-  const spanMax = 30 + level * 16;
+  const spanMax = W * .32 + level * W * .02; // la ville couvre déjà la vallée, et s'étend jusqu'aux bords avec le trésor
   const walls = ['#d8b49a', '#c8a088', '#e0c0a0', '#c89c84', '#d4ac90'], roofs = ['#b0584a', '#9a4c40', '#c06a50', '#a85a48'];
   const cityHouse = (g, x, y, s, p) => {
     const bw = Math.max(4, Math.round((7 + r() * 4) * s)), bh = Math.max(3, Math.round((6 + r() * 4) * s)), rh = Math.max(2, Math.round(4 * s)), haze = 1 - p;
@@ -978,7 +994,7 @@ function valleyCity(gFar, gMid, W, hz, bottom, level, style) {
     const p = row / 8, y = Math.round(hz + 4 + p * p * (bottom - hz - 10)), s = (.3 + p * .75) * (LAY === 'a' ? .9 : 1), span = spanMax * (.5 + p * .9), g = p < .5 ? gFar : gMid;
     for (let x = cx - span; x < cx + span; x += Math.round(8 * s + r() * 4 * s)) {
       if (Math.abs(x - riverX(y)) < (2 + p * 16) / 2 + 5) continue;
-      if (r() < .12) { if (p > .3) { R(g, x, y - 3 * s, 4 * s, 3 * s, mix('#3e5a3e', '#6a5a6a', 1 - p)); } continue; }
+      if (r() < .1 + .7 * Math.pow(Math.abs(x - cx) / span, 3)) { if (p > .3) { R(g, x, y - 3 * s, 4 * s, 3 * s, mix('#3e5a3e', '#6a5a6a', 1 - p)); } continue; }
       cityHouse(g, x, y, s, p);
     }
   }
@@ -1002,7 +1018,7 @@ function valleyCity(gFar, gMid, W, hz, bottom, level, style) {
 let LIGHTS = [], WINS = [], LAY = 'a';
 const lit = (x, y, r = 22, col = '#ffb060') => LIGHTS.push([x, y, r, col]);
 const SH = 176, HZ = 50, STREET = 150, TERRACE = STREET - 16;   // hauteur de la scène (pixels du jeu)
-const FW = 1100;                                                // longueur de la rue
+const FW = 916;                                                 // longueur de la rue
 const PAR = {sky: .08, far: .25, near: .4, mid: .7};
 const mkc = (w, h) => { const c = document.createElement('canvas'); c.width = Math.max(1, Math.ceil(w)); c.height = Math.max(1, Math.ceil(h)); const g = c.getContext('2d'); g.imageSmoothingEnabled = false; return [c, g]; };
 PICTO.home = ['..xx..', '.xxxx.', 'xxxxxx', '.xyyx.', '.xyyx.', '.xxxx.'];
@@ -1010,21 +1026,22 @@ PICTO.star = ['..x...', '.xxx..', 'xxxxx.', '.xxx..', '.x.x..', '......'];
 
 // Les lieux de la rue (x, largeur) : ce sont eux qu'on touche
 const PLACES = {
-  home:     {x: 14,  w: 56, keeper: null,                   name: 'La maison de Roré',  label: 'MAISON',   picto: 'home',  menu: 'config'},
-  archives: {x: 78,  w: 50, keeper: 'analyste_strategique', name: 'Les Archives',       label: 'ARCHIVES', picto: 'book',  menu: 'journal'},
-  market:   {x: 386, w: 58, keeper: 'styliste_extravagant', name: 'Le Marché',          label: 'MARCHÉ',   picto: 'coin',  menu: 'depense'},
-  board:    {x: 452, w: 24, keeper: 'explorateur_futuriste', name: 'Le Tableau des quêtes', label: 'QUÊTES', picto: 'star', menu: 'quetes'},
-  bank:     {x: 516, w: 46, keeper: 'hares',                name: 'La Banque des Écarts', label: 'BANQUE',  picto: 'scale', menu: 'ecarts'},
-  lab:      {x: 800, w: 50, keeper: 'robot_ingenieur',      name: 'Le Labo de Boulon',  label: 'LABO',     picto: 'flask', menu: 'suivis'},
-  belvedere:{x: 176, w: 30, keeper: 'mage_du_code',         name: 'Le Belvédère',       label: null},
+  home:     {x: 4,   w: 56, keeper: null,                    name: 'La maison de Roré',     label: 'MAISON',   picto: 'home',  menu: 'config'},
+  archives: {x: 62,  w: 46, keeper: 'analyste_strategique',  name: 'Les Archives',          label: 'ARCHIVES', picto: 'book',  menu: 'journal'},
+  belvedere:{x: 176, w: 30, keeper: 'mage_du_code',          name: 'Le Belvédère',          label: null},
+  market:   {x: 306, w: 58, keeper: 'styliste_extravagant',  name: 'Le Marché',             label: 'MARCHÉ',   picto: 'coin',  menu: 'depense'},
+  board:    {x: 404, w: 24, keeper: 'explorateur_futuriste', name: 'Le Tableau des quêtes', label: 'QUÊTES',   picto: 'star',  menu: 'quetes'},
+  bank:     {x: 530, w: 48, keeper: 'hares',                 name: 'La Banque des Écarts',  label: 'BANQUE',   picto: 'scale', menu: 'ecarts'},
+  lab:      {x: 764, w: 52, keeper: 'robot_ingenieur',       name: 'Le Labo de Boulon',     label: 'LABO',     picto: 'flask', menu: 'suivis'},
 };
-const SEGMENTS = [[0, 300], [384, 716], [796, 1084]], BRIDGES = [[300, 384], [716, 796]];
+// entre les groupes de maisons, des terrasses ouvertes sur la ville en contrebas
+const OPENINGS = [[110, 264], [366, 530], [622, 764]];
 
 /* ---- Le ciel selon l'heure et la météo (qui suit le budget du jour) ---- */
 const TOD = {
   day:     {sky: ['#5f9fdc', '#76b0e4', '#90c2ea', '#acd2ee', '#c8e0f0'], sun: '#fff6dc', haze: [200, 210, 230], ambient: 'rgba(0,0,0,0)', facade: 0},
-  evening: {sky: ['#4a2446', '#6a3052', '#8e3e5e', '#b4526a', '#d4707a'], sun: '#ffd6a0', haze: [210, 120, 140], ambient: 'rgba(40,10,60,.16)', facade: .22},
-  night:   {sky: ['#0a0c22', '#10163a', '#18204a', '#22285a', '#2e3066'], sun: '#eef2ff', haze: [70, 70, 120], ambient: 'rgba(8,8,30,.42)', facade: .42},
+  evening: {sky: ['#4a2446', '#6a3052', '#8e3e5e', '#b4526a', '#d4707a'], sun: '#ffd6a0', haze: [210, 120, 140], ambient: 'rgba(40,10,60,.08)', facade: .1},
+  night:   {sky: ['#0a0c22', '#10163a', '#18204a', '#22285a', '#2e3066'], sun: '#eef2ff', haze: [70, 70, 120], ambient: 'rgba(8,8,30,.36)', facade: .34},
 };
 function timeOfDay() { const h = new Date().getHours(); return h >= 8 && h < 18 ? 'day' : (h >= 18 && h < 21) || (h >= 6 && h < 8) ? 'evening' : 'night'; }
 function weatherOf(g) {
@@ -1044,8 +1061,7 @@ function skyLayer(tod, weather) {
   const r = rng(5);
   if (tod === 'night') for (let i = 0; i < 120; i++) P1(g, Math.floor(r() * W), Math.floor(r() * (HZ - 4)), r() < .3 ? '#ffffff' : '#9aa8d8');
   // l'astre
-  const sx = W * .62, sy = tod === 'day' ? 14 : tod === 'evening' ? HZ - 4 : 16;
-  if (weather !== 'storm') { g.fillStyle = T.sun; g.beginPath(); g.arc(sx, sy, tod === 'night' ? 5 : 8, 0, 7); g.fill(); if (tod === 'night') { g.fillStyle = bands[0]; g.beginPath(); g.arc(sx + 2, sy - 1, 4, 0, 7); g.fill(); } }
+  const sx = Math.min(W * .62, 300), sy = tod === 'day' ? 14 : tod === 'evening' ? HZ - 4 : 16;
   // nuages en bandes
   const cloud = tod === 'day' ? ['#ffffff', '#e4f0fa', '#c8d8ea'] : tod === 'evening' ? ['#e48c8a', '#c86476', '#9a4664'] : ['#3a3c66', '#2e3058', '#24264a'];
   const n = weather === 'clear' ? 6 : weather === 'cloudy' ? 12 : 18;
@@ -1054,6 +1070,8 @@ function skyLayer(tod, weather) {
     const cc = weather === 'clear' ? cloud : cloud.map(col => mix(col, '#585468', weather === 'cloudy' ? .3 : .6));
     for (let j = 0; j < 4; j++) { const y = cy + j * 2, x0 = cx - len / 2 + j * 6, w = len - j * 14; R(g, x0, y, w, 2, j === 0 ? cc[0] : cc[1]); for (let x = x0; x < x0 + w; x += 5 + Math.floor(r() * 6)) R(g, x, y + 2, 3, 1, cc[2]); }
   }
+  // l'astre, devant les nuages
+  if (weather !== 'storm') { g.fillStyle = T.sun; g.beginPath(); g.arc(sx, sy, tod === 'night' ? 5 : 8, 0, 7); g.fill(); if (tod !== 'night') { g.fillStyle = '#fff4e0'; g.beginPath(); g.arc(sx, sy, 5, 0, 7); g.fill(); } if (tod === 'night') { g.fillStyle = bands[0]; g.beginPath(); g.arc(sx + 2, sy - 1, 4, 0, 7); g.fill(); } }
   // l'horizon et la colline au loin
   for (let x = 0; x < W; x++) { const y = HZ - 2 + Math.round(Math.sin(x * .03) * 2 + Math.sin(x * .09)); R(g, x, y, 1, 8, mix('#7a5272', bands[4], .3)); }
   return c;
@@ -1069,73 +1087,43 @@ function cityLayers(level, tod) {
   if (tod === 'night') for (const g of [gf, gn]) { g.save(); g.globalCompositeOperation = 'source-atop'; g.fillStyle = 'rgba(10,10,40,.45)'; g.fillRect(0, 0, Wn, SH); g.restore(); }
   return {far, near};
 }
-/* ---- Les éperons de la cité suspendue, au second plan ---- */
-function midLayer(tod) {
-  const W = Math.ceil((FW - 200) * PAR.mid + 600), [c, g] = mkc(W, SH), r = rng(31);
-  for (const [x0, w] of [[120, 120], [380, 140], [640, 120], [900, 120]]) {
-    const top = STREET - 50;
-    for (let x = x0; x < x0 + w; x++) { const e = top + Math.round(Math.max(0, Math.max(x0 + 12 - x, x - (x0 + w - 12))) * 2.4); R(g, x, e, 1, SH - e, '#5a4652'); if ((x * 7) % 11 < 3) R(g, x, e + 6, 1, SH - e, '#4a3846'); P1(g, x, e, '#8a7480'); }
-    for (let x = x0 + 16; x < x0 + w - 18; x += 22) { for (let i = 0; i < 14; i++) { const d = Math.abs(i - 6.5), t = top + 14 + Math.round(d * d / 7); R(g, x + i, t, 1, 40, '#2a1e2a'); } R(g, x - 3, top + 10, 4, 50, '#7a6470'); }
-    for (let i = 0; i < 24; i++) R(g, x0 + 10 + Math.floor(r() * (w - 20)), top + 4 + (i % 9) * 3, 2, 3, '#3e5a3a');
-    R(g, x0 + 8, top - 2, w - 16, 3, '#b8a8a0');
-    for (let hx = x0 + 12; hx < x0 + w - 30; hx += 32) french(g, hx, top - 3, 26, {h: 30 + Math.floor(r() * 12), chim: r() < .5 ? 8 : null, shutter: r() < .5 ? '#6a5a4a' : '#5a6a7a'}, Math.floor(r() * 999));
-  }
-  shade(g, W, tod, .7);
-  return c;
-}
-/* ---- La rue : segments sur les éperons, ponts de pierre au-dessus du vide ---- */
-function bridge(g, x0, x1) {
-  const deck = TERRACE - 2;
-  R(g, x0, deck, x1 - x0, 12, '#a89890'); R(g, x0, deck, x1 - x0, 1, '#d8ccc4'); R(g, x0, deck + 11, x1 - x0, 1, '#6e5e64');
-  for (let x = x0 + 4; x < x1 - 20; x += 26) { // les arches sous le tablier
-    R(g, x, deck + 12, 22, SH - deck, '#8e7e80');
-    g.clearRect(x + 2, deck + 24, 18, SH);
-    for (let i = 0; i < 18; i++) { const d = Math.abs(i - 8.5), t = deck + 14 + Math.round(d * d / 7); g.clearRect(x + 2 + i, t, 1, SH); }
-    R(g, x, deck + 12, 22, 2, '#b8a8a0');
-  }
-  R(g, x0, deck - 10, x1 - x0, 2, '#b8a8a0'); for (let x = x0 + 2; x < x1; x += 5) { R(g, x, deck - 8, 3, 8, '#a89890'); R(g, x + 1, deck - 6, 1, 4, '#8a7a78'); }
-}
+/* ---- La rue : la terrasse et sa balustrade, des groupes de maisons, des terrasses ouvertes sur la vallée ---- */
 function frontLayer(tod) {
   LIGHTS = []; WINS = [];
-  const [c, g] = mkc(FW, SH), r = rng(7);
-  // le sol des éperons et la balustrade des terrasses
-  for (const [a, b] of SEGMENTS) {
-    R(g, a, TERRACE, b - a, SH - TERRACE, '#5a4650');
-    R(g, a, TERRACE - 2, b - a, 3, '#b8a8a0'); R(g, a, TERRACE - 2, b - a, 1, '#d8ccc4');
-    for (let x = a + 2; x < b; x += 5) { R(g, x, TERRACE + 1, 3, 9, '#a89890'); R(g, x + 1, TERRACE + 3, 1, 5, '#8a7a78'); }
-    R(g, a, TERRACE + 10, b - a, 3, '#b8a8a0');
-    for (const px of [a, b - 8]) { R(g, px, TERRACE - 12, 8, SH, '#b8a8a0'); R(g, px, TERRACE - 12, 8, 2, '#d8ccc4'); R(g, px + 6, TERRACE - 10, 2, SH, '#8a7a78'); }
-  }
-  for (const [a, b] of BRIDGES) bridge(g, a, b);
-  // les maisons : les lieux, et quelques maisons d'habitants
-  const P = PLACES;
-  french(g, P.home.x, STREET, P.home.w, {door: 34, chim: 8, h: 60, shutter: '#4a6a5a'}, 1);
-  french(g, P.archives.x, STREET, P.archives.w, {stone: '#a89488', shutter: '#6a5a4a', h: 66}, 2);
-  french(g, 242, STREET, 50, {shop: 1, door: 32, h: 56, awning: '#5a4a6a', chim: 30}, 3);
-  french(g, P.market.x, STREET, P.market.w, {shop: 1, door: 40, chim: 8, awning: '#3a5a7a', h: 62}, 4);
+  const [c, g] = mkc(FW, SH), P = PLACES;
+  R(g, 0, TERRACE, FW, STREET - TERRACE, '#5a4650');
+  R(g, 0, TERRACE - 2, FW, 3, '#b8a8a0'); R(g, 0, TERRACE - 2, FW, 1, '#d8ccc4');
+  for (let x = 2; x < FW; x += 5) { R(g, x, TERRACE + 1, 3, 9, '#a89890'); R(g, x + 1, TERRACE + 3, 1, 5, '#8a7a78'); }
+  R(g, 0, TERRACE + 10, FW, 3, '#b8a8a0');
+  for (const [a, b] of OPENINGS) for (let x = a + 30; x < b - 20; x += 40) R(g, x, TERRACE - 4, 6, 17, '#c8b8b0');
+  // les maisons de ville, serrées en groupes
+  french(g, P.home.x, STREET, P.home.w, {door: 34, chim: 8, h: 62, shutter: '#4a6a5a'}, 1);
+  french(g, P.archives.x, STREET, P.archives.w, {stone: '#a89488', shutter: '#6a5a4a', h: 70}, 2);
+  french(g, 264, STREET, 40, {stone: '#c0ac9a', h: 58, chim: 22, shutter: '#7a5a4a'}, 3);
+  french(g, P.market.x, STREET, P.market.w, {shop: 1, door: 40, chim: 8, awning: '#3a5a7a', h: 66}, 4);
   french(g, P.bank.x, STREET, P.bank.w, {stone: '#c0ac9a', h: 64, chim: 30}, 5);
-  french(g, 570, STREET, 40, {stone: '#b0a090', h: 58, shutter: '#7a5a4a'}, 6);
-  french(g, P.lab.x, STREET, P.lab.w, {shop: 1, door: 32, h: 58, awning: '#3a6a5a'}, 7);
-  french(g, 858, STREET, 38, {stone: '#a89488', h: 66, chim: 20}, 8);
-  french(g, 904, STREET, 46, {h: 56, shop: 1, door: 6, awning: '#8a3a3a'}, 9);
-  // le tableau des quêtes, sur la place, et la fontaine
+  french(g, 580, STREET, 40, {stone: '#b0a090', h: 70, shutter: '#7a5a4a'}, 6);
+  french(g, P.lab.x, STREET, P.lab.w, {shop: 1, door: 34, h: 60, awning: '#3a6a5a'}, 7);
+  french(g, 818, STREET, 40, {stone: '#a89488', h: 68, chim: 20}, 8);
+  french(g, 860, STREET, 52, {h: 58, shop: 1, door: 6, awning: '#8a3a3a'}, 9);
+  // les bouts de la rue : de gros piliers de pierre
+  for (const px of [0, FW - 4]) { R(g, px, TERRACE - 14, 4, SH, '#b8a8a0'); R(g, px, TERRACE - 14, 4, 2, '#d8ccc4'); }
+  // le tableau des quêtes et la fontaine, sur la terrasse du milieu
   const bx = P.board.x; R(g, bx + 3, STREET - 26, 2, 26, '#4e3222'); R(g, bx + 19, STREET - 26, 2, 26, '#4e3222');
   R(g, bx, STREET - 40, 24, 16, '#6e4a32'); R(g, bx, STREET - 40, 24, 1, '#8a6040'); R(g, bx + 1, STREET - 25, 22, 1, '#4e3222');
   for (const [px, py, pw, ph, col] of [[2, 3, 7, 6, '#f6f2e9'], [11, 2, 8, 5, '#ffd166'], [12, 8, 7, 6, '#f6f2e9'], [3, 10, 5, 4, '#9fe8ff']]) R(g, bx + px, STREET - 40 + py, pw, ph, col);
-  R(g, 482, STREET - 12, 28, 12, '#a89890'); R(g, 482, STREET - 12, 28, 1, '#d8ccc4'); R(g, 484, STREET - 10, 24, 5, '#6a8ab0'); R(g, 494, STREET - 26, 4, 14, '#b8a8a0'); R(g, 489, STREET - 28, 14, 3, '#a89890');
-  // le belvédère : une longue-vue de laiton sur son trépied, tournée vers la ville en contrebas
+  const fx = 470; R(g, fx, STREET - 12, 28, 12, '#a89890'); R(g, fx, STREET - 12, 28, 1, '#d8ccc4'); R(g, fx + 2, STREET - 10, 24, 5, '#6a8ab0'); R(g, fx + 12, STREET - 26, 4, 14, '#b8a8a0'); R(g, fx + 7, STREET - 28, 14, 3, '#a89890');
+  // le belvédère : une longue-vue de laiton sur son trépied, et un banc, face à la ville en contrebas
   const tx0 = P.belvedere.x + 4; R(g, tx0 + 3, STREET - 14, 1, 14, '#3a2a26'); R(g, tx0, STREET - 1, 8, 1, '#3a2a26'); R(g, tx0 + 1, STREET - 7, 1, 7, '#3a2a26'); R(g, tx0 + 6, STREET - 7, 1, 7, '#3a2a26');
   for (let i = 0; i < 12; i++) R(g, tx0 - 2 + i, STREET - 16 - Math.round(i * .35), 1, i < 4 ? 3 : 2, i % 4 === 0 ? '#e8c070' : '#b08840');
-  R(g, P.belvedere.x - 6, STREET - 6, 10, 2, '#6e4a32'); R(g, P.belvedere.x - 5, STREET - 4, 1, 4, '#4e3222'); R(g, P.belvedere.x + 2, STREET - 4, 1, 4, '#4e3222');
+  R(g, P.belvedere.x - 26, STREET - 7, 16, 2, '#6e4a32'); R(g, P.belvedere.x - 25, STREET - 5, 1, 5, '#4e3222'); R(g, P.belvedere.x - 12, STREET - 5, 1, 5, '#4e3222'); R(g, P.belvedere.x - 26, STREET - 13, 16, 2, '#6e4a32');
   // les enseignes et les lanternes
   for (const k of Object.keys(P)) { const p = P[k]; if (!p.label) continue; if (k === 'board') fascia(g, p.x - 4, STREET - 50, p.w + 8, p.label, p.picto); else fascia(g, p.x + 2, STREET - 21, p.w - 4, p.label, p.picto); }
-  for (const lx of [124, 236, 300, 380, 470, 612, 712, 796, 954, 1060]) lantern(g, lx, STREET);
+  for (const [a, b] of OPENINGS) { lantern(g, a + 2, STREET); lantern(g, b - 4, STREET); }
   // la rue pavée
-  for (const [a, b] of [[0, FW]]) {
-    R(g, a, STREET, b - a, SH - STREET, '#2e1e2a');
-    for (let x = a - 4; x < b; x += 8) { const o = (x / 8) % 2 ? 4 : 0; for (const [yy, oo] of [[0, o], [4, 4 - o], [8, o], [12, 4 - o], [16, o], [20, 4 - o]]) { R(g, x + oo, STREET + yy, 7, 3, mix('#5a4050', '#3a2834', yy / 24)); R(g, x + oo, STREET + yy, 7, 1, mix('#7a5a66', '#4a3440', yy / 24)); } }
-  }
-  // un voile du soir sur les façades : un peu de contre-jour, sans aller jusqu'à la silhouette
+  R(g, 0, STREET, FW, SH - STREET, '#2e1e2a');
+  for (let x = -4; x < FW; x += 8) { const o = (x / 8) % 2 ? 4 : 0; for (const [yy, oo] of [[0, o], [4, 4 - o], [8, o], [12, 4 - o], [16, o], [20, 4 - o]]) { R(g, x + oo, STREET + yy, 7, 3, mix('#5a4050', '#3a2834', yy / 24)); R(g, x + oo, STREET + yy, 7, 1, mix('#7a5a66', '#4a3440', yy / 24)); } }
+  // un léger voile du soir sur les façades, sans aller jusqu'à la silhouette
   shade(g, FW, tod, 1);
   for (const [x, y, w, h] of WINS) if (tod !== 'day') { R(g, x, y, w, h, '#e8a862'); R(g, x, y, w, 2, '#f8cc90'); R(g, x + Math.floor(w / 2), y, 1, h, '#3a2830'); R(g, x, y + Math.floor(h / 2), w, 1, '#3a2830'); }
   return {c, lights: LIGHTS.slice()};
@@ -1163,7 +1151,7 @@ function ensureLayers(g) {
   const key = sceneKey(g); if (SCENE.key === key && SCENE.layers) return;
   const [tod, weather, built] = key.split('|');
   const fr = frontLayer(tod), city = cityLayers(+built, tod);
-  SCENE.layers = {sky: skyLayer(tod, weather), far: city.far, near: city.near, mid: midLayer(tod), front: fr.c, glow: glowLayer(fr.lights, tod), tod, weather};
+  SCENE.layers = {sky: skyLayer(tod, weather), far: city.far, near: city.near, front: fr.c, glow: glowLayer(fr.lights, tod), tod, weather};
   SCENE.key = key;
   if (!SCENE.walkers.length) {
     const fam = [['rore', TEAM.rore.outfit, 'supervise'], ['hacker_cyberpunk', TEAM.hacker_cyberpunk.outfit, 'bounce'], ...FAMILY.slice(0, 7).map(f => ['fam:' + f.id, f.outfit, f.idle])];
@@ -1213,7 +1201,7 @@ function drawScene(now) {
   const T = TOD[L.tod];
   if (L.weather === 'clear' && L.tod !== 'night') {
     g.save(); g.globalCompositeOperation = 'lighter';
-    const sx = (L.sky.width * .62 - cam * PAR.sky) * z, sy = (L.tod === 'day' ? 14 : HZ - 4) * z;
+    const sx = (Math.min(L.sky.width * .62, 300) - cam * PAR.sky) * z, sy = (L.tod === 'day' ? 14 : HZ - 4) * z;
     for (let i = 0; i < 7; i++) { const a = -Math.PI * .95 + i * .26, len = cv.width * 1.5; g.fillStyle = `rgba(255,190,150,${(L.tod === 'evening' ? .02 : .012) + (i % 2) * .01})`; g.beginPath(); g.moveTo(sx, sy); g.lineTo(sx + Math.cos(a - .05) * len, sy + Math.sin(a - .05) * len); g.lineTo(sx + Math.cos(a + .05) * len, sy + Math.sin(a + .05) * len); g.fill(); }
     const sun = g.createRadialGradient(sx, sy, 0, sx, sy, 34 * z); sun.addColorStop(0, 'rgba(255,214,160,.3)'); sun.addColorStop(1, 'rgba(255,140,120,0)'); g.fillStyle = sun; g.fillRect(0, 0, cv.width, cv.height);
     g.restore();
@@ -1223,7 +1211,8 @@ function drawScene(now) {
   let fog = g.createLinearGradient(0, HZ * z, 0, (HZ + 34) * z); fog.addColorStop(0, `rgba(${hr},${hg},${hb},.45)`); fog.addColorStop(1, `rgba(${hr},${hg},${hb},0)`); g.fillStyle = fog; g.fillRect(0, 0, cv.width, cv.height);
   g.save(); g.filter = `blur(${Math.max(.3, z * .18)}px)`; blit(L.near, PAR.near); g.restore();
   const mist = g.createLinearGradient(0, (STREET - 60) * z, 0, STREET * z); mist.addColorStop(0, `rgba(${hr},${hg},${hb},0)`); mist.addColorStop(1, `rgba(${hr},${hg},${hb},.3)`); g.fillStyle = mist; g.fillRect(0, 0, cv.width, cv.height);
-  blit(L.mid, PAR.mid);
+  // la lueur de la ville en contrebas
+  { g.save(); g.globalCompositeOperation = 'lighter'; const vx = (L.near.width / 2 - cam * PAR.near) * z, vy = (STREET - 40) * z, gl = g.createRadialGradient(vx, vy, 0, vx, vy, 160 * z); gl.addColorStop(0, `rgba(255,170,100,${L.tod === 'day' ? .04 : .1})`); gl.addColorStop(1, 'rgba(255,170,100,0)'); g.fillStyle = gl; g.fillRect(0, 0, cv.width, cv.height); g.restore(); }
   blit(L.front, 1);
   // l'équipe devant ses lieux, et les promeneurs
   const actors = [];
@@ -1236,7 +1225,9 @@ function drawScene(now) {
     g.fillStyle = 'rgba(10,4,16,.45)'; g.beginPath(); g.ellipse(sx, STREET * z, 7 * z, 1.6 * z, 0, 0, 7); g.fill();
     g.drawImage(spr, sx - 10 * z, (STREET - 22 - (ie.hop || 0)) * z, 20 * z, 24 * z);
   }
-  // l'ambiance de l'heure, puis les halos
+  // l'ambiance de l'heure : l'ombre monte du bas, la lumière chaude vient du soleil couchant
+  const sh = g.createLinearGradient(0, 0, 0, cv.height); sh.addColorStop(0, 'rgba(40,10,60,0)'); sh.addColorStop(.6, 'rgba(40,10,60,.12)'); sh.addColorStop(1, 'rgba(20,6,30,.45)'); g.fillStyle = sh; g.fillRect(0, 0, cv.width, cv.height);
+  if (L.tod !== 'night') { g.save(); g.globalCompositeOperation = 'soft-light'; const k = L.tod === 'evening' ? 1 : .45, warm = g.createLinearGradient(cv.width, 0, 0, 0); warm.addColorStop(0, `rgba(255,150,110,${.32 * k})`); warm.addColorStop(1, `rgba(90,60,160,${.3 * k})`); g.fillStyle = warm; g.fillRect(0, 0, cv.width, cv.height); g.restore(); }
   g.fillStyle = T.ambient; g.fillRect(0, 0, cv.width, cv.height);
   g.save(); g.globalCompositeOperation = 'lighter'; g.drawImage(L.glow, -Math.round(cam * z), 0, FW * z, SH * z); g.restore();
   // météo : pluie, éclairs
@@ -1301,9 +1292,10 @@ const condMet = (c, g) => !c.cond || condVal(c.cond.k, g) >= c.cond.n;
 function defaultWorld() { return {seen: '', found: [], chests: {}, skins: ['classique'], skin: 'classique', built: 0, look: {...DEFAULT_LOOK}, mapv: 5}; }
 
 /* ---- Ce que disent les robots ---- */
-function lineOf(place, g) {
+function lineOf(place, g, quip) {
   const ms = g.ms, t = today(), p = PLACES[place], k = p && p.keeper, L = k ? TEAM[k].lines : null;
-  const say = L ? `« ${L[(UI.lineIdx = ((UI.lineIdx || 0) + 1)) % L.length]} » ` : '';
+  if (quip && L) return `« ${L[(UI.lineIdx = ((UI.lineIdx || 0) + 1)) % L.length]} »`;
+  const say = '';
   if (place === 'market') return say + `Qu'as-tu acheté aujourd'hui ? Il te reste ${fmt(Math.max(0, ms.todayAllowance - (ms.daily[ms.elapsed] || 0)))} pour la journée.`;
   if (place === 'bank') return say + `${ymLabel(ms.ym)} : ${fmt(ms.spent)} dépensés sur ${fmt(ms.budget)}. Écart : ${fmtS(ms.budget - ms.spent)}.`;
   if (place === 'archives') return say + `J'ai ${ms.count} dépense${ms.count > 1 ? 's' : ''} dans mes registres pour ${ymLabel(ms.ym)}.`;
@@ -1336,11 +1328,10 @@ function panelHTML(g) {
   return '';
 }
 function idlePanel(g) {
-  const ms = g.ms, td = ms.daily[ms.elapsed] || 0, worst = [...ms.cats].sort((a, b) => b.ratio - a.ratio).slice(0, 4);
-  return `<p class="dim say">${esc(heroLine(g))}</p><div class="row between wrap"><span class="gold">BUDGET DU JOUR</span><b class="big">${fmt(ms.todayAllowance)}</b></div>
-    <div class="row between dim"><span>Aujourd'hui</span><span>${fmt(td)}</span></div>
-    <div class="list">${worst.map(c => `<div class="li">${monImg(c.cat, 18, c.ratio >= 1)}<span class="grow ${c.ratio >= 1 ? 'red' : ''}">${esc(c.cat.name)}</span>${bar(c.ratio, gaugeCol(c.ratio))}</div>`).join('')}</div>
-    <div class="row between dim"><span>Reste du mois</span><span class="${ms.remaining < 0 ? 'red' : ''}">${fmt(ms.remaining)}</span></div>`;
+  const ms = g.ms, td = ms.daily[ms.elapsed] || 0, alert = ms.cats.some(c => c.budget > 0 && c.spent > c.budget) || td > ms.todayAllowance, worst = [...ms.cats].sort((a, b) => b.ratio - a.ratio).slice(0, (matchMedia('(max-width:640px)').matches ? 4 : 3) - (alert || !S.expenses.length ? 1 : 0));
+  return `<div class="row between wrap"><span class="gold">BUDGET DU JOUR</span><b class="big">${fmt(Math.max(0, ms.todayAllowance - td))}</b></div>
+    ${alert || !S.expenses.length ? `<p class="say ${alert ? 'red' : 'dim'}">${esc(heroLine(g))}</p>` : ''}
+    <div class="list">${worst.map(c => `<div class="li flat"><span class="grow ${c.ratio >= 1 ? 'red' : ''}">${esc(c.cat.name)}</span><span class="gauge wide"><i style="width:${Math.min(100, c.ratio * 100)}%;background:${gaugeCol(c.ratio)}"></i></span></div>`).join('')}</div>`;
 }
 function addPanel() {
   const t = today();
@@ -1416,9 +1407,10 @@ function renderUI() {
   $('#menu').innerHTML = items.map(([id, label], i) => `<button class="mi ${i === UI.menuIdx ? 'sel' : ''} ${UI.place && id === curSub ? 'cur' : ''}" data-act="menu" data-i="${i}">${esc(label)}</button>`).join('');
   const pan = $('#panel'), st = pan.scrollTop; pan.innerHTML = panelHTML(g); pan.scrollTop = st;
   $('#status').innerHTML = `<span>Trésor <b class="${g.treasure < 0 ? 'red' : 'gold'}">${fmtS(g.treasure)}</b></span><span>PV <b>${g.hp}</b></span><span>Niv.<b>${g.level}</b> <small class="dim">${g.xpIn}/${g.xpNext}</small></span><span>Série <b>${g.streak} j</b></span>`;
-  $('#title').textContent = (UI.place ? PLACES[UI.place].name : 'La cité suspendue') + ' · ' + new Date().toTimeString().slice(0, 5);
+  $('#title').textContent = (UI.place ? PLACES[UI.place].name : 'La cité') + ' · ' + new Date().toTimeString().slice(0, 5);
   const dlg = $('#dlg');
   if (UI.dlg) { dlg.hidden = false; $('#dlgWho').textContent = UI.dlg.who; $('#dlgFace').innerHTML = UI.dlg.face; typeText($('#dlgTxt'), UI.dlg.text); } else dlg.hidden = true;
+  document.body.classList.toggle('open', !!UI.place);
   if (UI.place === 'bank' && UI.sub === 'daily') drawDaily();
   if (UI.place === 'lab') drawSparks();
   ensureLayers(g);
@@ -1513,7 +1505,7 @@ const ACT = {
   edit: a => editExpense(a.dataset.id),
   delExp: a => { if (!confirm('Supprimer cette dépense ?')) return; S.expenses = S.expenses.filter(e => e.id !== a.dataset.id); closeModal(); commit(); },
   closeModal: () => closeModal(),
-  dlg: () => { if (!UI.dlg) return; if (UI.dlg.idle) { UI.dlg = null; SFX.click(); return renderUI(); } if (UI.place) { UI.dlg.text = lineOf(UI.place, UI.game); SFX.click(); renderUI(); } },
+  dlg: () => { if (!UI.dlg) return; if (UI.dlg.idle) { UI.dlg = null; SFX.click(); return renderUI(); } if (UI.place) { UI.dlg.n = (UI.dlg.n || 0) + 1; UI.dlg.text = lineOf(UI.place, UI.game, UI.dlg.n % 2 === 1); SFX.click(); renderUI(); } },
   month: a => { UI.viewYM = addMonths(UI.viewYM, +a.dataset.d); renderUI(); },
   delCat: a => { const c = catOf(a.dataset.id); if (!c) return; if (S.categories.length <= 1) return alert('Il faut garder au moins une catégorie.'); const n = S.expenses.filter(e => e.catId === c.id).length; if (n) return alert(`${n} dépense(s) utilisent « ${c.name} » : renomme-la plutôt.`); if (confirm(`Supprimer « ${c.name} » ?`)) { S.categories = S.categories.filter(x => x !== c); commit(); } },
   look: a => { S.world.look = {...heroLook(), [a.dataset.k]: a.dataset.v}; SFX.click(); commit(); },
@@ -1657,6 +1649,7 @@ function boot() {
     requestAnimationFrame(loop);
   };
   requestAnimationFrame(loop);
+  if (window.ResizeObserver) new ResizeObserver(() => { sizeScene(); SCENE.cam = clampCam(SCENE.cam); if (SCENE.focus) focusPlace(SCENE.focus); }).observe($('.view'));
   addEventListener('resize', () => { sizeScene(); SCENE.cam = clampCam(SCENE.cam); if (SCENE.target != null && SCENE.focus) focusPlace(SCENE.focus); });
 }
 boot();

@@ -17,8 +17,8 @@ Pour les sauvegarder ou les passer d'un appareil à l'autre, utilise **Config �
 
 L'écran est celui du PC de Roré, posé sur son bureau de l'Open Space, avec sa tasse « 43 ».
 Sur le moniteur, on observe **la cité suspendue** : un panorama en 2D qu'on fait glisser de gauche à droite.
-- Au premier plan, la rue de la cité : des maisons de ville du XVIIIe siècle (pierre, toits à la Mansart en ardoise, lucarnes, balcons en fer forgé, volets) bâties sur trois éperons rocheux, reliés par deux ponts de pierre au-dessus du vide.
-- Au second plan, d'autres éperons, avec leurs arches et leurs maisons.
+- Au premier plan, la rue de la cité, sur sa terrasse à balustrade : des groupes de maisons de ville du XVIIIe siècle (pierre, toits à la Mansart en ardoise, lucarnes, balcons en fer forgé, volets), avec les enseignes des lieux.
+- Entre les groupes de maisons, des terrasses ouvertes : le belvédère avec sa longue-vue, la place du tableau des quêtes et de la fontaine, et une dernière vue dégagée.
 - **En contrebas**, au fond de la vallée, une ville en enduit ocre et en tuiles, traversée par une rivière. Elle grandit avec ton trésor, comme le phare de l'Open Space.
 
 Les plans défilent en parallaxe, à des vitesses différentes. Le soir, les façades passent un peu en contre-jour.
