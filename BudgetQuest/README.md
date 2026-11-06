@@ -1,6 +1,6 @@
 # Budget Quest 🗡️
 
-Tracker de dépenses et de budgets **en FCFA**, façon RPG pixel art.
+Tracker de dépenses et de budgets **en FCFA**, présenté comme un RPG 16 bits de la SNES.
 Un seul fichier : `index.html`. Il ne demande ni installation ni serveur.
 
 ## Utilisation
@@ -9,116 +9,79 @@ Un seul fichier : `index.html`. Il ne demande ni installation ni serveur.
 - **Sur téléphone** : active GitHub Pages sur le repo (Settings → Pages → branche `main`, dossier `/root`).
   L'app sera alors à l'adresse `https://<utilisateur>.github.io/43/BudgetQuest/`. Depuis le navigateur du téléphone, choisis « Ajouter à l'écran d'accueil ».
 
-Les données restent dans le navigateur de l'appareil (`localStorage`).
-Pour les sauvegarder ou les passer d'un appareil à l'autre, utilise **Options → Export JSON / Importer**.
-**Export CSV** sort tes dépenses pour Excel, avec `;` comme séparateur.
+Les données restent dans le navigateur de l'appareil (`localStorage`). Les sauvegardes des versions précédentes sont reprises telles quelles.
+Pour les sauvegarder ou les passer d'un appareil à l'autre, utilise **Config → Sauvegarde → Exporter (JSON) / Importer**.
+**Exporter (CSV)** sort tes dépenses pour Excel, avec `;` comme séparateur.
 
-## Onglets
+## Ce qu'on voit : la cité, depuis le PC de Roré
 
-| Onglet | Contenu |
+L'écran est celui du PC de Roré, posé sur son bureau de l'Open Space, avec sa tasse « 43 ».
+Sur le moniteur, on observe **la cité suspendue** : un panorama en 2D qu'on fait glisser de gauche à droite.
+- Au premier plan, la rue de la cité : des maisons de ville du XVIIIe siècle (pierre, toits à la Mansart en ardoise, lucarnes, balcons en fer forgé, volets) bâties sur trois éperons rocheux, reliés par deux ponts de pierre au-dessus du vide.
+- Au second plan, d'autres éperons, avec leurs arches et leurs maisons.
+- **En contrebas**, au fond de la vallée, une ville en enduit ocre et en tuiles, traversée par une rivière. Elle grandit avec ton trésor, comme le phare de l'Open Space.
+
+Les plans défilent en parallaxe, à des vitesses différentes. Le soir, les façades passent un peu en contre-jour.
+
+**Pour se promener** : fais glisser le paysage (doigt, souris, molette) ou utilise les flèches ← →.
+On ne dirige pas Roré : il se promène dans la rue avec Nyx et la famille de l'équipe, et lève les bras quand tu gagnes de l'XP.
+
+### La cité vit avec ton budget
+
+| Ce qui change | Ce qui le décide |
 |---|---|
-| **Monde** | Carte en monde ouvert à explorer, budget du jour, saisie rapide d'une dépense, quêtes du jour, monstres (catégories) |
-| **Journal** | Calendrier du mois coloré selon les dépenses de chaque jour, détail par jour, modification et suppression |
-| **Écarts** | Budget, réel, écart et projection de fin de mois, graphique jour par jour, écarts par catégorie, plus grosses dépenses |
-| **Quêtes** | Habitudes quotidiennes avec séries, rattrapage sur 7 jours, trophées, statistiques |
-| **Suivis** | Compteurs personnalisés (sommeil, eau, cafés…), avec un objectif « au moins » ou « au plus » |
-| **Options** | Nom du héros, son, catégories (monstre, couleur, budget mensuel), sauvegarde |
+| **L'heure** : jour, soir, nuit étoilée, fenêtres et lanternes allumées | L'heure réelle de l'appareil |
+| **La météo** : soleil, nuages, pluie, orage avec éclairs | Soleil sous le budget du jour, nuages près de la limite, pluie au-delà, orage si une catégorie dépasse son budget de 25 % ou si les PV tombent sous 25 |
+| **La ville en contrebas** | Le trésor : un clocher (5 000 F), le pont sur la rivière, la grande coupole, un nouveau quartier, le beffroi, une seconde église, les quais, le palais, puis la cité entière (1 000 000 F) |
 
-## Le monde : le village, la suite du jardin de l'Open Space
+## Les menus, comme dans Final Fantasy
 
-Le monde est **le village**, une carte autonome de 64 × 30 cases. Elle prolonge vers la droite le jardin et le pavillon 43 de l'[Open Space](https://github.com/RoreAndreas/Openspace43) :
-- à gauche, le terrain remonte encore vers l'horizon, comme derrière le pavillon ;
-- le chemin de gravier arrive du jardin, et un panneau indique « ← l'Open Space ».
+Tout passe par les fenêtres bleues du bas : on choisit avec la main, au doigt, à la souris ou au clavier (↑ ↓, Entrée, Échap).
+Choisir un lieu, dans le menu ou en le touchant dans la scène :
+1. la caméra glisse jusqu'au bâtiment, le reste s'assombrit et son contour s'illumine ;
+2. le robot qui tient le lieu fait coucou et parle dans une fenêtre de dialogue, en haut (touche-la pour la réplique suivante) ;
+3. les fenêtres du bas deviennent celles du lieu. **Retour** revient à la cité.
 
-Le jardin lui-même n'est pas dans l'app : le village fonctionne seul.
+| Menu | Lieu | Robot | Ce qu'on y fait |
+|---|---|---|---|
+| **Dépense** | Le Marché | Zaza | Noter une dépense (montant, raccourcis, catégorie, note, date), pointer un jour sans dépense, revoir les dernières |
+| **Écarts** | La Banque des Écarts | Hares | Bilan du mois (budget, réel, écart, projection), écarts par catégorie, graphique jour par jour, plus grosses dépenses, mois précédents |
+| **Journal** | Les Archives | Margaux | Calendrier du mois coloré selon les dépenses, liste, modification et suppression |
+| **Quêtes** | Le Tableau des quêtes | Rook | Habitudes du jour, semaine, trophées, statistiques, nouvelle quête |
+| **Suivis** | Le Labo | Boulon | Compteurs personnalisés (sommeil, eau, cafés…) avec un objectif « au moins » ou « au plus », courbe sur 14 jours |
+| **Config** | La maison de Roré | Roré | Héros, sons, musique, budgets du mois, catégories, apparence, tenues, sauvegarde, règles |
+| — | Le Belvédère (à toucher dans la scène) | Merlain | Des conseils, face à la ville en contrebas |
 
-Le dessin reprend le moteur du jardin (portage de `src/engine/outside.ts` et `outsideDraw.ts`) :
-- le sol est vu de dessus en 3/4 : prairie au vent, falaise, pins parasols ;
-- la **mer** est peinte en perspective jusqu'à l'horizon : houle, écume, reflet du soleil, voiliers, phare ;
-- la lumière suit l'heure de l'appareil, et Nessie nage au large la nuit ;
-- la caméra suit Roré dans les deux sens.
+La barre d'état montre en permanence le trésor, les PV, le niveau et la série.
 
-| Quartier | Ce qu'on y trouve |
-|---|---|
-| **L'entrée**, à gauche | La maison de Roré (apparence, tenues, options) et le chemin qui vient du jardin |
-| **La place** | Zaza au marché (noter une dépense), Hares à la Banque des Écarts, Margaux aux Archives, Rook au tableau des quêtes |
-| **Le belvédère**, au bord de la falaise | Le banc face au large, pour pointer une journée sans dépense, et Merlain qui donne des conseils |
-| **Le quartier sud** | Le labo de Boulon (les suivis) et les 9 terrains que le trésor fait construire, du puits au château |
-| **La prairie des monstres**, à droite | Les repaires des catégories du budget |
+## Son
 
-**Pour se déplacer** :
-- touche le sol, un bâtiment ou un robot ;
-- ou utilise la croix directionnelle et le bouton A ;
-- ou les flèches (ZQSD) et Entrée.
-
-Le bouton CARTE montre tout le village et permet le voyage rapide vers les lieux déjà découverts. Les 9 coffres sont cachés dans tout le village, dont un tout en haut à gauche, du côté de l'Open Space.
+- Une petite musique en 8 bits, composée et générée dans le navigateur. Elle est coupée au départ : bouton **♪ MUSIQUE** sous l'écran, ou Config → Héros. La nuit, la mélodie descend d'une octave.
+- Un bip à chaque choix de menu et pendant que le texte s'écrit, et une fanfare (originale) aux montées de niveau et quand toutes les quêtes du jour sont faites.
 
 ## Personnages : les robots de l'Open Space
 
-Les habitants du village viennent de l'[Open Space](https://github.com/RoreAndreas/Openspace43). Ce sont les mêmes robots à tête-cube et à visière, en 20 × 24 pixels, dessinés en code. Le dessin est un portage de `src/engine/robots.ts`, d'après *Le Bureau des agents* de VibesMoney (licence MIT).
+Les habitants de la cité viennent de l'[Open Space](https://github.com/RoreAndreas/Openspace43). Ce sont les mêmes robots à tête-cube et à visière, en 20 × 24 pixels, dessinés en code. Le dessin est un portage de `src/engine/robots.ts`, d'après *Le Bureau des agents* de VibesMoney (licence MIT).
 
-**Roré, le chef de projet, est le héros.**
-- Il porte sa veste blanche, ses épaulettes, son étoile et sa cape.
-- On le voit de face, de dos ou de profil, il marche dans les 4 directions et regarde son équipe quand il attend.
-- Il lève les bras quand tu réussis quelque chose.
-- **Apparence** (Maison → Apparence, ou Options) : couleur des yeux de la visière, de la cape et de l'antenne, de la veste, et un accessoire sur la tête (béret, chapeau d'explorateur, casque audio, lunettes…).
-- **Tenues des coffres** :
+**Roré est le héros.** Config → Apparence change la couleur de la visière, de la cape, de la veste et l'accessoire sur la tête.
+Les **tenues** se gagnent avec les récompenses, qui s'ouvrent seules quand leur condition est remplie :
 
-| Tenue | Ce qu'elle ajoute |
-|---|---|
-| Rôdeur des bois | Chapeau d'explorateur, cape verte |
-| Marin | Lunettes d'aviateur, cape bleue |
-| Commandant doré | Veste et cape dorées |
-| Ombre | Capuche, tête sombre |
-| Royal | Couronne, cape rouge |
-| Légende | Couronne, visière cyan, voyant sur la poitrine |
-
-**L'équipe tient les lieux du village.** Chacun te répond avec ses propres répliques, puis te parle de tes chiffres. Ils font coucou quand tu leur parles et ont leur façon d'attendre.
-
-| Robot | Lieu |
-|---|---|
-| Zaza, la styliste | Marché |
-| Hares, le spartiate de la finance | Banque des Écarts |
-| Margaux, l'analyste | Archives |
-| Boulon, le robot ingénieur | Labo |
-| Rook, l'explorateur | Tableau des quêtes |
-| Merlain, le mage du code | Conseils |
-
-Nyx, la hacker, se promène dans le village.
-
-**Leur famille vit dans le monde** : cousins, frères et sœurs, apprentis, et d'autres robots de la même espèce. Chacun reste dans sa zone et a ses propres répliques.
-
-| Robot | Lien | Zone |
+| Récompense | Condition | Tenue |
 |---|---|---|
-| Byte | Cousine de Nyx | Plaines de l'est |
-| Merlot | Apprenti de Merlain | Lisière de la forêt |
-| Écrou | Frère de Boulon | Village |
-| Rivet | Cousine de Boulon | Lac |
-| Margot | Sœur jumelle de Margaux | Village |
-| Zouzou | Cousine de Zaza | Lac |
-| Rooky | Petit frère de Rook | Pied du col |
-| Ajax | Cousin de Hares | Plaines de l'est |
-| Pixel, Plume, Mosaïque | Robots du village, de la même espèce que les robots de métier de l'Open Space | Village, sud, forêt |
+| Cadeau de bienvenue | Dès le départ | — |
+| Série de 3 jours | Série de 3 jours | Rôdeur des bois |
+| 3 jours sans dépense | 3 journées sans dépense | Marin |
+| Série de 7 jours | Série de 7 jours | Commandant doré |
+| Premier mois réussi | Un mois sous le budget | Ombre |
+| 10 jours maîtrisés | 10 jours sous le budget du jour | — |
+| Série de 30 jours | Série de 30 jours | Royal |
+| Sept trophées | 7 trophées | — |
+| Niveau 10 | Niveau 10 | Légende |
 
-**Monstres** : ils sont en 20 × 20 pixels, avec 4 humeurs selon le budget de leur catégorie.
-
-| Budget consommé | Humeur du monstre |
-|---|---|
-| Moins de 50 % | Dort (Zzz) |
-| De 50 à 80 % | Éveillé |
-| De 80 à 100 % | Inquiet (sourcils froncés, « ! ») |
-| Plus de 100 % | Déchaîné (teinte rouge, yeux brillants, crocs, vapeur) |
-
-**Décor** :
-- profondeur : on passe derrière les arbres et les maisons ;
-- ombres au sol ;
-- eau animée avec écume ;
-- maisons aux toits en tuiles ;
-- fenêtres éclairées la nuit.
+Les **catégories** gardent leurs petits monstres, qui s'affichent dans les listes et rougissent quand le budget déborde.
 
 ## Règles du jeu
 
-- Chaque **catégorie** est un monstre. Plus tu dépenses, plus il enrage. À 100 % du budget, il se **déchaîne** et blesse ton héros.
 - **Budget du jour** = reste du mois ÷ jours restants.
 - **XP** :
   - +5 par dépense notée
@@ -128,9 +91,9 @@ Nyx, la hacker, se promène dans le village.
   - +100 tous les 7 jours de série
   - +15 par quête accomplie
   - +5 par mesure de suivi
-  - +10 par lieu découvert, et l'XP de chaque coffre ouvert
+  - l'XP de chaque récompense gagnée
 - **PV** : ils repartent à 100 chaque mois.
-  - Un monstre déchaîné fait perdre entre 10 et 40 PV.
+  - Une catégorie qui dépasse son budget fait perdre entre 10 et 40 PV.
   - Une journée au-delà de 150 % du budget moyen fait perdre 5 PV.
   - Chaque quête accomplie rend 1 PV, jusqu'à 30 PV par mois.
 - **Trésor** = économies cumulées des mois terminés.
