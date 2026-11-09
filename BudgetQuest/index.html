@@ -169,6 +169,37 @@ canvas.spark{width:100%;height:30px}
 }
 @media (min-width:900px){ .ui{grid-template-columns:220px 1fr} }
 @media (max-width:900px) and (min-width:641px){ #pc{width:100%;margin:0;padding:8px 8px 44px} #mugWrap{right:-6px;width:96px;height:96px} .steam{display:none} }
+
+/* ---- l'onglet au-dessus d'un lieu survolé ---- */
+#tag{position:absolute;z-index:3;transform:translate(-50%,-100%);padding:4px 10px 5px;font-size:17px;line-height:1.05;white-space:nowrap;pointer-events:none;text-align:center}
+#tag b{font-family:var(--px);font-size:9px;font-weight:normal}
+#tag small{font-size:16px;color:#fff}
+#tag::after{content:'';position:absolute;left:50%;bottom:-9px;margin-left:-6px;border:6px solid transparent;border-top-color:var(--edge)}
+/* ---- le sélecteur de mois : deux flèches de curseur, comme dans les menus ---- */
+.monthbar{display:flex;align-items:center;justify-content:center;gap:14px;margin:0 0 6px}
+.monthbar span{font-family:var(--px);font-size:10px;min-width:12em;text-align:center}
+.arrow{width:22px;height:22px;background:none;border:0;cursor:pointer;position:relative;padding:0}
+.arrow::before{content:'';position:absolute;inset:4px 5px;background:#fff;filter:drop-shadow(2px 2px 0 rgba(0,0,0,.6));animation:nudge .7s steps(2) infinite}
+.arrow.l::before{clip-path:polygon(100% 0,0 50%,100% 100%)}
+.arrow.r::before{clip-path:polygon(0 0,100% 50%,0 100%)}
+.arrow.l::before{--dx:-2px}.arrow.r::before{--dx:2px}
+.arrow:hover::before{background:var(--gold)}
+@keyframes nudge{50%{transform:translateX(var(--dx))}}
+/* ---- personnages, progression ---- */
+.chars{display:grid;grid-template-columns:repeat(auto-fill,minmax(96px,1fr));gap:4px;margin:6px 0}
+.charc{display:flex;flex-direction:column;align-items:center;gap:1px;background:rgba(0,0,20,.3);border:2px solid transparent;border-radius:4px;padding:4px 2px;cursor:pointer;position:relative;text-shadow:inherit}
+.charc:hover{border-color:#9aa4e0}.charc.on{border-color:var(--gold)}
+.charc b{font-family:var(--px);font-size:8px;font-weight:normal;margin-top:2px}
+.charc small{font-size:14px;color:var(--dim);text-align:center;line-height:1}
+.charc .new{position:absolute;top:2px;right:2px;font-style:normal;font-family:var(--px);font-size:6px;color:var(--ink);background:var(--gold);padding:1px 2px;border-radius:2px;text-shadow:none}
+.xpbar{display:inline-block;position:relative;width:56px;height:7px;background:#06061a;border:1px solid #9aa4e0;margin:0 6px;vertical-align:middle}
+.xpbar i{display:block;height:100%;background:linear-gradient(#9ff0a0,#4ab04a)}
+.xpbar.big-bar{display:block;width:100%;height:18px;margin:6px 0}
+.xpbar.big-bar span{position:absolute;inset:0;text-align:center;font-size:16px;line-height:16px}
+#status .cash,#status .lv{cursor:pointer}
+.sw.lock{opacity:.45;cursor:default;border-style:dashed}
+#modalBox .chars{max-height:58vh;overflow:auto}
+@media (prefers-reduced-motion:reduce){ .arrow::before{animation:none} }
 @media (prefers-reduced-motion:reduce){ .mi.sel::before,#dlg::after{animation:none} }
 </style>
 </head>
@@ -182,6 +213,7 @@ canvas.spark{width:100%;height:30px}
         <canvas id="scene" aria-label="La cité suspendue, vue depuis le PC de Roré"></canvas>
         <div id="dlg" class="ff" data-act="dlg" hidden><span id="dlgFace"></span><div class="grow"><div id="dlgWho"></div><div id="dlgTxt"></div></div></div>
         <div id="title" class="ff"></div>
+        <div id="tag" class="ff" hidden></div>
         <div class="hint">◀ glisser ▶</div>
       </div>
       <div class="ui">
@@ -394,42 +426,90 @@ const FAMILY = [
 ];
 const ZONES = {village:[8, 10, 42, 29], east:[44, 10, 63, 29], forest:[2, 9, 30, 20], lake:[10, 8, 40, 16], mountain:[44, 15, 63, 29], south:[4, 18, 42, 29]};
 
-/* ---- Roré, le héros : son apparence (créateur) et ses tenues (coffres) ---- */
+/* ---- Les personnages jouables : l'équipe de l'Open Space, et de nouveaux venus de la cité ---- */
+const NEWCHARS = {
+  kora:   {name:'Kora', archetype:'Marchande des quatre vents', idle:'pose', isNew:true,
+    outfit:{body:'#e07a2e', arm:'#e9893c', hand:'#6b3a1e', leg:'#3a2418', eyes:'#ffd84d', colors:{wrap:'#2f9e6a', wrap2:'#ffd84d', beads:'#c0392b', beads2:'#ffd84d'}, parts:['headwrap', 'necklace']},
+    lines:['Un bon prix, ça se négocie avec le sourire.', 'Au marché, je connais chaque pièce par son prénom.', "L'argent qui dort ne fait pas pousser le mil."]},
+  ama:    {name:'Ama', archetype:'Pilote de dirigeable', idle:'scan', isNew:true,
+    outfit:{head:'#d9dce6', visor:'#10202e', eyes:'#9fe8ff', body:'#7a5236', arm:'#8a6242', hand:'#3a2a1e', leg:'#2e3a4a', colors:{scarf:'#e5484d', strap:'#3a2a1e', lens:'#c8a860'}, parts:['goggles', 'scarf']},
+    lines:["Vu d'en haut, ton budget a une belle allure.", 'Cap au sud, vent arrière : on économise le carburant.', 'Un bon pilote vérifie sa jauge avant de décoller.']},
+  baobab: {name:'Baobab', archetype:'Jardinier de la vallée', idle:'breathe', isNew:true,
+    outfit:{head:'#9aa27a', visor:'#1e2416', eyes:'#ffcd75', body:'#3e7a3a', arm:'#4e8a44', hand:'#6b4a2b', leg:'#5a3e26', colors:{straw:'#e8c86a', band:'#c0392b', apron:'#c8a878'}, parts:['strawHat', 'apron']},
+    lines:['Une graine par jour, et un jour, une forêt.', "Les arbres de la vallée poussent quand tu tiens ton budget.", 'Patience : même le baobab a commencé petit.']},
+  pepin:  {name:'Pépin', archetype:'Cuisinier de la cité', idle:'bounce', isNew:true,
+    outfit:{head:'#f4f1ea', visor:'#2a1a1a', eyes:'#ff8a3d', body:'#f6f4ee', arm:'#ece8de', hand:'#d8d4cc', leg:'#2e2a34', colors:{scarf:'#3b5dc9'}, parts:['toque', 'scarf']},
+    lines:['Cuisiner maison, c\'est la meilleure recette d\'épargne.', 'Une pincée de patience, deux louches de régularité.', 'Le marché du matin a les meilleurs prix.']},
+  lune:   {name:'Lune', archetype:'Astronome du belvédère', idle:'shimmer', isNew:true,
+    outfit:{head:'#3a4078', visor:'#0a0c22', eyes:'#ffd84d', body:'#1e2a5a', arm:'#2e3a6a', hand:'#c8cce8', leg:'#141a3a', tip:'#ffd84d', colors:{cape:'#4a3a9a', gold:'#ffd84d', headTop:'#5a60a0', headShade:'#262a58'}, parts:['cape', 'star']},
+    lines:["Les étoiles ne dépensent rien, et elles brillent quand même.", 'Chaque nuit, je compte les lumières de la ville en contrebas.', 'Une série de jours, c\'est une constellation.']},
+};
+const CHARS = {...TEAM, ...NEWCHARS};
+const CHAR_ORDER = ['rore', 'hacker_cyberpunk', 'mage_du_code', 'robot_ingenieur', 'analyste_strategique', 'styliste_extravagant', 'explorateur_futuriste', 'hares', 'kora', 'ama', 'baobab', 'pepin', 'lune'];
+
+/* ---- Le héros : son personnage, ses couleurs, les accessoires gagnés avec les niveaux, ses tenues (récompenses) ---- */
 const LOOK_EYES = {orange:'#ff8a3d', cyan:'#35e0ff', vert:'#41f509', rouge:'#ff6b5e', violet:'#c58bff', jaune:'#ffd84d'};
 const LOOK_CAPE = {orange:'#ff8a3d', rouge:'#c0392b', bleu:'#3b5dc9', vert:'#38b764', violet:'#7a3dbf', or:'#ffb02e', rose:'#f4628d', blanc:'#e4e1ec'};
-const LOOK_BODY = {blanc:'#f1eff7', noir:'#3d3d48', marine:'#223455', sable:'#e8c67e', rouge:'#b13e53'};
-const LOOK_ACC = {aucun:{name:'Aucun', parts:[]}, beret:{name:'Béret', parts:['beret']}, explorerHat:{name:"Chapeau d'explorateur", parts:['explorerHat']}, headset:{name:'Casque audio', parts:['headset']}, goggles:{name:"Lunettes d'aviateur", parts:['goggles']}, sunglasses:{name:'Lunettes de soleil', parts:['sunglasses']}, glasses:{name:'Lunettes', parts:['glasses']}};
-const DEFAULT_LOOK = {eyes:'orange', cape:'orange', body:'blanc', acc:'aucun'};
+const LOOK_BODY = {blanc:'#f1eff7', noir:'#3d3d48', marine:'#223455', sable:'#e8c67e', rouge:'#b13e53', vert:'#3e7a3a'};
+const SLOTS = {head:'Tête', face:'Visage', neck:'Cou', back:'Dos', badge:'Poitrine'};
+const ACCS = {
+  scarf:      {name:'Écharpe',               slot:'neck',  lv:2,  parts:['scarf']},
+  glasses:    {name:'Lunettes',              slot:'face',  lv:3,  parts:['glasses']},
+  beret:      {name:'Béret',                 slot:'head',  lv:4,  parts:['beret']},
+  cape:       {name:'Cape',                  slot:'back',  lv:5,  parts:['cape']},
+  headset:    {name:'Casque audio',          slot:'head',  lv:6,  parts:['headset']},
+  sunglasses: {name:'Lunettes de soleil',    slot:'face',  lv:7,  parts:['sunglasses']},
+  strawHat:   {name:'Chapeau de paille',     slot:'head',  lv:8,  parts:['strawHat']},
+  goggles:    {name:"Lunettes d'aviateur",   slot:'face',  lv:9,  parts:['goggles']},
+  star:       {name:'Étoile et épaulettes',  slot:'badge', lv:10, parts:['star', 'epaulettes']},
+  necklace:   {name:'Collier de perles',     slot:'neck',  lv:11, parts:['necklace']},
+  explorerHat:{name:"Chapeau d'explorateur", slot:'head',  lv:12, parts:['explorerHat']},
+  headwrap:   {name:'Foulard',               slot:'head',  lv:14, parts:['headwrap']},
+  chestLight: {name:'Voyant de poitrine',    slot:'badge', lv:15, parts:['chestLight']},
+  toque:      {name:'Toque',                 slot:'head',  lv:16, parts:['toque']},
+  wizardHat:  {name:'Chapeau de mage',       slot:'head',  lv:18, parts:['wizardHat']},
+  crown:      {name:'Couronne',              slot:'head',  lv:20, parts:['crown']},
+};
+const accsAt = lv => Object.entries(ACCS).filter(([, a]) => a.lv === lv).map(([k]) => k);
+const DEFAULT_LOOK = {eyes:null, cape:null, body:null, head:null, face:null, neck:null, back:null, badge:null};
 const SKINS = {
-  classique:{name:'Commandant'},
+  classique:{name:'Tenue d\'origine'},
   foret:    {name:'Rôdeur des bois', cape:'#38b764', tip:'#38b764', add:['explorerHat']},
   ocean:    {name:'Marin', cape:'#41a6f6', tip:'#41a6f6', add:['goggles']},
-  or:       {name:'Commandant doré', body:'#ffcd75', arm:'#ffe3a3', cape:'#ef7d57', gold:'#fff1b0'},
+  or:       {name:'Doré', body:'#ffcd75', arm:'#ffe3a3', cape:'#ef7d57', gold:'#fff1b0'},
   ombre:    {name:'Ombre', head:'#2b2b33', body:'#3d3d48', arm:'#4e5459', cape:'#5d275d', tip:'#b86fd6', hood:'#1a1c2c', add:['hood']},
   royal:    {name:'Royal', cape:'#b13e53', tip:'#b13e53', add:['crown']},
   legende:  {name:'Légende', body:'#f7f5fc', cape:'#73eff7', tip:'#73eff7', eyes:'#73eff7', add:['crown', 'chestLight']},
 };
 const heroLook = () => ({...DEFAULT_LOOK, ...((S && S.world && S.world.look) || {})});
-function heroOutfitFor(skinKey, look) {
-  const o = TEAM.rore.outfit, s = SKINS[skinKey] || SKINS.classique, L = look || heroLook();
-  const out = {...o, colors:{...o.colors}, parts:[...o.parts]};
-  out.eyes = s.eyes || LOOK_EYES[L.eyes] || RP.orange;
-  out.body = s.body || LOOK_BODY[L.body] || o.body;
-  if (s.arm || L.body !== 'blanc') out.arm = s.arm || rLight(out.body, .1);
+const heroChar = () => (S && S.world && CHARS[S.world.hero]) ? S.world.hero : 'rore';
+function heroOutfitFor(skinKey, look, charKey) {
+  const ch = CHARS[charKey] || CHARS.rore, o = ch.outfit, s = SKINS[skinKey] || SKINS.classique, L = look || heroLook();
+  const out = {...o, colors: {...(o.colors || {})}, parts: [...(o.parts || [])]};
+  const eyes = s.eyes || LOOK_EYES[L.eyes]; if (eyes) out.eyes = eyes;
+  const body = s.body || LOOK_BODY[L.body]; if (body) { out.body = body; out.arm = s.arm || rLight(body, .1); }
   if (s.head) { out.head = s.head; out.colors.headTop = rLight(s.head, .3); out.colors.headShade = rDark(s.head, .2); }
-  out.colors.cape = s.cape || LOOK_CAPE[L.cape] || o.colors.cape;
-  out.tip = s.tip || out.colors.cape;
+  const accent = s.cape || LOOK_CAPE[L.cape];
+  if (accent) { out.colors.cape = accent; out.tip = s.tip || accent; }
+  const acc = out.colors.cape || out.tip || '#ff8a3d';
+  for (const k of ['scarf', 'wrap']) out.colors[k] = out.colors[k] || acc;
   if (s.gold) out.colors.gold = s.gold;
   if (s.hood) out.colors.hood = s.hood;
-  const head = s.add && s.add.some(p => HEADWEAR.includes(p)) ? [] : (LOOK_ACC[L.acc] || LOOK_ACC.aucun).parts;
-  out.parts = [...out.parts, ...head, ...(s.add || [])];
+  const skinHead = s.add && s.add.some(p => HEADWEAR.includes(p));
+  for (const slot of Object.keys(SLOTS)) {
+    const a = ACCS[L[slot]]; if (!a) continue;
+    if (slot === 'head') { if (skinHead) continue; out.parts = out.parts.filter(p => !HATS.includes(p) && p !== 'headset'); }
+    if (slot === 'face') out.parts = out.parts.filter(p => !['glasses', 'sunglasses', 'goggles'].includes(p));
+    out.parts.push(...a.parts);
+  }
+  out.parts = [...new Set([...out.parts, ...(s.add || [])])];
   return out;
 }
-const heroKey = () => 'hero|' + (S ? S.world.skin : '') + '|' + JSON.stringify(heroLook());
-const heroOutfit = () => heroOutfitFor(S && S.world.skin);
+const heroKey = () => 'hero|' + heroChar() + '|' + (S ? S.world.skin : '') + '|' + JSON.stringify(heroLook());
+const heroOutfit = () => heroOutfitFor(S && S.world.skin, heroLook(), heroChar());
 
 /* ---- Le moteur de dessin (robots.ts) ---- */
-const HATS = ['beret', 'explorerHat', 'hood', 'wizardHat', 'bun', 'pompadour', 'hairTuft', 'crest', 'crown'];
+const HATS = ['beret', 'explorerHat', 'hood', 'wizardHat', 'bun', 'pompadour', 'hairTuft', 'crest', 'crown', 'headwrap', 'strawHat', 'toque'];
 const HEADWEAR = [...HATS, 'headset', 'goggles', 'sunglasses', 'glasses'];
 function rLook(o) {
   const head = o.head || '#e8e5f1', eye = o.eyes || RP.orange, colors = o.colors || {};
@@ -511,6 +591,19 @@ function rHeadParts(g, L, dir, bob) {
     for (const x of side ? [6, 9, 12] : [5, 9, 14]) { rp(g, x, 1 + y, c); }
     rr(g, 9, 0 + y, side ? 1 : 2, 1, c); rp(g, side ? 10 : 9, 3 + y, '#c0392b'); if (!side) rp(g, 10, 3 + y, '#c0392b');
   }
+  if (has('headwrap')) { // un foulard noué, motifs en pointillé
+    const c = L.c('wrap', '#2f9e6a'), c2 = L.c('wrap2', '#ffd84d'), lo = rDark(c, .25);
+    if (side) { rr(g, 4, 1 + y, 10, 4, c); rr(g, 2, 0 + y, 3, 3, c); rp(g, 2, 2 + y, lo); for (const x of [6, 9, 12]) rp(g, x, 2 + y, c2); rr(g, 4, 4 + y, 10, 1, lo); }
+    else { rr(g, 4, 1 + y, 12, 4, c); rr(g, 4, 4 + y, 12, 1, lo); for (const x of [5, 8, 11, 14]) rp(g, x, 2 + y, c2); for (const x of [6, 9, 12]) rp(g, x, 3 + y, c2); if (dir !== 'up') { rr(g, 12, -1 + y, 4, 2, c); rp(g, 13, -1 + y, c2); rr(g, 15, 0 + y, 2, 2, lo); } else rr(g, 8, -1 + y, 4, 2, c); }
+  }
+  if (has('strawHat')) { // un chapeau de paille à large bord
+    const c = L.c('straw', '#e8c86a'), band = L.c('band', '#c0392b'), lo = rDark(c, .25);
+    rr(g, side ? 2 : 1, 4 + y, side ? 16 : 18, 1, c); rr(g, side ? 3 : 2, 5 + y, side ? 14 : 16, 1, lo);
+    rr(g, 5, 1 + y, side ? 9 : 10, 3, c); rr(g, 6, 1 + y, side ? 7 : 8, 1, rLight(c, .3)); rr(g, 5, 3 + y, side ? 9 : 10, 1, band);
+  }
+  if (has('toque')) { // la toque du cuisinier
+    rr(g, 5, 0 + y, 10, 3, '#ffffff'); rr(g, 6, -1 + y, 3, 1, '#ffffff'); rr(g, 11, -1 + y, 3, 1, '#ffffff'); rr(g, 5, 2 + y, 10, 1, '#e6e2da'); rr(g, 6, 3 + y, 8, 1, '#d8d4cc'); rp(g, 9, 1 + y, '#e6e2da');
+  }
   if (has('goggles') && dir !== 'up') {
     const band = L.c('strap', '#57483c'), lens = L.c('lens', '#43748a');
     if (side) { rr(g, 4, 5 + y, 11, 1, band); rr(g, 12, 4 + y, 3, 2, lens); rp(g, 13, 4 + y, rLight(lens, .5)); }
@@ -546,10 +639,14 @@ function rBodyParts(g, L, dir, limbs, bob) {
     if (has('cape')) { const c = L.c('cape', RP.orange), lo = rDark(c, .25); rr(g, 5, y, 10, 7, c); rr(g, 8, y + 1, 1, 6, lo); rr(g, 11, y + 1, 1, 6, lo); rr(g, 5, y + 6, 10, 1, lo); }
     if (has('backpack')) { const c = L.c('pack', '#43748a'), lo = rDark(c, .3); rr(g, 5, y - 1, 10, 7, c); rr(g, 5, y + 1, 10, 1, lo); rr(g, 8, y + 3, 4, 2, lo); rr(g, 13, 9 + bob, 3, 3, '#cfd2e0'); rp(g, 14, 10 + bob, '#8a8ea2'); rr(g, 14, 12 + bob, 1, 1, '#8a8ea2'); }
     if (has('epaulettes')) { rr(g, 5, y, 2, 1, L.c('gold', '#ffb02e')); rr(g, 13, y, 2, 1, L.c('gold', '#ffb02e')); }
+    if (has('scarf')) { const c = L.c('scarf', '#e5484d'); rr(g, 5, y, 10, 2, c); rr(g, 8, y + 2, 2, 3, c); rp(g, 8, y + 4, rDark(c, .25)); }
     if (has('puffy')) { rr(g, 3, y - 1, 4, 3, L.body); rr(g, 13, y - 1, 4, 3, L.body); rr(g, 3, y - 1, 14, 1, L.bodyHi); }
     return;
   }
   if (has('puffy')) { rr(g, 3, y - 1, 4, 3, L.body); rr(g, 13, y - 1, 4, 3, L.body); rr(g, 3, y - 1, 4, 1, L.bodyHi); rr(g, 13, y - 1, 4, 1, L.bodyHi); rr(g, 3, y + 1, 4, 1, L.bodyShade); rr(g, 13, y + 1, 4, 1, L.bodyShade); }
+  if (has('apron')) { const c = L.c('apron', '#c8a878'); rr(g, 7, y + 1, 6, 4, c); rr(g, 7, y + 1, 6, 1, rLight(c, .25)); rp(g, 6, y + 1, rDark(c, .3)); rp(g, 13, y + 1, rDark(c, .3)); rr(g, 9, y + 3, 2, 1, rDark(c, .2)); }
+  if (has('scarf')) { const c = L.c('scarf', '#e5484d'); rr(g, 5, y, 10, 2, c); rr(g, 5, y, 10, 1, rLight(c, .2)); rr(g, 12, y + 2, 2, 3, c); rp(g, 12, y + 4, rDark(c, .25)); rp(g, 13, y + 4, rDark(c, .25)); }
+  if (has('necklace')) { const a = L.c('beads', '#c0392b'), b = L.c('beads2', '#ffd84d'); [[7, 0, a], [8, 1, b], [9, 1, a], [10, 1, b], [11, 1, a], [12, 0, b]].forEach(([x, dy, c]) => rp(g, x, y + dy, c)); rp(g, 9, y + 2, b); rp(g, 10, y + 2, a); }
   if (has('tie')) { rp(g, 8, y, '#f4f1ea'); rp(g, 11, y, '#f4f1ea'); rr(g, 9, y, 2, 1, L.c('tie', '#e0a526')); rr(g, 9, y + 1, 1, 3, L.c('tie', '#e0a526')); }
   if (has('tape')) { const c = L.c('tape', '#fde219'); rr(g, 8, y, 1, 4, c); rr(g, 11, y, 1, 2, c); }
   if (has('epaulettes')) { rr(g, 5, y, 2, 1, L.c('gold', '#ffb02e')); rr(g, 13, y, 2, 1, L.c('gold', '#ffb02e')); }
@@ -592,6 +689,9 @@ function rBodySide(g, L, frame, walking, bob) {
   if (L.parts.has('puffy')) { rr(g, 6, y - 1, 9, 3, L.body); rr(g, 6, y - 1, 9, 1, L.bodyHi); }
   if (L.parts.has('tie')) { rp(g, 13, y, '#f4f1ea'); rr(g, 13, y + 1, 1, 2, L.c('tie', '#e0a526')); }
   if (L.parts.has('toolbelt')) rr(g, 7, y + 4, 7, 1, L.c('belt', '#ffd166'));
+  if (L.parts.has('apron')) rr(g, 12, y + 1, 2, 4, L.c('apron', '#c8a878'));
+  if (L.parts.has('necklace')) { rp(g, 12, y + 1, L.c('beads', '#c0392b')); rp(g, 11, y + 1, L.c('beads2', '#ffd84d')); }
+  if (L.parts.has('scarf')) { const c = L.c('scarf', '#e5484d'); rr(g, 7, y, 7, 2, c); rr(g, 4 - (walking ? swing : 0), y + 1, 3, 2, c); rp(g, 4, y + 2, rDark(c, .25)); }
   if (L.parts.has('epaulettes')) rr(g, 9, y, 3, 1, L.c('gold', '#ffb02e'));
   if (L.parts.has('backpack')) rr(g, 8, y, 1, 4, L.c('strap', '#57483c'));
   if (L.parts.has('chestLight')) rp(g, 12, y + 2, L.eye);
@@ -691,6 +791,7 @@ const heroImg = (size = 48, opt = {}) => robotImg(heroKey(), heroOutfit(), size,
 function defaultState() {
   return {
     version: 1, createdAt: today(), heroName: '', sound: true, lastLevel: 1, seenAch: [], lastCat: 'alim',
+    startCash: null, startDate: today(), incomes: [], // trésorerie de départ et rentrées d'argent
     world: defaultWorld(),
     categories: [
       {id:'alim',   name:'Alimentation', monster:'slime',    color:'vert',   budget:60000},
@@ -721,7 +822,9 @@ function defaultState() {
 function migrate(s) {
   const d = defaultState();
   for (const k of Object.keys(d)) if (s[k] === undefined) s[k] = d[k];
-  for (const k of ['categories','expenses','habits','trackers','seenAch']) if (!Array.isArray(s[k])) s[k] = d[k];
+  for (const k of ['categories','expenses','habits','trackers','seenAch','incomes']) if (!Array.isArray(s[k])) s[k] = d[k];
+  if (s.startCash != null && !isFinite(+s.startCash)) s.startCash = null;
+  if (typeof s.startDate !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(s.startDate)) s.startDate = s.createdAt || today();
   for (const k of ['budgets','checkins','habitLog','trackerLog']) if (!s[k] || typeof s[k] !== 'object' || Array.isArray(s[k])) s[k] = {};
   if (!s.world || typeof s.world !== 'object') s.world = defaultWorld();
   const dw = defaultWorld();
@@ -730,7 +833,16 @@ function migrate(s) {
   if (!Array.isArray(s.world.skins) || !s.world.skins.includes('classique')) s.world.skins = ['classique', ...(Array.isArray(s.world.skins) ? s.world.skins : [])];
   if (!s.world.chests || typeof s.world.chests !== 'object') s.world.chests = {};
   if (!SKINS[s.world.skin]) s.world.skin = 'classique';
-  if (!s.world.look || !LOOK_EYES[s.world.look.eyes] || !LOOK_CAPE[s.world.look.cape]) s.world.look = {...DEFAULT_LOOK};
+  if (!CHARS[s.world.hero]) s.world.hero = 'rore';
+  const ol = s.world.look && typeof s.world.look === 'object' ? s.world.look : {}, nl = {...DEFAULT_LOOK};
+  if ('acc' in ol) { // ancienne apparence de Roré : couleurs et un seul accessoire
+    if (LOOK_EYES[ol.eyes] && ol.eyes !== 'orange') nl.eyes = ol.eyes;
+    if (LOOK_CAPE[ol.cape] && ol.cape !== 'orange') nl.cape = ol.cape;
+    if (LOOK_BODY[ol.body] && ol.body !== 'blanc') nl.body = ol.body;
+    if (ACCS[ol.acc]) nl[ACCS[ol.acc].slot] = ol.acc;
+  } else for (const k of Object.keys(DEFAULT_LOOK)) { const v = ol[k]; if (v == null) continue; if ((k === 'eyes' && LOOK_EYES[v]) || (k === 'cape' && LOOK_CAPE[v]) || (k === 'body' && LOOK_BODY[v]) || (ACCS[v] && ACCS[v].slot === k)) nl[k] = v; }
+  s.world.look = nl;
+  s.incomes = s.incomes.filter(e => e && typeof e.date === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(e.date)).map(e => ({...e, amount: Math.max(0, Math.round(+e.amount || 0))}));
   s.expenses = s.expenses.filter(e => e && typeof e.date === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(e.date)).map(e => ({...e, amount: Math.max(0, Math.round(+e.amount || 0))}));
   return s;
 }
@@ -782,7 +894,9 @@ function monthStats(ym) {
   return {ym, D, cats, daily, budget, spent, other, count, status, elapsed, allowance, todayAllowance, projection, remaining: budget - spent, remainingDays};
 }
 
-const TITLES = [[1,'Apprenti'],[3,'Écuyer'],[5,'Chevalier'],[8,'Gardien du Trésor'],[12,"Paladin de l'Épargne"],[16,'Seigneur du FCFA'],[20,'Légende vivante']];
+const TITLES = [[1,'Apprenti'],[2,'Habitant'],[3,'Écuyer'],[5,'Chevalier'],[7,'Gardien du Trésor'],[10,"Paladin de l'Épargne"],[13,'Bâtisseur de cité'],[16,'Seigneur du FCFA'],[20,'Souverain de la vallée'],[25,'Légende vivante']];
+// XP nécessaire pour passer du niveau L au suivant : la courbe monte doucement, chaque niveau reste à portée
+const xpNeed = L => 100 + 75 * (L - 1);
 const titleFor = L => TITLES.filter(t => L >= t[0]).pop()[1];
 
 const ACH = [
@@ -800,9 +914,11 @@ const ACH = [
   {id:'h50',    name:'Quêteur',          desc:'50 quêtes accomplies',                 test:g => g.nHabit >= 50},
   {id:'t30',    name:'Alchimiste',       desc:'30 mesures de suivi',                  test:g => g.nTrack >= 30},
   {id:'e100',   name:'Chroniqueur',      desc:'100 dépenses notées',                  test:g => g.nExp >= 100},
-  {id:'explore',name:'Urbaniste',        desc:'Faire grandir 6 fois la ville en contrebas', test:g => g.built >= 6},
+  {id:'village3',name:'Bâtisseur',       desc:'10 constructions dans la ville en contrebas', test:g => g.buildDays >= 10},
+  {id:'explore',name:'Urbaniste',        desc:'50 constructions dans la ville en contrebas', test:g => g.buildDays >= 50},
+  {id:'royaume',name:'Souverain',        desc:'Bâtir le royaume (150 jours sous le budget)', test:g => g.buildDays >= 150},
+  {id:'combo',  name:'Combo ×2',         desc:'Atteindre le multiplicateur de série maximal', test:g => g.bestCombo >= 2},
   {id:'chest5', name:'Chasseur de trésors', desc:'Gagner 5 récompenses',              test:g => g.nChests >= 5},
-  {id:'village3',name:'Bâtisseur',       desc:'3 monuments dans la ville en contrebas', test:g => g.built >= 3},
 ];
 
 function habitDone(date, id) { return !!(S.habitLog[date] && S.habitLog[date][id]); }
@@ -812,6 +928,8 @@ function habitStreak(id) {
   return n;
 }
 
+// Le multiplicateur de série : +4 % par jour de série, jusqu'à ×2 au 25e jour
+const comboOf = streak => 1 + Math.min(streak, 25) * .04;
 function computeGame() {
   const t = today(), tym = ymOf(t);
   const byDate = new Map();
@@ -819,47 +937,66 @@ function computeGame() {
   let start = S.createdAt || t;
   for (const d of byDate.keys()) if (d < start) start = d;
   for (const d in S.checkins) if (d < start) start = d;
+  for (const d in S.habitLog) if (d < start) start = d;
   if (start > t) start = t;
-  let xp = 0, streak = 0, best = 0, victories = 0, zeroDays = 0, checkDays = 0;
-  const allow = {};
-  for (let d = start; d <= t; d = addDays(d, 1)) {
-    const o = byDate.get(d), n = o ? o.n : 0, sum = o ? o.sum : 0;
-    const checked = n > 0 || !!S.checkins[d];
-    xp += 5 * Math.min(n, 10);
-    if (checked) {
-      checkDays++; xp += 20; streak++; if (streak > best) best = streak;
-      if (streak % 7 === 0) xp += 100;
-      if (n === 0) { xp += 15; zeroDays++; }
-      if (d < t) {
-        const ym = ymOf(d);
-        if (!(ym in allow)) allow[ym] = totalBudget(ym) / dim(ym);
-        if (sum <= allow[ym]) { xp += 25; victories++; }
-      }
-    } else if (d < t) streak = 0;
-  }
-  const habitIds = new Set(S.habits.map(h => h.id));
+  // quêtes et suivis, jour par jour
+  const habitIds = new Set(S.habits.map(h => h.id)), habitsByDay = {};
   let nHabit = 0, habitsThisMonth = 0;
-  for (const d in S.habitLog) {
-    let c = 0; for (const id in S.habitLog[d]) if (S.habitLog[d][id] && habitIds.has(id)) c++;
-    nHabit += c; if (ymOf(d) === tym) habitsThisMonth += c;
-    if (S.habits.length >= 2 && c === S.habits.length) xp += 20; // journée parfaite
-  }
-  xp += 15 * nHabit;
-  const trackIds = new Set(S.trackers.map(x => x.id));
+  for (const d in S.habitLog) { let c = 0; for (const id in S.habitLog[d]) if (S.habitLog[d][id] && habitIds.has(id)) c++; habitsByDay[d] = c; nHabit += c; if (ymOf(d) === tym) habitsThisMonth += c; }
+  const trackIds = new Map(S.trackers.map(x => [x.id, x])), trackByDay = {};
   let nTrack = 0;
-  for (const d in S.trackerLog) for (const id in S.trackerLog[d]) if (trackIds.has(id) && S.trackerLog[d][id] !== '' && S.trackerLog[d][id] != null) nTrack++;
-  xp += 5 * nTrack;
-  // Récompenses gagnées
+  for (const d in S.trackerLog) for (const id in S.trackerLog[d]) {
+    const tr = trackIds.get(id), v = S.trackerLog[d][id]; if (!tr || v === '' || v == null) continue;
+    const goal = tr.goal === '' || tr.goal == null ? null : +tr.goal, ok = goal == null || (tr.dir === 'max' ? +v <= goal : +v >= goal);
+    trackByDay[d] = (trackByDay[d] || 0) + (ok ? 10 : 5); nTrack++;
+  }
+  // l'XP de chaque journée, multipliée par la série en cours
+  let xp = 0, streak = 0, best = 0, victories = 0, zeroDays = 0, checkDays = 0, buildDays = 0, bestCombo = 1, xpToday = 0, todayParts = [];
+  const allow = {}, allowOf = d => { const ym = ymOf(d); if (!(ym in allow)) allow[ym] = totalBudget(ym) / dim(ym); return allow[ym]; };
+  const msNow = monthStats(tym);
+  for (let d = start; d <= t; d = addDays(d, 1)) {
+    const o = byDate.get(d), n = o ? o.n : 0, sum = o ? o.sum : 0, checked = n > 0 || !!S.checkins[d], isToday = d === t;
+    const parts = [];
+    if (checked) {
+      checkDays++; streak++; if (streak > best) best = streak;
+      parts.push(['Journal tenu', 10]);
+      if (n) parts.push([`${Math.min(n, 5)} dépense${n > 1 ? 's' : ''} notée${n > 1 ? 's' : ''}`, 2 * Math.min(n, 5)]);
+      if (n === 0) { parts.push(['Journée sans dépense', 20]); zeroDays++; }
+      const lim = isToday ? msNow.todayAllowance : allowOf(d);
+      if (sum <= lim) { // sous le budget du jour : plus on reste loin de la limite, plus ça rapporte
+        const bonus = 30 + Math.round(20 * (lim > 0 ? 1 - sum / lim : 1));
+        if (isToday) parts.push(['Sous le budget du jour (provisoire)', bonus]);
+        else { parts.push(['Sous le budget du jour', bonus]); victories++; buildDays++; }
+      }
+    } else if (!isToday) streak = 0;
+    if (habitsByDay[d]) { parts.push([`${habitsByDay[d]} quête${habitsByDay[d] > 1 ? 's' : ''}`, 15 * habitsByDay[d]]); if (S.habits.length >= 2 && habitsByDay[d] >= S.habits.length) parts.push(['Toutes les quêtes', 25]); }
+    if (trackByDay[d]) parts.push(['Mesures de suivi', trackByDay[d]]);
+    const combo = comboOf(checked ? streak : 0); if (combo > bestCombo) bestCombo = combo;
+    const raw = parts.reduce((a, p) => a + p[1], 0), dayXP = Math.round(raw * combo);
+    let bonus = 0;
+    if (checked && (streak === 7 || streak === 14 || streak === 30 || streak === 60 || streak === 100)) bonus = streak >= 30 ? 500 : 150;
+    xp += dayXP + bonus;
+    if (isToday) { xpToday = dayXP + bonus; todayParts = parts.slice(); if (combo > 1) todayParts.push([`Série ×${combo.toFixed(2).replace('.', ',')}`, dayXP - raw]); if (bonus) todayParts.push([`Palier de série (${streak} j)`, bonus]); }
+  }
+  // fins de mois : le mois sous le budget, et chaque catégorie tenue
+  let savings = 0, underMonths = 0, perfectMonths = 0;
+  for (let ym = ymOf(start); ym < tym; ym = addMonths(ym, 1)) {
+    const m = monthStats(ym); if (!m.count) continue;
+    savings += m.budget - m.spent;
+    if (m.spent <= m.budget) { underMonths++; xp += 300; }
+    const held = m.cats.filter(c => c.budget > 0 && c.spent <= c.budget).length; xp += 40 * held;
+    if (m.cats.every(c => c.spent <= c.budget)) perfectMonths++;
+  }
+  // récompenses gagnées
   const W_ = S.world;
   let nChests = 0;
   for (const id in W_.chests) { const ch = CHESTS.find(x => x.id === id); if (ch) { xp += ch.xp; nChests++; } }
   if (Array.isArray(W_.found)) xp += 10 * W_.found.length; // lieux découverts dans l'ancienne carte : l'XP est conservée
 
-  let level = 1; while (50 * level * (level + 1) <= xp) level++;
-  const base = 50 * (level - 1) * level;
+  let level = 1, base = 0; while (xp >= base + xpNeed(level)) { base += xpNeed(level); level++; }
 
   // PV du mois en cours
-  const ms = monthStats(tym);
+  const ms = msNow;
   let dmg = 0;
   for (const c of ms.cats) {
     if (c.budget > 0 && c.spent > c.budget) dmg += Math.min(40, 10 + Math.round((c.spent - c.budget) / c.budget * 50));
@@ -869,18 +1006,15 @@ function computeGame() {
   const heal = Math.min(30, habitsThisMonth);
   const hp = clamp(100 - dmg + heal, 0, 100);
 
-  // Trésor = économies cumulées des mois terminés (avec activité)
-  let treasure = 0, underMonths = 0, perfectMonths = 0;
-  for (let ym = ymOf(start); ym < tym; ym = addMonths(ym, 1)) {
-    const m = monthStats(ym); if (!m.count) continue;
-    treasure += m.budget - m.spent;
-    if (m.spent <= m.budget) underMonths++;
-    if (m.cats.every(c => c.spent <= c.budget)) perfectMonths++;
-  }
-  const builtNow = VILLAGE.filter(v => treasure >= v.cost).length;
-  const g = {xp, level, xpIn: xp - base, xpNext: 100 * level, streak, best, victories, zeroDays, checkDays, nExp: S.expenses.length,
-    nChests, builtNow, built: Math.max(W_.built || 0, builtNow),
-    nHabit, nTrack, hp, treasure, underMonths, perfectMonths, ms, checkedToday: (byDate.has(t) || !!S.checkins[t])};
+  // la trésorerie : ce qu'il y avait au départ, plus les rentrées, moins les dépenses depuis
+  const sd = S.startDate || S.createdAt || t;
+  const inc = S.incomes.filter(e => e.date >= sd).reduce((a, e) => a + e.amount, 0), out = S.expenses.filter(e => e.date >= sd).reduce((a, e) => a + e.amount, 0);
+  const cash = S.startCash == null ? null : S.startCash + inc - out;
+  const o = byDate.get(t), todaySum = o ? o.sum : 0, checkedToday = byDate.has(t) || !!S.checkins[t];
+  const buildToday = checkedToday && todaySum <= ms.todayAllowance;
+  const g = {xp, level, xpIn: xp - base, xpNext: xpNeed(level), streak, best, victories, zeroDays, checkDays, nExp: S.expenses.length,
+    nChests, buildDays, buildToday, builtNow: buildDays, built: buildDays, combo: comboOf(streak), bestCombo, xpToday, todayParts,
+    nHabit, nTrack, hp, treasure: savings, savings, cash, inc, out, underMonths, perfectMonths, ms, checkedToday};
   g.unlocked = ACH.filter(a => a.test(g)).map(a => a.id);
   return g;
 }
@@ -968,49 +1102,6 @@ function fascia(g, x, y, w, label, picto) { // un bandeau peint au-dessus du rez
   g.fillStyle = '#1e1424'; g.fillText(label, tx + iw + 1, y + 6.5); g.fillStyle = '#f0d090'; g.fillText(label, tx + iw, y + 6);
   for (const lx of [x + 3, x + w - 4]) { R(g, lx, y - 4, 1, 3, '#241a26'); R(g, lx - 1, y - 5, 3, 1, '#241a26'); P1(g, lx, y - 3, '#ffd27a'); }
 }
-function valleyCity(gFar, gMid, W, hz, bottom, level, style) {
-  const r = rng(17), cx = W * .5;
-  // le fond de vallée et la rivière qui serpente vers nous
-  for (let y = hz; y < bottom; y++) { const p = (y - hz) / (bottom - hz); R(gFar, 0, y, W, 1, mix('#6a4868', '#4a3a50', p)); }
-  const riverX = y => cx + 40 * Math.sin((y - hz) * .07) - 10;
-  for (let y = hz + 2; y < bottom; y++) { const p = (y - hz) / (bottom - hz), rw = 2 + p * 16, rx = riverX(y); R(y < hz + (bottom - hz) * .55 ? gFar : gMid, rx - rw / 2, y, rw, 1, mix('#c07890', '#8a5070', p)); if (r() < .3) R(y < hz + (bottom - hz) * .55 ? gFar : gMid, rx - rw / 3 + r() * rw * .6, y, 2, 1, '#e8a0b0'); }
-  // des maisons de ville, vues un peu d'en haut : façade claire, toit à la Mansart, lucarne, cheminée ; plus grandes en s'approchant
-  const spanMax = W * .32 + level * W * .02; // la ville couvre déjà la vallée, et s'étend jusqu'aux bords avec le trésor
-  const walls = ['#d8b49a', '#c8a088', '#e0c0a0', '#c89c84', '#d4ac90'], roofs = ['#b0584a', '#9a4c40', '#c06a50', '#a85a48'];
-  const cityHouse = (g, x, y, s, p) => {
-    const bw = Math.max(4, Math.round((7 + r() * 4) * s)), bh = Math.max(3, Math.round((6 + r() * 4) * s)), rh = Math.max(2, Math.round(4 * s)), haze = 1 - p;
-    const wall = mix(walls[Math.floor(r() * walls.length)], '#6a5a6a', haze * .55), roofC = mix(roofs[Math.floor(r() * roofs.length)], '#6a5a6a', haze * .45);
-    R(g, x, y - bh, bw, bh, wall); R(g, x + bw - Math.max(1, Math.round(s)), y - bh, Math.max(1, Math.round(s)), bh, mix(wall, '#000000', .18));
-    for (let i = 0; i < rh; i++) R(g, x - 1 + Math.round(i * .4), y - bh - 1 - i, bw + 2 - Math.round(i * .8), 1, i === rh - 1 ? mix(roofC, '#ffffff', .2) : roofC);
-    R(g, x - 1, y - bh - 1, bw + 2, 1, mix(roofC, '#000000', .3));
-    if (s > .55) {
-      if (r() < .6) { const cx2 = x + Math.round(bw * (.2 + r() * .5)); R(g, cx2, y - bh - rh - Math.round(2 * s), Math.max(1, Math.round(s)), Math.round(2 * s), mix('#8a6a5a', '#6a5a6a', haze * .5)); }
-      const dx = x + Math.round(bw / 2 - s), dw = Math.max(1, Math.round(2 * s)); if (s > .8) { R(g, dx, y - bh - rh + 1, dw, Math.max(1, Math.round(1.5 * s)), mix('#d8ccc0', '#6a5a6a', haze * .4)); }
-      const cols = Math.max(1, Math.floor(bw / (3 * s))), rows = Math.max(1, Math.floor(bh / (3.2 * s)));
-      for (let j = 0; j < rows; j++) for (let i = 0; i < cols; i++) { const on = r() < .3; R(g, x + 1 + Math.round(i * bw / cols), y - bh + 1 + Math.round(j * bh / rows), Math.max(1, Math.round(s * .9)), Math.max(1, Math.round(s * 1.2)), on ? '#f0b070' : mix('#3a3046', wall, .3)); }
-    } else if (r() < .45) P1(g, x + Math.floor(r() * bw), y - bh + Math.floor(r() * bh), '#f0b070');
-  };
-  for (let row = 0; row < 9; row++) {
-    const p = row / 8, y = Math.round(hz + 4 + p * p * (bottom - hz - 10)), s = (.3 + p * .75) * (LAY === 'a' ? .9 : 1), span = spanMax * (.5 + p * .9), g = p < .5 ? gFar : gMid;
-    for (let x = cx - span; x < cx + span; x += Math.round(8 * s + r() * 4 * s)) {
-      if (Math.abs(x - riverX(y)) < (2 + p * 16) / 2 + 5) continue;
-      if (r() < .1 + .7 * Math.pow(Math.abs(x - cx) / span, 3)) { if (p > .3) { R(g, x, y - 3 * s, 4 * s, 3 * s, mix('#3e5a3e', '#6a5a6a', 1 - p)); } continue; }
-      cityHouse(g, x, y, s, p);
-    }
-  }
-  // les monuments, dans l'ordre où le trésor les fait sortir de terre
-  const mon = (g, kind, x, y, s) => {
-    if (kind === 'steeple') { R(g, x, y - 14 * s, 5 * s, 14 * s, '#b8a8a8'); for (let i = 0; i < 10 * s; i++) R(g, x + i * .25, y - 14 * s - i, 5 * s - i * .5, 1, '#5a4a5a'); }
-    if (kind === 'bridge') { const bx = riverX(y), bw = 30 * s; R(g, bx - bw / 2, y - 3 * s, bw, 2 * s, '#a89090'); for (let i = 0; i < 3; i++) { R(g, bx - bw / 2 + 3 * s + i * 9 * s, y - s, 2 * s, 3 * s, '#a89090'); } }
-    if (kind === 'dome') { R(g, x - 8 * s, y - 10 * s, 16 * s, 10 * s, '#c8b8b0'); g.fillStyle = '#7a8aa0'; g.beginPath(); g.arc(x, y - 10 * s, 7 * s, Math.PI, 0); g.fill(); R(g, x - .5 * s, y - 20 * s, s, 4 * s, '#e8c070'); }
-    if (kind === 'belfry') { R(g, x, y - 26 * s, 6 * s, 26 * s, '#b8a8a8'); R(g, x + s, y - 22 * s, 4 * s, 4 * s, '#ffc070'); for (let i = 0; i < 6 * s; i++) R(g, x + i * .5, y - 26 * s - i, 6 * s - i, 1, '#5a4a5a'); }
-    if (kind === 'palace') { R(g, x - 24 * s, y - 10 * s, 48 * s, 10 * s, '#d0c0b8'); R(g, x - 8 * s, y - 16 * s, 16 * s, 6 * s, '#d0c0b8'); R(g, x - 26 * s, y - 13 * s, 52 * s, 3 * s, '#4a4258'); R(g, x - 10 * s, y - 19 * s, 20 * s, 3 * s, '#4a4258'); for (let i = -22; i < 22; i += 4) R(g, x + i * s, y - 7 * s, 2 * s, 3 * s, '#ffc070'); R(g, x, y - 26 * s, s, 7 * s, '#2a2030'); R(g, x + s, y - 26 * s, 4 * s, 2 * s, '#e5484d'); }
-  };
-  const plan = [['steeple', cx - 30, .45, .9, 1], ['bridge', 0, .6, 1, 2], ['dome', cx + 22, .5, 1, 3], ['belfry', cx - 58, .55, .9, 5], ['steeple', cx + 70, .65, 1, 6], ['palace', cx - 4, .32, .8, 8]];
-  for (const [k, x, py, s, need] of plan) if (level >= need) { const y = Math.round(hz + 4 + py * py * (bottom - hz - 10)); mon(py < .5 ? gFar : gMid, k, x, y, s * (.6 + py)); }
-}
-
-
 /* ================================================================
    LE PANORAMA — la cité suspendue, vue de côté depuis le PC de Roré
    Plans en parallaxe : ciel (0.08) · ville lointaine (0.25) · ville proche (0.4) · éperons (0.7) · la rue (1)
@@ -1019,7 +1110,7 @@ let LIGHTS = [], WINS = [], LAY = 'a';
 const lit = (x, y, r = 22, col = '#ffb060') => LIGHTS.push([x, y, r, col]);
 const SH = 176, HZ = 50, STREET = 150, TERRACE = STREET - 16;   // hauteur de la scène (pixels du jeu)
 const FW = 916;                                                 // longueur de la rue
-const PAR = {sky: .08, far: .25, near: .4, mid: .7};
+const PAR = {sky: .08, valley: .32};
 const mkc = (w, h) => { const c = document.createElement('canvas'); c.width = Math.max(1, Math.ceil(w)); c.height = Math.max(1, Math.ceil(h)); const g = c.getContext('2d'); g.imageSmoothingEnabled = false; return [c, g]; };
 PICTO.home = ['..xx..', '.xxxx.', 'xxxxxx', '.xyyx.', '.xyyx.', '.xxxx.'];
 PICTO.star = ['..x...', '.xxx..', 'xxxxx.', '.xxx..', '.x.x..', '......'];
@@ -1076,54 +1167,262 @@ function skyLayer(tod, weather) {
   for (let x = 0; x < W; x++) { const y = HZ - 2 + Math.round(Math.sin(x * .03) * 2 + Math.sin(x * .09)); R(g, x, y, 1, 8, mix('#7a5272', bands[4], .3)); }
   return c;
 }
-/* ---- La ville en contrebas : deux plans (loin et près), qui grandissent avec le trésor ---- */
-function cityLayers(level, tod) {
-  const Wf = Math.ceil((FW - 200) * PAR.far + 600), Wn = Math.ceil((FW - 200) * PAR.near + 600);
-  const [far, gf] = mkc(Wf, SH), [near, gn] = mkc(Wn, SH);
-  // on dessine la vallée deux fois plus large et on la répartit : le loin sur un plan lent, le proche sur un plan plus rapide
-  const [tmpF, gtf] = mkc(Wn, SH), [tmpN, gtn] = mkc(Wn, SH);
-  valleyCity(gtf, gtn, Wn, HZ + 2, TERRACE, level, 'b');
-  gf.drawImage(tmpF, (Wf - Wn) / 2, 0); gn.drawImage(tmpN, 0, 0);
-  if (tod === 'night') for (const g of [gf, gn]) { g.save(); g.globalCompositeOperation = 'source-atop'; g.fillStyle = 'rgba(10,10,40,.45)'; g.fillRect(0, 0, Wn, SH); g.restore(); }
-  return {far, near};
+/* ---- La ville en contrebas : elle part de zéro et gagne une construction par jour tenu sous le budget ---- */
+const VALLEY = {W: 760, cx: 300, hz: 52, bottom: 134};
+const vy = p => Math.round(VALLEY.hz + 4 + p * p * (VALLEY.bottom - VALLEY.hz - 10));   // la profondeur p (0 au loin, 1 au pied de la cité) donne la ligne
+const vs = p => .35 + p * .8;                                                            // et l'échelle
+const riverX = p => VALLEY.cx - 40 + 70 * Math.sin(p * 5.2 + .4);
+const riverW = p => 2 + p * 14;
+const LAKE = {x: VALLEY.cx - 160, p: .74, rx: 46, rp: .07};
+const BUILD_NAMES = {pave: 'un bout de chemin pavé', tree: 'un arbre', house: 'une maison', garden: 'un potager', well: 'le puits', mill: 'le moulin', lake: 'le lac',
+  square: 'la place pavée', church: "l'église", bridge: 'le pont sur la rivière', hall: 'la halle du marché', tower: 'la tour de guet', dome: 'la grande coupole',
+  castle: 'le château', walls: 'un pan des remparts', palace: 'le palais royal', banners: 'les bannières du royaume'};
+// Les grands moments : le jour où ils sortent de terre. Entre eux, maisons, arbres, chemins et potagers.
+const MILESTONES = {1: 'pave', 2: 'pave', 3: 'tree', 4: 'pave', 5: 'house', 8: 'well', 10: 'garden', 14: 'mill', 20: 'lake', 25: 'square', 30: 'church', 40: 'bridge', 50: 'hall',
+  60: 'tower', 75: 'dome', 90: 'castle', 100: 'walls', 105: 'walls', 110: 'walls', 115: 'walls', 120: 'palace', 150: 'banners'};
+const FILLERS = ['house', 'tree', 'house', 'pave', 'house', 'tree', 'garden', 'house', 'tree', 'house'];
+const LANDMARKS = {well: [VALLEY.cx + 14, .7], mill: [VALLEY.cx - 230, .58], square: [VALLEY.cx - 6, .66], church: [VALLEY.cx - 40, .5], hall: [VALLEY.cx + 60, .6],
+  tower: [VALLEY.cx + 190, .5], dome: [VALLEY.cx - 100, .4], castle: [VALLEY.cx + 50, .16], palace: [VALLEY.cx - 120, .26]};
+const WALLS = [[VALLEY.cx - 250, VALLEY.cx - 130], [VALLEY.cx - 130, VALLEY.cx - 10], [VALLEY.cx + 90, VALLEY.cx + 200], [VALLEY.cx + 200, VALLEY.cx + 300]];
+const ROADS = [[[VALLEY.cx + 6, 1.02], [VALLEY.cx - 4, .86], [VALLEY.cx - 8, .74], [VALLEY.cx - 2, .66], [VALLEY.cx + 14, .54], [VALLEY.cx + 30, .4]],
+  [[VALLEY.cx - 200, .72], [VALLEY.cx - 130, .7], [VALLEY.cx - 60, .68], [VALLEY.cx, .66], [VALLEY.cx + 80, .65], [VALLEY.cx + 160, .63], [VALLEY.cx + 230, .62]]];
+let BUILD_PLAN = null;
+function buildPlan() {
+  if (BUILD_PLAN) return BUILD_PLAN;
+  const r = rng(43), cx = VALLEY.cx, plan = [];
+  // les bouts de chemin, dans l'ordre : on part du pied de la cité vers le cœur de la ville, puis la rue qui la traverse
+  const segs = []; for (const road of ROADS) for (let i = 0; i < road.length - 1; i++) segs.push([road[i], road[i + 1]]);
+  const order = [0, 1, 2, 3, 4, 7, 8, 6, 9, 5, 10];
+  const paves = order.filter(i => segs[i]).map(i => segs[i]);
+  // les emplacements libres : loin de la rivière, du lac, des monuments et des chemins
+  const nearRoad = (x, p) => segs.some(([a, b]) => { for (let k = 0; k <= 8; k++) { const q = k / 8, rx = a[0] + (b[0] - a[0]) * q, rp = a[1] + (b[1] - a[1]) * q; if (Math.abs(rp - p) < .025 && Math.abs(rx - x) < (3 + 9 * p) / 2 + 3) return true; } return false; });
+  const blocked = (x, p, pad) => Math.abs(x - riverX(p)) < riverW(p) / 2 + 4 + pad
+    || (Math.abs(x - LAKE.x) < LAKE.rx + 6 && Math.abs(p - LAKE.p) < LAKE.rp + .04)
+    || Object.values(LANDMARKS).some(([lx, lp]) => Math.abs(x - lx) < 18 + pad && Math.abs(p - lp) < .06)
+    || nearRoad(x, p);
+  const spots = [];
+  for (let p = .28; p <= 1; p += .055) for (let x = cx - 290; x < cx + 300; x += Math.round(10 * vs(p) + 3 + r() * 3)) {
+    const xx = Math.round(x + r() * 3); if (blocked(xx, p, 0)) continue;
+    spots.push({x: xx, p: +p.toFixed(3), d: Math.hypot(xx - cx, (p - .64) * 260) + r() * 14});
+  }
+  spots.sort((a, b) => a.d - b.d);
+  const used = new Set(), take = (minD, maxD) => { for (const s of spots) if (!used.has(s) && s.d >= minD && s.d <= maxD) { used.add(s); return s; } for (const s of spots) if (!used.has(s)) { used.add(s); return s; } return null; };
+  let fill = 0, pv = 0, wall = 0;
+  for (let day = 1; day <= 200; day++) {
+    let kind = MILESTONES[day] || FILLERS[fill++ % FILLERS.length];
+    if (kind === 'pave' && pv >= paves.length) kind = 'house';
+    const it = {kind, day, seed: Math.floor(r() * 1e6)};
+    if (kind === 'pave') { it.seg = paves[pv++]; it.p = (it.seg[0][1] + it.seg[1][1]) / 2; it.x = (it.seg[0][0] + it.seg[1][0]) / 2; }
+    else if (kind === 'walls') { const [a, b] = WALLS[wall++]; it.x = (a + b) / 2; it.a = a; it.b = b; it.p = .33; }
+    else if (kind === 'lake') { it.x = LAKE.x; it.p = LAKE.p; }
+    else if (kind === 'bridge') { it.p = .66; it.x = riverX(.66); }
+    else if (kind === 'banners') { it.x = LANDMARKS.castle[0]; it.p = LANDMARKS.castle[1]; }
+    else if (LANDMARKS[kind]) { [it.x, it.p] = LANDMARKS[kind]; }
+    else { const s = kind === 'tree' ? take(30, 999) : take(0, 999); if (!s) continue; it.x = s.x; it.p = s.p; }
+    plan.push(it);
+  }
+  return (BUILD_PLAN = plan);
 }
+const buildName = i => { const it = buildPlan()[i]; return it ? BUILD_NAMES[it.kind] : null; };
+
+function valleyLayer(n, chantier, tod) {
+  const {W, cx, hz, bottom} = VALLEY, [c, g] = mkc(W, SH), r = rng(17), VW = [];
+  const pal = tod === 'day' ? {far: '#a4b484', near: '#5e8a46', field: '#7a9a50', hay: '#c8b46a', water: '#78b4e0', waterLo: '#4a88c0', tree: '#3e7a34', treeHi: '#5e9a44', treeLo: '#2a5424', hill: '#7a9a74'}
+    : {far: '#9a7486', near: '#5a5250', field: '#6a6250', hay: '#a8865a', water: '#a898d0', waterLo: '#6a5a9a', tree: '#3e5a40', treeHi: '#5a7450', treeLo: '#2a3a2e', hill: '#7a5a72'};
+  // le fond de vallée : des champs en bandes, des haies, la lisière de la forêt au loin
+  for (let y = hz; y < bottom + 4; y++) { const q = (y - hz) / (bottom - hz); R(g, 0, y, W, 1, mix(pal.far, pal.near, Math.min(1, q))); }
+  for (let x = 0; x < W; x += 2) { const h = 3 + Math.round(2 * Math.sin(x * .07) + Math.sin(x * .23) + r() * 1.5); R(g, x, hz + 1, 2, h, mix(pal.tree, pal.hill, .45)); }
+  for (let i = 0; i < 26; i++) { const p = .2 + r() * .8, y = vy(p), w = Math.round((30 + r() * 60) * vs(p)), x = Math.floor(r() * W), h = Math.max(1, Math.round(4 * vs(p)));
+    R(g, x, y, w, h, r() < .35 ? mix(pal.hay, pal.near, .3 + (1 - p) * .3) : mix(pal.field, pal.near, .3 + r() * .3)); if (p > .5) for (let k = x; k < x + w; k += 3) P1(g, k, y, mix(pal.field, '#000000', .15)); }
+  for (let i = 0; i < 160; i++) { const p = .15 + r() * .85, y = vy(p), x = Math.floor(r() * W), s = vs(p); R(g, x, y - Math.round(2 * s), Math.max(1, Math.round(3 * s)), Math.max(1, Math.round(2 * s)), mix(pal.treeLo, pal.far, (1 - p) * .5)); }
+  // la rivière
+  for (let y = hz + 3; y < bottom + 4; y++) {
+    const q = (y - hz - 4) / (bottom - hz - 10), p = Math.sqrt(Math.max(0, q)), w = riverW(p), x = riverX(p);
+    R(g, x - w / 2, y, w, 1, mix(pal.water, pal.waterLo, p)); if (r() < .35) R(g, x - w / 3 + r() * w * .6, y, Math.max(1, Math.round(w / 6)), 1, mix(pal.water, '#ffffff', .4));
+  }
+  // ce qui a été bâti, du plus loin au plus près, puis le chantier du jour
+  const plan = buildPlan(), built = plan.slice(0, n).map((it, i) => ({...it, i})).sort((a, b) => a.p - b.p);
+  const D = (it, ghost) => drawBuild(g, it, pal, VW, ghost);
+  for (const it of built.filter(it => it.kind === 'lake' || it.kind === 'pave' || it.kind === 'square' || it.kind === 'garden')) D(it);
+  for (const it of built.filter(it => !['lake', 'pave', 'square', 'garden'].includes(it.kind))) D(it);
+  if (chantier && plan[n]) scaffold(g, plan[n]);
+  if (tod === 'night') { g.save(); g.globalCompositeOperation = 'source-atop'; g.fillStyle = 'rgba(10,10,40,.5)'; g.fillRect(0, 0, W, SH); g.restore(); }
+  if (tod !== 'day') for (const [x, y, w, h] of VW) R(g, x, y, w, h, '#f0b070');
+  return c;
+}
+function scaffold(g, it) { // un échafaudage de bois, là où la ville grandira demain si la journée reste sous le budget
+  const s = vs(it.p), y = vy(it.p), big = ['church', 'hall', 'tower', 'dome', 'castle', 'palace', 'walls', 'mill'].includes(it.kind);
+  const w = Math.max(4, Math.round((big ? 18 : 8) * s * (it.kind === 'castle' ? 2 : 1))), h = Math.max(4, Math.round((big ? 14 : 7) * s * (it.kind === 'castle' ? 2 : 1))), x = Math.round(it.x - w / 2);
+  const wood = '#c8a060', lo = '#8a6a3a';
+  R(g, x, y - h, 1, h, wood); R(g, x + w - 1, y - h, 1, h, wood); R(g, x + Math.floor(w / 2), y - h, 1, h, lo);
+  for (let yy = y - h; yy < y; yy += Math.max(2, Math.round(3 * s))) R(g, x, yy, w, 1, wood);
+  if (big) { R(g, x + w - 1, y - h - Math.round(6 * s), 1, Math.round(6 * s), '#e8c060'); R(g, x + w - 1 - Math.round(8 * s), y - h - Math.round(6 * s), Math.round(8 * s), 1, '#e8c060'); }
+  R(g, x - 1, y - 1, w + 2, 1, '#8a7a6a');
+}
+function drawBuild(g, it, pal, VW, ghost) {
+  const s = vs(it.p), y = vy(it.p), x = Math.round(it.x), r = rng(it.seed || 1), S1 = v => Math.max(1, Math.round(v * s));
+  const haze = (col, k = 1) => mix(col, pal.far, Math.max(0, (1 - it.p) * .55 * k));
+  const walls = ['#e2c4a6', '#d4ae92', '#e8ceb0', '#cfa488', '#dcb898'], roofs = ['#b4584a', '#a04c40', '#c06a50', '#ac5a46'];
+  const win = (wx, wy, ww, wh, on) => { R(g, wx, wy, ww, wh, on ? '#f0b070' : haze('#3e3448')); if (on) VW.push([wx, wy, ww, wh]); };
+  const roof = (rx, ry, rw, rh, col) => { for (let i = 0; i < rh; i++) R(g, rx - 1 + Math.round(i * .5), ry - 1 - i, rw + 2 - Math.round(i), 1, i === rh - 1 ? mix(col, '#ffffff', .2) : col); R(g, rx - 1, ry - 1, rw + 2, 1, mix(col, '#000000', .3)); };
+  switch (it.kind) {
+    case 'pave': { const [[x0, p0], [x1, p1]] = it.seg; for (let k = 0; k <= 40; k++) { const q = k / 40, p = p0 + (p1 - p0) * q, xx = x0 + (x1 - x0) * q, w = 3 + 9 * p, yy = vy(p); R(g, xx - w / 2, yy, w, Math.max(1, Math.round(1 + p * 1.5)), haze('#c4ae94')); if (k % 3 === 0) P1(g, xx - w / 2 + r() * w, yy, haze('#8a7660')); R(g, xx - w / 2 - 1, yy, 1, 1, haze('#8a7660')); } return; }
+    case 'square': { const w = S1(40), h = S1(7); g.fillStyle = haze('#c4ae94'); g.beginPath(); g.ellipse(x, y, w / 2, h / 2, 0, 0, 7); g.fill(); for (let i = 0; i < 40; i++) P1(g, x - w / 2 + r() * w, y - h / 2 + r() * h, haze('#a08c74')); R(g, x - S1(2), y - S1(3), S1(4), S1(3), haze('#b8a8a0')); R(g, x - S1(1), y - S1(5), S1(2), S1(2), haze('#78b4e0')); return; }
+    case 'garden': { const w = S1(11), h = S1(4); for (let i = 0; i < h; i++) R(g, x - w / 2, y - h + i, w, 1, i % 2 ? haze('#8a6a4a') : haze('#6aa04a')); for (let k = 0; k <= w; k += S1(3)) R(g, x - w / 2 + k, y - h - 1, 1, h + 1, haze('#a0805a')); return; }
+    case 'lake': { const rx = LAKE.rx * s, ry = Math.max(3, Math.round((vy(LAKE.p + LAKE.rp) - vy(LAKE.p - LAKE.rp)) / 2));
+      g.fillStyle = haze('#c8b48a'); g.beginPath(); g.ellipse(x, y, rx + 2, ry + 1.5, 0, 0, 7); g.fill();
+      g.fillStyle = pal.waterLo; g.beginPath(); g.ellipse(x, y, rx, ry, 0, 0, 7); g.fill(); g.fillStyle = pal.water; g.beginPath(); g.ellipse(x, y - 1, rx * .8, ry * .6, 0, 0, 7); g.fill();
+      for (let i = 0; i < 10; i++) R(g, x - rx * .6 + r() * rx * 1.2, y - ry * .5 + r() * ry, S1(4), 1, mix(pal.water, '#ffffff', .45));
+      for (let i = 0; i < 12; i++) { const a = r() * Math.PI * 2; R(g, x + Math.cos(a) * (rx + 1), y + Math.sin(a) * (ry + 1) - 3, 1, 3, haze('#4e7a3a')); }
+      R(g, x + rx * .3, y - 2, S1(4), 1, '#8a5a3a'); R(g, x + rx * .3 + S1(1), y - 4, 1, 2, '#e8e0d0'); return; }
+    case 'tree': { const kind = r(); if (kind < .3) { const h = S1(10), w = S1(3); R(g, x, y - S1(2), 1, S1(2), haze('#5a3e2a')); for (let i = 0; i < h; i++) { const ww = Math.max(1, Math.round(w * Math.sin(Math.PI * (i + 1) / (h + 1)))); R(g, x - Math.floor(ww / 2), y - S1(2) - h + i, ww + 1, 1, i < h / 3 ? haze(pal.treeHi) : haze(pal.tree)); } return; }
+      const rad = Math.max(1.5, 3.6 * s); R(g, x, y - S1(3), Math.max(1, Math.round(s)), S1(3), haze('#5a3e2a'));
+      g.fillStyle = haze(pal.treeLo); g.beginPath(); g.arc(x + .5, y - S1(3) - rad + 1, rad, 0, 7); g.fill(); g.fillStyle = haze(pal.tree); g.beginPath(); g.arc(x, y - S1(3) - rad, rad * .85, 0, 7); g.fill();
+      if (s > .6) { P1(g, x - 1, y - S1(3) - rad - 1, haze(pal.treeHi)); P1(g, x + 1, y - S1(3) - rad * 1.4, haze(pal.treeHi)); } return; }
+    case 'house': { const bw = S1(7 + r() * 4), bh = S1(6 + r() * 4), rh = S1(4), wall = haze(walls[Math.floor(r() * walls.length)]), rc = haze(roofs[Math.floor(r() * roofs.length)], .8);
+      R(g, x - bw / 2, y - bh, bw, bh, wall); R(g, x + bw / 2 - S1(1), y - bh, S1(1), bh, mix(wall, '#000000', .18)); roof(x - bw / 2, y - bh, bw, rh, rc);
+      if (s > .55) { if (r() < .6) R(g, x - bw / 2 + Math.round(bw * (.2 + r() * .5)), y - bh - rh - S1(2), S1(1), S1(2), haze('#8a6a5a'));
+        const cols = Math.max(1, Math.floor(bw / (3 * s))), rows = Math.max(1, Math.floor(bh / (3.2 * s)));
+        for (let j = 0; j < rows; j++) for (let i = 0; i < cols; i++) win(Math.round(x - bw / 2 + 1 + i * bw / cols), Math.round(y - bh + 1 + j * bh / rows), Math.max(1, Math.round(s * .9)), S1(1.2), r() < .35);
+        R(g, x - S1(1), y - S1(2.5), S1(2), S1(2.5), haze('#5a3a2a')); } else if (r() < .5) win(Math.round(x - bw / 2 + r() * bw), Math.round(y - bh + r() * bh * .6), 1, 1, true);
+      return; }
+    case 'well': { R(g, x - S1(3), y - S1(3), S1(6), S1(3), haze('#a89890')); R(g, x - S1(3), y - S1(3), S1(6), 1, haze('#d8ccc4')); R(g, x - S1(3), y - S1(8), 1, S1(5), haze('#6a4a32')); R(g, x + S1(3) - 1, y - S1(8), 1, S1(5), haze('#6a4a32')); roof(x - S1(4), y - S1(8), S1(8), S1(2), haze('#a04c40')); R(g, x, y - S1(7), 1, S1(3), '#8a8a8a'); return; }
+    case 'mill': { const h = S1(16), w = S1(7); for (let i = 0; i < h; i++) { const ww = Math.round(w - i * .18 * s); R(g, x - ww / 2, y - i - 1, ww, 1, haze(i % 6 === 0 ? '#d8ccc0' : '#ece0d0')); } roof(x - S1(3), y - h, S1(6), S1(3), haze('#8a4a3a'));
+      const hx = x, hy = y - h + S1(2), L2 = S1(10); for (let k = -L2; k <= L2; k++) { P1(g, hx + k, hy + k, haze('#6a4a32')); P1(g, hx + k, hy - k, haze('#6a4a32')); } for (let k = 2; k < L2; k += 2) { P1(g, hx + k + 1, hy + k, haze('#e8dccc')); P1(g, hx - k - 1, hy - k, haze('#e8dccc')); P1(g, hx + k + 1, hy - k, haze('#e8dccc')); P1(g, hx - k - 1, hy + k, haze('#e8dccc')); }
+      win(x - S1(1), y - S1(6), S1(2), S1(3), true); return; }
+    case 'church': { const wall = haze('#e8dcc8'); R(g, x - S1(10), y - S1(8), S1(16), S1(8), wall); roof(x - S1(10), y - S1(8), S1(16), S1(4), haze('#a04c40'));
+      R(g, x + S1(6), y - S1(18), S1(5), S1(18), haze('#ece2d0')); R(g, x + S1(10), y - S1(18), S1(1), S1(18), haze('#c8b8a4')); for (let i = 0; i < S1(9); i++) R(g, x + S1(6) + Math.round(i * .28), y - S1(18) - i, Math.max(1, S1(5) - Math.round(i * .56)), 1, haze('#5a4a5a'));
+      R(g, x + S1(8), y - S1(30), 1, S1(3), haze('#e8c070')); R(g, x + S1(7), y - S1(29), S1(3), 1, haze('#e8c070')); win(x + S1(7), y - S1(15), S1(2), S1(3), true); for (let i = 0; i < 3; i++) win(x - S1(8) + i * S1(4), y - S1(6), S1(2), S1(3), r() < .6);
+      R(g, x - S1(2), y - S1(4), S1(3), S1(4), haze('#5a3a2a')); return; }
+    case 'bridge': { const w = S1(26), bx = Math.round(it.x - w / 2); R(g, bx, y - S1(4), w, S1(2), haze('#c8b8a8')); R(g, bx, y - S1(4), w, 1, haze('#e8dccc')); for (let k = 0; k < 3; k++) { const ax = bx + S1(2) + k * S1(8); R(g, ax, y - S1(2), S1(6), S1(3), haze('#a89888')); R(g, ax + S1(1), y - S1(1), S1(4), S1(2), pal.waterLo); } R(g, bx, y - S1(6), 1, S1(2), haze('#c8b8a8')); R(g, bx + w - 1, y - S1(6), 1, S1(2), haze('#c8b8a8')); return; }
+    case 'hall': { const w = S1(26), h = S1(7); R(g, x - w / 2, y - h, w, h, haze('#d8c0a0')); roof(x - w / 2, y - h, w, S1(4), haze('#9a4a3c')); for (let k = 0; k < 6; k++) { const ax = Math.round(x - w / 2 + S1(1) + k * w / 6); R(g, ax, y - S1(5), S1(3), S1(5), haze('#4a3436')); if (r() < .5) { R(g, ax, y - S1(2), S1(3), S1(2), '#f0b070'); VW.push([ax, y - S1(2), S1(3), S1(2)]); } } return; }
+    case 'tower': { const w = S1(6), h = S1(22); R(g, x - w / 2, y - h, w, h, haze('#c8bcb0')); R(g, x + w / 2 - S1(1), y - h, S1(1), h, haze('#a89c90')); for (let k = 0; k < w; k += S1(2)) R(g, x - w / 2 + k, y - h - S1(2), S1(1), S1(2), haze('#c8bcb0')); win(x - S1(1), y - h + S1(4), S1(2), S1(3), true); R(g, x, y - h - S1(9), 1, S1(7), haze('#4a3a3a')); R(g, x + 1, y - h - S1(9), S1(4), S1(2), haze('#c0392b')); return; }
+    case 'dome': { const w = S1(20), h = S1(10); R(g, x - w / 2, y - h, w, h, haze('#e0d4c8')); for (let k = 0; k < 5; k++) R(g, Math.round(x - w / 2 + S1(2) + k * w / 5), y - h + S1(2), S1(1), h - S1(3), haze('#b8aca0')); g.fillStyle = haze('#7a96b4'); g.beginPath(); g.arc(x, y - h, S1(8), Math.PI, 0); g.fill(); g.fillStyle = haze('#9ab4cc'); g.beginPath(); g.arc(x - S1(2), y - h - S1(2), S1(3), Math.PI, 0); g.fill(); R(g, x, y - h - S1(13), 1, S1(5), haze('#e8c070')); return; }
+    case 'castle': { const k = 2.1, T = v => Math.max(1, Math.round(v * s * k)), O = v => Math.round(v * s * k); g.fillStyle = haze(pal.hill, .6); g.beginPath(); g.ellipse(x, y, T(26), T(6), 0, Math.PI, 0); g.fill();
+      const stone = haze('#d0c4b8', .6), dark = haze('#a89c90', .6); R(g, x - T(16), y - T(10), T(32), T(8), stone); for (let q = 0; q < T(32); q += T(2)) R(g, x - T(16) + q, y - T(11), T(1), T(1), stone);
+      for (const [tx, th] of [[-17, 16], [14, 16], [-3, 22]]) { R(g, x + O(tx), y - T(th), T(5), T(th) - T(2), stone); R(g, x + O(tx) + T(4), y - T(th), T(1), T(th) - T(2), dark); for (let i = 0; i < T(6); i++) R(g, x + O(tx) - 1 + Math.round(i * .45), y - T(th) - i, Math.max(1, T(6) - Math.round(i * .9)), 1, haze('#5a4a6a', .6)); win(x + O(tx) + T(2), y - T(th) + T(4), T(1), T(2), true); }
+      R(g, x - T(2), y - T(6), T(4), T(4), haze('#4a3436', .6)); return; }
+    case 'walls': { const a = Math.round(it.a), b = Math.round(it.b), h = S1(7); R(g, a, y - h, b - a, h, haze('#c8bcb0')); R(g, a, y - h, b - a, 1, haze('#e8dccc')); for (let q = a; q < b; q += S1(3)) R(g, q, y - h - S1(2), S1(1.5), S1(2), haze('#c8bcb0'));
+      for (const tx of [a, b]) { R(g, tx - S1(3), y - S1(13), S1(6), S1(13), haze('#d0c4b8')); for (let i = 0; i < S1(5); i++) R(g, tx - S1(3) + Math.round(i * .5), y - S1(13) - i, Math.max(1, S1(6) - i), 1, haze('#5a4a6a')); } return; }
+    case 'palace': { const w = S1(44), h = S1(10); R(g, x - w / 2, y - h, w, h, haze('#ece0d4')); R(g, x - S1(9), y - S1(17), S1(18), S1(7), haze('#ece0d4')); R(g, x - w / 2 - 1, y - h - S1(2), w + 2, S1(2), haze('#4a4258')); R(g, x - S1(10), y - S1(19), S1(20), S1(2), haze('#4a4258'));
+      for (let k = -20; k < 20; k += 4) win(x + Math.round(k * s), y - S1(7), S1(2), S1(3), r() < .7); g.fillStyle = haze('#e8c070'); g.beginPath(); g.arc(x, y - S1(19), S1(5), Math.PI, 0); g.fill(); R(g, x, y - S1(28), 1, S1(5), haze('#2a2030')); R(g, x + 1, y - S1(28), S1(4), S1(2), '#e5484d'); return; }
+    case 'banners': { const k = 2.1, s2 = vs(LANDMARKS.castle[1]), T = v => Math.max(1, Math.round(v * s2 * k)), O = v => Math.round(v * s2 * k); for (const [tx, th] of [[-17, 16], [14, 16], [-3, 22]]) { const fx = x + O(tx) + T(2); R(g, fx, y - T(th) - T(10), 1, T(5), '#3a2a2a'); R(g, fx + 1, y - T(th) - T(10), T(3), T(1.5), '#e5484d'); P1(g, fx + 1, y - T(th) - T(10), '#ffd166'); }
+      const [hx, hp] = LANDMARKS.hall, sy = vy(hp) - S1(10); for (let q = -40; q < 40; q += 3) P1(g, hx + q, sy + Math.round(Math.abs(q) / 14), ['#e5484d', '#ffd166', '#3b5dc9', '#86cf7c'][((q + 40) / 3) % 4 | 0]); return; }
+  }
+}
+
 /* ---- La rue : la terrasse et sa balustrade, des groupes de maisons, des terrasses ouvertes sur la vallée ---- */
+// Ce qui rend chaque lieu reconnaissable
+const PLACE_INFO = {
+  home: 'Héros, budgets, trésorerie, apparence', archives: 'Le journal du mois', market: 'Noter une dépense ou une rentrée',
+  board: 'Les quêtes et la progression', bank: 'Budget, réel et écarts', lab: 'Les suivis personnalisés', belvedere: 'Un conseil, face à la vallée',
+};
+const DIGITS = {'4': ['x.x', 'x.x', 'xxx', '..x', '..x'], '3': ['xxx', '..x', '.xx', '..x', 'xxx']};
+const pxText = (g, x, y, txt, col) => [...txt].forEach((ch, k) => (DIGITS[ch] || []).forEach((row, j) => [...row].forEach((v, i) => { if (v === 'x') P1(g, x + k * 4 + i, y + j, col); })));
+const frenchCols = (x, w) => { const cols = Math.max(2, Math.floor(w / 17)); return Array.from({length: cols}, (_, i) => x + 6 + i * (w - 12) / cols + ((w - 12) / cols - 8) / 2); };
+function homeArt(g, p) { // la maison du héros : jardinières fleuries, antenne parabolique, plaque « 43 »
+  const h = 62, top = STREET - h; french(g, p.x, STREET, p.w, {door: 34, chim: 8, h, shutter: '#4a6a5a'}, 1);
+  for (const wx of frenchCols(p.x, p.w)) for (const by of [top + 20, top + 41]) { R(g, wx - 2, by, 12, 3, '#6e4a32'); for (let k = 0; k < 12; k += 2) P1(g, wx - 2 + k, by - 1, ['#ff6fa8', '#ffd166', '#e5484d', '#f4f4f4'][(k / 2) % 4]); for (let k = 1; k < 12; k += 3) P1(g, wx - 2 + k, by - 1, '#56a040'); }
+  const dx = p.x + p.w - 16, dy = top - 26; R(g, dx + 4, dy + 4, 1, 6, '#5a5068'); g.fillStyle = '#d8dce6'; g.beginPath(); g.ellipse(dx + 4, dy + 3, 5, 2.5, -.5, 0, 7); g.fill(); R(g, dx + 3, dy, 1, 3, '#5a5068'); P1(g, dx + 3, dy - 1, '#ff8a3d');
+  R(g, p.x + 28, STREET - 12, 10, 7, '#2e4a66'); R(g, p.x + 28, STREET - 12, 10, 1, '#e8c070'); pxText(g, p.x + 29, STREET - 11, '43', '#ff8a3d');
+}
+function archivesArt(g, p) { // les Archives : haute façade de pierre, horloge dans le toit, perron
+  const h = 70, top = STREET - h; french(g, p.x, STREET, p.w, {stone: '#b0a094', shutter: '#6a5a4a', h}, 2);
+  const cx = p.x + p.w / 2, cy = top - 11; R(g, cx - 8, top - 22, 16, 20, '#c8bcb0'); R(g, cx - 9, top - 23, 18, 2, '#e0d6cc');
+  g.fillStyle = '#3a2e36'; g.beginPath(); g.arc(cx, cy, 6.5, 0, 7); g.fill(); g.fillStyle = '#f4efe6'; g.beginPath(); g.arc(cx, cy, 5.5, 0, 7); g.fill();
+  for (let k = 0; k < 12; k++) { const a = k / 12 * Math.PI * 2; P1(g, cx + Math.round(Math.cos(a) * 4.5) - .5, cy + Math.round(Math.sin(a) * 4.5) - .5, '#8a7a6a'); }
+  R(g, cx - .5, cy - 4, 1, 4, '#241a26'); R(g, cx - .5, cy - .5, 3, 1, '#241a26'); P1(g, cx - .5, cy - .5, '#c0392b');
+  for (let k = 0; k < 3; k++) R(g, p.x + p.w / 2 - 10 + k * 2, STREET - 2 + k - 2, 20 - k * 4, 1, '#d8ccc4');
+}
+function marketArt(g, p) { // le Marché : auvent rayé festonné, cagettes de fruits devant l'étal
+  french(g, p.x, STREET, p.w, {shop: 1, door: 40, chim: 8, h: 66, awning: '#c0392b'}, 4);
+  const ax = p.x + 1, aw = p.w - 2, ay = STREET - 26;
+  for (let x = 0; x < aw; x++) { const col = Math.floor(x / 4) % 2 ? '#f4efe6' : '#c0392b'; R(g, ax + x, ay, 1, 5 + (x % 4 === 1 || x % 4 === 2 ? 1 : 0), col); }
+  R(g, ax, ay - 1, aw, 1, '#5a2a2a');
+  for (const [cx, fruit] of [[p.x + 2, ['#ff8a3d', '#ffa64d']], [p.x + 14, ['#86cf7c', '#56a040']], [p.x + p.w - 14, ['#e5484d', '#ff6fa8']]]) {
+    R(g, cx, STREET - 6, 11, 6, '#8a6040'); R(g, cx, STREET - 6, 11, 1, '#a87850'); R(g, cx, STREET - 3, 11, 1, '#6e4a32');
+    for (let k = 0; k < 5; k++) { P1(g, cx + 1 + k * 2, STREET - 7, fruit[k % 2]); P1(g, cx + 2 + k * 2, STREET - 8, fruit[(k + 1) % 2]); }
+  }
+}
+function bankArt(g, p) { // la Banque : temple de pierre claire, colonnes, fronton et pièce d'or, porte de bronze
+  const x = p.x, w = p.w, h = 58, top = STREET - h, stone = '#ddd2c2', lo = '#b8ac9c';
+  R(g, x, top, w, h, stone); for (let yy = STREET - 14; yy < STREET; yy += 3) R(g, x, yy, w, 1, lo);
+  for (let k = 0; k < 3; k++) R(g, x - 2 + k * -1, STREET - 1 - k, w + 4 + k * 2, 1, k % 2 ? '#c8bcb0' : '#e8e0d4');
+  R(g, x - 2, top, w + 4, 5, '#e8e0d4'); R(g, x - 2, top + 4, w + 4, 1, lo); for (let xx = x; xx < x + w; xx += 4) R(g, xx, top + 1, 2, 2, lo);
+  for (let i = 0; i < 12; i++) R(g, x - 3 + i * 2, top - 1 - i, w + 6 - i * 4, 1, i % 4 === 3 ? lo : '#e8e0d4');
+  const cx = x + w / 2; g.fillStyle = '#e8c070'; g.beginPath(); g.arc(cx, top - 6, 3.5, 0, 7); g.fill(); g.fillStyle = '#b8862e'; g.beginPath(); g.arc(cx, top - 6, 2, 0, 7); g.fill(); P1(g, cx - 1, top - 8, '#fff1b0');
+  for (let k = 0; k < 4; k++) { const colx = x + 3 + k * (w - 10) / 3; R(g, colx, top + 6, 4, h - 22, '#f0e8dc'); R(g, colx + 3, top + 6, 1, h - 22, lo); R(g, colx - 1, top + 5, 6, 2, '#e8e0d4'); R(g, colx - 1, STREET - 16, 6, 2, '#e8e0d4'); }
+  for (let k = 0; k < 3; k++) { const wx = x + 9 + k * (w - 10) / 3; win(g, wx, top + 10, 6, 14, k !== 1, '#c8bcb0'); }
+  R(g, cx - 6, STREET - 14, 12, 14, '#8a5a2e'); R(g, cx - 6, STREET - 14, 12, 1, '#c8862e'); R(g, cx, STREET - 13, 1, 13, '#5a3a1e'); for (const yy of [-11, -7, -3]) { P1(g, cx - 4, STREET + yy, '#ffd166'); P1(g, cx + 3, STREET + yy, '#ffd166'); }
+  R(g, x - 1, top, 1, h, '#1e1424'); R(g, x + w, top, 1, h, '#1e1424');
+}
+function labArt(g, p) { // le Labo : brique rouge, verrière lumineuse, cheminée, bobine électrique, roue dentée
+  const x = p.x, w = p.w, h = 52, top = STREET - h, brick = '#9a4a3a', mortar = '#6a3028';
+  R(g, x, top, w, h, brick); for (let yy = top; yy < STREET; yy += 3) { R(g, x, yy, w, 1, mortar); for (let xx = x + ((yy / 3) % 2 ? 0 : 3); xx < x + w; xx += 6) R(g, xx, yy, 1, 3, mortar); }
+  R(g, x - 2, top - 2, w + 4, 3, '#c8b8a8');
+  // la verrière en dents de scie
+  for (let k = 0; k < 3; k++) { const sx = x + k * w / 3; for (let i = 0; i < 12; i++) { R(g, sx + i * (w / 3) / 12, top - 3 - i, 1, i + 1, '#3a5a5a'); } for (let i = 2; i < 12; i += 2) R(g, sx + i * (w / 3) / 12, top - 2 - i, 1, i - 1, '#7cf0b0'); R(g, sx + w / 3 - 1, top - 15, 1, 13, '#2a3a3a'); lit(sx + 8, top - 8, 14, '#7cf0b0'); }
+  // la grande baie de l'atelier
+  const bx = x + 6, by = top + 8, bw = w - 12, bh = 22; R(g, bx - 1, by - 1, bw + 2, bh + 2, '#3a2a2a'); R(g, bx, by, bw, bh, '#5ae0a0'); R(g, bx, by, bw, 3, '#a8ffd0');
+  for (let xx = bx + 6; xx < bx + bw; xx += 7) R(g, xx, by, 1, bh, '#2a4a3a'); for (let yy = by + 7; yy < by + bh; yy += 7) R(g, bx, yy, bw, 1, '#2a4a3a'); lit(bx + bw / 2, by + bh / 2, 26, '#7cf0b0');
+  for (let i = 0; i < bw; i++) { const d = Math.abs(i - bw / 2), t = by - 1 - Math.round(Math.sqrt(Math.max(0, (bw / 2) ** 2 - d * d)) / 3); R(g, bx + i, t, 1, by - t, '#7a3a2e'); }
+  R(g, x + 4, STREET - 14, 12, 14, '#3a2a30'); R(g, x + 5, STREET - 13, 10, 13, '#4a5a68'); P1(g, x + 13, STREET - 7, '#ffd166');
+  // la cheminée et la bobine sur le toit
+  R(g, x + w - 12, top - 26, 6, 24, '#7a3a2e'); R(g, x + w - 13, top - 27, 8, 2, '#4a2a22');
+  const kx = x + 14; R(g, kx, top - 22, 2, 20, '#5a5068'); for (let k = 0; k < 5; k++) R(g, kx - 2, top - 20 + k * 3, 6, 1, '#c87a3a'); g.fillStyle = '#c8cce8'; g.beginPath(); g.arc(kx + 1, top - 25, 3.5, 0, 7); g.fill(); P1(g, kx, top - 27, '#ffffff');
+  // la roue dentée de l'enseigne
+  const gx = x + w - 10, gy = top + 4; g.fillStyle = '#c8a050'; g.beginPath(); g.arc(gx, gy + 3, 3, 0, 7); g.fill(); for (let k = 0; k < 8; k++) { const a = k / 8 * Math.PI * 2; P1(g, gx + Math.round(Math.cos(a) * 4) - .5, gy + 3 + Math.round(Math.sin(a) * 4) - .5, '#c8a050'); } P1(g, gx - .5, gy + 2.5, '#3a2a2a');
+  R(g, x - 1, top, 1, h, '#1e1424'); R(g, x + w, top, 1, h, '#1e1424');
+  LAB_FX.chimney = [x + w - 9, top - 28]; LAB_FX.coil = [kx + 1, top - 25];
+}
+function boardArt(g, p) { // le tableau des quêtes : petit toit, avis épinglés, cloche
+  const bx = p.x; R(g, bx + 3, STREET - 26, 2, 26, '#4e3222'); R(g, bx + 19, STREET - 26, 2, 26, '#4e3222');
+  R(g, bx, STREET - 40, 24, 16, '#6e4a32'); R(g, bx, STREET - 40, 24, 1, '#8a6040'); R(g, bx + 1, STREET - 25, 22, 1, '#4e3222');
+  for (const [px, py, pw, ph, col] of [[2, 3, 7, 6, '#f6f2e9'], [11, 2, 8, 5, '#ffd166'], [12, 8, 7, 6, '#f6f2e9'], [3, 10, 5, 4, '#9fe8ff']]) { R(g, bx + px, STREET - 40 + py, pw, ph, col); P1(g, bx + px + 1, STREET - 40 + py, '#c0392b'); }
+  for (let i = 0; i < 5; i++) R(g, bx - 3 + i, STREET - 42 - i, 30 - i * 2, 1, i % 2 ? '#7a3a2e' : '#9a4a3a');
+  R(g, bx + 26, STREET - 30, 1, 6, '#4e3222'); R(g, bx + 24, STREET - 25, 5, 4, '#e8c070'); R(g, bx + 25, STREET - 22, 3, 1, '#b8862e');
+}
+function belvedereArt(g, p) { // le belvédère : longue-vue de laiton, banc, pots de fleurs
+  const tx0 = p.x + 4; R(g, tx0 + 3, STREET - 14, 1, 14, '#3a2a26'); R(g, tx0, STREET - 1, 8, 1, '#3a2a26'); R(g, tx0 + 1, STREET - 7, 1, 7, '#3a2a26'); R(g, tx0 + 6, STREET - 7, 1, 7, '#3a2a26');
+  for (let i = 0; i < 12; i++) R(g, tx0 - 2 + i, STREET - 16 - Math.round(i * .35), 1, i < 4 ? 3 : 2, i % 4 === 0 ? '#e8c070' : '#b08840');
+  R(g, p.x - 26, STREET - 7, 16, 2, '#6e4a32'); R(g, p.x - 25, STREET - 5, 1, 5, '#4e3222'); R(g, p.x - 12, STREET - 5, 1, 5, '#4e3222'); R(g, p.x - 26, STREET - 13, 16, 2, '#6e4a32');
+  for (const fx of [p.x + 16, p.x + 24]) { R(g, fx, STREET - 5, 5, 5, '#b8604a'); R(g, fx, STREET - 5, 5, 1, '#d8806a'); for (let k = 0; k < 5; k++) P1(g, fx + k, STREET - 6 - (k % 2), k % 2 ? '#ff6fa8' : '#56a040'); }
+}
+const PLACE_ARTS = {home: homeArt, archives: archivesArt, market: marketArt, board: boardArt, bank: bankArt, lab: labArt, belvedere: belvedereArt};
+let PLACE_ART = {}, LAB_FX = {};
+// Chaque lieu est dessiné sur son propre calque : on en tire sa silhouette pour l'illuminer
+function placeLayer(id) {
+  const p = PLACES[id], x0 = Math.max(0, p.x - (id === 'belvedere' ? 30 : 6)), x1 = Math.min(FW, p.x + p.w + (id === 'board' ? 10 : 6)), w = x1 - x0;
+  const [full, gf] = mkc(w, SH); gf.translate(-x0, 0); PLACE_ARTS[id](gf, p);
+  if (p.label) { if (id === 'board') fascia(gf, p.x - 4, STREET - 50, p.w + 8, p.label, p.picto); else fascia(gf, p.x + 2, STREET - 21, p.w - 4, p.label, p.picto); }
+  const d = gf.getImageData(0, 0, w, SH).data; let top = SH; for (let y = 0; y < SH && top === SH; y++) for (let x = 0; x < w; x++) if (d[(y * w + x) * 4 + 3]) { top = y; break; }
+  const h = SH - top, [img, gi] = mkc(w, h); gi.drawImage(full, 0, -top);
+  const [sil, gs] = mkc(w, h); gs.drawImage(img, 0, 0); gs.globalCompositeOperation = 'source-in'; gs.fillStyle = '#ffd27a'; gs.fillRect(0, 0, w, h);
+  const [ring, gr] = mkc(w + 4, h + 4); for (const [ox, oy] of [[1, 2], [3, 2], [2, 1], [2, 3], [1, 1], [3, 3], [1, 3], [3, 1]]) gr.drawImage(sil, ox, oy); gr.globalCompositeOperation = 'destination-out'; gr.drawImage(sil, 2, 2);
+  const [hole, gh] = mkc(w, h); gh.fillStyle = 'rgba(10,4,20,.42)'; gh.fillRect(0, 0, w, h); gh.globalCompositeOperation = 'destination-out'; gh.drawImage(img, 0, 0);
+  return {img, ring, hole, x: x0, y: top, w, h};
+}
 function frontLayer(tod) {
-  LIGHTS = []; WINS = [];
+  LIGHTS = []; WINS = []; PLACE_ART = {}; LAB_FX = {};
   const [c, g] = mkc(FW, SH), P = PLACES;
   R(g, 0, TERRACE, FW, STREET - TERRACE, '#5a4650');
   R(g, 0, TERRACE - 2, FW, 3, '#b8a8a0'); R(g, 0, TERRACE - 2, FW, 1, '#d8ccc4');
   for (let x = 2; x < FW; x += 5) { R(g, x, TERRACE + 1, 3, 9, '#a89890'); R(g, x + 1, TERRACE + 3, 1, 5, '#8a7a78'); }
   R(g, 0, TERRACE + 10, FW, 3, '#b8a8a0');
   for (const [a, b] of OPENINGS) for (let x = a + 30; x < b - 20; x += 40) R(g, x, TERRACE - 4, 6, 17, '#c8b8b0');
-  // les maisons de ville, serrées en groupes
-  french(g, P.home.x, STREET, P.home.w, {door: 34, chim: 8, h: 62, shutter: '#4a6a5a'}, 1);
-  french(g, P.archives.x, STREET, P.archives.w, {stone: '#a89488', shutter: '#6a5a4a', h: 70}, 2);
+  // les maisons des habitants, entre les lieux
   french(g, 264, STREET, 40, {stone: '#c0ac9a', h: 58, chim: 22, shutter: '#7a5a4a'}, 3);
-  french(g, P.market.x, STREET, P.market.w, {shop: 1, door: 40, chim: 8, awning: '#3a5a7a', h: 66}, 4);
-  french(g, P.bank.x, STREET, P.bank.w, {stone: '#c0ac9a', h: 64, chim: 30}, 5);
   french(g, 580, STREET, 40, {stone: '#b0a090', h: 70, shutter: '#7a5a4a'}, 6);
-  french(g, P.lab.x, STREET, P.lab.w, {shop: 1, door: 34, h: 60, awning: '#3a6a5a'}, 7);
   french(g, 818, STREET, 40, {stone: '#a89488', h: 68, chim: 20}, 8);
   french(g, 860, STREET, 52, {h: 58, shop: 1, door: 6, awning: '#8a3a3a'}, 9);
-  // les bouts de la rue : de gros piliers de pierre
   for (const px of [0, FW - 4]) { R(g, px, TERRACE - 14, 4, SH, '#b8a8a0'); R(g, px, TERRACE - 14, 4, 2, '#d8ccc4'); }
-  // le tableau des quêtes et la fontaine, sur la terrasse du milieu
-  const bx = P.board.x; R(g, bx + 3, STREET - 26, 2, 26, '#4e3222'); R(g, bx + 19, STREET - 26, 2, 26, '#4e3222');
-  R(g, bx, STREET - 40, 24, 16, '#6e4a32'); R(g, bx, STREET - 40, 24, 1, '#8a6040'); R(g, bx + 1, STREET - 25, 22, 1, '#4e3222');
-  for (const [px, py, pw, ph, col] of [[2, 3, 7, 6, '#f6f2e9'], [11, 2, 8, 5, '#ffd166'], [12, 8, 7, 6, '#f6f2e9'], [3, 10, 5, 4, '#9fe8ff']]) R(g, bx + px, STREET - 40 + py, pw, ph, col);
   const fx = 470; R(g, fx, STREET - 12, 28, 12, '#a89890'); R(g, fx, STREET - 12, 28, 1, '#d8ccc4'); R(g, fx + 2, STREET - 10, 24, 5, '#6a8ab0'); R(g, fx + 12, STREET - 26, 4, 14, '#b8a8a0'); R(g, fx + 7, STREET - 28, 14, 3, '#a89890');
-  // le belvédère : une longue-vue de laiton sur son trépied, et un banc, face à la ville en contrebas
-  const tx0 = P.belvedere.x + 4; R(g, tx0 + 3, STREET - 14, 1, 14, '#3a2a26'); R(g, tx0, STREET - 1, 8, 1, '#3a2a26'); R(g, tx0 + 1, STREET - 7, 1, 7, '#3a2a26'); R(g, tx0 + 6, STREET - 7, 1, 7, '#3a2a26');
-  for (let i = 0; i < 12; i++) R(g, tx0 - 2 + i, STREET - 16 - Math.round(i * .35), 1, i < 4 ? 3 : 2, i % 4 === 0 ? '#e8c070' : '#b08840');
-  R(g, P.belvedere.x - 26, STREET - 7, 16, 2, '#6e4a32'); R(g, P.belvedere.x - 25, STREET - 5, 1, 5, '#4e3222'); R(g, P.belvedere.x - 12, STREET - 5, 1, 5, '#4e3222'); R(g, P.belvedere.x - 26, STREET - 13, 16, 2, '#6e4a32');
-  // les enseignes et les lanternes
-  for (const k of Object.keys(P)) { const p = P[k]; if (!p.label) continue; if (k === 'board') fascia(g, p.x - 4, STREET - 50, p.w + 8, p.label, p.picto); else fascia(g, p.x + 2, STREET - 21, p.w - 4, p.label, p.picto); }
+  // les lieux, chacun sur son calque
+  for (const id of Object.keys(P)) { const A = PLACE_ART[id] = placeLayer(id); g.drawImage(A.img, A.x, A.y); }
   for (const [a, b] of OPENINGS) { lantern(g, a + 2, STREET); lantern(g, b - 4, STREET); }
   // la rue pavée
   R(g, 0, STREET, FW, SH - STREET, '#2e1e2a');
   for (let x = -4; x < FW; x += 8) { const o = (x / 8) % 2 ? 4 : 0; for (const [yy, oo] of [[0, o], [4, 4 - o], [8, o], [12, 4 - o], [16, o], [20, 4 - o]]) { R(g, x + oo, STREET + yy, 7, 3, mix('#5a4050', '#3a2834', yy / 24)); R(g, x + oo, STREET + yy, 7, 1, mix('#7a5a66', '#4a3440', yy / 24)); } }
-  // un léger voile du soir sur les façades, sans aller jusqu'à la silhouette
   shade(g, FW, tod, 1);
   for (const [x, y, w, h] of WINS) if (tod !== 'day') { R(g, x, y, w, h, '#e8a862'); R(g, x, y, w, 2, '#f8cc90'); R(g, x + Math.floor(w / 2), y, 1, h, '#3a2830'); R(g, x, y + Math.floor(h / 2), w, 1, '#3a2830'); }
   return {c, lights: LIGHTS.slice()};
@@ -1146,16 +1445,22 @@ function glowLayer(lights, tod) {
 
 /* ---- La scène vivante ---- */
 const SCENE = {cam: 300, camV: 0, target: null, focus: null, layers: null, key: '', walkers: [], t0: performance.now(), drag: null, rain: []};
-function sceneKey(g) { return timeOfDay() + '|' + weatherOf(g) + '|' + (S.world.built || 0); }
+function sceneKey(g) { return timeOfDay() + '|' + weatherOf(g) + '|' + (g ? g.buildDays : 0) + '|' + (g && g.buildToday ? 1 : 0) + '|' + heroChar(); }
+// Si le héros choisi tient d'habitude un lieu, Roré prend sa place
+const keeperOf = id => { const k = PLACES[id] && PLACES[id].keeper; return k && k === heroChar() ? 'rore' : k; };
 function ensureLayers(g) {
   const key = sceneKey(g); if (SCENE.key === key && SCENE.layers) return;
-  const [tod, weather, built] = key.split('|');
-  const fr = frontLayer(tod), city = cityLayers(+built, tod);
-  SCENE.layers = {sky: skyLayer(tod, weather), far: city.far, near: city.near, front: fr.c, glow: glowLayer(fr.lights, tod), tod, weather};
+  const [tod, weather, built, chantier] = key.split('|');
+  const fr = frontLayer(tod);
+  SCENE.layers = {sky: skyLayer(tod, weather), valley: valleyLayer(+built, chantier === '1', tod), front: fr.c, glow: glowLayer(fr.lights, tod), tod, weather};
   SCENE.key = key;
+  if (SCENE.heroFor !== heroChar()) { SCENE.walkers = []; SCENE.heroFor = heroChar(); }
   if (!SCENE.walkers.length) {
-    const fam = [['rore', TEAM.rore.outfit, 'supervise'], ['hacker_cyberpunk', TEAM.hacker_cyberpunk.outfit, 'bounce'], ...FAMILY.slice(0, 7).map(f => ['fam:' + f.id, f.outfit, f.idle])];
-    SCENE.walkers = fam.map(([key2, outfit, idle], i) => ({key: key2, outfit, idle, x: 40 + i * 117 % 1000, tx: null, wait: 1 + i, dir: 'down', step: 0, i}));
+    const hero = heroChar(), keepers = new Set(Object.keys(PLACES).map(keeperOf));
+    const list = [['hero', null, CHARS[hero].idle]];
+    for (const k of ['rore', 'hacker_cyberpunk']) if (k !== hero && !keepers.has(k)) list.push([k, CHARS[k].outfit, CHARS[k].idle]);
+    list.push(...FAMILY.slice(0, 7).map(f => ['fam:' + f.id, f.outfit, f.idle]));
+    SCENE.walkers = list.map(([key2, outfit, idle], i) => ({key: key2, outfit, idle, x: 40 + i * 117 % 880, tx: null, wait: 1 + i, dir: 'down', step: 0, i}));
   }
 }
 const sceneEl = () => $('#scene');
@@ -1173,7 +1478,7 @@ function focusPlace(id) {
   SCENE.focus = id; SCENE.target = clampCam(p.x + p.w / 2 - VWG / 2);
 }
 function unfocus() { SCENE.focus = null; SCENE.target = null; }
-function placeAt(wx, wy) { for (const [id, p] of Object.entries(PLACES)) if (wx >= p.x - 2 && wx <= p.x + p.w + 2 && wy >= STREET - (id === 'belvedere' ? 34 : 90) && wy <= STREET + 6) return id; return null; }
+function placeAt(wx, wy) { for (const [id, A] of Object.entries(PLACE_ART)) if (wx >= A.x && wx <= A.x + A.w && wy >= A.y && wy <= STREET + 6) return id; return null; }
 function updateScene(dt, now) {
   // la caméra : glisse vers sa cible, ou garde son élan après un glissé
   if (SCENE.target != null) { SCENE.cam += (SCENE.target - SCENE.cam) * Math.min(1, dt * 4); if (Math.abs(SCENE.target - SCENE.cam) < .5) SCENE.cam = SCENE.target; }
@@ -1206,18 +1511,26 @@ function drawScene(now) {
     const sun = g.createRadialGradient(sx, sy, 0, sx, sy, 34 * z); sun.addColorStop(0, 'rgba(255,214,160,.3)'); sun.addColorStop(1, 'rgba(255,140,120,0)'); g.fillStyle = sun; g.fillRect(0, 0, cv.width, cv.height);
     g.restore();
   }
-  g.save(); g.filter = `blur(${Math.max(.5, z * .4)}px)`; blit(L.far, PAR.far); g.restore();
+  // la vallée : un seul plan, un peu plus flou au loin
+  g.save(); g.beginPath(); g.rect(0, 0, cv.width, (HZ + 20) * z); g.clip(); g.filter = `blur(${Math.max(.5, z * .35)}px)`; blit(L.valley, PAR.valley); g.restore();
+  g.save(); g.beginPath(); g.rect(0, (HZ + 20) * z, cv.width, cv.height); g.clip(); g.filter = `blur(${Math.max(.3, z * .14)}px)`; blit(L.valley, PAR.valley); g.restore();
   const [hr, hg, hb] = T.haze;
   let fog = g.createLinearGradient(0, HZ * z, 0, (HZ + 34) * z); fog.addColorStop(0, `rgba(${hr},${hg},${hb},.45)`); fog.addColorStop(1, `rgba(${hr},${hg},${hb},0)`); g.fillStyle = fog; g.fillRect(0, 0, cv.width, cv.height);
-  g.save(); g.filter = `blur(${Math.max(.3, z * .18)}px)`; blit(L.near, PAR.near); g.restore();
   const mist = g.createLinearGradient(0, (STREET - 60) * z, 0, STREET * z); mist.addColorStop(0, `rgba(${hr},${hg},${hb},0)`); mist.addColorStop(1, `rgba(${hr},${hg},${hb},.3)`); g.fillStyle = mist; g.fillRect(0, 0, cv.width, cv.height);
   // la lueur de la ville en contrebas
-  { g.save(); g.globalCompositeOperation = 'lighter'; const vx = (L.near.width / 2 - cam * PAR.near) * z, vy = (STREET - 40) * z, gl = g.createRadialGradient(vx, vy, 0, vx, vy, 160 * z); gl.addColorStop(0, `rgba(255,170,100,${L.tod === 'day' ? .04 : .1})`); gl.addColorStop(1, 'rgba(255,170,100,0)'); g.fillStyle = gl; g.fillRect(0, 0, cv.width, cv.height); g.restore(); }
+  { g.save(); g.globalCompositeOperation = 'lighter'; const vx = (VALLEY.cx - cam * PAR.valley) * z, vy = (STREET - 40) * z, gl = g.createRadialGradient(vx, vy, 0, vx, vy, 160 * z); gl.addColorStop(0, `rgba(255,170,100,${L.tod === 'day' ? .04 : .1})`); gl.addColorStop(1, 'rgba(255,170,100,0)'); g.fillStyle = gl; g.fillRect(0, 0, cv.width, cv.height); g.restore(); }
   blit(L.front, 1);
+  // le labo fume, et sa bobine crépite de temps en temps
+  if (LAB_FX.chimney) {
+    const [cx0, cy0] = LAB_FX.chimney; g.save();
+    for (let i = 0; i < 6; i++) { const ph = (t * .3 + i / 6) % 1, px = (cx0 + Math.sin(ph * 5 + i) * 2 + ph * 10 - cam) * z, py = (cy0 - ph * 34) * z; g.fillStyle = `rgba(${L.tod === 'night' ? '120,120,150' : '220,214,224'},${.4 * (1 - ph)})`; g.beginPath(); g.arc(px, py, (1.5 + ph * 4) * z, 0, 7); g.fill(); }
+    const [kx, ky] = LAB_FX.coil; if (Math.floor(t * 10) % 23 < 2) { g.strokeStyle = '#bff8ff'; g.lineWidth = Math.max(1, z * .6); g.shadowColor = '#7cf0ff'; g.shadowBlur = 6 * z; g.beginPath(); let px = kx, py = ky; g.moveTo((px - cam) * z, py * z); for (let k = 0; k < 4; k++) { px += (k % 2 ? -3 : 3) + Math.sin(t * 40 + k) * 2; py -= 2 + k; g.lineTo((px - cam) * z, py * z); } g.stroke(); }
+    g.restore();
+  }
   // l'équipe devant ses lieux, et les promeneurs
   const actors = [];
-  for (const [id, p] of Object.entries(PLACES)) if (p.keeper) actors.push({key: p.keeper, outfit: TEAM[p.keeper].outfit, idle: TEAM[p.keeper].idle, x: id === 'board' ? p.x + 30 : id === 'belvedere' ? p.x + 22 : p.x + p.w - 10, pose: SCENE.focus === id && now - (UI.focusAt || 0) < 2200 ? 'wave' : 'stand', i: p.x});
-  for (const w of SCENE.walkers) { const cheer = w.key === 'rore' && now < (UI.cheerUntil || 0); actors.push({key: w.key, outfit: w.key === 'rore' ? heroOutfit() : w.outfit, idle: w.idle, x: w.x, pose: cheer ? 'cheer' : w.tx != null ? 'walk' : 'stand', dir: cheer ? 'down' : w.dir, frame: cheer ? Math.floor(t * 6) % 2 : w.tx != null ? Math.floor(w.step * 7) % 4 : 0, eyes: cheer ? 'happy' : null, i: w.i, hero: w.key === 'rore'}); }
+  for (const [id, p] of Object.entries(PLACES)) if (p.keeper) { const k = keeperOf(id); actors.push({key: k, outfit: CHARS[k].outfit, idle: CHARS[k].idle, x: id === 'board' ? p.x + 30 : id === 'belvedere' ? p.x + 22 : p.x + p.w - 10, pose: SCENE.focus === id && now - (UI.focusAt || 0) < 2200 ? 'wave' : 'stand', i: p.x}); }
+  for (const w of SCENE.walkers) { const cheer = w.key === 'hero' && now < (UI.cheerUntil || 0); actors.push({key: w.key, outfit: w.key === 'hero' ? heroOutfit() : w.outfit, idle: w.idle, x: w.x, pose: cheer ? 'cheer' : w.tx != null ? 'walk' : 'stand', dir: cheer ? 'down' : w.dir, frame: cheer ? Math.floor(t * 6) % 2 : w.tx != null ? Math.floor(w.step * 7) % 4 : 0, eyes: cheer ? 'happy' : null, i: w.i, hero: w.key === 'hero'}); }
   for (const a of actors) {
     const sx = Math.round((a.x - cam) * z); if (sx < -40 * z || sx > cv.width + 40 * z) continue;
     const ie = a.pose === 'stand' ? idleEffect(a.idle, t + a.i * .37) : {};
@@ -1233,11 +1546,29 @@ function drawScene(now) {
   // météo : pluie, éclairs
   if (SCENE.rain.length) { g.strokeStyle = 'rgba(200,210,240,.45)'; g.lineWidth = Math.max(1, z * .5); g.beginPath(); for (const p of SCENE.rain) { g.moveTo(p.x * z, p.y * z); g.lineTo((p.x - 1.5) * z, (p.y + 6) * z); } g.stroke(); }
   if (L.weather === 'storm' && (t % 7) < .12) { g.fillStyle = 'rgba(255,255,255,.35)'; g.fillRect(0, 0, cv.width, cv.height); }
-  // le lieu choisi : le reste s'assombrit, son contour s'illumine
-  if (SCENE.focus) {
-    const p = PLACES[SCENE.focus], fx = (p.x - 4 - cam) * z, fy = (STREET - (SCENE.focus === 'board' ? 54 : SCENE.focus === 'belvedere' ? 30 : 92)) * z, fw = (p.w + 8) * z, fh = (STREET + 2) * z - fy;
-    g.save(); g.fillStyle = 'rgba(10,4,20,.38)'; g.beginPath(); g.rect(0, 0, cv.width, cv.height); g.rect(fx + fw, fy, -fw, fh); g.fill('evenodd'); g.restore();
-    g.save(); g.strokeStyle = 'rgba(255,214,150,.9)'; g.lineWidth = Math.max(1, z * .7); g.shadowColor = '#ffd27a'; g.shadowBlur = 10; g.strokeRect(fx, fy, fw, fh); g.restore();
+  // le lieu choisi : le reste s'assombrit autour de sa silhouette ; le lieu survolé ou choisi s'illumine
+  const FA = SCENE.focus && PLACE_ART[SCENE.focus];
+  if (FA) {
+    const X = Math.round((FA.x - cam) * z), Y = Math.round(FA.y * z), Wd = Math.round(FA.w * z), Hd = cv.height - Y;
+    g.save(); g.fillStyle = 'rgba(10,4,20,.42)'; g.fillRect(0, 0, cv.width, Y); g.fillRect(0, Y, Math.max(0, X), Hd); g.fillRect(X + Wd, Y, cv.width, Hd); g.imageSmoothingEnabled = false; g.drawImage(FA.hole, X, Y, Wd, FA.h * z); g.restore();
+  }
+  for (const id of new Set([SCENE.focus, UI.hover].filter(Boolean))) {
+    const A = PLACE_ART[id]; if (!A) continue; const X = (A.x - cam) * z, Y = A.y * z, pulse = .5 + .5 * Math.sin(t * 3.2);
+    g.save(); g.imageSmoothingEnabled = false; g.shadowColor = '#ffd27a'; g.shadowBlur = 5 * z; g.globalAlpha = .7 + .3 * pulse; g.drawImage(A.ring, X - 2 * z, Y - 2 * z, (A.w + 4) * z, (A.h + 4) * z); g.restore();
+    g.save(); g.imageSmoothingEnabled = false; g.globalCompositeOperation = 'lighter'; g.globalAlpha = .08 + .08 * pulse; g.drawImage(A.img, X, Y, A.w * z, A.h * z); g.restore();
+  }
+  // le lieu sous la souris
+  if (UI.mouse) { const r = cv.getBoundingClientRect(), k = (window.devicePixelRatio || 1) / SZ, id = placeAt(cam + (UI.mouse[0] - r.left) * k, (UI.mouse[1] - r.top) * k); if (id !== UI.hover) { UI.hover = id; cv.style.cursor = id ? 'pointer' : ''; } }
+  else if (UI.hover) { UI.hover = null; cv.style.cursor = ''; }
+  // l'onglet du lieu survolé
+  const tag = $('#tag'), tid = !SCENE.drag && !UI.place && UI.hover && PLACE_ART[UI.hover] ? UI.hover : null;
+  if (tag) {
+    if (tid) {
+      const A = PLACE_ART[tid], dpr = window.devicePixelRatio || 1, p = PLACES[tid], k = keeperOf(tid), html = `<b class="gold">${esc(p.label || 'BELVÉDÈRE')}</b>${k ? ` <span class="dim">· ${esc(CHARS[k].name)}</span>` : ''}<br><small>${esc(PLACE_INFO[tid])}</small>`;
+      if (tag.dataset.id !== tid) { tag.innerHTML = html; tag.dataset.id = tid; }
+      const vw = cv.clientWidth, tw = tag.offsetWidth, cxp = (A.x + A.w / 2 - cam) * z / dpr;
+      tag.style.left = Math.round(clamp(cxp, tw / 2 + 6, vw - tw / 2 - 6)) + 'px'; tag.style.top = Math.round(Math.max(tag.offsetHeight + 14, A.y * z / dpr - 4)) + 'px'; tag.hidden = false;
+    } else if (!tag.hidden) { tag.hidden = true; tag.dataset.id = ''; }
   }
   // vignettage
   const vig = g.createRadialGradient(cv.width / 2, cv.height * .45, cv.height * .3, cv.width / 2, cv.height * .45, cv.width * .75); vig.addColorStop(0, 'rgba(0,0,0,0)'); vig.addColorStop(1, 'rgba(8,2,14,.45)'); g.fillStyle = vig; g.fillRect(0, 0, cv.width, cv.height);
@@ -1250,15 +1581,18 @@ function drawScene(now) {
 const UI = {place: null, sub: null, menuIdx: 0, viewYM: ymOf(today()), selDay: null, draft: {amount: '', note: '', date: ''}, pickCat: null, game: null, keyScroll: 0, focusAt: 0, trackerDate: today(), tipIdx: 0};
 const MAIN_MENU = [['market', 'Dépense'], ['bank', 'Écarts'], ['archives', 'Journal'], ['board', 'Quêtes'], ['lab', 'Suivis'], ['home', 'Config']];
 const SUBMENUS = {
-  market:   [['add', 'Noter'], ['zero', 'Jour zéro'], ['recent', 'Récentes'], ['back', 'Retour']],
-  bank:     [['bilan', 'Bilan'], ['cats', 'Catégories'], ['daily', 'Par jour'], ['top', 'Top'], ['prev', '◀ Mois'], ['next', 'Mois ▶'], ['back', 'Retour']],
-  archives: [['cal', 'Calendrier'], ['list', 'Liste'], ['prev', '◀ Mois'], ['next', 'Mois ▶'], ['back', 'Retour']],
-  board:    [['today', 'Du jour'], ['week', 'Semaine'], ['trophies', 'Trophées'], ['stats', 'Stats'], ['newq', '+ Quête'], ['back', 'Retour']],
+  market:   [['add', 'Noter'], ['income', 'Rentrée'], ['zero', 'Jour zéro'], ['recent', 'Récentes'], ['back', 'Retour']],
+  bank:     [['bilan', 'Bilan'], ['cats', 'Catégories'], ['daily', 'Par jour'], ['top', 'Top'], ['back', 'Retour']],
+  archives: [['cal', 'Calendrier'], ['list', 'Liste'], ['back', 'Retour']],
+  board:    [['today', 'Du jour'], ['week', 'Semaine'], ['progress', 'Progrès'], ['trophies', 'Trophées'], ['newq', '+ Quête'], ['back', 'Retour']],
   lab:      [['measures', 'Mesures'], ['newt', '+ Suivi'], ['back', 'Retour']],
-  home:     [['hero', 'Héros'], ['budgets', 'Budgets'], ['cats', 'Catégories'], ['look', 'Apparence'], ['skins', 'Tenues'], ['save', 'Sauvegarde'], ['rules', 'Règles'], ['back', 'Retour']],
+  home:     [['hero', 'Héros'], ['cash', 'Trésorerie'], ['char', 'Personnage'], ['look', 'Apparence'], ['skins', 'Tenues'], ['budgets', 'Budgets'], ['cats', 'Catégories'], ['save', 'Sauvegarde'], ['rules', 'Règles'], ['back', 'Retour']],
   belvedere:[['tip', 'Un conseil'], ['back', 'Retour']],
 };
-const heroName = () => S.heroName || 'Roré';
+const heroName = () => S.heroName || CHARS[heroChar()].name;
+const placeName = id => id === 'home' ? `La maison de ${heroName()}` : PLACES[id].name;
+// le sélecteur de mois, en tête des écrans qui en ont besoin
+const monthBar = ym => `<div class="monthbar"><button class="arrow l" data-act="month" data-d="-1" aria-label="Mois précédent"></button><span class="gold">${ymLabel(ym).toUpperCase()}</span><button class="arrow r" data-act="month" data-d="1" aria-label="Mois suivant"></button></div>`;
 const catOf = id => S.categories.find(c => c.id === id);
 const rageLv = r => r >= 1 ? 4 : r >= .8 ? 3 : r >= .5 ? 2 : 1;
 const gaugeCol = r => r >= 1 ? '#e5484d' : r >= .8 ? '#ffb84a' : '#86cf7c';
@@ -1268,13 +1602,10 @@ const TIPS = [
   "Quand une catégorie dépasse 80 %, ralentis dessus jusqu'à la fin du mois.",
   "Avant un achat plaisir, attends 24 heures. Souvent, l'envie passe.",
   'Règle 50/30/20 : besoins, envies, épargne.',
-  'Une journée sans dépense rapporte 35 XP. Le Marché sait les compter.',
+  'Une journée sans dépense rapporte 60 XP, et plus encore avec une longue série.',
   'Regarde la Banque au milieu du mois : il est encore temps de corriger.',
-  'Chaque mois terminé sous le budget fait grandir la ville en contrebas.',
-];
-const VILLAGE = [ // ce que le trésor fait sortir de terre, dans la ville en contrebas
-  {name: 'un clocher', cost: 5000}, {name: 'le pont sur la rivière', cost: 15000}, {name: 'la grande coupole', cost: 30000}, {name: 'un nouveau quartier', cost: 60000},
-  {name: 'le beffroi', cost: 100000}, {name: 'une seconde église', cost: 175000}, {name: 'les quais', cost: 300000}, {name: 'le palais', cost: 500000}, {name: 'la cité entière', cost: 1000000},
+  'Chaque jour tenu sous le budget du jour, la ville en contrebas gagne une construction.',
+  'Ta série multiplie toute ton XP : +4 % par jour, jusqu\'à ×2.',
 ];
 const CHESTS = [ // les récompenses : elles s'ouvrent seules quand la condition est remplie
   {id: 'start',  name: 'Cadeau de bienvenue',  xp: 50},
@@ -1289,11 +1620,11 @@ const CHESTS = [ // les récompenses : elles s'ouvrent seules quand la condition
 ];
 const condVal = (k, g) => k === 'trophies' ? g.unlocked.length : g[k];
 const condMet = (c, g) => !c.cond || condVal(c.cond.k, g) >= c.cond.n;
-function defaultWorld() { return {seen: '', found: [], chests: {}, skins: ['classique'], skin: 'classique', built: 0, look: {...DEFAULT_LOOK}, mapv: 5}; }
+function defaultWorld() { return {seen: '', found: [], chests: {}, skins: ['classique'], skin: 'classique', built: 0, hero: 'rore', look: {...DEFAULT_LOOK}, mapv: 6}; }
 
 /* ---- Ce que disent les robots ---- */
 function lineOf(place, g, quip) {
-  const ms = g.ms, t = today(), p = PLACES[place], k = p && p.keeper, L = k ? TEAM[k].lines : null;
+  const ms = g.ms, t = today(), k = PLACES[place] && keeperOf(place), L = k ? CHARS[k].lines : null;
   if (quip && L) return `« ${L[(UI.lineIdx = ((UI.lineIdx || 0) + 1)) % L.length]} »`;
   const say = '';
   if (place === 'market') return say + `Qu'as-tu acheté aujourd'hui ? Il te reste ${fmt(Math.max(0, ms.todayAllowance - (ms.daily[ms.elapsed] || 0)))} pour la journée.`;
@@ -1306,7 +1637,7 @@ function lineOf(place, g, quip) {
 }
 function heroLine(g) {
   const ms = g.ms, n = heroName(), td = ms.daily[ms.elapsed] || 0;
-  if (!S.expenses.length && !Object.keys(S.checkins).length) return `Bienvenue dans la cité suspendue, ${n} ! Fais glisser le paysage pour te promener, et va au Marché noter ta première dépense.`;
+  if (!S.expenses.length && !Object.keys(S.checkins).length) return `Bienvenue dans la cité suspendue, ${n} ! La vallée en contrebas est encore vide : chaque jour tenu sous le budget, elle gagne une construction. Va au Marché noter ta première dépense.`;
   const broken = ms.cats.filter(c => c.budget > 0 && c.spent > c.budget);
   if (broken.length) return `Attention : « ${broken[0].cat.name} » a dépassé son budget de ${fmt(broken[0].spent - broken[0].budget)}. L'orage gronde sur la cité.`;
   if (td > ms.todayAllowance) return `${fmt(td - ms.todayAllowance)} au-dessus du budget du jour : il pleut sur la cité. Demain, on se rattrape !`;
@@ -1318,13 +1649,13 @@ function heroLine(g) {
 function panelHTML(g) {
   const p = UI.place, s = UI.sub, ms = g.ms;
   if (!p) return idlePanel(g);
-  if (p === 'market') return s === 'recent' ? recentPanel() : s === 'zero' ? zeroPanel() : addPanel();
+  if (p === 'market') return s === 'recent' ? recentPanel() : s === 'zero' ? zeroPanel() : s === 'income' ? incomePanel() : addPanel();
   if (p === 'bank') return bankPanel(s || 'bilan');
   if (p === 'archives') return s === 'list' ? listPanel() : calPanel();
-  if (p === 'board') return s === 'week' ? weekPanel() : s === 'trophies' ? trophyPanel(g) : s === 'stats' ? statsPanel(g) : s === 'newq' ? newQuestPanel() : todayQuests();
+  if (p === 'board') return s === 'week' ? weekPanel() : s === 'trophies' ? trophyPanel(g) : s === 'progress' ? progressPanel(g) : s === 'newq' ? newQuestPanel() : todayQuests();
   if (p === 'lab') return s === 'newt' ? newTrackerPanel() : measuresPanel();
   if (p === 'home') return homePanel(s || 'hero', g);
-  if (p === 'belvedere') return `<p>${esc(TIPS[UI.tipIdx % TIPS.length])}</p><p class="dim">Merlain regarde la ville en contrebas. Elle a grandi de ${S.world.built || 0} étape${(S.world.built || 0) > 1 ? 's' : ''} grâce à ton trésor.</p>`;
+  if (p === 'belvedere') { const nx = buildName(g.buildDays); return `<p>${esc(TIPS[UI.tipIdx % TIPS.length])}</p><p class="dim">La ville en contrebas compte ${g.buildDays} construction${g.buildDays > 1 ? 's' : ''}.${nx ? ` Prochaine : ${esc(nx)}${g.buildToday ? ' (en chantier aujourd\'hui)' : ''}.` : ' Le royaume est achevé.'}</p>`; }
   return '';
 }
 function idlePanel(g) {
@@ -1352,7 +1683,7 @@ function zeroPanel() {
 function expenseRow(e) { const c = catOf(e.catId); return `<button class="li" data-act="edit" data-id="${e.id}">${c ? monImg(c, 16) : ''}<span class="grow">${esc(e.note || (c ? c.name : '—'))}<br><small class="dim">${dayLabel(e.date)} · ${esc(c ? c.name : '—')}</small></span><span>${fmt(e.amount)}</span></button>`; }
 function recentPanel() { const ex = [...S.expenses].sort((a, b) => b.date.localeCompare(a.date) || (b.ts || 0) - (a.ts || 0)).slice(0, 12); return ex.length ? `<div class="list">${ex.map(expenseRow).join('')}</div>` : '<p class="dim">Aucune dépense pour le moment.</p>'; }
 function bankPanel(s) {
-  const ms = monthStats(UI.viewYM), ecart = ms.budget - ms.spent, pct = ms.budget ? ms.spent / ms.budget : 0, head = `<div class="gold center">${ymLabel(ms.ym).toUpperCase()}</div>`;
+  const ms = monthStats(UI.viewYM), ecart = ms.budget - ms.spent, pct = ms.budget ? ms.spent / ms.budget : 0, head = monthBar(ms.ym);
   if (s === 'cats') return head + `<div class="list">${[...ms.cats].sort((a, b) => (a.budget - a.spent) - (b.budget - b.spent)).map(c => `<div class="li col"><div class="row between">${monImg(c.cat, 16, c.ratio >= 1)}<span class="grow">${esc(c.cat.name)}</span><span class="${c.budget - c.spent < 0 ? 'red' : 'green'}">${fmtS(c.budget - c.spent)}</span></div>${bar(c.ratio, gaugeCol(c.ratio))}<small class="dim">${fmt(c.spent)} / ${fmt(c.budget)} · ${Math.round(c.ratio * 100)} %</small></div>`).join('')}</div>`;
   if (s === 'daily') return head + `<canvas id="dchart" width="${ms.D * 6 + 2}" height="60"></canvas><div class="row between dim"><small>1</small><small>${ms.D}</small></div><p class="dim">Vert : sous le budget moyen de ${fmt(ms.allowance)} par jour. Rouge : au-dessus.</p>`;
   if (s === 'top') { const top = S.expenses.filter(e => ymOf(e.date) === ms.ym).sort((a, b) => b.amount - a.amount).slice(0, 8); return head + (top.length ? `<div class="list">${top.map(expenseRow).join('')}</div>` : '<p class="dim">Rien ce mois-ci.</p>'); }
@@ -1369,9 +1700,9 @@ function calPanel() {
     cells += `<button class="day ${cls} ${ds === t ? 'today' : ''} ${ds === UI.selDay ? 'sel' : ''}" data-act="day" data-d="${ds}">${d}</button>`;
   }
   const sel = UI.selDay && ymOf(UI.selDay) === ym ? S.expenses.filter(e => e.date === UI.selDay) : null;
-  return `<div class="gold center">${ymLabel(ym).toUpperCase()}</div><div class="cal">${cells}</div>` + (sel ? `<div class="gold">${dayLabel(UI.selDay)}</div>${sel.length ? `<div class="list">${sel.map(expenseRow).join('')}</div>` : `<p class="dim">${S.checkins[UI.selDay] ? 'Journée sans dépense.' : 'Aucune dépense.'}</p>`}` : '<p class="dim">Touche un jour pour voir ses dépenses.</p>');
+  return monthBar(ym) + `<div class="cal">${cells}</div>` + (sel ? `<div class="gold">${dayLabel(UI.selDay)}</div>${sel.length ? `<div class="list">${sel.map(expenseRow).join('')}</div>` : `<p class="dim">${S.checkins[UI.selDay] ? 'Journée sans dépense.' : 'Aucune dépense.'}</p>`}` : '<p class="dim">Touche un jour pour voir ses dépenses.</p>');
 }
-function listPanel() { const ex = S.expenses.filter(e => ymOf(e.date) === UI.viewYM).sort((a, b) => b.date.localeCompare(a.date)); return `<div class="gold center">${ymLabel(UI.viewYM).toUpperCase()}</div>` + (ex.length ? `<div class="list">${ex.map(expenseRow).join('')}</div>` : '<p class="dim">Aucune dépense ce mois-ci.</p>'); }
+function listPanel() { const ex = S.expenses.filter(e => ymOf(e.date) === UI.viewYM).sort((a, b) => b.date.localeCompare(a.date)); return monthBar(UI.viewYM) + (ex.length ? `<div class="list">${ex.map(expenseRow).join('')}</div>` : '<p class="dim">Aucune dépense ce mois-ci.</p>'); }
 function todayQuests() {
   const t = today();
   return S.habits.length ? `<div class="list">${S.habits.map(h => { const on = habitDone(t, h.id); return `<div class="li"><button class="box ${on ? 'on' : ''}" data-act="habit" data-id="${h.id}" data-date="${t}" aria-label="Accomplir">${on ? '✓' : ''}</button><span class="grow">${esc(h.name)}</span><small class="dim">série ${habitStreak(h.id)}</small><button class="x" data-act="delHabit" data-id="${h.id}" aria-label="Supprimer">×</button></div>`; }).join('')}</div><p class="dim">+15 XP par quête. Toutes accomplies : +20 XP.</p>` : '<p class="dim">Aucune quête. Choisis « Nouvelle quête ».</p>';
@@ -1381,7 +1712,41 @@ function weekPanel() {
   return `<div class="list">${S.habits.map(h => `<div class="li col"><span>${esc(h.name)}</span><div class="week">${days.map(d => `<button class="wd ${habitDone(d, h.id) ? 'on' : ''} ${d === t ? 'today' : ''}" data-act="habit" data-id="${h.id}" data-date="${d}">${['D', 'L', 'M', 'M', 'J', 'V', 'S'][parseD(d).getDay()]}</button>`).join('')}</div></div>`).join('')}</div>`;
 }
 function trophyPanel(g) { return `<div class="list">${ACH.map(a => { const on = g.unlocked.includes(a.id); return `<div class="li ${on ? '' : 'off'}"><span class="${on ? 'gold' : 'dim'}">${on ? '★' : '☆'}</span><span class="grow">${esc(a.name)}<br><small class="dim">${esc(a.desc)}</small></span></div>`; }).join('')}</div>`; }
-function statsPanel(g) { return `<div class="kv"><span>XP totale</span><b>${num(g.xp)}</b><span>Meilleure série</span><b>${g.best} j</b><span>Jours pointés</span><b>${g.checkDays}</b><span>Jours maîtrisés</span><b>${g.victories}</b><span>Sans dépense</span><b>${g.zeroDays}</b><span>Quêtes</span><b>${g.nHabit}</b><span>Mois réussis</span><b>${g.underMonths}</b></div>`; }
+function progressPanel(g) { // le tableau de progression : où j'en suis, ce que ça rapporte, ce qui arrive
+  const nextAcc = Object.entries(ACCS).filter(([, a]) => a.lv > g.level).sort((a, b) => a[1].lv - b[1].lv)[0], nb = buildName(g.buildDays), nextTitle = TITLES.find(t => t[0] > g.level);
+  const parts = g.todayParts.length ? g.todayParts.map(([l, v]) => `<span>${esc(l)}</span><b class="green">+${num(v)}</b>`).join('') : '<span class="dim">Rien encore aujourd\'hui</span><b></b>';
+  return `<div class="row between"><span class="gold">NIVEAU ${g.level}</span><span>${esc(titleFor(g.level))}</span></div>
+    <div class="xpbar big-bar"><i style="width:${Math.round(g.xpIn / g.xpNext * 100)}%"></i><span>${num(g.xpIn)} / ${num(g.xpNext)} XP</span></div>
+    <div class="row between"><span>Série ${g.streak} j</span><span class="gold">Combo ×${g.combo.toFixed(2).replace('.', ',')}</span></div>
+    <div class="gold">AUJOURD'HUI : +${num(g.xpToday)} XP</div><div class="kv">${parts}</div>
+    <div class="gold">À VENIR</div><div class="kv">
+      ${nextAcc ? `<span>Niveau ${nextAcc[1].lv}</span><b>${esc(nextAcc[1].name)}</b>` : ''}${nextTitle ? `<span>Niveau ${nextTitle[0]}</span><b>${esc(nextTitle[1])}</b>` : ''}
+      ${nb ? `<span>Prochain jour tenu</span><b>${esc(nb)}</b>` : ''}<span>Série de ${g.streak < 7 ? 7 : g.streak < 14 ? 14 : g.streak < 30 ? 30 : g.streak < 60 ? 60 : 100} j</span><b>+${g.streak < 30 ? 150 : 500} XP</b></div>
+    <div class="gold">BILAN</div><div class="kv"><span>XP totale</span><b>${num(g.xp)}</b><span>Meilleure série</span><b>${g.best} j</b><span>Jours sous le budget</span><b>${g.victories}</b><span>Sans dépense</span><b>${g.zeroDays}</b><span>Quêtes</span><b>${g.nHabit}</b><span>Mois réussis</span><b>${g.underMonths}</b><span>Constructions</span><b>${g.buildDays}</b></div>`;
+}
+function incomePanel() {
+  return `<p class="dim">Une rentrée d'argent (salaire, vente, remboursement) s'ajoute à ta trésorerie.</p><form data-form="income" autocomplete="off">
+    <div class="row"><input class="amount" name="amount" inputmode="numeric" placeholder="0" aria-label="Montant"><span class="gold">F</span></div>
+    <input name="note" class="full" placeholder="Origine (salaire, vente…)" maxlength="60">
+    <div class="row"><input type="date" name="date" class="grow" value="${today()}"><button class="ffbtn">Ajouter</button></div></form>`;
+}
+function charPanel() { // choisir son personnage : l'équipe de l'Open Space, et les nouveaux venus de la cité
+  return `<p class="dim">Ton niveau, tes accessoires et tes tenues te suivent quel que soit le personnage.</p><div class="chars">${CHAR_ORDER.map(k => `<button class="charc ${heroChar() === k ? 'on' : ''}" data-act="pickChar" data-k="${k}">${robotImg(k, CHARS[k].outfit, 44)}<b>${esc(CHARS[k].name)}</b><small>${esc(CHARS[k].archetype)}</small>${CHARS[k].isNew ? '<i class="new">NOUVEAU</i>' : ''}</button>`).join('')}</div>`;
+}
+function cashPanel(g) {
+  const ms = g.ms, inc = [...S.incomes].sort((a, b) => b.date.localeCompare(a.date)).slice(0, 8);
+  return `<div class="row between"><span class="gold">TRÉSORERIE</span><b class="big ${g.cash != null && g.cash < 0 ? 'red' : ''}">${g.cash == null ? '—' : fmt(g.cash)}</b></div>
+    <form data-form="cash" class="col"><label class="dim">Trésorerie de départ</label><div class="row"><input name="amount" class="amount" inputmode="numeric" value="${S.startCash == null ? '' : num(S.startCash)}" placeholder="0"><span class="gold">F</span></div>
+    <div class="row"><span class="dim">au</span><input type="date" name="date" class="grow" value="${esc(S.startDate || today())}"><button class="ffbtn">OK</button></div></form>
+    ${g.cash != null ? `<div class="kv"><span>Départ</span><b>${fmt(S.startCash)}</b><span>+ Rentrées</span><b class="green">${fmt(g.inc)}</b><span>− Dépenses</span><b class="red">${fmt(g.out)}</b><span>Fin du mois (si le budget est tenu)</span><b>${fmt(g.cash - Math.max(0, ms.remaining))}</b></div>` : '<p class="dim">Indique combien tu as aujourd\'hui : la trésorerie suivra tes dépenses et tes rentrées.</p>'}
+    <div class="gold">RENTRÉES</div>${inc.length ? `<div class="list">${inc.map(e => `<div class="li"><span class="grow">${esc(e.note || 'Rentrée')}<br><small class="dim">${dayLabel(e.date)}</small></span><span class="green">+${fmt(e.amount)}</span><button class="x" data-act="delIncome" data-id="${e.id}" aria-label="Supprimer">×</button></div>`).join('')}</div>` : '<p class="dim">Aucune. Marché › Rentrée pour en ajouter.</p>'}`;
+}
+function lookPanel(g) { // l'apparence : les couleurs, et les accessoires gagnés avec les niveaux
+  const L = heroLook(), sw = c => `<i style="background:${c}"></i>`, o = (k, v, inner) => `<button class="sw ${L[k] === v ? 'on' : ''}" data-act="look" data-k="${k}" data-v="${v == null ? '' : v}">${inner}</button>`;
+  const colors = (k, map) => o(k, null, '<small>Origine</small>') + Object.entries(map).map(([n, c]) => o(k, n, sw(c))).join('');
+  const slots = Object.entries(SLOTS).map(([slot, label]) => { const items = Object.entries(ACCS).filter(([, a]) => a.slot === slot); return `<div class="dim">${label}</div><div class="sws">${o(slot, null, '<small>Aucun</small>')}${items.map(([k, a]) => a.lv <= g.level ? o(slot, k, `<small>${esc(a.name)}</small>`) : `<button class="sw lock" disabled><small>Niv. ${a.lv}</small></button>`).join('')}</div>`; }).join('');
+  return `<div class="center">${robotImg(heroKey(), heroOutfit(), 72)}${robotImg(heroKey(), heroOutfit(), 72, {dir: 'right'})}</div>${slots}<div class="dim">Visière</div><div class="sws">${colors('eyes', LOOK_EYES)}</div><div class="dim">Cape, écharpe, foulard</div><div class="sws">${colors('cape', LOOK_CAPE)}</div><div class="dim">Corps</div><div class="sws">${colors('body', LOOK_BODY)}</div>`;
+}
 function newQuestPanel() { return `<form data-form="habit"><input name="name" class="full" placeholder="Ex. cuisiner maison" maxlength="50" required><button class="ffbtn">Ajouter la quête</button></form>`; }
 function measuresPanel() {
   const t = today(), d = UI.trackerDate;
@@ -1389,13 +1754,15 @@ function measuresPanel() {
 }
 function newTrackerPanel() { return `<form data-form="tracker"><input name="name" class="full" placeholder="Nom (ex. Cafés)" maxlength="40" required><div class="row"><input name="unit" class="grow" placeholder="Unité" maxlength="15"><select name="dir"><option value="min">au moins</option><option value="max">au plus</option></select><input name="goal" type="number" step="any" placeholder="Objectif" style="width:5.5em"></div><button class="ffbtn">Créer</button></form>`; }
 function homePanel(s, g) {
-  if (s === 'budgets') { const ym = UI.viewYM; return `<div class="row between"><button class="ffbtn sm" data-act="month" data-d="-1">◀</button><span class="gold">${ymLabel(ym).toUpperCase()}</span><button class="ffbtn sm" data-act="month" data-d="1">▶</button></div><p class="dim">S'applique à ce mois et aux suivants.</p><div class="list">${S.categories.map(c => `<div class="li">${monImg(c, 16)}<span class="grow">${esc(c.name)}</span><input class="money" inputmode="numeric" value="${num(getBudget(ym, c))}" data-chg="catBud" data-id="${c.id}"></div>`).join('')}</div><div class="row between"><span>Total</span><b class="gold">${fmt(totalBudget(ym))}</b></div>`; }
+  if (s === 'budgets') { const ym = UI.viewYM; return `${monthBar(ym)}<p class="dim">S'applique à ce mois et aux suivants.</p><div class="list">${S.categories.map(c => `<div class="li">${monImg(c, 16)}<span class="grow">${esc(c.name)}</span><input class="money" inputmode="numeric" value="${num(getBudget(ym, c))}" data-chg="catBud" data-id="${c.id}"></div>`).join('')}</div><div class="row between"><span>Total</span><b class="gold">${fmt(totalBudget(ym))}</b></div>`; }
   if (s === 'cats') return `<div class="list">${S.categories.map(c => `<div class="li">${monImg(c, 16)}<input class="grow" value="${esc(c.name)}" maxlength="24" data-chg="catName" data-id="${c.id}"><button class="x" data-act="delCat" data-id="${c.id}">×</button></div>`).join('')}</div><form data-form="cat" class="row"><input name="name" class="grow" placeholder="Nouvelle catégorie" required maxlength="24"><input name="budget" inputmode="numeric" placeholder="Budget" style="width:6em"><button class="ffbtn sm">+</button></form>`;
-  if (s === 'look') { const L = heroLook(), o = (k, v, inner) => `<button class="sw ${L[k] === v ? 'on' : ''}" data-act="look" data-k="${k}" data-v="${v}">${inner}</button>`, sw = c => `<i style="background:${c}"></i>`; return `<div class="center">${robotImg(heroKey(), heroOutfit(), 72)}${robotImg(heroKey(), heroOutfit(), 72, {dir: 'right'})}</div><div class="dim">Yeux</div><div class="sws">${Object.entries(LOOK_EYES).map(([k, c]) => o('eyes', k, sw(c))).join('')}</div><div class="dim">Cape</div><div class="sws">${Object.entries(LOOK_CAPE).map(([k, c]) => o('cape', k, sw(c))).join('')}</div><div class="dim">Veste</div><div class="sws">${Object.entries(LOOK_BODY).map(([k, c]) => o('body', k, sw(c))).join('')}</div><div class="dim">Sur la tête</div><div class="sws">${Object.entries(LOOK_ACC).map(([k, a]) => o('acc', k, `<small>${esc(a.name)}</small>`)).join('')}</div>`; }
-  if (s === 'skins') return `<div class="list">${Object.entries(SKINS).map(([k, sk]) => { const on = S.world.skins.includes(k), src = CHESTS.find(c => c.skin === k); return `<button class="li ${on ? '' : 'off'} ${S.world.skin === k ? 'sel' : ''}" ${on ? `data-act="skin" data-id="${k}"` : 'disabled'}>${robotImg('hero|' + k + '|' + JSON.stringify(heroLook()), heroOutfitFor(k, heroLook()), 32, on ? {} : {grey: true})}<span class="grow">${on ? esc(sk.name) : '???'}<br><small class="dim">${on ? (S.world.skin === k ? 'Portée' : 'Toucher pour porter') : esc(src && src.cond ? 'À débloquer : ' + src.cond.txt : '')}</small></span></button>`; }).join('')}</div>`;
+  if (s === 'look') return lookPanel(g);
+  if (s === 'char') return charPanel();
+  if (s === 'cash') return cashPanel(g);
+  if (s === 'skins') return `<div class="list">${Object.entries(SKINS).map(([k, sk]) => { const on = S.world.skins.includes(k), src = CHESTS.find(c => c.skin === k); return `<button class="li ${on ? '' : 'off'} ${S.world.skin === k ? 'sel' : ''}" ${on ? `data-act="skin" data-id="${k}"` : 'disabled'}>${robotImg('hero|' + heroChar() + '|' + k + '|' + JSON.stringify(heroLook()), heroOutfitFor(k, heroLook(), heroChar()), 32, on ? {} : {grey: true})}<span class="grow">${on ? esc(sk.name) : '???'}<br><small class="dim">${on ? (S.world.skin === k ? 'Portée' : 'Toucher pour porter') : esc(src && src.cond ? 'À débloquer : ' + src.cond.txt : '')}</small></span></button>`; }).join('')}</div>`;
   if (s === 'save') return `<p class="dim">Tes données restent sur cet appareil. Exporte-les pour les garder ou les transférer.</p><div class="col gap"><button class="ffbtn" data-act="export">Exporter (JSON)</button><button class="ffbtn" data-act="csv">Exporter (CSV)</button><button class="ffbtn" data-act="import">Importer</button><button class="ffbtn red" data-act="reset">Tout effacer</button></div><input type="file" id="importFile" accept=".json,application/json" hidden>`;
-  if (s === 'rules') return `<p>Chaque catégorie a son budget du mois. Le <b class="gold">budget du jour</b> = ce qui reste ÷ jours restants.</p><p><b class="gold">XP</b> : +5 par dépense, +20 par jour pointé, +25 par jour sous le budget, +15 par journée sans dépense, +100 tous les 7 jours de série, +15 par quête, +5 par mesure.</p><p><b class="gold">Météo</b> : soleil sous le budget du jour, nuages près de la limite, pluie au-delà, orage si une catégorie déborde.</p><p><b class="gold">La ville en contrebas</b> grandit avec ton trésor : les économies des mois terminés.</p>`;
-  return `<label class="dim">Nom du héros</label><input class="full" value="${esc(S.heroName)}" maxlength="20" data-chg="heroName" placeholder="Roré"><div class="kv"><span>Niveau</span><b>${g.level} · ${titleFor(g.level)}</b><span>PV</span><b>${g.hp}/100</b><span>XP</span><b>${g.xpIn}/${g.xpNext}</b></div><div class="col gap"><button class="ffbtn" data-act="sound">Sons : ${S.sound ? 'oui' : 'non'}</button><button class="ffbtn" data-act="music">Musique : ${MUSIC.on ? 'oui' : 'non'}</button></div>`;
+  if (s === 'rules') return `<p>Chaque catégorie a son budget du mois. Le <b class="gold">budget du jour</b> = ce qui reste ÷ jours restants.</p><p><b class="gold">XP par jour</b> : +10 journal tenu, +2 par dépense notée (5 max), +30 à +50 sous le budget du jour (plus tu restes loin de la limite, plus ça rapporte), +20 sans dépense, +15 par quête, +25 si toutes sont faites, +5 par mesure (+10 si l'objectif est atteint).</p><p><b class="gold">Combo</b> : chaque jour de série ajoute 4 % à l'XP du jour, jusqu'à ×2. Paliers : +150 XP à 7 et 14 jours, +500 à 30, 60 et 100.</p><p><b class="gold">Fin de mois</b> : +300 XP si le mois est sous le budget, +40 par catégorie tenue.</p><p><b class="gold">Niveaux</b> : chaque niveau demande 75 XP de plus que le précédent, et débloque souvent un accessoire.</p><p><b class="gold">La ville en contrebas</b> part de zéro : chaque jour terminé sous le budget du jour lui ajoute une construction (chemin, arbre, maison, puits, moulin, lac, église… jusqu'au royaume). Le chantier du jour apparaît dès que la journée est sur la bonne voie.</p><p><b class="gold">Météo</b> : soleil sous le budget du jour, nuages près de la limite, pluie au-delà, orage si une catégorie déborde.</p>`;
+  return `<label class="dim">Nom du héros</label><input class="full" value="${esc(S.heroName)}" maxlength="20" data-chg="heroName" placeholder="${esc(CHARS[heroChar()].name)}"><div class="kv"><span>Niveau</span><b>${g.level} · ${titleFor(g.level)}</b><span>PV</span><b>${g.hp}/100</b><span>XP</span><b>${num(g.xpIn)}/${num(g.xpNext)}</b><span>Trésorerie</span><b>${g.cash == null ? '—' : fmt(g.cash)}</b></div><div class="col gap"><button class="ffbtn" data-act="sound">Sons : ${S.sound ? 'oui' : 'non'}</button><button class="ffbtn" data-act="music">Musique : ${MUSIC.on ? 'oui' : 'non'}</button></div>`;
 }
 
 /* ---- Le rendu de l'interface ---- */
@@ -1406,8 +1773,8 @@ function renderUI() {
   const curSub = UI.sub || (UI.place ? SUBMENUS[UI.place][0][0] : null);
   $('#menu').innerHTML = items.map(([id, label], i) => `<button class="mi ${i === UI.menuIdx ? 'sel' : ''} ${UI.place && id === curSub ? 'cur' : ''}" data-act="menu" data-i="${i}">${esc(label)}</button>`).join('');
   const pan = $('#panel'), st = pan.scrollTop; pan.innerHTML = panelHTML(g); pan.scrollTop = st;
-  $('#status').innerHTML = `<span>Trésor <b class="${g.treasure < 0 ? 'red' : 'gold'}">${fmtS(g.treasure)}</b></span><span>PV <b>${g.hp}</b></span><span>Niv.<b>${g.level}</b> <small class="dim">${g.xpIn}/${g.xpNext}</small></span><span>Série <b>${g.streak} j</b></span>`;
-  $('#title').textContent = (UI.place ? PLACES[UI.place].name : 'La cité') + ' · ' + new Date().toTimeString().slice(0, 5);
+  $('#status').innerHTML = `<span class="cash" data-act="goCash">Trésorerie <b class="${g.cash != null && g.cash < 0 ? 'red' : 'gold'}">${g.cash == null ? '?' : fmt(g.cash)}</b></span><span>PV <b>${g.hp}</b></span><span class="lv" data-act="goProgress">Niv.<b>${g.level}</b><span class="xpbar"><i style="width:${Math.round(g.xpIn / g.xpNext * 100)}%"></i></span><small class="dim">+${num(g.xpToday)} auj.</small></span><span>Série <b>${g.streak} j</b>${g.combo > 1 ? ` <small class="gold">×${g.combo.toFixed(2).replace('.', ',')}</small>` : ''}</span>`;
+  $('#title').textContent = (UI.place ? placeName(UI.place) : 'La cité') + ' · ' + new Date().toTimeString().slice(0, 5);
   const dlg = $('#dlg');
   if (UI.dlg) { dlg.hidden = false; $('#dlgWho').textContent = UI.dlg.who; $('#dlgFace').innerHTML = UI.dlg.face; typeText($('#dlgTxt'), UI.dlg.text); } else dlg.hidden = true;
   document.body.classList.toggle('open', !!UI.place);
@@ -1422,8 +1789,8 @@ function openPlace(id, sub) {
   if (!PLACES[id]) return;
   UI.place = id; UI.sub = sub || SUBMENUS[id][0][0]; UI.menuIdx = Math.max(0, SUBMENUS[id].findIndex(m => m[0] === UI.sub)); UI.focusAt = performance.now();
   focusPlace(id); SFX.click();
-  const p = PLACES[id], k = p.keeper;
-  UI.dlg = {who: k ? TEAM[k].name.toUpperCase() : heroName().toUpperCase(), face: k ? robotFace(k, TEAM[k].outfit, 40) : robotFace(heroKey(), heroOutfit(), 40), text: lineOf(id, UI.game || computeGame())};
+  const k = keeperOf(id);
+  UI.dlg = {who: k ? CHARS[k].name.toUpperCase() : heroName().toUpperCase(), face: k ? robotFace(k, CHARS[k].outfit, 40) : robotFace(heroKey(), heroOutfit(), 40), text: lineOf(id, UI.game || computeGame())};
   renderUI();
 }
 function idleDlg() { return {who: heroName().toUpperCase(), face: robotFace(heroKey(), heroOutfit(), 40), text: heroLine(UI.game || computeGame()), idle: true}; }
@@ -1434,14 +1801,13 @@ function chooseMenu(i) {
   if (!UI.place) return openPlace(it[0]);
   const [id] = it;
   if (id === 'back') return closePlace();
-  if (id === 'prev' || id === 'next') { UI.viewYM = addMonths(UI.viewYM, id === 'prev' ? -1 : 1); UI.selDay = null; SFX.click(); return renderUI(); }
   if (id === 'tip') { UI.tipIdx++; UI.dlg.text = lineOf('belvedere', UI.game); SFX.click(); return renderUI(); }
   UI.sub = id; SFX.click(); renderUI();
-  if (id === 'add') setTimeout(() => { const a = $('#panel [name=amount]'); if (a && matchMedia('(pointer:fine)').matches) a.focus(); }, 30);
+  if (id === 'add' || id === 'income') setTimeout(() => { const a = $('#panel [name=amount]'); if (a && matchMedia('(pointer:fine)').matches) a.focus(); }, 30);
 }
 
 /* ---- Valider, progresser ---- */
-function toast(title, msg) { const el = document.createElement('div'); el.className = 'ff toast'; el.innerHTML = `<b class="gold">${esc(title)}</b><br>${esc(msg)}`; $('#toasts').appendChild(el); setTimeout(() => el.remove(), 3600); }
+function toast(title, msg) { const box = $('#toasts'); while (box.children.length >= 3) box.firstChild.remove(); const el = document.createElement('div'); el.className = 'ff toast'; el.innerHTML = `<b class="gold">${esc(title)}</b><br>${esc(msg)}`; $('#toasts').appendChild(el); setTimeout(() => el.remove(), 3600); }
 function commit(fx) {
   const before = UI.game || computeGame();
   save(); const g = renderUI();
@@ -1455,11 +1821,20 @@ function progress(g, quiet) {
     if (ch.skin && !S.world.skins.includes(ch.skin)) S.world.skins.push(ch.skin);
     if (!quiet) setTimeout(() => { toast('Récompense : ' + ch.name, ch.skin ? `Nouvelle tenue pour ${heroName()} : ${SKINS[ch.skin].name} (Config › Tenues).` : `+${ch.xp} XP`); SFX.quest(); }, 900);
   }
-  if (g.level > (S.lastLevel || 1) && !quiet) { S.lastLevel = g.level; changed = true; fanfare(); setTimeout(() => modal(`<div class="center"><div class="gold big">NIVEAU ${g.level} !</div>${robotImg(heroKey(), heroOutfit(), 96, {pose: 'cheer', eyes: 'happy'})}<p>${esc(heroName())} devient ${esc(titleFor(g.level))}.</p><button class="ffbtn" data-act="closeModal">Continuer</button></div>`), 300); }
+  if (g.level > (S.lastLevel || 1) && !quiet) { // montée de niveau : les accessoires gagnés sont portés tout de suite
+    const gained = []; for (let lv = (S.lastLevel || 1) + 1; lv <= g.level; lv++) gained.push(...accsAt(lv));
+    for (const k of gained) S.world.look = {...heroLook(), [ACCS[k].slot]: k};
+    const newTitle = TITLES.some(t => t[0] > (S.lastLevel || 1) && t[0] <= g.level);
+    S.lastLevel = g.level; changed = true; fanfare();
+    setTimeout(() => modal(`<div class="center"><div class="gold big">NIVEAU ${g.level} !</div>${robotImg(heroKey(), heroOutfit(), 96, {pose: 'cheer', eyes: 'happy'})}${newTitle ? `<p>${esc(heroName())} devient <b class="gold">${esc(titleFor(g.level))}</b>.</p>` : ''}${gained.length ? `<p>Nouvel accessoire : <b class="gold">${gained.map(k => esc(ACCS[k].name)).join(', ')}</b>. ${esc(heroName())} le porte déjà (Config › Apparence pour changer).</p>` : ''}<p class="dim">Prochain niveau : ${num(xpNeed(g.level))} XP.</p><button class="ffbtn" data-act="closeModal">Continuer</button></div>`), 300);
+  }
   else if (g.level !== S.lastLevel) { S.lastLevel = g.level; changed = true; }
   const fresh = g.unlocked.filter(id => !S.seenAch.includes(id));
   if (fresh.length) { S.seenAch.push(...fresh); changed = true; if (!quiet) fresh.forEach((id, i) => setTimeout(() => { const a = ACH.find(x => x.id === id); toast('Trophée : ' + a.name, a.desc); SFX.quest(); }, 600 + i * 700)); }
-  if (g.builtNow > (S.world.built || 0)) { const old = S.world.built || 0; S.world.built = g.builtNow; changed = true; if (!quiet) for (let i = old; i < g.builtNow; i++) setTimeout(() => toast('La ville s\'agrandit', `Ton trésor fait sortir de terre ${VILLAGE[i].name}.`), 1200); }
+  if (g.buildDays !== (S.world.built || 0)) { // la ville en contrebas : une construction par jour tenu
+    const old = S.world.built || 0; S.world.built = g.buildDays; changed = true;
+    if (!quiet && g.buildDays > old) for (let i = old, k = 0; i < g.buildDays && k < 3; i++, k++) { const nm = buildName(i); if (nm) setTimeout(() => { toast('La ville grandit', `Hier tenu sous le budget : ${nm} sort de terre.`); SFX.quest(); }, 1200 + k * 900); }
+  }
   if (changed) { save(); if (!quiet) renderUI(); }
 }
 function modal(html) { const m = $('#modal'); $('#modalBox').innerHTML = html; m.hidden = false; }
@@ -1506,9 +1881,15 @@ const ACT = {
   delExp: a => { if (!confirm('Supprimer cette dépense ?')) return; S.expenses = S.expenses.filter(e => e.id !== a.dataset.id); closeModal(); commit(); },
   closeModal: () => closeModal(),
   dlg: () => { if (!UI.dlg) return; if (UI.dlg.idle) { UI.dlg = null; SFX.click(); return renderUI(); } if (UI.place) { UI.dlg.n = (UI.dlg.n || 0) + 1; UI.dlg.text = lineOf(UI.place, UI.game, UI.dlg.n % 2 === 1); SFX.click(); renderUI(); } },
-  month: a => { UI.viewYM = addMonths(UI.viewYM, +a.dataset.d); renderUI(); },
+  month: a => { UI.viewYM = addMonths(UI.viewYM, +a.dataset.d); UI.selDay = null; SFX.click(); renderUI(); },
+  pickChar: a => { if (!CHARS[a.dataset.k]) return; const was = heroChar(); S.world.hero = a.dataset.k; if (!S.heroName || S.heroName === CHARS[was].name) S.heroName = ''; SFX.quest(); commit(); },
+  welcomeChar: a => { if (!CHARS[a.dataset.k]) return; S.world.hero = a.dataset.k; SFX.click(); welcome(2); },
+  welcomeBack: () => { SFX.click(); welcome(); },
+  delIncome: a => { const e = S.incomes.find(x => x.id === a.dataset.id); if (e && confirm(`Supprimer la rentrée de ${fmt(e.amount)} ?`)) { S.incomes = S.incomes.filter(x => x !== e); commit(); } },
+  goCash: () => openPlace('home', 'cash'),
+  goProgress: () => openPlace('board', 'progress'),
   delCat: a => { const c = catOf(a.dataset.id); if (!c) return; if (S.categories.length <= 1) return alert('Il faut garder au moins une catégorie.'); const n = S.expenses.filter(e => e.catId === c.id).length; if (n) return alert(`${n} dépense(s) utilisent « ${c.name} » : renomme-la plutôt.`); if (confirm(`Supprimer « ${c.name} » ?`)) { S.categories = S.categories.filter(x => x !== c); commit(); } },
-  look: a => { S.world.look = {...heroLook(), [a.dataset.k]: a.dataset.v}; SFX.click(); commit(); },
+  look: a => { const v = a.dataset.v || null; if (v && ACCS[v] && ACCS[v].lv > (UI.game || computeGame()).level) return; S.world.look = {...heroLook(), [a.dataset.k]: v}; SFX.click(); commit(); },
   skin: a => { if (!S.world.skins.includes(a.dataset.id)) return; S.world.skin = a.dataset.id; SFX.quest(); commit(); },
   sound: () => { S.sound = !S.sound; save(); renderUI(); SFX.click(); },
   music: () => { toggleMusic(); renderUI(); },
@@ -1552,21 +1933,31 @@ document.addEventListener('submit', e => {
   else if (k === 'tracker') { S.trackers.push({id: uid(), name: v('name').trim(), unit: v('unit').trim(), goal: v('goal') === '' ? '' : +v('goal'), dir: v('dir') || 'min'}); UI.sub = 'measures'; SFX.coin(); commit(); }
   else if (k === 'track') { const val = v('v'); if (val === '' || isNaN(+val)) return; const d = UI.trackerDate; S.trackerLog[d] = S.trackerLog[d] || {}; S.trackerLog[d][f.dataset.id] = +val; SFX.coin(); commit('Mesure enregistrée.'); }
   else if (k === 'cat') { const id = uid(), mons = Object.keys(MONS), cols = Object.keys(COLORS); S.categories.push({id, name: v('name').trim(), monster: mons[S.categories.length % mons.length], color: cols[S.categories.length % cols.length], budget: 0}); S.budgets[UI.viewYM] = S.budgets[UI.viewYM] || {}; S.budgets[UI.viewYM][id] = parseAmt(v('budget')); commit(); }
-  else if (k === 'welcome') { S.heroName = v('name').trim().slice(0, 20) || 'Roré'; closeModal(); save(); renderUI(); progress(UI.game, true); openPlace('home', 'hero'); }
+  else if (k === 'welcome') { S.onboarded = true; S.heroName = v('name').trim().slice(0, 20) || CHARS[heroChar()].name; const c = v('cash'); if (c.trim()) { S.startCash = parseAmt(c); S.startDate = today(); } closeModal(); save(); renderUI(); progress(UI.game, true); UI.dlg = idleDlg(); renderUI(); }
+  else if (k === 'income') { const amount = parseAmt(v('amount')); if (!amount) { toast('Montant ?', 'Indique combien tu as reçu.'); return; } S.incomes.push({id: uid(), date: v('date') || today(), amount, note: v('note').trim().slice(0, 60)}); SFX.coin(); toast('Rentrée notée', `+${fmt(amount)} dans la trésorerie.`); UI.sub = 'income'; commit(); }
+  else if (k === 'cash') { const c = v('amount'); S.startCash = c.trim() ? parseAmt(c) : null; S.startDate = v('date') || today(); SFX.coin(); commit(); }
 });
-function welcome() { modal(`<div class="center"><div class="gold big">BUDGET QUEST</div>${robotImg('rore', TEAM.rore.outfit, 96)}<p>Depuis son PC de l'Open Space, Roré veille sur la cité suspendue. Chaque dépense notée, chaque journée maîtrisée fait vivre la cité, et grandir la ville en contrebas.</p></div><form data-form="welcome"><label class="dim">Nom du héros</label><input name="name" class="full" value="Roré" maxlength="20"><button class="ffbtn full">Commencer</button></form>`); }
+function welcome(step) { // l'accueil : choisir son personnage, puis son nom et sa trésorerie de départ
+  if (!step) return modal(`<div class="center"><div class="gold big">BUDGET QUEST</div><p>Depuis son PC de l'Open Space, Roré veille sur la cité suspendue. Choisis qui tu seras dans la cité.</p></div><div class="chars">${CHAR_ORDER.map(k => `<button class="charc" data-act="welcomeChar" data-k="${k}">${robotImg(k, CHARS[k].outfit, 44)}<b>${esc(CHARS[k].name)}</b><small>${esc(CHARS[k].archetype)}</small>${CHARS[k].isNew ? '<i class="new">NOUVEAU</i>' : ''}</button>`).join('')}</div>`);
+  const k = heroChar();
+  modal(`<div class="center">${robotImg(k, CHARS[k].outfit, 80)}<div class="gold">${esc(CHARS[k].name.toUpperCase())}</div><small class="dim">${esc(CHARS[k].archetype)}</small></div><form data-form="welcome" autocomplete="off"><label class="dim">Nom du héros</label><input name="name" class="full" value="${esc(CHARS[k].name)}" maxlength="20"><label class="dim">Trésorerie de départ (ce que tu as aujourd'hui)</label><div class="row"><input name="cash" class="amount" inputmode="numeric" placeholder="0"><span class="gold">F</span></div><p class="dim">Tu pourras la changer dans Config › Trésorerie. La vallée en contrebas est vide : elle se bâtira jour après jour.</p><div class="row"><button type="button" class="ffbtn" data-act="welcomeBack">◂ Retour</button><button class="ffbtn grow">Commencer</button></div></form>`);
+}
+
 
 /* ---- Le panorama : glisser pour se promener, toucher un lieu pour l'ouvrir ---- */
 (function sceneInput() {
   const cv = () => $('#scene');
   let down = null;
   document.addEventListener('pointerdown', e => { if (e.target.id !== 'scene') return; down = {x: e.clientX, cam: SCENE.cam, t: performance.now(), moved: false, last: e.clientX, lt: performance.now()}; SCENE.drag = true; SCENE.target = null; SCENE.camV = 0; e.target.setPointerCapture(e.pointerId); });
-  document.addEventListener('pointermove', e => { if (!down) return; const dx = e.clientX - down.x, k = (window.devicePixelRatio || 1) / SZ; if (Math.abs(dx) > 6) down.moved = true; SCENE.cam = clampCam(down.cam - dx * k); const now = performance.now(); if (now > down.lt) { SCENE.camV = -(e.clientX - down.last) * k / ((now - down.lt) / 1000); down.last = e.clientX; down.lt = now; } });
+  document.addEventListener('pointermove', e => { // le survol : l'onglet du lieu et sa surbrillance
+    if (e.pointerType !== 'touch') UI.mouse = !down && e.target.id === 'scene' ? [e.clientX, e.clientY] : null;
+    if (!down) return; const dx = e.clientX - down.x, k = (window.devicePixelRatio || 1) / SZ; if (Math.abs(dx) > 6) down.moved = true; SCENE.cam = clampCam(down.cam - dx * k); const now = performance.now(); if (now > down.lt) { SCENE.camV = -(e.clientX - down.last) * k / ((now - down.lt) / 1000); down.last = e.clientX; down.lt = now; } });
   document.addEventListener('pointerup', e => {
     if (!down) return; SCENE.drag = false;
     if (!down.moved) { const r = cv().getBoundingClientRect(), k = (window.devicePixelRatio || 1) / SZ, wx = SCENE.cam + (e.clientX - r.left) * k, wy = (e.clientY - r.top) * k; const id = placeAt(wx, wy); if (id) openPlace(id); SCENE.camV = 0; }
     down = null;
   });
+  document.addEventListener('pointerout', e => { if (e.target.id === 'scene' && e.pointerType !== 'touch') UI.mouse = null; });
   document.addEventListener('wheel', e => { if (e.target.id !== 'scene') return; e.preventDefault(); SCENE.target = null; SCENE.cam = clampCam(SCENE.cam + (e.deltaX || e.deltaY) / SZ); }, {passive: false});
   const tag = () => (document.activeElement && document.activeElement.tagName) || '';
   document.addEventListener('keydown', e => {
@@ -1577,6 +1968,7 @@ function welcome() { modal(`<div class="center"><div class="gold big">BUDGET QUE
     else if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); chooseMenu(UI.menuIdx); }
     else if (e.key === 'Escape' || e.key === 'Backspace') { if (UI.place) { e.preventDefault(); closePlace(); } }
     else if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') { e.preventDefault(); SCENE.target = null; UI.keyScroll = e.key === 'ArrowLeft' ? -1 : 1; }
+    else if ((e.key === 'PageUp' || e.key === 'PageDown') && document.querySelector('#panel .monthbar')) { e.preventDefault(); UI.viewYM = addMonths(UI.viewYM, e.key === 'PageUp' ? -1 : 1); UI.selDay = null; SFX.click(); renderUI(); }
   });
   document.addEventListener('keyup', e => { if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') UI.keyScroll = 0; });
 })();
@@ -1633,12 +2025,12 @@ function handCursor() { // la main gantée des menus, dessinée au pixel
 function boot() {
   S = load() || defaultState(); save();
   handCursor(); sizeScene();
-  UI.game = computeGame(); UI.dlg = S.expenses.length ? null : idleDlg();
+  UI.game = computeGame(); UI.dlg = S.onboarded && !S.expenses.length ? idleDlg() : null;
   SCENE.cam = clampCam(0);
   renderUI(); progress(UI.game, true);
   try { MUSIC.wanted = localStorage.getItem(STORE_KEY + '.music') === '1'; } catch (e) {}
   if (MUSIC.wanted) { const b = $('#musicBtn'); if (b) b.classList.add('on'); const go = () => { document.removeEventListener('pointerdown', go); if (MUSIC.wanted && !MUSIC.on) toggleMusic(true); }; document.addEventListener('pointerdown', go); }
-  if (!S.heroName) welcome();
+  if (!S.onboarded) { if (S.heroName || S.expenses.length) { S.onboarded = true; save(); } else welcome(); }
   drawMug();
   if (document.fonts && document.fonts.load) Promise.all([document.fonts.load("8px 'Press Start 2P'"), document.fonts.load("20px 'VT323'")]).then(() => { SCENE.key = ''; ensureLayers(UI.game); drawMug(); }).catch(() => {});
   let last = performance.now(), lastMin = new Date().getMinutes();
