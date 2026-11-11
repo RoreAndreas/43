@@ -1,4 +1,4 @@
-"""Aperçu local de Foulée : python serve.py, puis http://localhost:8000.
+"""Aperçu local de HARES RUN : python serve.py, puis http://localhost:8000.
 
 La géolocalisation du navigateur n'est permise que sur https ou sur
 localhost : ouvrir index.html directement (file://) ne la donnerait pas.
@@ -21,7 +21,7 @@ class Gestionnaire(SimpleHTTPRequestHandler):
 def main():
     port = int(sys.argv[1]) if len(sys.argv) > 1 else 8000
     serveur = ThreadingHTTPServer(("127.0.0.1", port), partial(Gestionnaire, directory=SITE))
-    print(f"Foulée → http://localhost:{port}  (Ctrl+C pour arrêter)")
+    print(f"HARES RUN → http://localhost:{port}  (Ctrl+C pour arrêter)")
     try:
         serveur.serve_forever()
     except KeyboardInterrupt:
