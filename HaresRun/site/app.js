@@ -54,7 +54,7 @@
   let route = null;      // { path:[{lat,lng}], distance, legs:[m], source }
   let elevation = null;  // { gain, loss, min, max }
   let map = null, geocoder = null, meOverlay = null, myPos = null;
-  let markers = [], lines = [], kmMarkers = [];
+  let markers = [], lines = [], accCircle = null, locating = false;
   let routeToken = 0, routeTimer = null, warnedStraight = false;
   const history = [];
 
@@ -101,22 +101,6 @@
     for (let i = 0; i < max; i++) out.push(path[Math.round(i * step)]);
     return out;
   }
-  /** Points tous les `every` mètres le long du tracé. */
-  function pointsEvery(path, every) {
-    const out = [];
-    let acc = 0, next = every;
-    for (let i = 1; i < path.length; i++) {
-      const seg = haversine(path[i - 1], path[i]);
-      while (seg > 0 && acc + seg >= next) {
-        const t = (next - acc) / seg;
-        out.push({ lat: path[i - 1].lat + (path[i].lat - path[i - 1].lat) * t, lng: path[i - 1].lng + (path[i].lng - path[i - 1].lng) * t, km: next / 1000 });
-        next += every;
-      }
-      acc += seg;
-    }
-    return out;
-  }
-  const kmStep = dist => [1000, 2000, 5000, 10000, 20000].find(s => dist / s <= 25) || 50000;
   const ll = v => (typeof v === 'function' ? v() : v);
   const toLit = p => ({ lat: ll(p.lat), lng: ll(p.lng) });
 
@@ -154,13 +138,28 @@
   }
 
   // ---------- actions sur les points ----------
+  /**
+   * Ajoute un point. Tant qu'il n'y a pas de départ et d'arrivée, il prend
+   * ces rôles ; ensuite c'est une étape, insérée là où elle allonge le moins
+   * le parcours — un clic sur le tracé tombe donc dans le bon tronçon.
+   */
   function addPoint(lat, lng, label = '') {
     if (state.points.length >= MAX_POINTS) return toast(`Maximum ${MAX_POINTS} points par parcours`);
     snapshot();
     const p = { id: uid(), lat, lng, label };
-    state.points.push(p);
+    const s = stops();
+    let at = state.points.length;
+    if (s.length >= 2) {
+      let best = Infinity;
+      for (let i = 0; i < s.length - 1; i++) {
+        const cost = haversine(s[i], p) + haversine(p, s[i + 1]) - haversine(s[i], s[i + 1]);
+        if (cost < best) { best = cost; at = i + 1; }
+      }
+    }
+    state.points.splice(at, 0, p);
     if (!label) reverseGeocode(p);
     refresh();
+    if (s.length >= 2) toast(`Étape ${at} ajoutée`);
   }
   function setStart(lat, lng) {
     snapshot();
@@ -289,19 +288,24 @@
   function drawRoute() {
     if (!map) return;
     lines.forEach(l => l.setMap(null));
-    kmMarkers.forEach(m => m.setMap(null));
-    lines = []; kmMarkers = [];
+    lines = [];
     if (!route) return;
     const straight = route.source === 'straight';
-    lines.push(new google.maps.Polyline({
-      map, path: route.path, clickable: false, zIndex: 2,
-      strokeColor: COLORS.route, strokeOpacity: straight ? 0 : 1, strokeWeight: 4,
-      icons: straight ? [{ icon: { path: 'M 0,-1 0,1', strokeOpacity: 1, strokeColor: COLORS.route, strokeWeight: 3, scale: 3 }, offset: '0', repeat: '12px' }] : [],
-    }));
-    kmMarkers = pointsEvery(route.path, kmStep(route.distance)).map(k => new google.maps.Marker({
-      map, position: k, clickable: false, zIndex: 5,
-      icon: circleIcon('#ffffff', Math.round(k.km), 20, '#121212'),
-    }));
+    const arrow = {
+      icon: { path: google.maps.SymbolPath.FORWARD_CLOSED_ARROW, scale: 3, fillColor: '#ffffff', fillOpacity: 1, strokeColor: '#121212', strokeWeight: 1 },
+      offset: '40px', repeat: '110px',
+    };
+    const line = new google.maps.Polyline({
+      map, path: route.path, clickable: true, zIndex: 2,
+      strokeColor: COLORS.route, strokeOpacity: straight ? 0 : 1, strokeWeight: 5,
+      icons: [
+        ...(straight ? [{ icon: { path: 'M 0,-1 0,1', strokeOpacity: 1, strokeColor: COLORS.route, strokeWeight: 3, scale: 3 }, offset: '0', repeat: '12px' }] : []),
+        arrow,
+      ],
+    });
+    // un clic sur le tracé ajoute une étape dans ce tronçon
+    line.addListener('click', e => addPoint(e.latLng.lat(), e.latLng.lng()));
+    lines.push(line);
   }
 
   function fitAll() {
@@ -422,7 +426,12 @@
     box.hidden = false;
     box.innerHTML = '<li class="muted">Recherche…</li>';
     let results = [];
-    try { results = await placesSearch(q); } catch (e) { console.warn('Places :', e.message); }
+    // coordonnées exactes saisies telles quelles : « 5.33641, -4.02670 »
+    const m = q.match(/^\s*(-?\d{1,2}(?:[.]\d+)?)\s*[,; ]\s*(-?\d{1,3}(?:[.]\d+)?)\s*$/);
+    if (m && Math.abs(+m[1]) <= 90 && Math.abs(+m[2]) <= 180) {
+      results = [{ name: `${(+m[1]).toFixed(5)}, ${(+m[2]).toFixed(5)}`, address: 'Coordonnées GPS', lat: +m[1], lng: +m[2] }];
+    }
+    if (!results.length) try { results = await placesSearch(q); } catch (e) { console.warn('Places :', e.message); }
     if (!results.length) { try { results = await geocodeSearch(q); } catch (e) { console.warn('Geocoder :', e.message); } }
     if (!results.length) { box.innerHTML = '<li class="muted">Aucun résultat</li>'; return; }
     box.innerHTML = '';
@@ -500,33 +509,87 @@
       meOverlay.setMap(map);
     }
     meOverlay.set(myPos);
+    // cercle de précision : la position réelle est quelque part dedans
+    if (!accCircle) {
+      accCircle = new google.maps.Circle({
+        map, clickable: false, zIndex: 1, strokeColor: '#3b82f6', strokeOpacity: 0.6, strokeWeight: 1,
+        fillColor: '#3b82f6', fillOpacity: 0.12,
+      });
+    }
+    accCircle.setCenter(myPos);
+    accCircle.setRadius(myPos.acc || 0);
+  }
+  function setMyPos(pos) {
+    myPos = { lat: pos.coords.latitude, lng: pos.coords.longitude, acc: pos.coords.accuracy };
+    showMe();
+    const el = $('#gps');
+    el.hidden = false;
+    el.textContent = `Ta position : ${myPos.lat.toFixed(5)}, ${myPos.lng.toFixed(5)} (précision ±${Math.round(myPos.acc)} m)`;
+  }
+  // le suivi continu alimente aussi les recherches de position précise en cours
+  const fixListeners = new Set();
+  let lastFix = null;
+  function onFix(pos) {
+    lastFix = { pos, time: Date.now() };
+    fixListeners.forEach(f => f(pos));
+    if (!locating) setMyPos(pos);
   }
   function startWatch() {
     if (!navigator.geolocation) return;
-    navigator.geolocation.watchPosition(
-      pos => { myPos = { lat: pos.coords.latitude, lng: pos.coords.longitude }; showMe(); },
-      () => {},
-      { enableHighAccuracy: true, maximumAge: 15000, timeout: 30000 }
-    );
+    navigator.geolocation.watchPosition(onFix, () => {}, { enableHighAccuracy: true, maximumAge: 5000, timeout: 30000 });
   }
-  function locate(asStart) {
+
+  /**
+   * Position la plus précise possible : le GPS s'affine pendant quelques
+   * secondes. On écoute jusqu'à passer sous `target` mètres de marge, ou
+   * jusqu'à `maxWait`, et on garde la meilleure mesure reçue.
+   */
+  function bestPosition(target = 10, maxWait = 12000) {
+    return new Promise((resolve, reject) => {
+      let best = null, id = null, timer = null;
+      const finish = err => {
+        if (id != null) navigator.geolocation.clearWatch(id);
+        clearTimeout(timer);
+        fixListeners.delete(consider);
+        if (err) reject(err); else if (best) resolve(best); else reject({ code: 3 });
+      };
+      function consider(pos) {
+        if (!best || pos.coords.accuracy < best.coords.accuracy) best = pos;
+        setMyPos(best);
+        toast(`Localisation… précision ±${Math.round(best.coords.accuracy)} m`, maxWait);
+        if (best.coords.accuracy <= target) finish();
+      }
+      fixListeners.add(consider);
+      timer = setTimeout(() => finish(), maxWait);
+      id = navigator.geolocation.watchPosition(
+        consider,
+        err => { if (err.code === 1) finish(err); },
+        { enableHighAccuracy: true, maximumAge: 0, timeout: maxWait }
+      );
+      // une mesure toute récente du suivi continu sert de point de départ
+      if (lastFix && Date.now() - lastFix.time < 10000) consider(lastFix.pos);
+    });
+  }
+
+  async function locate(asStart) {
     if (!navigator.geolocation) return toast('Cet appareil ne fournit pas sa position');
-    if (asStart) toast('Recherche de ta position…', 2500);
-    navigator.geolocation.getCurrentPosition(
-      pos => {
-        myPos = { lat: pos.coords.latitude, lng: pos.coords.longitude };
-        showMe();
-        if (map) { map.panTo(myPos); if (map.getZoom() < 15) map.setZoom(15); }
-        if (asStart) setStart(myPos.lat, myPos.lng);
-      },
-      err => {
-        if (asStart || err.code === 1) {
-          toast(err.code === 1 ? 'Localisation refusée. Autorise-la dans le navigateur, ou clique sur la carte.'
-            : 'Position introuvable pour le moment. Clique sur la carte.', 5000);
-        }
-      },
-      { enableHighAccuracy: true, timeout: 15000, maximumAge: 30000 }
-    );
+    if (locating) return;
+    locating = true;
+    toast('Localisation en cours…', 12000);
+    try {
+      const pos = await bestPosition();
+      setMyPos(pos);
+      if (map) { map.panTo(myPos); if (map.getZoom() < 17) map.setZoom(17); }
+      const acc = Math.round(myPos.acc);
+      if (asStart) setStart(myPos.lat, myPos.lng);
+      toast(`${asStart ? 'Départ placé sur ta position' : 'Position trouvée'} (précision ±${acc} m)` +
+        (acc > 50 ? '. Active le GPS ou sors à découvert pour plus de précision.' : ''), 5000);
+    } catch (err) {
+      toast(err.code === 1 ? 'Localisation refusée. Autorise-la dans le navigateur, ou clique sur la carte.'
+        : 'Position introuvable pour le moment. Clique sur la carte.', 5000);
+    } finally {
+      locating = false;
+    }
   }
 
   // ---------- rendu du panneau ----------
@@ -535,8 +598,8 @@
     ol.innerHTML = '';
     const n = state.points.length;
     $('#hint').textContent = n === 0 ? 'Clique sur la carte pour placer le départ.'
-      : n === 1 ? (state.loop ? 'Ajoute des étapes : la boucle revient au départ.' : 'Clique sur la carte pour placer l’arrivée.')
-        : 'Clique pour prolonger, fais glisser les repères pour ajuster.';
+      : n === 1 ? (state.loop ? 'Clique sur la carte pour ajouter des étapes : la boucle revient au départ.' : 'Clique sur la carte pour placer l’arrivée.')
+        : 'Clique sur la carte ou sur le tracé pour ajouter une étape. Fais glisser les repères pour les déplacer.';
     const legs = route && route.legs.length === stops().length - 1 ? route.legs : null;
     state.points.forEach((p, i) => {
       const li = document.createElement('li');
@@ -555,6 +618,7 @@
       input.value = p.label || '';
       input.addEventListener('change', () => { p.label = input.value.trim(); save(); renderMarkers(); });
       li.querySelector('.pt__badge').onclick = () => map && map.panTo(p);
+      li.querySelector('.pt__badge').title = `Centrer la carte — ${p.lat.toFixed(5)}, ${p.lng.toFixed(5)}`;
       li.querySelector('[data-m="-1"]').disabled = i === 0;
       li.querySelector('[data-m="1"]').disabled = i === n - 1;
       li.querySelectorAll('[data-m]').forEach(b => (b.onclick = () => movePoint(p.id, +b.dataset.m)));

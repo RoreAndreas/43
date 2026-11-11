@@ -164,14 +164,16 @@ window.HaresPoster = (() => {
       trace(); ctx.stroke();
       ctx.setLineDash([]);
 
-      const step = [1000, 2000, 5000, 10000, 20000, 50000].find(s => d.distance / s <= 12) || 100000;
-      ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-      kmPoints(d.path, step).forEach(k => {
-        const [x, y] = P(k);
-        ctx.fillStyle = '#fff'; ctx.strokeStyle = C.bg; ctx.lineWidth = 3;
-        ctx.beginPath(); ctx.arc(x, y, 14, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
-        ctx.fillStyle = C.bg; ctx.font = `700 ${k.km >= 10 ? 12 : 14}px ${FONT}`;
-        ctx.fillText(String(Math.round(k.km)), x, y + 1);
+      // flèches de sens, régulièrement espacées, sauf trop près d'un repère
+      const pins = d.points.map(P);
+      arrowsAlong(pts, 130).forEach(([x, y, ang]) => {
+        if (pins.some(([px, py]) => Math.hypot(px - x, py - y) < 40)) return;
+        ctx.save();
+        ctx.translate(x, y); ctx.rotate(ang);
+        ctx.beginPath(); ctx.moveTo(14, 0); ctx.lineTo(-9, -12); ctx.lineTo(-3, 0); ctx.lineTo(-9, 12); ctx.closePath();
+        ctx.fillStyle = '#fff'; ctx.strokeStyle = C.bg; ctx.lineWidth = 2; ctx.lineJoin = 'round';
+        ctx.stroke(); ctx.fill();
+        ctx.restore();
       });
     }
     // points : étapes d'abord, départ au-dessus
@@ -215,19 +217,16 @@ window.HaresPoster = (() => {
     return { mapUsed: !!bg };
   }
 
-  function kmPoints(path, every) {
-    const R = 6371008.8, r = Math.PI / 180;
-    const dist = (a, b) => {
-      const h = Math.sin((b.lat - a.lat) * r / 2) ** 2 + Math.cos(a.lat * r) * Math.cos(b.lat * r) * Math.sin((b.lng - a.lng) * r / 2) ** 2;
-      return 2 * R * Math.asin(Math.min(1, Math.sqrt(h)));
-    };
+  /** Positions et orientations [x, y, angle] tous les `every` pixels le long du tracé. */
+  function arrowsAlong(pts, every) {
     const out = [];
-    let acc = 0, next = every;
-    for (let i = 1; i < path.length; i++) {
-      const seg = dist(path[i - 1], path[i]);
+    let acc = 0, next = every / 2;
+    for (let i = 1; i < pts.length; i++) {
+      const [x0, y0] = pts[i - 1], [x1, y1] = pts[i];
+      const seg = Math.hypot(x1 - x0, y1 - y0);
       while (seg > 0 && acc + seg >= next) {
         const t = (next - acc) / seg;
-        out.push({ lat: path[i - 1].lat + (path[i].lat - path[i - 1].lat) * t, lng: path[i - 1].lng + (path[i].lng - path[i - 1].lng) * t, km: next / 1000 });
+        out.push([x0 + (x1 - x0) * t, y0 + (y1 - y0) * t, Math.atan2(y1 - y0, x1 - x0)]);
         next += every;
       }
       acc += seg;

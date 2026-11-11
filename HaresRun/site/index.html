@@ -32,7 +32,7 @@
 
     <div class="panel__scroll">
       <form id="search" class="search" autocomplete="off">
-        <input id="search-input" type="search" placeholder="Chercher un lieu" enterkeyhint="search">
+        <input id="search-input" type="search" placeholder="Chercher un lieu ou des coordonnées GPS" enterkeyhint="search">
         <button type="submit" class="btn">OK</button>
       </form>
       <ul id="search-results" class="results" hidden></ul>
@@ -47,6 +47,7 @@
           <button class="btn" data-action="start-here">Départ = ma position</button>
           <button class="btn" data-action="reverse">Inverser</button>
         </div>
+        <p id="gps" class="muted small" hidden></p>
       </section>
 
       <section class="block">
