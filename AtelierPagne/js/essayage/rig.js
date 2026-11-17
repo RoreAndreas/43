@@ -83,7 +83,7 @@ export class Rig {
   }
 
   /** (Re)construit le mannequin pour une morphologie et des mesures en cm. */
-  setBody(presetId, cm) {
+  setBody(presetId, cm, { outfit = true } = {}) {
     const base = this.base(presetId);
     const s = cm.height / 100 / base.H;
     const k = {
@@ -109,12 +109,15 @@ export class Rig {
     this.anim = null;
     this.applyBones(0);
     this.ground();
-    this.buildOutfit();
-    // la pose s'adapte au volume de la tenue (bras écartés d'une jupe ample…)
-    this.basePose = this.computePose(this.poseId);
-    this.applyBones(0);
-    this.ground();
-    this.outfit?.reset();
+    // Pendant un réglage au curseur, la tenue n'est réajustée qu'au relâchement.
+    if (outfit) {
+      this.buildOutfit();
+      // la pose s'adapte au volume de la tenue
+      this.basePose = this.computePose(this.poseId);
+      this.applyBones(0);
+      this.ground();
+      this.outfit?.reset();
+    }
     this.buildTapes();
     this.ruler.setHeight(cm.height / 100);
     return body;
@@ -175,7 +178,7 @@ export class Rig {
         const pts = [fore.getWorldPosition(new THREE.Vector3()).lerp(hand.getWorldPosition(new THREE.Vector3()), 0.6), hand.getWorldPosition(new THREE.Vector3())];
         hand.getWorldQuaternion(wq);
         for (const d of [0.07, 0.13, 0.18]) pts.push(hand.getWorldPosition(new THREE.Vector3()).add(p.set(0, -d * s, 0).applyQuaternion(wq)));
-        for (const pt of pts) worst = Math.max(worst, this.outfit.penetration(pt, bones.Hips, s) + 0.032);
+        for (const pt of pts) worst = Math.max(worst, this.outfit.penetration(pt, bones.Hips, s) + 0.02);
         if (worst <= 0) break;
         // abduction autour de l'axe avant du buste
         fwd.set(0, 0, 1).applyQuaternion(bones.Spine.getWorldQuaternion(q));

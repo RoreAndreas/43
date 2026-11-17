@@ -29,7 +29,7 @@ const hangOutside = (b, side, fwd = 0.03, out = 0.075) => {
     w = Math.max(w, b.halfWidthAt(y));
     g = Math.max(g, b.garmentHalfWidthAt?.(y) ?? 0); // le corps s'écarte de la tenue
   }
-  const x = Math.max(w + out, g ? g + 0.065 : 0, Math.abs(S.x) + 0.02);
+  const x = Math.max(w + out, g ? g + 0.028 : 0, Math.abs(S.x) + 0.02); // la main effleure la robe
   const dx = x - Math.abs(S.x);
   const dy = Math.sqrt(Math.max(0.01, L * L - dx * dx - fwd * fwd));
   return [side * x, S.y - dy, S.z + fwd];

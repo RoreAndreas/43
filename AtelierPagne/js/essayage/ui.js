@@ -252,11 +252,20 @@ export function initUI({ rig, POSES, VIEWS, PRESETS, controls, goToView, orbitBy
       $(`#o-${m.key}`).textContent = `${state.cm[m.key]} cm`;
     }
   };
-  let pending = false;
-  const rebuild = () => {
-    if (pending) return;
-    pending = true;
-    requestAnimationFrame(() => { pending = false; rig.setBody(state.preset, state.cm); });
+  // Pendant le réglage, seul le mannequin est reconstruit (fluide) ; la tenue est
+  // réajustée une fois, quand on lâche le curseur.
+  let pending = false, fullTimer = 0, gen = 0, fullGen = -1;
+  const rebuild = (delay = 300) => {
+    const g = ++gen;
+    clearTimeout(fullTimer);
+    if (!pending) {
+      pending = true;
+      requestAnimationFrame(() => {
+        pending = false;
+        if (fullGen < gen) rig.setBody(state.preset, state.cm, { outfit: false }); // déjà à jour sinon
+      });
+    }
+    fullTimer = setTimeout(() => { fullGen = g; rig.setBody(state.preset, state.cm); }, delay);
   };
   const setMeasure = (key, v) => {
     const m = MEASURES.find((x) => x.key === key);
@@ -268,6 +277,7 @@ export function initUI({ rig, POSES, VIEWS, PRESETS, controls, goToView, orbitBy
   list.addEventListener('input', (e) => {
     if (e.target.type === 'range') setMeasure(e.target.closest('.measure').dataset.key, +e.target.value);
   });
+  list.addEventListener('change', (e) => { if (e.target.type === 'range') rebuild(0); });
   list.addEventListener('click', (e) => {
     const b = e.target.closest('.step');
     if (b) setMeasure(b.closest('.measure').dataset.key, state.cm[b.closest('.measure').dataset.key] + +b.dataset.step);
