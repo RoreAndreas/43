@@ -215,7 +215,7 @@ function fitDress(body, name) {
   // première passe grossière : hors de l'enveloppe du corps, tranche par tranche
   for (let i = 0; i < n; i++) {
     const y = P[i * 3 + 1];
-    if (y < crotch) continue;
+    if (y < crotch || y > bandY) continue; // le bandeau est ajusté plus loin, au plus près du bras
     const bs = bodySec(y);
     if (!bs) continue;
     const dx = P[i * 3] - bs.c[0], dz = P[i * 3 + 2] - bs.c[1];
@@ -265,15 +265,22 @@ function fitDress(body, name) {
   }
   const fitW = new Float32Array(n);
   for (let i = 0; i < n; i++) fitW[i] = border[i] ? 0 : ss(P[i * 3 + 1], crotch - 0.06, crotch + 0.04);
-  const pushOut = () => {
+  const pushOut = (pull = false) => {
     for (let i = 0; i < n; i++) {
       const x = P[i * 3], y = P[i * 3 + 1], z = P[i * 3 + 2];
       if (y < crotch - 0.03) continue;
       const j = nearestIn(gridFor(y), rp, x, y, z);
       const nx = BN[j * 3], ny = BN[j * 3 + 1], nz = BN[j * 3 + 2];
       const sd = (x - rp[j * 3]) * nx + (y - rp[j * 3 + 1]) * ny + (z - rp[j * 3 + 2]) * nz;
-      const want = y > bandY ? 0.016 : 0.012;
+      const band = y > bandY;
+      // bandeau : serré sur le bras, un peu plus d'aisance sur la poitrine et le dos
+      const want = band ? (wOf(j, armIds) > 0.5 ? 0.008 : 0.014) : 0.012;
       if (sd < want) { const k = want - sd; P[i * 3] += nx * k; P[i * 3 + 1] += ny * k * 0.3; P[i * 3 + 2] += nz * k; }
+      else if (band && pull && sd < 0.07) {
+        // le bandeau est ramené contre l'épaule et le haut du bras (au lieu de flotter)
+        const k = (sd - want) * 0.6;
+        P[i * 3] -= nx * k; P[i * 3 + 1] -= ny * k * 0.3; P[i * 3 + 2] -= nz * k;
+      }
     }
   };
   const lap = (f) => {
@@ -289,7 +296,7 @@ function fitDress(body, name) {
     }
   };
   pushOut();
-  for (let it = 0; it < 6; it++) { lap(0.5); lap(-0.53); pushOut(); }
+  for (let it = 0; it < 8; it++) { lap(0.5); lap(-0.53); pushOut(it < 6); }
 
   // ---------- 4. Poids : point de peau le plus proche ----------
   const NB = body.body.skeleton.bones.length;
@@ -308,7 +315,7 @@ function fitDress(body, name) {
     Wd[i * NB + (below ? bi.RightLeg : bi.RightUpLeg)] += t * front * (1 - wl);
   }
   // lissage limité au bandeau : le bustier reste accroché au torse
-  for (let it = 0; it < 10; it++) {
+  for (let it = 0; it < 5; it++) {
     const Wn = new Float32Array(Wd);
     for (let i = 0; i < n; i++) {
       if (P[i * 3 + 1] <= bandY + 0.008) continue;
@@ -493,6 +500,51 @@ export class DressCloth {
       this.mesh.castShadow = this.mesh.receiveShadow = true;
       this.mesh.frustumCulled = false;
       scene.add(this.mesh);
+    }
+
+    // ---------- Bords finis : ourlet roulé (bas, fente) et bords du bandeau ----------
+    // Petit boudin dans le même tissu le long de chaque bord : le tissu a une épaisseur.
+    D.chains ||= boundaryChains(tris, rv, n);
+    const puv = new Float32Array(n * 2);
+    for (let r = 0; r < rv.length; r++) { puv[rv[r] * 2] = uv[r * 2]; puv[rv[r] * 2 + 1] = uv[r * 2 + 1]; }
+    const activeSet = new Set(this.active);
+    const extra = [];
+    const gpuChains = [], cpuChains = [];
+    for (const ch of D.chains) {
+      if (ch.some((p) => stiff[p] < 1)) {
+        cpuChains.push(ch);
+        for (const p of ch) if (!activeSet.has(p)) { activeSet.add(p); extra.push(p); }
+      } else gpuChains.push(ch);
+    }
+    if (extra.length) {
+      this.active = Uint32Array.from([...this.active, ...extra]);
+      this.held = Uint32Array.from([...this.held, ...extra]);
+    }
+    const R = 0.0035;
+    // bords tenus par le squelette : boudin skinné, déformé par la carte graphique
+    if (gpuChains.length) {
+      const t = new EdgeTube(gpuChains, puv, R);
+      t.write((p) => p * 3, P, restN);
+      const g = t.geometry;
+      const cnt = t.count;
+      const skI = new Uint16Array(cnt * 4), skW = new Float32Array(cnt * 4);
+      t.forEachVertex((v, p) => { for (let c = 0; c < 4; c++) { skI[v * 4 + c] = this.si[p * 4 + c]; skW[v * 4 + c] = this.sw[p * 4 + c]; } });
+      g.setAttribute('skinIndex', new THREE.BufferAttribute(skI, 4));
+      g.setAttribute('skinWeight', new THREE.BufferAttribute(skW, 4));
+      g.setAttribute('restPos', new THREE.BufferAttribute(g.attributes.position.array.slice(), 3));
+      this.edgeGpu = new THREE.SkinnedMesh(g, material);
+      this.edgeGpu.castShadow = true;
+      this.edgeGpu.frustumCulled = false;
+      scene.add(this.edgeGpu);
+      this.edgeGpu.bind(this.skeleton, new THREE.Matrix4());
+    }
+    // bords de la jupe : suivent la simulation, recalculés à chaque image
+    if (cpuChains.length) {
+      this.edgeCpu = new EdgeTube(cpuChains, puv, R);
+      this.edgeCpuMesh = new THREE.Mesh(this.edgeCpu.geometry, material);
+      this.edgeCpuMesh.castShadow = true;
+      this.edgeCpuMesh.frustumCulled = false;
+      scene.add(this.edgeCpuMesh);
     }
 
     this.pos = new Float32Array(n * 3);
@@ -701,6 +753,11 @@ export class DressCloth {
     }
     this.skirtGeo.attributes.position.needsUpdate = true;
     this.skirtGeo.attributes.normal.needsUpdate = true;
+    if (this.edgeCpu) {
+      this.edgeCpu.write((p) => p * 3, pos, nrm, this.body.root.scale.x);
+      this.edgeCpu.geometry.attributes.position.needsUpdate = true;
+      this.edgeCpu.geometry.attributes.normal.needsUpdate = true;
+    }
   }
 
   /** Profondeur (m) d'un point (repère du bassin, non mis à l'échelle) dans la robe ; < 0 dehors. */
@@ -722,9 +779,114 @@ export class DressCloth {
   }
 
   dispose() {
-    for (const m of [this.mesh, this.bodice]) { m.parent?.remove(m); m.geometry.dispose(); }
+    for (const m of [this.mesh, this.bodice, this.edgeGpu, this.edgeCpuMesh]) { if (!m) continue; m.parent?.remove(m); m.geometry.dispose(); }
     this.mesh.material.dispose();
     this.skeleton.dispose();
+  }
+}
+
+/** Bords libres du tissu (en particules) : boucles fermées et chaînes ouvertes. */
+function boundaryChains(tris, rv, n) {
+  const key = (a, b) => (a < b ? a * n + b : b * n + a);
+  const cnt = new Map();
+  for (let t = 0; t < tris.length; t += 3) {
+    const v = [rv[tris[t]], rv[tris[t + 1]], rv[tris[t + 2]]];
+    for (let e = 0; e < 3; e++) {
+      const a = v[e], b = v[(e + 1) % 3];
+      if (a !== b) cnt.set(key(a, b), (cnt.get(key(a, b)) || 0) + 1);
+    }
+  }
+  const adj = new Map();
+  for (const [k, c] of cnt) {
+    if (c !== 1) continue;
+    const a = Math.floor(k / n), b = k % n;
+    if (!adj.has(a)) adj.set(a, []);
+    if (!adj.has(b)) adj.set(b, []);
+    adj.get(a).push(b); adj.get(b).push(a);
+  }
+  const used = new Set(), chains = [];
+  const walk = (start) => {
+    const ch = [start];
+    let cur = start;
+    for (;;) {
+      const nx = adj.get(cur).find((x) => !used.has(key(cur, x)));
+      if (nx === undefined) break;
+      used.add(key(cur, nx));
+      if (nx === start) { ch.closed = true; break; }
+      ch.push(nx);
+      cur = nx;
+    }
+    if (ch.length >= 3) chains.push(ch);
+  };
+  for (const [v, l] of adj) if (l.length === 1 && !used.has(key(v, l[0]))) walk(v);
+  for (const [v, l] of adj) if (l.some((x) => !used.has(key(v, x)))) walk(v);
+  return chains;
+}
+
+/** Boudin le long de bords de tissu (6 côtés), dans le même tissu que la robe. */
+class EdgeTube {
+  constructor(chains, puv, radius) {
+    this.chains = chains;
+    this.radius = radius;
+    this.S = 6;
+    const S = this.S;
+    let count = 0;
+    const idx = [];
+    this.starts = chains.map((ch) => {
+      const base = count;
+      const L = ch.length, segs = ch.closed ? L : L - 1;
+      for (let k = 0; k < segs; k++) {
+        const k2 = (k + 1) % L;
+        for (let r = 0; r < S; r++) {
+          const a0 = base + k * S + r, a1 = base + k * S + ((r + 1) % S), b0 = base + k2 * S + r, b1 = base + k2 * S + ((r + 1) % S);
+          idx.push(a0, b0, a1, a1, b0, b1);
+        }
+      }
+      count += L * S;
+      return base;
+    });
+    this.count = count;
+    const g = new THREE.BufferGeometry();
+    const uvs = new Float32Array(count * 2);
+    this.forEachVertex((v, p) => { uvs[v * 2] = puv[p * 2]; uvs[v * 2 + 1] = puv[p * 2 + 1]; });
+    g.setAttribute('position', new THREE.BufferAttribute(new Float32Array(count * 3), 3));
+    g.setAttribute('normal', new THREE.BufferAttribute(new Float32Array(count * 3), 3));
+    g.setAttribute('fabricUv', new THREE.BufferAttribute(uvs, 2));
+    g.setAttribute('restPos', new THREE.BufferAttribute(new Float32Array(count * 3), 3));
+    g.setAttribute('restNormal', new THREE.BufferAttribute(new Float32Array(count * 3), 3));
+    g.setIndex(idx);
+    this.geometry = g;
+  }
+
+  forEachVertex(fn) {
+    this.chains.forEach((ch, c) => ch.forEach((p, k) => { for (let r = 0; r < this.S; r++) fn(this.starts[c] + k * this.S + r, p); }));
+  }
+
+  /** Recalcule les anneaux à partir des positions et normales des particules. */
+  write(off, P, N, scale = 1) {
+    const S = this.S, r = this.radius * scale;
+    const pos = this.geometry.attributes.position.array, nrm = this.geometry.attributes.normal.array;
+    this.chains.forEach((ch, c) => {
+      const L = ch.length;
+      for (let k = 0; k < L; k++) {
+        const p = off(ch[k]);
+        const a = off(ch[ch.closed ? (k - 1 + L) % L : Math.max(0, k - 1)]);
+        const b = off(ch[ch.closed ? (k + 1) % L : Math.min(L - 1, k + 1)]);
+        let tx = P[b] - P[a], ty = P[b + 1] - P[a + 1], tz = P[b + 2] - P[a + 2];
+        const tl = Math.sqrt(tx * tx + ty * ty + tz * tz) || 1; tx /= tl; ty /= tl; tz /= tl;
+        const sx = N[p], sy = N[p + 1], sz = N[p + 2];
+        let bx = ty * sz - tz * sy, by = tz * sx - tx * sz, bz = tx * sy - ty * sx;
+        const bl = Math.sqrt(bx * bx + by * by + bz * bz) || 1; bx /= bl; by /= bl; bz /= bl;
+        const nx = by * tz - bz * ty, ny = bz * tx - bx * tz, nz = bx * ty - by * tx;
+        for (let q = 0; q < S; q++) {
+          const ang = (q / S) * Math.PI * 2, cs = Math.cos(ang), sn = Math.sin(ang);
+          const ox = nx * cs + bx * sn, oy = ny * cs + by * sn, oz = nz * cs + bz * sn;
+          const v = (this.starts[c] + k * S + q) * 3;
+          pos[v] = P[p] + ox * r; pos[v + 1] = P[p + 1] + oy * r; pos[v + 2] = P[p + 2] + oz * r;
+          nrm[v] = ox; nrm[v + 1] = oy; nrm[v + 2] = oz;
+        }
+      }
+    });
   }
 }
 
