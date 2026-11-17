@@ -258,7 +258,7 @@ function setWorldQuat(obj, qWorld) {
 function disposeBody(b) {
   const seen = new Set();
   b.root.traverse((o) => { if (o.isMesh && !seen.has(o.geometry)) { seen.add(o.geometry); o.geometry.dispose(); } });
-  b.root.traverse((o) => { if (o.isCSS2DObject) o.element.remove(); });
+  b.root.traverse((o) => { if (o.isCSS2DObject) o.element.remove(); if (o.isSkinnedMesh) o.skeleton.dispose(); });
 }
 
 function makeStool() {

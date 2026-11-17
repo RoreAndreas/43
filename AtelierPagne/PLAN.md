@@ -41,7 +41,9 @@ AtelierPagne/
 │   ├── tokens.css           couleurs, typo, boutons (partagés)
 │   └── essayage.css
 ├── js/essayage/
-│   ├── main.js              scène, lumière, podium, caméra, boucle
+│   ├── main.js              scène, caméra, boucle
+│   ├── decor.js             salon, lumières, podium, psyché, portant
+│   ├── pattern.js           motif wax raccordable (canvas)
 │   ├── mannequin.js         mannequin procédural + morphologies Femme/Homme
 │   ├── geometry.js          surfaces « loft », tour de mesure (enveloppe convexe)
 │   ├── poses.js             bibliothèque de poses (données)
@@ -140,3 +142,8 @@ stockage, partage), `assets/modeles/*.glb`, `assets/pagnes/*.webp`.
 - **Mètres rubans** et toise affichables, bouton **Photo** (capture PNG).
 - Motion design couture : aiguille qui coud au chargement, surpiqûres qui se
   cousent, rideau de cabine au changement de silhouette.
+- **Décor de boutique** : salon tendu de velours indigo, parquet, faisceau de
+  lumière où flotte la poussière, podium incrusté d'une frise wax et cerclé de
+  laiton, **psyché qui reflète le dos du mannequin**, portant de pagnes.
+  Le motif wax est original, dessiné par le code (`pattern.js`) : il servira aussi
+  d'exemple de catalogue.

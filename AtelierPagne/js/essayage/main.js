@@ -7,11 +7,16 @@ import { Rig } from './rig.js';
 import { POSES } from './poses.js';
 import { PRESETS } from './mannequin.js';
 import { initUI } from './ui.js';
+import { buildDecor } from './decor.js';
+import { waxTile, PALETTES } from './pattern.js';
+
+// Frise wax partagée par l'interface (barre du haut, panneaux).
+document.documentElement.style.setProperty('--wax', `url(${waxTile(PALETTES[0], 128).toDataURL()})`);
 
 const viewport = document.getElementById('viewport');
 
 // ---------- Rendu ----------
-const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, preserveDrawingBuffer: false });
+const renderer = new THREE.WebGLRenderer({ antialias: true, preserveDrawingBuffer: false });
 renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 renderer.outputColorSpace = THREE.SRGBColorSpace;
 // Tonemapping « neutre » : restitue fidèlement les couleurs (indispensable
@@ -29,7 +34,7 @@ viewport.appendChild(labels.domElement);
 const scene = new THREE.Scene();
 const pmrem = new THREE.PMREMGenerator(renderer);
 scene.environment = pmrem.fromScene(new RoomEnvironment(), 0.04).texture;
-scene.environmentIntensity = 0.55;
+scene.environmentIntensity = 0.4;
 
 const camera = new THREE.PerspectiveCamera(30, 1, 0.05, 50);
 camera.position.set(0, 1.1, 4.6);
@@ -39,7 +44,7 @@ controls.target.set(0, 0.95, 0);
 controls.enableDamping = true;
 controls.dampingFactor = 0.08;
 controls.minDistance = 1.1;
-controls.maxDistance = 7;
+controls.maxDistance = 7.5;
 controls.maxPolarAngle = Math.PI * 0.6;
 controls.minPolarAngle = 0.15;
 controls.enablePan = true;
@@ -47,63 +52,11 @@ controls.screenSpacePanning = true;
 controls.autoRotateSpeed = 1.6;
 controls.addEventListener('start', () => { cameraTween = null; ui?.onUserOrbit(); });
 
-// ---------- Lumières ----------
-scene.add(new THREE.HemisphereLight(0xffffff, 0xd9cdbd, 0.55));
-const key = new THREE.DirectionalLight(0xfff6ec, 2.1);
-key.position.set(2.2, 4.4, 3.1);
-key.castShadow = true;
-key.shadow.mapSize.set(2048, 2048);
-key.shadow.camera.left = -1.4; key.shadow.camera.right = 1.4;
-key.shadow.camera.top = 2.4; key.shadow.camera.bottom = -0.4;
-key.shadow.camera.near = 1; key.shadow.camera.far = 10;
-key.shadow.bias = -0.0004;
-key.shadow.normalBias = 0.02;
-key.shadow.radius = 5;
-scene.add(key);
-const fill = new THREE.DirectionalLight(0xffe2c4, 0.55);
-fill.position.set(-3, 2, 1.5);
-scene.add(fill);
-const rim = new THREE.DirectionalLight(0xdfe8ff, 1.1);
-rim.position.set(-0.5, 3, -4);
-scene.add(rim);
-
-// ---------- Podium avec surpiqûre ----------
+// ---------- Décor : salon de velours, podium, psyché, portant ----------
+const lite = Math.min(window.innerWidth, window.innerHeight) < 700;
 const stage = new THREE.Group();
 scene.add(stage);
-const podium = new THREE.Mesh(
-  new THREE.CylinderGeometry(1.0, 1.03, 0.07, 128),
-  [
-    new THREE.MeshStandardMaterial({ color: 0x24304e, roughness: 0.75 }),
-    new THREE.MeshStandardMaterial({ color: 0xd9cfbf, roughness: 0.85 }),
-    new THREE.MeshStandardMaterial({ color: 0x24304e }),
-  ],
-);
-podium.position.y = -0.035;
-podium.receiveShadow = true;
-stage.add(podium);
-
-const STITCHES = 140;
-const stitchGeo = new THREE.CapsuleGeometry(0.0045, 0.022, 3, 8);
-stitchGeo.rotateZ(Math.PI / 2);
-const stitches = new THREE.InstancedMesh(stitchGeo, new THREE.MeshStandardMaterial({ color: 0xc4572e, roughness: 0.6 }), STITCHES);
-{
-  const m = new THREE.Matrix4(), q = new THREE.Quaternion(), p = new THREE.Vector3(), s = new THREE.Vector3(1, 0.35, 1);
-  for (let i = 0; i < STITCHES; i++) {
-    const a = (i / STITCHES) * Math.PI * 2;
-    p.set(Math.cos(a) * 0.92, 0.001, Math.sin(a) * 0.92);
-    q.setFromAxisAngle(new THREE.Vector3(0, 1, 0), -a + Math.PI / 2);
-    stitches.setMatrixAt(i, m.compose(p, q, s));
-  }
-}
-stitches.count = 0;
-stitches.frustumCulled = false; // l'enveloppe est calculée à vide sinon
-stage.add(stitches);
-
-const shadowCatcher = new THREE.Mesh(new THREE.CircleGeometry(4, 64), new THREE.ShadowMaterial({ opacity: 0.12 }));
-shadowCatcher.rotation.x = -Math.PI / 2;
-shadowCatcher.position.y = -0.069;
-shadowCatcher.receiveShadow = true;
-stage.add(shadowCatcher);
+const decor = buildDecor(scene, renderer, { lite });
 
 // ---------- Mannequin ----------
 const rig = new Rig(stage);
@@ -115,7 +68,7 @@ export const VIEWS = [
   { id: 'profil', label: 'Profil', az: Math.PI / 2, polar: 1.47, r: 4.9, ty: 0.92 },
   { id: 'dos', label: 'Dos', az: Math.PI, polar: 1.43, r: 4.9, ty: 0.92 },
   { id: 'dessus', label: 'Plongée', az: 0.4, polar: 0.62, r: 4.2, ty: 0.85 },
-  { id: 'buste', label: 'Gros plan', az: 0.3, polar: 1.42, r: 2.0, ty: 1.28 },
+  { id: 'buste', label: 'Gros plan', az: 0.3, polar: 1.45, r: 2.5, ty: 1.3 },
 ];
 let cameraTween = null;
 const sph = new THREE.Spherical();
@@ -175,7 +128,7 @@ function resize() {
 new ResizeObserver(resize).observe(viewport);
 resize();
 
-// ---------- Intro : la surpiqûre se coud, le mannequin pivote ----------
+// ---------- Intro : la lumière s'allume, le mannequin pivote ----------
 let intro = { t: 0, d: 2.4 };
 
 function capturePhoto() {
@@ -201,11 +154,11 @@ renderer.setAnimationLoop(() => {
   if (intro) {
     intro.t = Math.min(1, intro.t + dt / intro.d);
     const e = 1 - Math.pow(1 - intro.t, 3);
-    stitches.count = Math.floor(STITCHES * Math.min(1, intro.t * 1.4));
     if (rig.body) rig.body.root.rotation.y = -Math.PI * 1.2 * (1 - e);
     if (intro.t >= 1) intro = null;
   }
   updateCameraTween(dt);
+  decor.update(dt);
   rig.update(dt);
   rig.faceRuler(camera);
   if (camera.position.y < 0.08) camera.position.y = 0.08;
@@ -220,4 +173,4 @@ camera.position.set(-2.4, 2.2, 5.6);
 goToView('face', 2.4);
 
 // Accès pour les tests et la console.
-window.__essayage = { rig, camera, controls, goToView, scene, renderer };
+window.__essayage = { rig, camera, controls, goToView, scene, renderer, skipIntro: () => { if (intro) intro.t = 0.999; } };

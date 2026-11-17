@@ -54,7 +54,7 @@ export function buildMannequin(preset, k = { bust: 1, waist: 1, hip: 1 }, materi
   const meshes = [];
 
   const bone = (name, parent, x, y, z) => {
-    const b = new THREE.Object3D();
+    const b = new THREE.Bone();
     b.name = name;
     b.position.set(x, y, z);
     parent.add(b);
@@ -117,8 +117,6 @@ export function buildMannequin(preset, k = { bust: 1, waist: 1, hip: 1 }, materi
     { y: 1.11, rx: 0.122, zf: 0.083, zb: 0.082 },
     { y: 1.128, rx: 0.06, zf: 0.04, zb: 0.04 },
   ];
-  const pelvisGeo = loftGeometry(pelvisRings, { scale: radial, yOffset: 0.95, seg: 64 });
-  const pelvis = mesh(pelvisGeo, hips, 'pelvis');
 
   // ---------- Buste ----------
   const cz = P.chestZ;
@@ -137,8 +135,32 @@ export function buildMannequin(preset, k = { bust: 1, waist: 1, hip: 1 }, materi
     { y: 1.475, rx: 0.055, zf: 0.045, zb: 0.05 },
     { y: 1.49, rx: 0.03, zf: 0.03, zb: 0.03 },
   ];
-  const torsoGeo = loftGeometry(torsoRings, { scale: radial, yOffset: 1.04, seg: 72, sub: 5 });
-  const torso = mesh(torsoGeo, spine, 'torso');
+  // Bassin + buste d'un seul tenant, « skinné » sur Hips et Spine : pas de
+  // jointure visible à la taille, la flexion du dos se répartit en douceur.
+  const bodyRings = [...pelvisRings.filter((r) => r.y <= 1.0), ...torsoRings.filter((r) => r.y >= 1.065)];
+  const torsoGeo = loftGeometry(bodyRings, { scale: radial, yOffset: 0, seg: 72, sub: 5 });
+  const pelvisGeo = torsoGeo;
+  {
+    const pos = torsoGeo.attributes.position;
+    const idx = new Uint16Array(pos.count * 4), w = new Float32Array(pos.count * 4);
+    for (let i = 0; i < pos.count; i++) {
+      const t = THREE.MathUtils.smoothstep(pos.getY(i), 0.98, 1.12);
+      idx.set([0, 1, 0, 0], i * 4);
+      w.set([1 - t, t, 0, 0], i * 4);
+    }
+    torsoGeo.setAttribute('skinIndex', new THREE.Uint16BufferAttribute(idx, 4));
+    torsoGeo.setAttribute('skinWeight', new THREE.Float32BufferAttribute(w, 4));
+  }
+  root.updateMatrixWorld(true);
+  const torso = new THREE.SkinnedMesh(torsoGeo, material);
+  torso.castShadow = torso.receiveShadow = true;
+  torso.frustumCulled = false;
+  torso.userData.tag = 'torso';
+  root.add(torso);
+  root.updateMatrixWorld(true);
+  torso.bind(new THREE.Skeleton([hips, spine]));
+  meshes.push(torso);
+  const pelvis = torso;
 
   // ---------- Cou et tête (tête « œuf » sans visage, comme en vitrine) ----------
   const n = P.neck;
@@ -166,9 +188,9 @@ export function buildMannequin(preset, k = { bust: 1, waist: 1, hip: 1 }, materi
 
   // ---------- Membres ----------
   const armRings = [
-    { y: 0.05, rx: 0.025 * L },
-    { y: 0.025, rx: 0.048 * L, zf: 0.047 * L, zb: 0.047 * L },
-    { y: -0.01, rx: 0.052 * L, zf: 0.049 * L, zb: 0.05 * L },
+    { y: 0.03, rx: 0.02 * L },
+    { y: 0.012, rx: 0.042 * L, zf: 0.043 * L, zb: 0.044 * L },
+    { y: -0.02, rx: 0.049 * L, zf: 0.047 * L, zb: 0.048 * L },
     { y: -0.07, rx: 0.045 * L, zf: 0.044 * L, zb: 0.046 * L },
     { y: -0.18, rx: 0.038 * L, zf: 0.039 * L, zb: 0.041 * L },
     { y: -0.29, rx: 0.031 * L, zf: 0.032 * L, zb: 0.033 * L },
@@ -249,7 +271,7 @@ export function buildMannequin(preset, k = { bust: 1, waist: 1, hip: 1 }, materi
   for (const side of ['Left', 'Right']) {
     const sx = side === 'Left' ? 1 : -1;
     const arm = bones[`${side}Arm`], fore = bones[`${side}ForeArm`], hand = bones[`${side}Hand`];
-    sphere(0.05 * L, arm);
+    sphere(0.044 * L, arm);
     mesh(geoArm, arm, 'arm');
     sphere(0.031 * L, fore);
     mesh(geoFore, fore, 'forearm');
