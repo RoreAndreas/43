@@ -182,6 +182,13 @@ export function buildMannequin(preset, k = { bust: 1, waist: 1, hip: 1 }, materi
   }
   root.updateMatrixWorld(true);
 
+  // Corps au repos (bras le long du corps, jambes droites), en repère mannequin :
+  // sert à tailler les vêtements et à régler leurs collisions.
+  const restPos = new Float32Array(n * 3);
+  const rv = new THREE.Vector3();
+  for (let i = 0; i < n; i++) { body.getVertexPosition(i, rv); restPos.set([rv.x, rv.y, rv.z], i * 3); }
+  const restJ = Object.fromEntries(B.map((name) => [name, bones[name].getWorldPosition(new THREE.Vector3())]));
+
   // ---------- Mesures (tour du mètre ruban, sur le maillage au repos) ----------
   const slab = (y, h = 0.007) => {
     const pts = [];
@@ -217,7 +224,7 @@ export function buildMannequin(preset, k = { bust: 1, waist: 1, hip: 1 }, materi
   };
 
   return {
-    root, bones, rest, meshes, body, tapes, halfWidthAt, material,
+    root, bones, rest, meshes, body, tapes, halfWidthAt, material, restPos, restJ, torsoW, bi, sex: preset.id,
     lm: { ...lm, joints: J, thigh: J.LeftUpLeg.distanceTo(J.LeftLeg) },
     lowestSole: () => lowest(meta.soles),
     lowestSeat: () => lowest(meta.seat),

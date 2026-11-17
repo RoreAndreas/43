@@ -27,12 +27,22 @@ MH = 'https://raw.githubusercontent.com/makehumancommunity/makehuman/master/make
 
 RACES = ['african', 'asian', 'caucasian']
 RECIPES = {
+    # Silhouette galbée, d'après le modèle de référence fourni (hanches et
+    # fessiers marqués, taille fine, poitrine ronde).
     'femme': [
         *[(f'targets/macrodetails/{r}-female-young.target', 1 / 3) for r in RACES],
-        ('targets/macrodetails/universal-female-young-averagemuscle-minweight.target', 0.45),
-        ('targets/macrodetails/height/female-young-averagemuscle-averageweight-maxheight.target', 0.35),
+        ('targets/macrodetails/universal-female-young-averagemuscle-minweight.target', 0.05),
+        ('targets/macrodetails/height/female-young-averagemuscle-averageweight-maxheight.target', 0.3),
         ('targets/macrodetails/proportions/female-young-averagemuscle-averageweight-idealproportions.target', 1.0),
-        ('targets/breast/female-young-averagemuscle-averageweight-maxcup-averagefirmness.target', 0.15),
+        ('targets/breast/female-young-averagemuscle-averageweight-maxcup-maxfirmness.target', 0.35),
+        ('targets/breast/nipple-point-decr.target', 1.0),
+        ('targets/breast/nipple-size-decr.target', 1.0),
+        ('targets/hip/hip-scale-horiz-incr.target', 0.45),
+        ('targets/hip/hip-scale-depth-incr.target', 0.3),
+        ('targets/buttocks/buttocks-volume-incr.target', 0.8),
+        ('targets/armslegs/l-upperleg-fat-incr.target', 0.2),
+        ('targets/armslegs/r-upperleg-fat-incr.target', 0.2),
+        ('targets/torso/torso-vshape-decr.target', 0.3),
     ],
     'homme': [
         *[(f'targets/macrodetails/{r}-male-young.target', 1 / 3) for r in RACES],
@@ -273,7 +283,8 @@ def build(name, recipe, V0, groups, skel, weights):
     (OUT / f'{name}.json').write_text(json.dumps(meta, indent=1))
     h = P[:, 1].max()
     print(f'{name}: {len(P)} sommets, {len(tris)} triangles, {len(blob) // 1024} Ko, '
-          f'hauteur sans tête {h:.3f} m, poitrine {perim(bust_y):.3f} / taille {perim(waist_y):.3f} / hanches {perim(hip_y):.3f} m')
+          f'hauteur sans tête {h:.3f} m, rapports à la hauteur (tête comprise) : hanches {perim(hip_y) / (meta["head"]["top"]):.3f}, '
+          f'taille {perim(waist_y) / (meta["head"]["top"]):.3f} ; poitrine {perim(bust_y):.3f} / taille {perim(waist_y):.3f} / hanches {perim(hip_y):.3f} m')
 
 
 def main():

@@ -46,6 +46,8 @@ AtelierPagne/
 │   ├── mannequin.js         chargement du mannequin, squelette, tête ovale, mesures
 │   ├── geometry.js          surfaces « loft », tour de mesure (enveloppe convexe)
 │   ├── poses.js             bibliothèque de poses (données)
+│   ├── garments.js          tenues wax : haut taillé dans le corps, jupe en tissu simulé
+│   ├── wax.js               six motifs wax originaux + import de la photo d’un pagne
 │   ├── rig.js               transitions, IK des bras, contact au sol, tabouret, rubans
 │   └── ui.js                panneaux, vues, mesures, mémorisation, clavier
 ├── assets/mannequin/        femme / homme : maillage + poids (.bin) et repères (.json)
@@ -145,7 +147,20 @@ stockage, partage), `assets/modeles/*.glb`, `assets/pagnes/*.webp`.
 - **Parcours clair** : étapes Modèle → Pagne → Essayage affichées en haut, guide
   en 3 étapes à la première visite (rouvrable avec « ? »).
 - **7 poses** animées : Debout, Hanchement, Mains sur les hanches, Bras ouverts,
-  Défilé, Pose photo, Assise (un socle en béton sort du sol).
+  Défilé, Pose photo, Assise (un socle en béton sort du sol). Transitions en
+  chaîne (le bassin part d’abord, le buste suit, puis la tête et les bras).
+- **Animation au repos** (activable) : respiration, report du poids d’une jambe
+  sur l’autre, regard qui se promène à gauche et à droite.
+- **Tenues wax** : robe sirène, robe évasée, ensemble pagne (femme) ; chemise
+  wax, tunique & pantalon (homme). Le haut suit exactement chaque pose ; la jupe
+  est un tissu simulé qui se balance, s’écarte quand la jambe avance, drape sur
+  les cuisses en pose assise et s’évase quand le mannequin tourne (« Rotation »).
+- **Pagnes** : six motifs wax originaux, ou la photo du pagne de la cliente,
+  à l’échelle réelle (taille du motif réglable en cm).
+- **Silhouette** : les proportions du modèle de référence fourni (hanches et
+  fessiers marqués, taille fine) ont été mesurées et reportées sur le corps
+  MakeHuman, propre et riggé. Le fichier GLB fourni (généré par Tripo, vêtements
+  soudés au corps, sans squelette) n’est pas utilisé tel quel.
 - Mains posées par **cinématique inverse** : elles restent sur les hanches même
   quand on change les mesures.
 - **Mes mesures** : hauteur, tours de poitrine, taille, hanches → le mannequin se

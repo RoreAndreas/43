@@ -29,6 +29,9 @@ html, body { height: 100%; overflow: hidden; }
 .steps li { display: flex; align-items: center; gap: 8px; color: var(--faint); }
 .steps li span { display: grid; place-items: center; width: 22px; height: 22px; border-radius: 50%; border: 1px solid currentColor; font-size: 12px; }
 .steps li[aria-current="step"] { color: var(--ink); font-weight: 500; }
+.steps button { display: inline-flex; align-items: center; gap: 8px; padding: 6px 4px; border: 0; background: none; color: var(--ink-2); cursor: pointer; font-size: 14px; }
+.steps button:hover { color: var(--ink); }
+.steps button span { display: grid; place-items: center; width: 22px; height: 22px; border-radius: 50%; border: 1px solid currentColor; font-size: 12px; }
 .steps li[aria-current="step"] span { background: var(--ink); border-color: var(--ink); color: #fff; }
 .steps li + li::before { content: ''; width: 28px; height: 1px; background: var(--line-strong); margin-right: 20px; }
 .top__actions { display: flex; gap: 10px; justify-content: flex-end; }
@@ -69,7 +72,10 @@ html, body { height: 100%; overflow: hidden; }
 .view.is-active::after { transform: scaleX(1); }
 .view--spin { display: inline-flex; align-items: center; gap: 6px; margin-left: 8px; padding-left: 16px; border-left: 1px solid var(--line); }
 .view--spin svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; }
-.view--spin[aria-pressed="true"] { color: var(--ink); }
+.view--spin[aria-pressed="true"], .view--toggle[aria-pressed="true"] { color: var(--ink); }
+.view--toggle { display: inline-flex; align-items: center; gap: 6px; }
+.view--toggle svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
+.view--toggle[aria-pressed="false"] { color: var(--faint); }
 .view--spin[aria-pressed="true"] svg { animation: spin 2.4s linear infinite; }
 @keyframes spin { to { transform: rotate(360deg); } }
 
@@ -86,7 +92,8 @@ html, body { height: 100%; overflow: hidden; }
 .pose:hover { color: var(--ink); background: rgba(20, 20, 20, 0.04); }
 .pose[aria-checked="true"] { color: var(--ink); border-color: var(--ink); background: var(--paper); }
 .pose span { white-space: nowrap; }
-.measures-btn { flex: none; }
+.dock__actions { flex: none; display: flex; gap: 8px; }
+.dock-btn { padding: 0 18px; }
 
 /* ---------- Tiroir « Mes mesures » ---------- */
 .drawer {
@@ -98,7 +105,6 @@ html, body { height: 100%; overflow: hidden; }
 }
 .drawer.is-open { transform: none; }
 .drawer__head { display: flex; align-items: center; justify-content: space-between; }
-.drawer h2 { margin: 0; font-size: 22px; font-weight: 500; letter-spacing: -0.01em; }
 .drawer__lead { margin: -8px 0 0; color: var(--muted); font-size: 14px; }
 
 .segmented { display: grid; grid-template-columns: 1fr 1fr; border: 1px solid var(--line-strong); border-radius: 999px; padding: 3px; }
@@ -125,6 +131,41 @@ input[type="range"]::-moz-range-thumb { width: 16px; height: 16px; border-radius
 .switch[aria-checked="true"] .switch__track { background: var(--ink); }
 .switch[aria-checked="true"] .switch__thumb { transform: translateX(18px); }
 #btn-reset { align-self: flex-start; }
+
+/* Onglets du tiroir */
+.tabs { display: flex; gap: 22px; }
+.tabs button { position: relative; padding: 8px 0; border: 0; background: none; cursor: pointer; font-size: 20px; font-weight: 500; color: var(--faint); letter-spacing: -0.01em; }
+.tabs button[aria-selected="true"] { color: var(--ink); }
+.tabs button[aria-selected="true"]::after { content: ''; position: absolute; left: 0; right: 0; bottom: 0; height: 2px; background: var(--ink); }
+.drawer__panel { display: flex; flex-direction: column; gap: 18px; }
+.drawer__panel[hidden] { display: none; }
+.drawer__sub { margin: 4px 0 -6px; font-size: 12px; font-weight: 500; letter-spacing: .2em; text-transform: uppercase; color: var(--muted); scroll-margin-top: 16px; }
+
+/* Modèles */
+.outfits { display: grid; gap: 8px; }
+.outfit { display: grid; grid-template-columns: 40px 1fr; gap: 12px; align-items: center; padding: 10px 12px; border: 1px solid var(--line); border-radius: 12px; background: var(--paper); cursor: pointer; text-align: left; transition: border-color .2s, background-color .2s; }
+.outfit:hover { border-color: var(--line-strong); }
+.outfit[aria-checked="true"] { border-color: var(--ink); box-shadow: inset 0 0 0 1px var(--ink); }
+.outfit span { display: flex; flex-direction: column; min-width: 0; }
+.outfit strong { font-weight: 500; font-size: 15px; }
+.outfit small { color: var(--muted); font-size: 13px; line-height: 1.35; }
+.outfit__ico { width: 34px; height: 42px; fill: none; stroke: var(--ink); stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
+
+/* Pagnes */
+.swatches { display: grid; grid-template-columns: repeat(auto-fill, minmax(92px, 1fr)); gap: 10px; }
+.swatch { display: flex; flex-direction: column; gap: 6px; padding: 0; border: 0; background: none; cursor: pointer; font-size: 13px; color: var(--ink-2); text-align: left; }
+.swatch img { width: 100%; aspect-ratio: 1; object-fit: cover; border-radius: 10px; outline: 1px solid var(--line); outline-offset: -1px; transition: transform .25s var(--ease-out); }
+.swatch:hover img { transform: scale(1.03); }
+.swatch[aria-checked="true"] img { outline: 2px solid var(--ink); outline-offset: 2px; }
+.swatch[aria-checked="true"] span { color: var(--ink); font-weight: 500; }
+.upload { display: flex; align-items: center; gap: 12px; padding: 12px 14px; border: 1px dashed var(--line-strong); border-radius: 12px; cursor: pointer; transition: border-color .2s, background-color .2s; }
+.upload:hover { border-color: var(--ink); background: rgba(20, 20, 20, .03); }
+.upload svg { flex: none; width: 24px; height: 24px; fill: none; stroke: currentColor; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
+.upload span { display: flex; flex-direction: column; }
+.upload strong { font-weight: 500; font-size: 15px; }
+.upload small { color: var(--muted); font-size: 13px; }
+#fabric-file:focus-visible + .measure, .upload:focus-within { outline: 2px solid var(--ink); }
+.visually-hidden { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 
 /* Étiquettes des mètres rubans */
 .tape-label {
@@ -205,8 +246,9 @@ body.flash .fade { animation: flash .45s ease-out; }
   .dock__main { gap: 8px; margin-top: 4px; }
   .pose { flex: 0 0 70px; font-size: 12px; padding: 6px 4px; }
   .pose svg { width: 26px; height: 30px; }
-  .measures-btn { flex-direction: column; gap: 2px; min-height: 0; height: 62px; width: 70px; padding: 0; border-radius: 12px; font-size: 12px; }
-  .measures-btn span { white-space: normal; line-height: 1.1; text-align: center; }
+  .dock__actions { gap: 6px; }
+  .dock-btn { flex-direction: column; gap: 2px; min-height: 0; height: 62px; width: 64px; padding: 0; border-radius: 12px; font-size: 12px; }
+  .view--toggle, .view--spin { flex: none; }
 
   .drawer {
     top: auto; left: 0; width: auto; max-height: 78vh;

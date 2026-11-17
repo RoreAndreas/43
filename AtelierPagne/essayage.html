@@ -32,8 +32,8 @@
   <header class="top">
     <a class="wordmark" href="index.html">Atelier Pagne</a>
     <ol class="steps" aria-label="Étapes">
-      <li class="is-soon" title="Bientôt disponible"><span>1</span>Modèle</li>
-      <li class="is-soon" title="Bientôt disponible"><span>2</span>Pagne</li>
+      <li><button type="button" data-open="outfit" data-section="models"><span>1</span>Modèle</button></li>
+      <li><button type="button" data-open="outfit" data-section="fabrics"><span>2</span>Pagne</button></li>
       <li aria-current="step"><span>3</span>Essayage</li>
     </ol>
     <div class="top__actions">
@@ -54,29 +54,58 @@
       </div>
       <div class="dock__main">
         <div class="poses" id="pose-list" role="radiogroup" aria-label="Poses"></div>
-        <button class="btn btn--primary measures-btn" id="btn-measures" type="button" aria-expanded="false" aria-controls="drawer">
-          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 16 16 3l5 5L8 21z"/><path d="m7 12 2 2m1-5 2 2m1-5 2 2"/></svg>
-          <span>Mes mesures</span>
-        </button>
+        <div class="dock__actions">
+          <button class="btn btn--primary dock-btn" id="btn-outfit" type="button" aria-expanded="false" aria-controls="drawer">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 6a2 2 0 1 1 2-2M12 6v2L3 15h18l-9-7"/></svg>
+            <span>Tenue</span>
+          </button>
+          <button class="btn btn--ghost dock-btn" id="btn-measures" type="button" aria-expanded="false" aria-controls="drawer">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 16 16 3l5 5L8 21z"/><path d="m7 12 2 2m1-5 2 2m1-5 2 2"/></svg>
+            <span>Mesures</span>
+          </button>
+        </div>
       </div>
     </div>
   </footer>
 
-  <aside class="drawer" id="drawer" aria-labelledby="drawer-title" aria-hidden="true">
+  <aside class="drawer" id="drawer" aria-label="Réglages" aria-hidden="true">
     <div class="drawer__head">
-      <h2 id="drawer-title">Mes mesures</h2>
+      <div class="tabs" role="tablist" aria-label="Réglages">
+        <button type="button" role="tab" id="tab-outfit" data-tab="outfit" aria-controls="panel-outfit" aria-selected="true">Tenue</button>
+        <button type="button" role="tab" id="tab-measures" data-tab="measures" aria-controls="panel-measures" aria-selected="false">Mes mesures</button>
+      </div>
       <button class="icon-btn" type="button" id="drawer-close" aria-label="Fermer">
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg>
       </button>
     </div>
-    <p class="drawer__lead">Réglez le mannequin à votre silhouette. Vos mesures restent sur cet appareil.</p>
-    <div class="segmented" id="preset" role="group" aria-label="Silhouette"></div>
-    <div class="measures" id="measures"></div>
-    <button class="switch" id="toggle-tapes" type="button" role="switch" aria-checked="false">
-      <span>Afficher les mètres rubans</span>
-      <span class="switch__track"><span class="switch__thumb"></span></span>
-    </button>
-    <button class="link" id="btn-reset" type="button">Revenir aux mesures standard</button>
+
+    <section class="drawer__panel" id="panel-outfit" role="tabpanel" aria-labelledby="tab-outfit">
+      <h3 class="drawer__sub" id="sec-models">1 · Modèle</h3>
+      <div class="outfits" id="outfits" role="radiogroup" aria-labelledby="sec-models"></div>
+      <h3 class="drawer__sub" id="sec-fabrics">2 · Pagne</h3>
+      <div class="swatches" id="swatches" role="radiogroup" aria-labelledby="sec-fabrics"></div>
+      <label class="upload" for="fabric-file">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 8h3l1.8-2.5h6.4L17 8h3v11H4z"/><circle cx="12" cy="13" r="3.4"/></svg>
+        <span><strong>Importer mon pagne</strong><small>Photo d’un morceau posé à plat, bien éclairé</small></span>
+      </label>
+      <input type="file" id="fabric-file" accept="image/*" class="visually-hidden">
+      <div class="measure">
+        <div class="measure__head"><label for="fabric-scale">Taille du motif</label><output id="o-fabric-scale" for="fabric-scale"></output></div>
+        <input type="range" id="fabric-scale" min="12" max="60" step="1">
+        <p class="measure__help">Largeur d’un motif sur le tissu, comme sur le pagne réel.</p>
+      </div>
+    </section>
+
+    <section class="drawer__panel" id="panel-measures" role="tabpanel" aria-labelledby="tab-measures" hidden>
+      <p class="drawer__lead">Réglez le mannequin à votre silhouette. Vos mesures restent sur cet appareil.</p>
+      <div class="segmented" id="preset" role="group" aria-label="Silhouette"></div>
+      <div class="measures" id="measures"></div>
+      <button class="switch" id="toggle-tapes" type="button" role="switch" aria-checked="false">
+        <span>Afficher les mètres rubans</span>
+        <span class="switch__track"><span class="switch__thumb"></span></span>
+      </button>
+      <button class="link" id="btn-reset" type="button">Revenir aux mesures standard</button>
+    </section>
   </aside>
 
   <div class="guide" id="guide" role="dialog" aria-modal="true" aria-labelledby="guide-title" hidden>
@@ -85,8 +114,9 @@
       <h2 id="guide-title">Bienvenue en cabine</h2>
       <ol class="guide__steps">
         <li><span>1</span><div><strong>Tournez autour</strong><p>Faites glisser sur le mannequin, ou choisissez Face, 3/4, Profil, Dos.</p></div></li>
-        <li><span>2</span><div><strong>Choisissez une pose</strong><p>Dans la barre en bas de l’écran.</p></div></li>
-        <li><span>3</span><div><strong>Ajustez à vos mesures</strong><p>Avec le bouton « Mes mesures ».</p></div></li>
+        <li><span>2</span><div><strong>Habillez le mannequin</strong><p>Bouton « Tenue » : un modèle, puis un pagne wax ou la photo du vôtre.</p></div></li>
+        <li><span>3</span><div><strong>Choisissez une pose</strong><p>Dans la barre en bas. « Rotation » fait tourner le mannequin : la jupe suit le mouvement.</p></div></li>
+        <li><span>4</span><div><strong>Ajustez à vos mesures</strong><p>Bouton « Mesures » : hauteur, poitrine, taille, hanches.</p></div></li>
       </ol>
       <button class="btn btn--primary" type="button" data-close>Commencer</button>
     </div>

@@ -10,12 +10,26 @@
 // Cibles des poignets, calculées sur la morphologie (repère du mannequin au repos).
 const handOnHip = (b, side, dz = 0) => {
   const y = (b.lm.waist + b.lm.hip) / 2 + 0.02;
-  return [side * (b.halfWidthAt(y) + 0.03), y, b.lm.joints.Hips.z + dz];
+  return [side * (b.halfWidthAt(y) + 0.05), y, b.lm.joints.Hips.z + dz];
 };
 const handOnThigh = (b, side) => {
   const j = b.lm.joints[side > 0 ? 'LeftUpLeg' : 'RightUpLeg'];
   return [j.x + side * 0.05, j.y + 0.11, j.z + b.lm.thigh * 0.62];
 };
+
+/** Bras qui pendent juste à l'extérieur des hanches (et de la jupe) : s'adapte aux courbes. */
+const hangOutside = (b, side, fwd = 0.03, out = 0.075) => {
+  const J = b.lm.joints, n = side > 0 ? 'Left' : 'Right';
+  const S = J[`${n}Arm`];
+  const L = (S.distanceTo(J[`${n}ForeArm`]) + J[`${n}ForeArm`].distanceTo(J[`${n}Hand`])) * 0.985;
+  let w = 0;
+  for (let y = S.y - L - 0.06; y < S.y - L + 0.2; y += 0.02) w = Math.max(w, b.halfWidthAt(y));
+  const x = Math.max(w + out, Math.abs(S.x) + 0.02);
+  const dx = x - Math.abs(S.x);
+  const dy = Math.sqrt(Math.max(0.01, L * L - dx * dx - fwd * fwd));
+  return [side * x, S.y - dy, S.z + fwd];
+};
+const HANG = (side, fwd, out) => ({ target: (b) => hangOutside(b, side, fwd, out), pole: [side * 0.25, 0, -1] });
 
 export const POSES = [
   {
@@ -24,10 +38,9 @@ export const POSES = [
     hint: 'La pose de référence pour juger la coupe.',
     sym: true,
     rot: {
-      LeftArm: [0.02, 0, 0.13],
-      LeftForeArm: [-0.12, 0, 0],
-      LeftHand: [0, 0, -0.04],
+      LeftHand: [0, 0, -0.06],
     },
+    ik: { Left: HANG(1, 0.04), Right: HANG(-1, 0.04) },
   },
   {
     id: 'hanchement',
@@ -43,11 +56,8 @@ export const POSES = [
       LeftUpLeg: [-0.18, 0.1, -0.12],
       LeftLeg: [0.32, 0, 0.02],
       LeftFoot: [-0.08, -0.15, 0],
-      LeftArm: [0.06, 0, 0.17],
-      LeftForeArm: [-0.25, 0, 0],
-      RightArm: [-0.05, 0, -0.11],
-      RightForeArm: [-0.15, 0, 0],
     },
+    ik: { Left: HANG(1, 0.09, 0.09), Right: HANG(-1, 0.02, 0.07) },
   },
   {
     id: 'mains-hanches',
@@ -89,10 +99,10 @@ export const POSES = [
       RightUpLeg: [0.28, 0, 0.02],
       RightLeg: [0.32, 0, 0],
       RightFoot: [-0.3, 0, 0],
-      LeftArm: [0.3, 0, 0.12],
-      LeftForeArm: [-0.12, 0, 0],
-      RightArm: [-0.3, 0, -0.12],
-      RightForeArm: [-0.45, 0, 0],
+      LeftArm: [0.32, 0.05, 0.22],
+      LeftForeArm: [-0.15, 0, 0],
+      RightArm: [-0.34, -0.05, -0.22],
+      RightForeArm: [-0.5, 0, 0],
     },
   },
   {
@@ -109,12 +119,11 @@ export const POSES = [
       RightLeg: [0.3, 0, -0.03],
       RightFoot: [-0.05, 0.25, 0],
       LeftHand: [0.1, -0.35, 0.55],
-      RightArm: [-0.12, 0, -0.14],
-      RightForeArm: [-0.3, 0, 0],
       RightHand: [0, 0, 0.05],
     },
     ik: {
       Left: { target: (b) => handOnHip(b, 1, 0.01), pole: [1, 0.1, -0.55] },
+      Right: HANG(-1, 0.07, 0.08),
     },
   },
   {
