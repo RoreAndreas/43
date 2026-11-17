@@ -13,8 +13,9 @@ const _q = new THREE.Quaternion(), _m = new THREE.Matrix4(), _box = new THREE.Bo
 export const TAPE_LABELS = { bust: 'Poitrine', waist: 'Taille', hip: 'Hanches' };
 
 export class Rig {
-  constructor(stage) {
+  constructor(stage, { groundY = 0 } = {}) {
     this.stage = stage;
+    this.groundY = groundY;
     this.material = createSiliconeMaterial();
     this.body = null;
     this.baseCache = {};
@@ -103,6 +104,7 @@ export class Rig {
     if (pose.ik) {
       for (const [side, spec] of Object.entries(pose.ik)) {
         const t = spec.target(this.body);
+        t[1] += this.body.yShift ?? 0;
         const T = root.localToWorld(new THREE.Vector3(...t));
         const pole = new THREE.Vector3(...spec.pole).applyQuaternion(root.getWorldQuaternion(new THREE.Quaternion()));
         solveTwoBone(bones[`${side}Arm`], bones[`${side}ForeArm`], bones[`${side}Hand`], T, pole);
@@ -137,7 +139,7 @@ export class Rig {
     root.updateMatrixWorld(true);
     let min = Infinity;
     for (const f of feet) min = Math.min(min, _box.setFromObject(f, true).min.y);
-    root.position.y = -min;
+    root.position.y = this.groundY - min;
     root.updateMatrixWorld(true);
   }
 
@@ -151,19 +153,16 @@ export class Rig {
       if (a.t >= 1) this.anim = null;
       this.ground();
     }
-    // Tabouret : apparaît sous le bassin dans la pose assise.
+    // Socle cubique : sort du sol sous le bassin dans la pose assise.
     const st = this.stoolTarget ?? 0;
     this.stoolT += Math.sign(st - this.stoolT) * Math.min(Math.abs(st - this.stoolT), dt * 2.2);
     if (this.stoolT > 0.001) {
       const pelvisBottom = _box.setFromObject(this.body.pelvis, true).min.y;
-      const top = Math.max(0.05, pelvisBottom + 0.035 * this.body.scale);
+      const top = Math.max(0.05, pelvisBottom + 0.03 * this.body.scale);
       this.stool.visible = true;
-      this.stool.userData.setHeight(top);
-      const s = ease(this.stoolT);
-      this.stool.scale.set(s, 1, s);
-      this.stool.children.forEach((c) => { c.material.opacity = s; });
+      this.stool.scale.set(1, Math.max(0.001, top * ease(this.stoolT)), 1);
       const hp = this.body.bones.Hips.getWorldPosition(_v1);
-      this.stool.position.set(hp.x, 0, hp.z - 0.03 * this.body.scale);
+      this.stool.position.set(hp.x, 0, hp.z - 0.06 * this.body.scale);
     } else this.stool.visible = false;
     // Mètres rubans : tracé progressif.
     for (const t of this.tapeObjs) {
@@ -189,11 +188,11 @@ export class Rig {
   buildTapes() {
     for (const t of this.tapeObjs) { t.mesh.parent.remove(t.mesh); t.mesh.geometry.dispose(); t.label.parent?.remove(t.label); t.label.element.remove(); }
     this.tapeObjs = [];
-    const mat = this.tapeMat || (this.tapeMat = new THREE.MeshStandardMaterial({ color: 0xe8b23a, roughness: 0.5, emissive: 0x3a2400, emissiveIntensity: 0.25 }));
+    const mat = this.tapeMat || (this.tapeMat = new THREE.MeshStandardMaterial({ color: 0x1c1c1c, roughness: 0.5 }));
     for (const [key, tape] of Object.entries(this.body.tapes)) {
       const pts = tape.hull.map(([x, z]) => new THREE.Vector3(x * 1.012, tape.y - tape.yOffset, z * 1.012 + (z > 0 ? 0.002 : -0.002)));
       const curve = new THREE.CatmullRomCurve3(pts, true, 'centripetal');
-      const geo = new THREE.TubeGeometry(curve, 160, 0.0045, 6, true);
+      const geo = new THREE.TubeGeometry(curve, 160, 0.0028, 6, true);
       const mesh = new THREE.Mesh(geo, mat);
       mesh.visible = false;
       tape.bone.add(mesh);
@@ -261,35 +260,14 @@ function disposeBody(b) {
   b.root.traverse((o) => { if (o.isCSS2DObject) o.element.remove(); if (o.isSkinnedMesh) o.skeleton.dispose(); });
 }
 
+/** Socle en béton (hauteur unitaire, mis à l'échelle en y). */
 function makeStool() {
-  const g = new THREE.Group();
-  const wood = new THREE.MeshStandardMaterial({ color: 0x9b6b43, roughness: 0.62, transparent: true });
-  const seatMat = new THREE.MeshStandardMaterial({ color: 0x2f3a56, roughness: 0.8, transparent: true });
-  const seat = new THREE.Mesh(new THREE.CylinderGeometry(0.2, 0.2, 0.05, 48), seatMat);
-  const legs = [];
-  for (let i = 0; i < 3; i++) {
-    const leg = new THREE.Mesh(new THREE.CylinderGeometry(0.014, 0.018, 1, 12), wood);
-    const a = (i / 3) * Math.PI * 2 + Math.PI / 6;
-    leg.userData.a = a;
-    legs.push(leg);
-    g.add(leg);
-  }
-  const ring = new THREE.Mesh(new THREE.TorusGeometry(0.13, 0.008, 8, 48), wood);
-  ring.rotation.x = Math.PI / 2;
-  g.add(seat, ring);
-  for (const m of [seat, ring, ...legs]) { m.castShadow = true; m.receiveShadow = true; }
-  g.userData.setHeight = (h) => {
-    seat.position.y = h - 0.025;
-    ring.position.y = h * 0.35;
-    for (const leg of legs) {
-      const spread = 0.17;
-      leg.scale.y = h - 0.04;
-      leg.position.set(Math.cos(leg.userData.a) * spread * 0.92, (h - 0.04) / 2, Math.sin(leg.userData.a) * spread * 0.92);
-      leg.rotation.set(0, 0, 0);
-    }
-  };
-  g.userData.setHeight(0.5);
-  return g;
+  const geo = new THREE.BoxGeometry(0.44, 1, 0.44);
+  geo.translate(0, 0.5, 0);
+  const m = new THREE.Mesh(geo, new THREE.MeshStandardMaterial({ color: 0xd2cfca, roughness: 0.92 }));
+  m.castShadow = true;
+  m.receiveShadow = true;
+  return m;
 }
 
 /** Toise façon mètre ruban de couturière, avec repère de hauteur. */
@@ -298,9 +276,9 @@ function makeRuler() {
   const c = document.createElement('canvas');
   c.width = 96; c.height = 2048;
   const x = c.getContext('2d');
-  x.fillStyle = '#efc04f'; x.fillRect(0, 0, c.width, c.height);
-  x.fillStyle = '#2b2116';
-  x.font = 'bold 22px system-ui, sans-serif';
+  x.fillStyle = '#fbfaf8'; x.fillRect(0, 0, c.width, c.height);
+  x.fillStyle = '#1c1c1c';
+  x.font = '500 20px system-ui, sans-serif';
   x.textAlign = 'right';
   for (let cm = 0; cm <= 200; cm++) {
     const y = c.height - (cm / 200) * c.height;
@@ -314,12 +292,12 @@ function makeRuler() {
   tex.colorSpace = THREE.SRGBColorSpace;
   tex.anisotropy = 4;
   const group = new THREE.Group();
-  group.position.set(-0.62, 0, 0.12);
-  const strip = new THREE.Mesh(new THREE.PlaneGeometry(0.06, H), new THREE.MeshStandardMaterial({ map: tex, roughness: 0.7, side: THREE.DoubleSide }));
+  group.position.set(-0.6, 0, 0.1);
+  const strip = new THREE.Mesh(new THREE.PlaneGeometry(0.05, H), new THREE.MeshStandardMaterial({ map: tex, roughness: 0.7, side: THREE.DoubleSide }));
   strip.position.y = H / 2;
   strip.castShadow = true;
   group.add(strip);
-  const marker = new THREE.Mesh(new THREE.BoxGeometry(0.16, 0.006, 0.006), new THREE.MeshStandardMaterial({ color: 0xc4572e }));
+  const marker = new THREE.Mesh(new THREE.BoxGeometry(0.16, 0.006, 0.006), new THREE.MeshStandardMaterial({ color: 0x1c1c1c }));
   group.add(marker);
   const el = document.createElement('div');
   el.className = 'tape-label tape-label--height';

@@ -42,8 +42,7 @@ AtelierPagne/
 │   └── essayage.css
 ├── js/essayage/
 │   ├── main.js              scène, caméra, boucle
-│   ├── decor.js             salon, lumières, podium, psyché, portant
-│   ├── pattern.js           motif wax raccordable (canvas)
+│   ├── decor.js             showroom clair : lumière, béton, socles, cadres drapés, plantes
 │   ├── mannequin.js         mannequin procédural + morphologies Femme/Homme
 │   ├── geometry.js          surfaces « loft », tour de mesure (enveloppe convexe)
 │   ├── poses.js             bibliothèque de poses (données)
@@ -121,7 +120,7 @@ stockage, partage), `assets/modeles/*.glb`, `assets/pagnes/*.webp`.
 
 | Phase | Contenu | Livrable |
 |---|---|---|
-| **1 — Salle d’essayage** ✅ | Mannequin 3D Femme/Homme gris silicone, 7 poses, vues, rotation auto, mesures client, rubans, photo | `essayage.html` |
+| **1 — Salle d’essayage** ✅ | Mannequin de vitrine Femme/Homme gris clair, showroom épuré, 7 poses, vues, rotation auto, mesures client, rubans, photo | `essayage.html` |
 | 2 — Modèles | 3-4 coupes de base en GLB (robe droite, jupe + haut, boubou, chemise homme), habillage du mannequin, retouches par curseurs | `modeles.html` + vêtements dans la cabine |
 | 3 — Pagnes | Catalogue (10-20 motifs libres), application en texture, échelle du motif | `pagnes.html` |
 | 4 — Import photo | Recadrage, perspective, raccord de motif | module d’import |
@@ -130,20 +129,22 @@ stockage, partage), `assets/modeles/*.glb`, `assets/pagnes/*.webp`.
 
 ## 7. Salle d’essayage — ce qui est livré
 
-- Mannequin femme (par défaut) ou homme, **silicone gris clair**, tête sans visage façon vitrine.
-- Observable **sous tous les angles** : glisser pour tourner, zoom molette/pincement,
-  vues prêtes (Face, 3/4, Profil, Dos, Plongée, Gros plan) et rotation automatique.
+- **Mannequin de vitrine épuré**, gris clair, sans visage : silhouette allongée,
+  tête ovale, long cou, jambes lisses d’un seul tenant ; seules les articulations
+  des bras (épaule, coude, poignet) restent visibles, dans un gris plus soutenu.
+  Femme par défaut, Homme au choix.
+- **Showroom clair** : mur blanc, sol en béton, plaque d’acier sous le mannequin,
+  socles cubiques, cadres métalliques drapés de lin, un peu de végétation.
+- Interface **plein écran** : le mannequin occupe l’écran ; une seule barre en bas
+  (poses en vignettes, vues Face / 3/4 / Profil / Dos, rotation) ; les réglages
+  sont rangés dans le tiroir **Mes mesures**, et la caméra recadre le mannequin
+  quand il s’ouvre.
+- **Parcours clair** : étapes Modèle → Pagne → Essayage affichées en haut, guide
+  en 3 étapes à la première visite (rouvrable avec « ? »).
 - **7 poses** animées : Debout, Hanchement, Mains sur les hanches, Bras ouverts,
-  Défilé, Pose photo, Assise (un tabouret apparaît).
+  Défilé, Pose photo, Assise (un socle en béton sort du sol).
 - Mains posées par **cinématique inverse** : elles restent sur les hanches même
   quand on change les mesures.
 - **Mes mesures** : hauteur, tours de poitrine, taille, hanches → le mannequin se
-  déforme en direct ; valeurs mémorisées.
+  déforme en direct ; valeurs mémorisées sur l’appareil.
 - **Mètres rubans** et toise affichables, bouton **Photo** (capture PNG).
-- Motion design couture : aiguille qui coud au chargement, surpiqûres qui se
-  cousent, rideau de cabine au changement de silhouette.
-- **Décor de boutique** : salon tendu de velours indigo, parquet, faisceau de
-  lumière où flotte la poussière, podium incrusté d'une frise wax et cerclé de
-  laiton, **psyché qui reflète le dos du mannequin**, portant de pagnes.
-  Le motif wax est original, dessiné par le code (`pattern.js`) : il servira aussi
-  d'exemple de catalogue.

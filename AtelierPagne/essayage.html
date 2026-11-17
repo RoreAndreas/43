@@ -5,10 +5,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>Salle d'essayage · Atelier Pagne</title>
   <meta name="description" content="Faites tourner le mannequin, choisissez une pose et ajustez-le à vos mesures avant de choisir votre tenue en pagne.">
-  <meta name="theme-color" content="#1f2a44">
+  <meta name="theme-color" content="#efeeeb">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,700&family=Fraunces:opsz,wght@9..144,500;9..144,700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/tokens.css">
   <link rel="stylesheet" href="css/essayage.css">
   <script type="importmap">
@@ -18,105 +18,79 @@
     } }
   </script>
 </head>
-<body data-sheet="">
-  <!-- Chargement : une aiguille coud la ligne -->
+<body>
   <div class="loader" id="loader" role="status" aria-live="polite">
-    <svg class="loader__art" viewBox="0 0 240 80" aria-hidden="true">
-      <path class="loader__seam" d="M10 50 C 50 10, 90 70, 130 40 S 200 20, 230 45"/>
-      <path class="loader__thread" d="M10 50 C 50 10, 90 70, 130 40 S 200 20, 230 45"/>
-      <g class="loader__needle">
-        <path d="M-16 0 L14 -1.4 L18 0 L14 1.4 Z"/>
-        <ellipse cx="-11" cy="0" rx="3" ry="0.9" class="eye"/>
-      </g>
-    </svg>
-    <p>On prépare votre cabine…</p>
+    <span class="wordmark">Atelier Pagne</span>
+    <span class="loader__seam" aria-hidden="true"></span>
+    <p>Préparation de la cabine</p>
   </div>
 
-  <header class="topbar">
-    <a class="brand" href="index.html" aria-label="Atelier Pagne, retour à l'accueil">
-      <svg viewBox="0 0 32 32" aria-hidden="true" class="brand__mark">
-        <circle cx="16" cy="16" r="15"/>
-        <path d="M9 23 22.5 9.5" class="needle"/>
-        <circle cx="21" cy="11" r="1.3" class="eye"/>
-        <path d="M9 23c3 3 9 2 9-3s6-6 8-2" class="thread"/>
-      </svg>
-      <span>Atelier <em>Pagne</em></span>
-    </a>
-    <div class="topbar__title">
-      <span class="eyebrow">Cabine 01 · <span id="current-pose">Debout</span></span>
-      <h1>Salle d’essayage</h1>
-    </div>
-    <div class="topbar__actions">
-      <button class="btn btn--ghost" id="btn-help" type="button">
-        <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M9.5 9.5a2.5 2.5 0 1 1 3.5 2.3c-.6.3-1 .8-1 1.5v.5M12 17h.01"/></svg>
-        <span>Aide</span>
+  <div class="viewport" id="viewport" role="img"
+       aria-label="Mannequin de vitrine gris clair dans un showroom. Faites glisser pour tourner autour, molette ou deux doigts pour zoomer."></div>
+  <div class="fade" id="fade" aria-hidden="true"></div>
+
+  <header class="top">
+    <a class="wordmark" href="index.html">Atelier Pagne</a>
+    <ol class="steps" aria-label="Étapes">
+      <li class="is-soon" title="Bientôt disponible"><span>1</span>Modèle</li>
+      <li class="is-soon" title="Bientôt disponible"><span>2</span>Pagne</li>
+      <li aria-current="step"><span>3</span>Essayage</li>
+    </ol>
+    <div class="top__actions">
+      <button class="icon-btn" id="btn-help" type="button" aria-label="Afficher le guide">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M9.6 9.4a2.5 2.5 0 1 1 3.4 2.4c-.6.3-1 .8-1 1.4v.6M12 17h.01"/></svg>
       </button>
-      <button class="btn btn--primary" id="btn-photo" type="button">
-        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 8h3l2-2.5h6L17 8h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg>
-        <span>Photo</span>
+      <button class="icon-btn" id="btn-photo" type="button" aria-label="Prendre une photo">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 8h3l1.8-2.5h6.4L17 8h3v11H4z"/><circle cx="12" cy="13" r="3.4"/></svg>
       </button>
     </div>
   </header>
 
-  <main class="room">
-    <div class="viewport" id="viewport" role="img"
-         aria-label="Mannequin 3D gris clair sur un podium. Faites glisser pour tourner autour, utilisez la molette ou deux doigts pour zoomer."></div>
-    <div class="curtain" id="curtain" aria-hidden="true"><span></span><span></span></div>
-
-    <aside class="panel panel--poses" id="panel-poses" aria-labelledby="poses-title">
-      <div class="panel__head">
-        <h2 id="poses-title">Poses</h2>
-        <button class="panel__close" type="button" data-close-sheet aria-label="Fermer">×</button>
+  <footer class="dock">
+    <div class="dock__inner">
+      <div class="dock__row">
+        <p class="caption" aria-live="polite"><strong id="caption-title">Debout</strong><span id="caption-hint"></span></p>
+        <nav class="views" id="views" aria-label="Points de vue"></nav>
       </div>
-      <p class="panel__lead">Touchez une pose, le mannequin s’y place.</p>
-      <ul class="pose-list" id="pose-list"></ul>
-    </aside>
-
-    <aside class="panel panel--body" id="panel-body" aria-labelledby="body-title">
-      <div class="panel__head">
-        <h2 id="body-title">Mannequin</h2>
-        <button class="panel__close" type="button" data-close-sheet aria-label="Fermer">×</button>
+      <div class="dock__main">
+        <div class="poses" id="pose-list" role="radiogroup" aria-label="Poses"></div>
+        <button class="btn btn--primary measures-btn" id="btn-measures" type="button" aria-expanded="false" aria-controls="drawer">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 16 16 3l5 5L8 21z"/><path d="m7 12 2 2m1-5 2 2m1-5 2 2"/></svg>
+          <span>Mes mesures</span>
+        </button>
       </div>
-      <div class="segmented" id="preset" role="group" aria-label="Silhouette"></div>
+    </div>
+  </footer>
 
-      <button class="switch" id="toggle-tapes" type="button" role="switch" aria-checked="false">
-        <span class="switch__track"><span class="switch__thumb"></span></span>
-        <span class="switch__txt"><strong>Afficher les mesures</strong><small>Mètres rubans sur le mannequin</small></span>
+  <aside class="drawer" id="drawer" aria-labelledby="drawer-title" aria-hidden="true">
+    <div class="drawer__head">
+      <h2 id="drawer-title">Mes mesures</h2>
+      <button class="icon-btn" type="button" id="drawer-close" aria-label="Fermer">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg>
       </button>
+    </div>
+    <p class="drawer__lead">Réglez le mannequin à votre silhouette. Vos mesures restent sur cet appareil.</p>
+    <div class="segmented" id="preset" role="group" aria-label="Silhouette"></div>
+    <div class="measures" id="measures"></div>
+    <button class="switch" id="toggle-tapes" type="button" role="switch" aria-checked="false">
+      <span>Afficher les mètres rubans</span>
+      <span class="switch__track"><span class="switch__thumb"></span></span>
+    </button>
+    <button class="link" id="btn-reset" type="button">Revenir aux mesures standard</button>
+  </aside>
 
-      <h3 class="panel__sub">Ajuster à mes mesures</h3>
-      <div class="measures" id="measures"></div>
-      <button class="btn btn--ghost btn--block" id="btn-reset" type="button">Revenir aux mesures standard</button>
-    </aside>
-
-    <nav class="views" id="views" aria-label="Points de vue"></nav>
-
-    <p class="hint" id="hint">
-      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 11V5.5a1.5 1.5 0 0 1 3 0V11m0-1.5a1.5 1.5 0 0 1 3 0V11m0-.5a1.5 1.5 0 0 1 3 0V15a6 6 0 0 1-6 6h-1a6 6 0 0 1-5-2.7L4.3 15a1.5 1.5 0 0 1 2.4-1.8L9 15"/></svg>
-      Glissez pour tourner autour · Molette ou deux doigts pour zoomer
-    </p>
-
-    <nav class="tabbar" aria-label="Menu">
-      <button type="button" data-sheet="poses" aria-expanded="false" aria-controls="panel-poses">
-        <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="5" r="2.5"/><path d="M12 8v7m0 0-3 6m3-6 3 6M7 11l5-2 5 2"/></svg>Poses
-      </button>
-      <button type="button" data-sheet="body" aria-expanded="false" aria-controls="panel-body">
-        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 16 16 3l5 5L8 21z"/><path d="m7 12 2 2m1-5 2 2m1-5 2 2"/></svg>Mesures
-      </button>
-    </nav>
-  </main>
-
-  <dialog class="help" id="help" aria-labelledby="help-title">
-    <h2 id="help-title">Comment utiliser la cabine</h2>
-    <ol>
-      <li><strong>Tourner autour</strong> : faites glisser avec la souris ou le doigt.</li>
-      <li><strong>Zoomer</strong> : molette de la souris, ou écartez deux doigts.</li>
-      <li><strong>Poses</strong> : touchez une pose, le mannequin s’y place tout seul.</li>
-      <li><strong>Vos mesures</strong> : réglez hauteur, poitrine, taille et hanches ; elles restent mémorisées sur cet appareil.</li>
-    </ol>
-    <p class="help__keys">Raccourcis clavier : <kbd>1</kbd>–<kbd>7</kbd> poses · <kbd>←</kbd> <kbd>→</kbd> tourner · <kbd>R</kbd> rotation auto · <kbd>M</kbd> mesures</p>
-    <button class="btn btn--primary" type="button" data-close>J’ai compris</button>
-  </dialog>
+  <div class="guide" id="guide" role="dialog" aria-modal="true" aria-labelledby="guide-title" hidden>
+    <div class="guide__card">
+      <p class="guide__eyebrow">Salle d’essayage</p>
+      <h2 id="guide-title">Bienvenue en cabine</h2>
+      <ol class="guide__steps">
+        <li><span>1</span><div><strong>Tournez autour</strong><p>Faites glisser sur le mannequin, ou choisissez Face, 3/4, Profil, Dos.</p></div></li>
+        <li><span>2</span><div><strong>Choisissez une pose</strong><p>Dans la barre en bas de l’écran.</p></div></li>
+        <li><span>3</span><div><strong>Ajustez à vos mesures</strong><p>Avec le bouton « Mes mesures ».</p></div></li>
+      </ol>
+      <button class="btn btn--primary" type="button" data-close>Commencer</button>
+    </div>
+  </div>
 
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
 

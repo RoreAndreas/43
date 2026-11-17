@@ -1,24 +1,28 @@
-// Mannequin procédural en « silicone » gris clair.
-// Le squelette reprend les noms d'os standards (Hips, Spine, LeftArm…) : la
-// bibliothèque de poses restera valable le jour où l'on chargera un mannequin
-// GLB modélisé et rigué avec ces mêmes noms, et les vêtements 3D s'y
-// accrocheront de la même façon.
+// Mannequin de vitrine épuré, gris clair, sans visage.
+// Silhouette allongée, tête ovale, long cou, jambes lisses d'un seul tenant ;
+// seules les articulations des bras (épaule, coude, poignet) restent visibles,
+// dans un gris un peu plus soutenu.
+// Le squelette reprend les noms d'os standards (Hips, Spine, LeftArm…) : les
+// poses resteront valables avec un mannequin GLB rigué de la même façon.
 import * as THREE from 'three';
 import { loftGeometry, tapeAt, ringAt } from './geometry.js';
 
 export const PRESETS = {
   femme: {
-    label: 'Femme', chest: 1, shoulder: 1, chestZ: 1, bustBump: 0.026, waist: 1, hip: 1, glute: 1,
-    limb: 1, neck: 1, scale: 1,
+    label: 'Femme', chest: 0.97, shoulder: 0.98, chestZ: 0.97, bustBump: 0.02, waist: 0.93, hip: 0.97, glute: 0.95,
+    limb: 0.9, leg: 0.92, neck: 0.9, head: 0.9, scale: 1,
   },
   homme: {
-    label: 'Homme', chest: 1.09, shoulder: 1.17, chestZ: 0.96, bustBump: 0, waist: 1.15, hip: 0.92, glute: 0.84,
-    limb: 1.14, neck: 1.2, scale: 1.06,
+    label: 'Homme', chest: 1.08, shoulder: 1.16, chestZ: 0.95, bustBump: 0, waist: 1.1, hip: 0.92, glute: 0.82,
+    limb: 1.04, leg: 1.02, neck: 1.08, head: 0.96, scale: 1.05,
   },
 };
 
-// Hauteurs (repère du mannequin de base, en mètres) où l'on pose le mètre ruban.
+// Hauteurs (repère des sections, avant allongement des jambes) où l'on pose le mètre ruban.
 export const TAPE_Y = { bust: 1.25, waist: 1.065, hip: 0.885 };
+// Allongement des jambes par rapport aux proportions « standard ».
+const EXTRA = 0.05;
+const THIGH = 0.435, CALF = 0.435;
 
 const lerpPts = (pts, y) => {
   if (y <= pts[0][0]) return pts[0][1];
@@ -31,16 +35,22 @@ const lerpPts = (pts, y) => {
 
 export function createSiliconeMaterial() {
   return new THREE.MeshPhysicalMaterial({
-    color: 0xbfc1c5,
-    roughness: 0.48,
-    metalness: 0,
-    clearcoat: 0.35,
-    clearcoatRoughness: 0.45,
-    sheen: 0.35,
-    sheenRoughness: 0.6,
-    sheenColor: new THREE.Color(0xf2f2f2),
-    transparent: false,
+    color: 0xbdbec1, roughness: 0.58, metalness: 0, sheen: 0.25, sheenRoughness: 0.7, sheenColor: new THREE.Color(0xffffff),
   });
+}
+const jointMaterial = new THREE.MeshStandardMaterial({ color: 0x9fa1a5, roughness: 0.45 });
+
+/** Pose les poids de peau (2 os) le long de y, avec une zone de fondu. */
+function skin(geo, from, to) {
+  const pos = geo.attributes.position;
+  const idx = new Uint16Array(pos.count * 4), w = new Float32Array(pos.count * 4);
+  for (let i = 0; i < pos.count; i++) {
+    const t = THREE.MathUtils.smoothstep(pos.getY(i), from, to);
+    idx.set([0, 1, 0, 0], i * 4);
+    w.set([1 - t, t, 0, 0], i * 4);
+  }
+  geo.setAttribute('skinIndex', new THREE.Uint16BufferAttribute(idx, 4));
+  geo.setAttribute('skinWeight', new THREE.Float32BufferAttribute(w, 4));
 }
 
 /**
@@ -61,8 +71,8 @@ export function buildMannequin(preset, k = { bust: 1, waist: 1, hip: 1 }, materi
     bones[name] = b;
     return b;
   };
-  const mesh = (geo, parent, tag) => {
-    const m = new THREE.Mesh(geo, material);
+  const mesh = (geo, parent, tag, mat = material) => {
+    const m = new THREE.Mesh(geo, mat);
     m.castShadow = true;
     m.receiveShadow = true;
     m.userData.tag = tag;
@@ -70,9 +80,17 @@ export function buildMannequin(preset, k = { bust: 1, waist: 1, hip: 1 }, materi
     meshes.push(m);
     return m;
   };
-  const sphere = (r, parent, x = 0, y = 0, z = 0) => {
-    const m = mesh(new THREE.SphereGeometry(r, 32, 20), parent, 'joint');
-    m.position.set(x, y, z);
+  const joint = (r, parent) => mesh(new THREE.SphereGeometry(r, 32, 20), parent, 'joint', jointMaterial);
+  const skinned = (geo, boneList, tag) => {
+    root.updateMatrixWorld(true);
+    const m = new THREE.SkinnedMesh(geo, material);
+    m.castShadow = m.receiveShadow = true;
+    m.frustumCulled = false;
+    m.userData.tag = tag;
+    root.add(m);
+    root.updateMatrixWorld(true);
+    m.bind(new THREE.Skeleton(boneList));
+    meshes.push(m);
     return m;
   };
 
@@ -88,203 +106,176 @@ export function buildMannequin(preset, k = { bust: 1, waist: 1, hip: 1 }, materi
   // ---------- Squelette ----------
   const root = new THREE.Group();
   root.name = 'Root';
-  const shX = 0.158 * P.shoulder;
-  const hipX = 0.09 * (0.5 + 0.5 * P.hip * k.hip);
-  const hips = bone('Hips', root, 0, 0.95, 0);
-  const spine = bone('Spine', hips, 0, 0.09, 0); // 1.04
-  const neck = bone('Neck', spine, 0, 0.42, 0); // 1.46
-  const head = bone('Head', neck, 0, 0.075, 0.004); // 1.535
+  const shX = 0.156 * P.shoulder;
+  const hipX = 0.088 * (0.5 + 0.5 * P.hip * k.hip);
+  const hips = bone('Hips', root, 0, 0.95 + EXTRA, 0);
+  const spine = bone('Spine', hips, 0, 0.09, 0);
+  const neck = bone('Neck', spine, 0, 0.42, 0);
+  const head = bone('Head', neck, 0, 0.1, 0.006);
   for (const side of ['Left', 'Right']) {
     const sx = side === 'Left' ? 1 : -1;
-    const arm = bone(`${side}Arm`, spine, sx * shX, 0.338, -0.006);
+    const arm = bone(`${side}Arm`, spine, sx * shX, 0.336, -0.006);
     const fore = bone(`${side}ForeArm`, arm, 0, -0.29, 0);
-    bone(`${side}Hand`, fore, 0, -0.245, 0);
+    bone(`${side}Hand`, fore, 0, -0.25, 0);
     const up = bone(`${side}UpLeg`, hips, sx * hipX, -0.05, 0);
-    const leg = bone(`${side}Leg`, up, 0, -0.41, 0);
-    bone(`${side}Foot`, leg, 0, -0.41, 0);
+    const leg = bone(`${side}Leg`, up, 0, -THIGH, 0);
+    bone(`${side}Foot`, leg, 0, -CALF, 0);
   }
 
-  // ---------- Bassin ----------
-  const g = P.glute;
-  const pelvisRings = [
-    { y: 0.784, rx: 0.03, zf: 0.022, zb: 0.028 },
-    { y: 0.8, rx: 0.085, zf: 0.055, zb: 0.075 * g },
-    { y: 0.83, rx: 0.156, zf: 0.088, zb: 0.112 * g },
+  // ---------- Buste et bassin d'un seul tenant (skinné sur Hips/Spine) ----------
+  const g = P.glute, cz = P.chestZ;
+  const bodyRings = [
+    { y: 0.77, rx: 0.03, zf: 0.022, zb: 0.028 },
+    { y: 0.79, rx: 0.115, zf: 0.06, zb: 0.08 * g },
+    { y: 0.83, rx: 0.165, zf: 0.09, zb: 0.114 * g },
     { y: 0.885, rx: 0.177, zf: 0.1, zb: 0.132 * g },
     { y: 0.94, rx: 0.171, zf: 0.097, zb: 0.12 * g },
     { y: 1.0, rx: 0.151, zf: 0.092, zb: 0.1 },
-    { y: 1.065, rx: 0.127, zf: 0.087, zb: 0.086 },
-    { y: 1.11, rx: 0.122, zf: 0.083, zb: 0.082 },
-    { y: 1.128, rx: 0.06, zf: 0.04, zb: 0.04 },
-  ];
-
-  // ---------- Buste ----------
-  const cz = P.chestZ;
-  const torsoRings = [
-    { y: 0.96, rx: 0.06, zf: 0.04, zb: 0.04 },
-    { y: 0.975, rx: 0.12, zf: 0.083, zb: 0.085 },
     { y: 1.065, rx: 0.128, zf: 0.088, zb: 0.087 },
     { y: 1.14, rx: 0.14, zf: 0.094 * cz, zb: 0.09 },
     { y: 1.19, rx: 0.148, zf: 0.1 * cz, zb: 0.095 },
     { y: 1.25, rx: 0.158, zf: 0.112 * cz, zb: 0.1, b: P.bustBump },
     { y: 1.31, rx: 0.164, zf: 0.104 * cz, zb: 0.099, b: P.bustBump * 0.35 },
-    { y: 1.36, rx: 0.17, zf: 0.087, zb: 0.09 },
-    { y: 1.40, rx: 0.162, zf: 0.069, zb: 0.075 },
-    { y: 1.43, rx: 0.127, zf: 0.058, zb: 0.063 },
-    { y: 1.455, rx: 0.08, zf: 0.05, zb: 0.054 },
-    { y: 1.475, rx: 0.055, zf: 0.045, zb: 0.05 },
+    { y: 1.36, rx: 0.168, zf: 0.087, zb: 0.09 },
+    { y: 1.40, rx: 0.158, zf: 0.069, zb: 0.075 },
+    { y: 1.43, rx: 0.122, zf: 0.058, zb: 0.063 },
+    { y: 1.455, rx: 0.075, zf: 0.05, zb: 0.054 },
+    { y: 1.475, rx: 0.05, zf: 0.043, zb: 0.048 },
     { y: 1.49, rx: 0.03, zf: 0.03, zb: 0.03 },
   ];
-  // Bassin + buste d'un seul tenant, « skinné » sur Hips et Spine : pas de
-  // jointure visible à la taille, la flexion du dos se répartit en douceur.
-  const bodyRings = [...pelvisRings.filter((r) => r.y <= 1.0), ...torsoRings.filter((r) => r.y >= 1.065)];
   const torsoGeo = loftGeometry(bodyRings, { scale: radial, yOffset: 0, seg: 72, sub: 5 });
-  const pelvisGeo = torsoGeo;
-  {
-    const pos = torsoGeo.attributes.position;
-    const idx = new Uint16Array(pos.count * 4), w = new Float32Array(pos.count * 4);
-    for (let i = 0; i < pos.count; i++) {
-      const t = THREE.MathUtils.smoothstep(pos.getY(i), 0.98, 1.12);
-      idx.set([0, 1, 0, 0], i * 4);
-      w.set([1 - t, t, 0, 0], i * 4);
-    }
-    torsoGeo.setAttribute('skinIndex', new THREE.Uint16BufferAttribute(idx, 4));
-    torsoGeo.setAttribute('skinWeight', new THREE.Float32BufferAttribute(w, 4));
-  }
-  root.updateMatrixWorld(true);
-  const torso = new THREE.SkinnedMesh(torsoGeo, material);
-  torso.castShadow = torso.receiveShadow = true;
-  torso.frustumCulled = false;
-  torso.userData.tag = 'torso';
-  root.add(torso);
-  root.updateMatrixWorld(true);
-  torso.bind(new THREE.Skeleton([hips, spine]));
-  meshes.push(torso);
-  const pelvis = torso;
+  skin(torsoGeo, 0.98, 1.12);
+  torsoGeo.translate(0, EXTRA, 0);
+  const torso = skinned(torsoGeo, [hips, spine], 'torso');
 
-  // ---------- Cou et tête (tête « œuf » sans visage, comme en vitrine) ----------
+  // ---------- Cou long et tête ovale ----------
   const n = P.neck;
   mesh(loftGeometry([
-    { y: -0.06, rx: 0.06 * n, zf: 0.05 * n, zb: 0.055 * n },
-    { y: 0, rx: 0.052 * n, zf: 0.05 * n, zb: 0.05 * n },
-    { y: 0.06, rx: 0.047 * n, zf: 0.047 * n, zb: 0.047 * n, cz: 0.005 },
-    { y: 0.11, rx: 0.044 * n, zf: 0.045 * n, zb: 0.045 * n, cz: 0.012 },
-    { y: 0.135, rx: 0.02, zf: 0.02, zb: 0.02, cz: 0.012 },
+    { y: -0.06, rx: 0.056 * n, zf: 0.047 * n, zb: 0.052 * n },
+    { y: 0, rx: 0.047 * n, zf: 0.045 * n, zb: 0.046 * n },
+    { y: 0.07, rx: 0.042 * n, zf: 0.042 * n, zb: 0.042 * n, cz: 0.004 },
+    { y: 0.13, rx: 0.04 * n, zf: 0.041 * n, zb: 0.041 * n, cz: 0.012 },
+    { y: 0.16, rx: 0.02, zf: 0.02, zb: 0.02, cz: 0.012 },
   ]), neck, 'neck');
-  const hs = P === PRESETS.homme ? 1.05 : 1;
   const headGeo = loftGeometry([
-    { y: -0.035, rx: 0.012, zf: 0.012, zb: 0.012, cz: 0.032 },
-    { y: -0.02, rx: 0.036, zf: 0.034, zb: 0.03, cz: 0.032 },
-    { y: 0.012, rx: 0.058 * hs, zf: 0.06, zb: 0.06, cz: 0.016 },
-    { y: 0.06, rx: 0.071 * hs, zf: 0.085, zb: 0.08, cz: 0.006 },
-    { y: 0.11, rx: 0.076 * hs, zf: 0.09, zb: 0.096, cz: 0 },
-    { y: 0.16, rx: 0.072 * hs, zf: 0.081, zb: 0.091, cz: -0.006 },
-    { y: 0.2, rx: 0.056 * hs, zf: 0.059, zb: 0.069, cz: -0.009 },
-    { y: 0.226, rx: 0.026, zf: 0.026, zb: 0.031, cz: -0.009 },
+    { y: -0.035, rx: 0.012, zf: 0.012, zb: 0.012, cz: 0.03 },
+    { y: -0.02, rx: 0.034, zf: 0.033, zb: 0.03, cz: 0.03 },
+    { y: 0.012, rx: 0.056, zf: 0.06, zb: 0.058, cz: 0.014 },
+    { y: 0.06, rx: 0.069, zf: 0.083, zb: 0.08, cz: 0.005 },
+    { y: 0.11, rx: 0.074, zf: 0.088, zb: 0.095, cz: 0 },
+    { y: 0.16, rx: 0.07, zf: 0.079, zb: 0.09, cz: -0.006 },
+    { y: 0.2, rx: 0.054, zf: 0.057, zb: 0.068, cz: -0.009 },
+    { y: 0.226, rx: 0.025, zf: 0.025, zb: 0.03, cz: -0.009 },
     { y: 0.234, rx: 0.004, zf: 0.004, zb: 0.004, cz: -0.009 },
   ], { seg: 56 });
+  headGeo.scale(P.head, P.head, P.head);
   const headMesh = mesh(headGeo, head, 'head');
-  headMesh.rotation.x = 0.08;
+  headMesh.rotation.x = 0.1;
 
-  // ---------- Membres ----------
+  // ---------- Bras (articulations visibles) ----------
   const armRings = [
-    { y: 0.03, rx: 0.02 * L },
-    { y: 0.012, rx: 0.042 * L, zf: 0.043 * L, zb: 0.044 * L },
-    { y: -0.02, rx: 0.049 * L, zf: 0.047 * L, zb: 0.048 * L },
-    { y: -0.07, rx: 0.045 * L, zf: 0.044 * L, zb: 0.046 * L },
-    { y: -0.18, rx: 0.038 * L, zf: 0.039 * L, zb: 0.041 * L },
-    { y: -0.29, rx: 0.031 * L, zf: 0.032 * L, zb: 0.033 * L },
-    { y: -0.315, rx: 0.016 * L },
-    { y: -0.322, rx: 0.003 },
+    { y: 0.026, rx: 0.018 * L },
+    { y: 0.01, rx: 0.04 * L, zf: 0.041 * L, zb: 0.042 * L },
+    { y: -0.03, rx: 0.046 * L, zf: 0.044 * L, zb: 0.046 * L },
+    { y: -0.09, rx: 0.042 * L, zf: 0.041 * L, zb: 0.043 * L },
+    { y: -0.19, rx: 0.036 * L, zf: 0.037 * L, zb: 0.039 * L },
+    { y: -0.272, rx: 0.029 * L, zf: 0.03 * L, zb: 0.031 * L },
+    { y: -0.29, rx: 0.016 * L },
+    { y: -0.296, rx: 0.003 },
   ];
   const foreRings = [
-    { y: 0.022, rx: 0.02 * L },
-    { y: 0.0, rx: 0.032 * L, zf: 0.031 * L, zb: 0.033 * L },
-    { y: -0.06, rx: 0.036 * L, zf: 0.033 * L, zb: 0.035 * L },
-    { y: -0.16, rx: 0.028 * L, zf: 0.024 * L, zb: 0.025 * L },
-    { y: -0.24, rx: 0.024 * L, zf: 0.017 * L, zb: 0.018 * L },
-    { y: -0.262, rx: 0.012 * L, zf: 0.01, zb: 0.01 },
-    { y: -0.268, rx: 0.002 },
+    { y: -0.004, rx: 0.003 },
+    { y: -0.012, rx: 0.022 * L },
+    { y: -0.03, rx: 0.031 * L, zf: 0.03 * L, zb: 0.032 * L },
+    { y: -0.08, rx: 0.033 * L, zf: 0.03 * L, zb: 0.032 * L },
+    { y: -0.17, rx: 0.026 * L, zf: 0.022 * L, zb: 0.023 * L },
+    { y: -0.232, rx: 0.022 * L, zf: 0.016 * L, zb: 0.017 * L },
+    { y: -0.244, rx: 0.012 * L, zf: 0.01, zb: 0.01 },
+    { y: -0.248, rx: 0.002 },
   ];
-  // Main en « moufle » : paume tournée vers le corps (axe mince = x).
+  // Main fine, doigts joints : paume tournée vers le corps (axe mince = x).
   const handRings = [
-    { y: 0.012, rx: 0.01 * L, zf: 0.016 * L, zb: 0.016 * L },
-    { y: 0, rx: 0.015 * L, zf: 0.024 * L, zb: 0.024 * L },
-    { y: -0.05, rx: 0.016 * L, zf: 0.037 * L, zb: 0.035 * L },
-    { y: -0.095, rx: 0.013 * L, zf: 0.037 * L, zb: 0.035 * L },
-    { y: -0.14, rx: 0.01 * L, zf: 0.028 * L, zb: 0.027 * L },
-    { y: -0.168, rx: 0.006 * L, zf: 0.013 * L, zb: 0.013 * L },
-    { y: -0.175, rx: 0.002 },
+    { y: -0.006, rx: 0.006 * L, zf: 0.012 * L, zb: 0.012 * L },
+    { y: -0.016, rx: 0.013 * L, zf: 0.021 * L, zb: 0.021 * L },
+    { y: -0.06, rx: 0.015 * L, zf: 0.034 * L, zb: 0.032 * L },
+    { y: -0.1, rx: 0.012 * L, zf: 0.033 * L, zb: 0.031 * L },
+    { y: -0.15, rx: 0.009 * L, zf: 0.025 * L, zb: 0.024 * L },
+    { y: -0.18, rx: 0.005 * L, zf: 0.011 * L, zb: 0.011 * L },
+    { y: -0.186, rx: 0.002 },
   ];
   const thumbRings = [
-    { y: 0, rx: 0.011 * L },
-    { y: -0.03, rx: 0.011 * L },
-    { y: -0.055, rx: 0.009 * L },
+    { y: 0, rx: 0.009 * L },
+    { y: -0.03, rx: 0.009 * L },
+    { y: -0.056, rx: 0.0075 * L },
     { y: -0.064, rx: 0.002 },
   ];
-  const thighRings = [
-    { y: 0.075, rx: 0.045 },
-    { y: 0.035, rx: 0.084, zf: 0.087, zb: 0.091 },
-    { y: -0.05, rx: 0.088, zf: 0.09, zb: 0.093 },
-    { y: -0.15, rx: 0.08, zf: 0.08, zb: 0.082 },
-    { y: -0.27, rx: 0.066, zf: 0.066, zb: 0.066 },
-    { y: -0.37, rx: 0.054, zf: 0.056, zb: 0.052 },
-    { y: -0.42, rx: 0.05, zf: 0.052, zb: 0.048 },
-    { y: -0.455, rx: 0.03, zf: 0.03, zb: 0.03 },
-    { y: -0.468, rx: 0.004 },
-  ];
-  const kThigh = (P.hip * k.hip + 1) / 2;
-  const calfRings = [
-    { y: 0.04, rx: 0.03 },
-    { y: 0.02, rx: 0.048, zf: 0.05, zb: 0.05 },
-    { y: -0.04, rx: 0.05, zf: 0.048, zb: 0.056 },
-    { y: -0.11, rx: 0.052, zf: 0.048, zb: 0.064 },
-    { y: -0.19, rx: 0.045, zf: 0.042, zb: 0.052 },
-    { y: -0.3, rx: 0.032, zf: 0.032, zb: 0.034 },
-    { y: -0.39, rx: 0.028, zf: 0.03, zb: 0.03 },
-    { y: -0.425, rx: 0.02 },
-    { y: -0.435, rx: 0.004 },
-  ];
-  // Pied : construit le long de y puis basculé vers l'avant (+z).
-  const footRings = [
-    { y: -0.07, rx: 0.012, zf: 0.015, zb: 0.012, cz: 0.05 },
-    { y: -0.058, rx: 0.028, zf: 0.031, zb: 0.03, cz: 0.049 },
-    { y: -0.02, rx: 0.033, zf: 0.036, zb: 0.045, cz: 0.044 },
-    { y: 0.04, rx: 0.039, zf: 0.03, zb: 0.032, cz: 0.05 },
-    { y: 0.11, rx: 0.045, zf: 0.019, zb: 0.019, cz: 0.061 },
-    { y: 0.165, rx: 0.041, zf: 0.014, zb: 0.012, cz: 0.066 },
-    { y: 0.19, rx: 0.022, zf: 0.009, zb: 0.008, cz: 0.068 },
-    { y: 0.196, rx: 0.004, zf: 0.003, zb: 0.003, cz: 0.068 },
-  ];
-
   const geoArm = loftGeometry(armRings, { seg: 40 });
   const geoFore = loftGeometry(foreRings, { seg: 36 });
   const geoHand = loftGeometry(handRings, { seg: 36 });
   const geoThumb = loftGeometry(thumbRings, { seg: 20, sub: 3 });
-  const geoThigh = loftGeometry(thighRings, { seg: 48, scale: () => kThigh });
-  const geoCalf = loftGeometry(calfRings, { seg: 40 });
+
+  // ---------- Jambes lisses : cuisse + mollet d'un seul tenant ----------
+  const lg = P.leg;
+  const kThigh = (P.hip * k.hip + 1) / 2;
+  const legRings = [
+    { y: 0.075, rx: 0.05 },
+    { y: 0.035, rx: 0.088, zf: 0.087, zb: 0.091 },
+    { y: -0.05, rx: 0.087, zf: 0.087, zb: 0.09 },
+    { y: -0.16, rx: 0.075, zf: 0.075, zb: 0.077 },
+    { y: -0.29, rx: 0.06, zf: 0.06, zb: 0.06 },
+    { y: -0.39, rx: 0.049, zf: 0.05, zb: 0.047 },
+    { y: -THIGH, rx: 0.045, zf: 0.047, zb: 0.044 },
+    { y: -0.48, rx: 0.045, zf: 0.044, zb: 0.048 },
+    { y: -0.56, rx: 0.046, zf: 0.042, zb: 0.056 },
+    { y: -0.64, rx: 0.04, zf: 0.037, zb: 0.046 },
+    { y: -0.75, rx: 0.029, zf: 0.029, zb: 0.031 },
+    { y: -0.83, rx: 0.023, zf: 0.025, zb: 0.025 },
+    { y: -0.86, rx: 0.018 },
+    { y: -0.872, rx: 0.003 },
+  ].map((r) => ({ ...r, rx: r.rx * lg, zf: (r.zf ?? r.rx) * lg, zb: (r.zb ?? r.zf ?? r.rx) * lg }));
+  const legScale = (y) => (y > -0.3 ? 1 + (kThigh - 1) * THREE.MathUtils.smoothstep(y, -0.3, -0.05) : 1);
+
+  // Pied fin, construit le long de y puis basculé vers l'avant (+z).
+  const footRings = [
+    { y: -0.066, rx: 0.011, zf: 0.014, zb: 0.011, cz: 0.05 },
+    { y: -0.055, rx: 0.025, zf: 0.03, zb: 0.028, cz: 0.049 },
+    { y: -0.02, rx: 0.029, zf: 0.035, zb: 0.04, cz: 0.044 },
+    { y: 0.04, rx: 0.034, zf: 0.029, zb: 0.029, cz: 0.05 },
+    { y: 0.11, rx: 0.039, zf: 0.018, zb: 0.017, cz: 0.061 },
+    { y: 0.165, rx: 0.035, zf: 0.013, zb: 0.011, cz: 0.066 },
+    { y: 0.192, rx: 0.019, zf: 0.009, zb: 0.008, cz: 0.068 },
+    { y: 0.199, rx: 0.004, zf: 0.003, zb: 0.003, cz: 0.068 },
+  ];
   const geoFoot = loftGeometry(footRings, { seg: 40 });
   geoFoot.rotateX(Math.PI / 2);
-  geoFoot.computeBoundingBox();
 
   const feet = [];
   for (const side of ['Left', 'Right']) {
     const sx = side === 'Left' ? 1 : -1;
     const arm = bones[`${side}Arm`], fore = bones[`${side}ForeArm`], hand = bones[`${side}Hand`];
-    sphere(0.044 * L, arm);
+    joint(0.04 * L, arm);
     mesh(geoArm, arm, 'arm');
-    sphere(0.031 * L, fore);
+    joint(0.026 * L, fore);
     mesh(geoFore, fore, 'forearm');
+    joint(0.017 * L, hand);
     const handMesh = mesh(geoHand, hand, 'hand');
     handMesh.scale.x = sx; // la main droite est le miroir de la gauche
     const thumb = mesh(geoThumb, hand, 'thumb');
-    thumb.position.set(-0.008 * sx * L, -0.03 * L, 0.024 * L);
-    thumb.rotation.set(-0.55, 0, 0.25 * sx);
+    thumb.position.set(-0.007 * sx * L, -0.034 * L, 0.021 * L);
+    thumb.rotation.set(-0.5, 0, 0.22 * sx);
+
     const up = bones[`${side}UpLeg`], leg = bones[`${side}Leg`], foot = bones[`${side}Foot`];
-    mesh(geoThigh, up, 'thigh');
-    sphere(0.047, leg);
-    mesh(geoCalf, leg, 'calf');
-    sphere(0.028, foot);
+    const geoLeg = loftGeometry(legRings, { seg: 48, scale: legScale });
+    skin(geoLeg, -THIGH - 0.035, -THIGH + 0.035);
+    // Le poids 0 doit aller à la cuisse : smoothstep monte vers le haut, on inverse.
+    const w = geoLeg.attributes.skinWeight;
+    for (let i = 0; i < w.count; i++) w.setXY(i, w.getY(i), w.getX(i));
+    const upPos = new THREE.Vector3();
+    root.updateMatrixWorld(true);
+    up.getWorldPosition(upPos);
+    geoLeg.translate(upPos.x, upPos.y, upPos.z);
+    skinned(geoLeg, [up, leg], 'leg');
+    mesh(new THREE.SphereGeometry(0.021 * lg, 24, 16), foot, 'ankle');
     feet.push(mesh(geoFoot, foot, 'foot'));
   }
 
@@ -297,18 +288,18 @@ export function buildMannequin(preset, k = { bust: 1, waist: 1, hip: 1 }, materi
   rest.RightLeg.setFromEuler(new THREE.Euler(0, 0, -0.025));
   for (const name of Object.keys(bones)) bones[name].quaternion.copy(rest[name]);
 
-  // Mesures (repère du mannequin non mis à l'échelle).
+  // Mesures (sections avant allongement ; la position est relative à l'os porteur).
   const tapes = {
     bust: { ...tapeAt(torsoGeo, TAPE_Y.bust), bone: spine, yOffset: 1.04 },
     waist: { ...tapeAt(torsoGeo, TAPE_Y.waist), bone: spine, yOffset: 1.04 },
-    hip: { ...tapeAt(pelvisGeo, TAPE_Y.hip), bone: hips, yOffset: 0.95 },
+    hip: { ...tapeAt(torsoGeo, TAPE_Y.hip), bone: hips, yOffset: 0.95 },
   };
 
   /** Demi-largeur du bassin à une hauteur donnée (pour poser les mains). */
   const halfWidthAt = (y) => {
-    const r = ringAt(pelvisGeo, y) || ringAt(torsoGeo, y);
+    const r = ringAt(torsoGeo, y);
     return r ? r.rx : 0.15;
   };
 
-  return { root, bones, rest, meshes, feet, pelvis, torso, tapes, halfWidthAt, material };
+  return { root, bones, rest, meshes, feet, pelvis: torso, torso, tapes, halfWidthAt, material, yShift: EXTRA };
 }

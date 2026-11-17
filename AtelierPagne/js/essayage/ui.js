@@ -1,10 +1,12 @@
-// Interface de la salle d'essayage : poses, vues, morphologie et mesures.
+// Interface de la salle d'essayage : dock (poses + vues), tiroir « Mes mesures »,
+// guide de première visite.
 const STORE = 'atelier-pagne:essayage:v1';
+const GUIDE = 'atelier-pagne:guide-vu';
 
-const load = () => { try { return JSON.parse(localStorage.getItem(STORE)) || {}; } catch { return {}; } };
-const save = (s) => { try { localStorage.setItem(STORE, JSON.stringify(s)); } catch { /* navigation privée */ } };
+const load = (k) => { try { return JSON.parse(localStorage.getItem(k)); } catch { return null; } };
+const save = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch { /* navigation privée */ } };
 
-// Pictogrammes « bonhomme » des poses (viewBox 0 0 40 48).
+// Pictogrammes des poses (viewBox 0 0 40 48).
 const FIG = {
   neutre: { head: [20, 7], lines: ['20,12 20,28', '20,14 15,27', '20,14 25,27', '20,28 17,44', '20,28 23,44'] },
   hanchement: { head: [21, 7], lines: ['21,12 19,28', '21,14 16,27', '21,14 26,26', '19,28 21,44', '19,28 15,36 17,44'] },
@@ -12,107 +14,105 @@ const FIG = {
   'bras-ouverts': { head: [20, 7], lines: ['20,12 20,28', '20,14 7,19', '20,14 33,19', '20,28 15,44', '20,28 25,44'] },
   defile: { head: [20, 7], lines: ['20,12 20,28', '20,14 15,26', '20,14 25,24 27,27', '20,28 13,36 12,44', '20,28 25,36 28,44'] },
   photo: { head: [22, 7], lines: ['21,12 20,28', '21,14 29,20 24,25', '21,14 15,26', '20,28 21,44', '20,28 16,36 14,44'] },
-  assise: { head: [15, 7], lines: ['15,12 15,28', '15,28 28,28 28,42', '15,14 20,22 26,25', '10,31 24,31', '13,31 12,44', '21,31 22,44'] },
+  assise: { head: [15, 7], lines: ['15,12 15,28', '15,28 28,28 28,42', '15,14 20,22 26,25', '9,31 21,31 21,44 9,44 9,31'] },
 };
 const figSVG = (id) => {
   const f = FIG[id] || FIG.neutre;
-  return `<svg viewBox="0 0 40 48" aria-hidden="true"><circle cx="${f.head[0]}" cy="${f.head[1]}" r="4.2"/>${f.lines
+  return `<svg viewBox="0 0 40 48" aria-hidden="true"><circle cx="${f.head[0]}" cy="${f.head[1]}" r="4"/>${f.lines
     .map((p) => `<polyline points="${p}"/>`).join('')}</svg>`;
 };
-
-const VIEW_ICONS = {
-  face: '<circle cx="12" cy="7" r="3"/><path d="M7 21v-5a5 5 0 0 1 10 0v5"/>',
-  'trois-quarts': '<circle cx="13" cy="7" r="3"/><path d="M8 21v-5c0-3 2-5 5-5s4 2 4 5v5"/>',
-  profil: '<path d="M13 4a3 3 0 0 1 0 6"/><path d="M11 21v-6c0-2 1-4 3-4s3 2 3 4v6"/>',
-  dos: '<circle cx="12" cy="7" r="3" fill="currentColor"/><path d="M7 21v-5a5 5 0 0 1 10 0v5"/>',
-  dessus: '<ellipse cx="12" cy="15" rx="7" ry="3"/><path d="M12 3v7m-3-3 3 3 3-3"/>',
-  buste: '<circle cx="11" cy="11" r="6"/><path d="m15.5 15.5 5 5"/>',
-};
+// Libellés courts pour la barre.
+const SHORT = { 'mains-hanches': 'Mains hanches', 'bras-ouverts': 'Bras ouverts', photo: 'Photo' };
 
 const MEASURES = [
   { key: 'height', label: 'Hauteur', min: 145, max: 195, help: 'Du sommet de la tête au sol, pieds nus.' },
-  { key: 'bust', label: 'Tour de poitrine', min: 70, max: 135, help: 'Au plus fort de la poitrine, mètre bien horizontal.' },
+  { key: 'bust', label: 'Tour de poitrine', min: 70, max: 135, help: 'Au plus fort de la poitrine, mètre horizontal.' },
   { key: 'waist', label: 'Tour de taille', min: 55, max: 125, help: 'Au plus creux, au-dessus du nombril.' },
   { key: 'hip', label: 'Tour de hanches', min: 80, max: 145, help: 'Au plus fort des fesses.' },
 ];
 
-export function initUI({ rig, POSES, VIEWS, PRESETS, controls, goToView, orbitBy, capturePhoto }) {
+export function initUI({ rig, POSES, VIEWS, PRESETS, controls, goToView, orbitBy, capturePhoto, setInsets }) {
   const $ = (s) => document.querySelector(s);
-  const stored = load();
+  const stored = load(STORE) || {};
   const state = {
     preset: PRESETS[stored.preset] ? stored.preset : 'femme',
-    cm: null,
     pose: POSES.some((p) => p.id === stored.pose) ? stored.pose : 'neutre',
     tapes: !!stored.tapes,
-    autoRotate: false,
+    spin: false,
   };
   const defaults = (p) => ({ ...rig.base(p).cm });
   state.cm = stored.cm && stored.preset === state.preset ? { ...defaults(state.preset), ...stored.cm } : defaults(state.preset);
-  const persist = () => save({ preset: state.preset, cm: state.cm, pose: state.pose, tapes: state.tapes });
+  const persist = () => save(STORE, { preset: state.preset, cm: state.cm, pose: state.pose, tapes: state.tapes });
 
-  // ---------- Toast ----------
   const toastEl = $('#toast');
   let toastTimer;
   const toast = (msg) => {
     toastEl.textContent = msg;
     toastEl.classList.add('is-visible');
     clearTimeout(toastTimer);
-    toastTimer = setTimeout(() => toastEl.classList.remove('is-visible'), 2600);
+    toastTimer = setTimeout(() => toastEl.classList.remove('is-visible'), 2400);
   };
 
   // ---------- Poses ----------
   const poseList = $('#pose-list');
-  poseList.innerHTML = POSES.map((p, i) => `
-    <li><button class="pose" type="button" data-pose="${p.id}" aria-pressed="false">
-      <span class="pose__fig">${figSVG(p.id)}</span>
-      <span class="pose__txt"><strong>${p.label}</strong><small>${p.hint}</small></span>
-      <kbd class="pose__key" aria-hidden="true">${i + 1}</kbd>
-    </button></li>`).join('');
+  poseList.innerHTML = POSES.map((p) => `
+    <button class="pose" type="button" role="radio" aria-checked="false" data-pose="${p.id}" title="${p.hint}">
+      ${figSVG(p.id)}<span>${SHORT[p.id] || p.label}</span>
+    </button>`).join('');
   const setPose = (id, animate = true) => {
     state.pose = id;
     rig.setPose(id, animate ? 0.95 : 0);
-    poseList.querySelectorAll('.pose').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.pose === id)));
-    $('#current-pose').textContent = POSES.find((p) => p.id === id).label;
+    const pose = POSES.find((p) => p.id === id);
+    poseList.querySelectorAll('.pose').forEach((b) => b.setAttribute('aria-checked', String(b.dataset.pose === id)));
+    $('#caption-title').textContent = pose.label;
+    $('#caption-hint').textContent = pose.hint;
     persist();
   };
   poseList.addEventListener('click', (e) => {
     const b = e.target.closest('.pose');
-    if (!b) return;
-    setPose(b.dataset.pose);
-    closeSheet();
+    if (b) setPose(b.dataset.pose);
   });
 
   // ---------- Vues ----------
   const views = $('#views');
-  views.innerHTML = VIEWS.map((v) => `
-    <button class="view" type="button" data-view="${v.id}">
-      <svg viewBox="0 0 24 24" aria-hidden="true">${VIEW_ICONS[v.id]}</svg><span>${v.label}</span>
-    </button>`).join('') + `
-    <span class="views__sep" aria-hidden="true"></span>
+  views.innerHTML = VIEWS.map((v) => `<button class="view" type="button" data-view="${v.id}">${v.label}</button>`).join('') + `
     <button class="view view--spin" type="button" id="btn-spin" aria-pressed="false">
-      <svg viewBox="0 0 24 24" aria-hidden="true" class="spool"><path d="M7 4h10M7 20h10"/><rect x="8" y="6" width="8" height="12" rx="1.5"/><path d="M8 9.5 16 8M8 13l8-1.5M8 16.5 16 15"/></svg><span>Tourner</span>
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 12a8 8 0 1 1-2.3-5.6M20 4v4h-4"/></svg>Rotation
     </button>`;
   const setActiveView = (id) => views.querySelectorAll('[data-view]').forEach((b) => b.classList.toggle('is-active', b.dataset.view === id));
+  const setSpin = (on) => { state.spin = on; controls.autoRotate = on; $('#btn-spin').setAttribute('aria-pressed', String(on)); if (on) setActiveView(null); };
   views.addEventListener('click', (e) => {
     const b = e.target.closest('button');
     if (!b) return;
-    if (b.id === 'btn-spin') return toggleSpin();
+    if (b.id === 'btn-spin') return setSpin(!state.spin);
     setSpin(false);
     goToView(b.dataset.view);
     setActiveView(b.dataset.view);
   });
-  const setSpin = (on) => {
-    state.autoRotate = on;
-    controls.autoRotate = on;
-    $('#btn-spin').setAttribute('aria-pressed', String(on));
-  };
-  const toggleSpin = () => { setSpin(!state.autoRotate); if (state.autoRotate) setActiveView(null); };
   setActiveView('face');
 
-  // ---------- Morphologie ----------
+  // ---------- Tiroir « Mes mesures » ----------
+  const drawer = $('#drawer');
+  const mBtn = $('#btn-measures');
+  const mobile = () => window.matchMedia('(max-width: 760px)').matches;
+  const setDrawer = (open) => {
+    drawer.classList.toggle('is-open', open);
+    document.body.classList.toggle('drawer-open', open);
+    drawer.setAttribute('aria-hidden', String(!open));
+    mBtn.setAttribute('aria-expanded', String(open));
+    if (open) {
+      if (mobile()) setInsets({ bottom: drawer.offsetHeight - $('.dock').offsetHeight });
+      else setInsets({ right: drawer.offsetWidth });
+      drawer.querySelector('button, input')?.focus({ preventScroll: true });
+    } else setInsets({});
+  };
+  mBtn.addEventListener('click', () => setDrawer(!drawer.classList.contains('is-open')));
+  $('#drawer-close').addEventListener('click', () => { setDrawer(false); mBtn.focus(); });
+
   const seg = $('#preset');
   seg.innerHTML = Object.entries(PRESETS).map(([id, p]) => `<button type="button" data-preset="${id}" aria-pressed="false">${p.label}</button>`).join('');
   const refreshPreset = () => seg.querySelectorAll('button').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.preset === state.preset)));
+  const fade = $('#fade');
   seg.addEventListener('click', (e) => {
     const b = e.target.closest('button');
     if (!b || b.dataset.preset === state.preset) return;
@@ -120,8 +120,9 @@ export function initUI({ rig, POSES, VIEWS, PRESETS, controls, goToView, orbitBy
     state.cm = defaults(state.preset);
     refreshPreset();
     syncSliders();
-    swapBody();
     persist();
+    fade.classList.add('is-on');
+    setTimeout(() => { rig.setBody(state.preset, state.cm); fade.classList.remove('is-on'); }, 360);
   });
 
   const list = $('#measures');
@@ -132,9 +133,9 @@ export function initUI({ rig, POSES, VIEWS, PRESETS, controls, goToView, orbitBy
         <output id="o-${m.key}" for="m-${m.key}"></output>
       </div>
       <div class="measure__ctrl">
-        <button type="button" class="step" data-step="-1" aria-label="Diminuer ${m.label.toLowerCase()}">−</button>
+        <button type="button" class="step" data-step="-1" aria-label="Diminuer : ${m.label.toLowerCase()}">−</button>
         <input type="range" id="m-${m.key}" min="${m.min}" max="${m.max}" step="1" aria-describedby="h-${m.key}">
-        <button type="button" class="step" data-step="1" aria-label="Augmenter ${m.label.toLowerCase()}">+</button>
+        <button type="button" class="step" data-step="1" aria-label="Augmenter : ${m.label.toLowerCase()}">+</button>
       </div>
       <p class="measure__help" id="h-${m.key}">${m.help}</p>
     </div>`).join('');
@@ -162,17 +163,14 @@ export function initUI({ rig, POSES, VIEWS, PRESETS, controls, goToView, orbitBy
   });
   list.addEventListener('click', (e) => {
     const b = e.target.closest('.step');
-    if (!b) return;
-    const key = b.closest('.measure').dataset.key;
-    setMeasure(key, state.cm[key] + +b.dataset.step);
+    if (b) setMeasure(b.closest('.measure').dataset.key, state.cm[b.closest('.measure').dataset.key] + +b.dataset.step);
   });
-  list.addEventListener('change', () => toast('Mesures enregistrées sur cet appareil'));
   $('#btn-reset').addEventListener('click', () => {
     state.cm = defaults(state.preset);
     syncSliders();
     rebuild();
     persist();
-    toast('Mesures du mannequin standard rétablies');
+    toast('Mesures standard rétablies');
   });
 
   const tapesToggle = $('#toggle-tapes');
@@ -184,51 +182,33 @@ export function initUI({ rig, POSES, VIEWS, PRESETS, controls, goToView, orbitBy
   };
   tapesToggle.addEventListener('click', () => setTapes(!state.tapes));
 
-  // Changement de morphologie : petit fondu « rideau de cabine ».
-  const curtain = $('#curtain');
-  const swapBody = () => {
-    curtain.classList.add('is-closing');
-    setTimeout(() => {
-      rig.setBody(state.preset, state.cm);
-      curtain.classList.remove('is-closing');
-      curtain.classList.add('is-opening');
-      setTimeout(() => curtain.classList.remove('is-opening'), 650);
-    }, 420);
-  };
-
-  // ---------- Feuilles (mobile) ----------
-  const tabs = document.querySelectorAll('.tabbar [data-sheet]');
-  const closeSheet = () => {
-    document.body.dataset.sheet = '';
-    tabs.forEach((t) => t.setAttribute('aria-expanded', 'false'));
-  };
-  tabs.forEach((t) => t.addEventListener('click', () => {
-    const open = document.body.dataset.sheet === t.dataset.sheet;
-    closeSheet();
-    if (!open) { document.body.dataset.sheet = t.dataset.sheet; t.setAttribute('aria-expanded', 'true'); }
-  }));
-  document.querySelectorAll('[data-close-sheet]').forEach((b) => b.addEventListener('click', closeSheet));
-
-  // ---------- Aide ----------
-  const help = $('#help');
-  $('#btn-help').addEventListener('click', () => help.showModal());
-  help.addEventListener('click', (e) => { if (e.target === help || e.target.closest('[data-close]')) help.close(); });
+  // ---------- Guide ----------
+  const guide = $('#guide');
+  const openGuide = () => { guide.hidden = false; guide.querySelector('[data-close]').focus(); };
+  const closeGuide = () => { guide.hidden = true; save(GUIDE, true); };
+  $('#btn-help').addEventListener('click', openGuide);
+  guide.addEventListener('click', (e) => { if (e.target === guide || e.target.closest('[data-close]')) closeGuide(); });
 
   $('#btn-photo').addEventListener('click', () => {
     document.body.classList.add('flash');
-    setTimeout(() => document.body.classList.remove('flash'), 400);
+    setTimeout(() => document.body.classList.remove('flash'), 450);
     capturePhoto();
-    toast('Photo enregistrée dans vos téléchargements');
+    toast('Photo enregistrée');
   });
 
   // ---------- Clavier ----------
   window.addEventListener('keydown', (e) => {
-    if (e.target.closest('input, textarea, dialog[open]') || e.metaKey || e.ctrlKey || e.altKey) return;
+    if (e.key === 'Escape') {
+      if (!guide.hidden) closeGuide();
+      else if (drawer.classList.contains('is-open')) { setDrawer(false); mBtn.focus(); }
+      return;
+    }
+    if (e.target.closest('input, textarea') || !guide.hidden || e.metaKey || e.ctrlKey || e.altKey) return;
     const n = parseInt(e.key, 10);
     if (n >= 1 && n <= POSES.length) setPose(POSES[n - 1].id);
     else if (e.key === 'ArrowLeft') { setSpin(false); orbitBy(-Math.PI / 4); }
     else if (e.key === 'ArrowRight') { setSpin(false); orbitBy(Math.PI / 4); }
-    else if (e.key.toLowerCase() === 'r') toggleSpin();
+    else if (e.key.toLowerCase() === 'r') setSpin(!state.spin);
     else if (e.key.toLowerCase() === 'm') setTapes(!state.tapes);
     else return;
     e.preventDefault();
@@ -239,18 +219,16 @@ export function initUI({ rig, POSES, VIEWS, PRESETS, controls, goToView, orbitBy
   syncSliders();
   rig.setBody(state.preset, state.cm);
   setPose(state.pose, false);
-  if (state.tapes) setTimeout(() => setTapes(true), 2200);
   tapesToggle.setAttribute('aria-checked', String(state.tapes));
+  if (state.tapes) setTimeout(() => setTapes(true), 1800);
 
-  const hint = $('#hint');
   return {
     ready() {
-      setTimeout(() => document.body.classList.add('is-ready'), 600);
-      setTimeout(() => hint.classList.add('is-hidden'), 9000);
+      setTimeout(() => {
+        document.body.classList.add('is-ready');
+        if (!load(GUIDE)) setTimeout(openGuide, 1100);
+      }, 400);
     },
-    onUserOrbit() {
-      hint.classList.add('is-hidden');
-      setActiveView(null);
-    },
+    onUserOrbit() { setActiveView(null); },
   };
 }
