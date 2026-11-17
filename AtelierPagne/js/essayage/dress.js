@@ -521,9 +521,11 @@ export class DressCloth {
       this.held = Uint32Array.from([...this.held, ...extra]);
     }
     const R = 0.0035;
-    // bords tenus par le squelette : boudin skinné, déformé par la carte graphique
-    if (gpuChains.length) {
-      const t = new EdgeTube(gpuChains, puv, R);
+    // Bords tenus par le squelette (bord inférieur du bandeau, posé à plat sur le
+    // corsage) : pas de boudin, il s'enfoncerait par endroits dans le tissu.
+    if (gpuChains.length && this.pipeHeldEdges) {
+      const t = new EdgeTube(gpuChains, puv, R * 0.7);
+      t.lift = 1.5; // le bord du bandeau repose sur le corsage : on le pose dessus
       t.write((p) => p * 3, P, restN);
       const g = t.geometry;
       const cnt = t.count;
@@ -828,6 +830,7 @@ class EdgeTube {
   constructor(chains, puv, radius) {
     this.chains = chains;
     this.radius = radius;
+    this.lift = 0; // décalage vers l'extérieur (en rayons) : passepoil posé sur le tissu
     this.S = 6;
     const S = this.S;
     let count = 0;
@@ -864,7 +867,7 @@ class EdgeTube {
 
   /** Recalcule les anneaux à partir des positions et normales des particules. */
   write(off, P, N, scale = 1) {
-    const S = this.S, r = this.radius * scale;
+    const S = this.S, r = this.radius * scale, lift = r * this.lift;
     const pos = this.geometry.attributes.position.array, nrm = this.geometry.attributes.normal.array;
     this.chains.forEach((ch, c) => {
       const L = ch.length;
@@ -882,7 +885,7 @@ class EdgeTube {
           const ang = (q / S) * Math.PI * 2, cs = Math.cos(ang), sn = Math.sin(ang);
           const ox = nx * cs + bx * sn, oy = ny * cs + by * sn, oz = nz * cs + bz * sn;
           const v = (this.starts[c] + k * S + q) * 3;
-          pos[v] = P[p] + ox * r; pos[v + 1] = P[p + 1] + oy * r; pos[v + 2] = P[p + 2] + oz * r;
+          pos[v] = P[p] + ox * r + sx * lift; pos[v + 1] = P[p + 1] + oy * r + sy * lift; pos[v + 2] = P[p + 2] + oz * r + sz * lift;
           nrm[v] = ox; nrm[v + 1] = oy; nrm[v + 2] = oz;
         }
       }

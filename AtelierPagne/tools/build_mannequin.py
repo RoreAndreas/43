@@ -196,21 +196,40 @@ def build(name, recipe, V0, groups, skel, weights):
             avg = np.array([V[list(nbr[i])].mean(axis=0) for i in region])
             V[region] += (avg - V[region]) * (0.8 * fall)[:, None]
 
-    # Découpe du cou, à plat, juste au-dessus de la base du cou. Seul le
-    # cylindre du cou est coupé : les trapèzes (plus larges) restent intacts.
+    # Découpe du cou : seul le cylindre du cou (et la tête) est retiré, au-dessus
+    # de y_cut ; les trapèzes restent intacts. Le cou du site part exactement
+    # du bord du trou (anneau exporté dans l'ordre).
     hw_all = W[:, BONES.index('Head')]
     front_head = V[used][(hw_all[used] > 0.5) & (V[used, 2] > J['Head'][2] + 0.04)]
     y_cut = min(J['Neck'][1] + 0.022, front_head[:, 1].min() - 0.03)  # sous la mâchoire
     axis_z = J['Neck'][2] + 0.02
     r_xz = np.hypot(V[:, 0], (V[:, 2] - axis_z) * 0.9)
-    gone = ((V[:, 1] > y_cut) & ((r_xz < 0.085) | (np.abs(V[:, 0]) < 0.075))) | (V[:, 1] > J['Head'][1] - 0.02)
-    keep = ~np.any(gone[body] & (V[body, 1] > y_cut + 0.002), axis=1)
+    sl = V[used][(np.abs(V[used, 1] - y_cut) < 0.005) & (r_xz[used] < 0.075)]
+    r_neck = float(np.hypot(sl[:, 0], (sl[:, 2] - axis_z) * 0.9).max())
+    gone = (V[:, 1] > y_cut) & ((r_xz < r_neck * 1.15) | (hw_all > 0.3) | ((V[:, 1] > y_cut + 0.012) & (r_xz < 0.16)))
+    keep = ~np.any(gone[body], axis=1)
     faces = body[keep]
     kept = np.unique(faces)
-    flat = kept[gone[kept]]
-    # Section du cou à la hauteur de coupe (maillage intact), pour le raccord.
-    sl = V[used][(np.abs(V[used, 1] - y_cut) < 0.005) & (r_xz[used] < 0.072)]
-    V[flat, 1] = y_cut
+    # bord du trou du cou : arêtes libres proches de l'axe, ordonnées en anneau
+    from collections import Counter, defaultdict
+    ecount = Counter()
+    for f in faces:
+        for k in range(4):
+            a2, b2 = f[k], f[(k + 1) % 4]
+            ecount[(min(a2, b2), max(a2, b2))] += 1
+    adj = defaultdict(list)
+    for (a2, b2), c in ecount.items():
+        if c == 1 and r_xz[a2] < 0.17 and r_xz[b2] < 0.17 and V[a2, 1] > y_cut - 0.05:
+            adj[a2].append(b2); adj[b2].append(a2)
+    start = next(iter(adj))
+    ring_idx, prev, cur = [start], None, start
+    while True:
+        nxt = [x for x in adj[cur] if x != prev]
+        if not nxt or nxt[0] == start:
+            break
+        prev, cur = cur, nxt[0]
+        ring_idx.append(cur)
+    y_ring = float(np.median(V[ring_idx, 1]))  # le bord garde ses hauteurs réelles (pas de marche)
     remap = -np.ones(len(V0), dtype=int)
     remap[kept] = np.arange(len(kept))
     tris = []
@@ -228,13 +247,16 @@ def build(name, recipe, V0, groups, skel, weights):
     skin_w = np.clip(wq, 0, 255).astype(np.uint8)
 
     # Anneau de coupe (pour raccorder le cou procédural) et gabarit de la tête retirée.
-    ring = sl
+    ring = V[ring_idx]
     hw = W[used, BONES.index('Head')]
     head_v = V[used][(hw > 0.5) & (V[used, 1] > y_cut)]
     head_core = head_v[np.abs(head_v[:, 0]) < 0.065]  # sans les oreilles
     jaw = head_core[head_core[:, 2] > J['Head'][2] + 0.04]
     neck_cut = {
-        'y': float(y_cut), 'cz': float((ring[:, 2].max() + ring[:, 2].min()) / 2),
+        'ring': [int(remap[i]) for i in ring_idx],  # indices (maillage exporté) du bord, dans l'ordre
+        'top': {'y': float(y_cut), 'rx': float(np.abs(sl[:, 0]).max()), 'rz': float((sl[:, 2].max() - sl[:, 2].min()) / 2),
+                'cz': float((sl[:, 2].max() + sl[:, 2].min()) / 2)},
+        'y': y_ring, 'cz': float((ring[:, 2].max() + ring[:, 2].min()) / 2),
         'rx': float(np.abs(ring[:, 0]).max()), 'rz': float((ring[:, 2].max() - ring[:, 2].min()) / 2),
     }
     head_dims = {

@@ -57,6 +57,58 @@ const REST = {
   LeftForeArm: [0, -0.9, 0], RightForeArm: [0, 0.9, 0],
 };
 
+/** Cou skinné : anneaux de l'anneau découpé du corps vers une section ronde sous la tête. */
+function buildNeck(nc, hd, J, pos, SI, SW, bi, material) {
+  const ring = nc.ring, N = ring.length;
+  const top = nc.top;
+  const yTop = hd.chin + 0.06;
+  const slope = (J.Head.z - J.Neck.z) / (J.Head.y - J.Neck.y); // le cou penche vers l'avant
+  const base = ring.map((i) => [pos[i * 3], pos[i * 3 + 1], pos[i * 3 + 2]]);
+  const cx0 = base.reduce((a, p) => a + p[0], 0) / N, cz0 = base.reduce((a, p) => a + p[2], 0) / N;
+  const czAt = (y) => top.cz + (y - top.y) * slope;
+  // sens de l'anneau (pour orienter les faces vers l'extérieur)
+  let area = 0;
+  for (let k = 0; k < N; k++) { const a = base[k], b = base[(k + 1) % N]; area += (a[0] - cx0) * (b[2] - cz0) - (b[0] - cx0) * (a[2] - cz0); }
+  const U = [0, 0.1, 0.22, 0.38, 0.56, 0.76, 0.92, 1];
+  const ss = THREE.MathUtils.smoothstep;
+  const P = [], skI = [], skW = [], idx = [];
+  U.forEach((u, r) => {
+    const shape = ss(u, 0, 0.75);
+    const shrink = u > 0.9 ? 1 - (u - 0.9) * 4 : 1; // se referme dans la tête
+    const toNeck = ss(u, 0, 0.55);
+    base.forEach((p, k) => {
+      const ang = Math.atan2(p[0] - cx0, p[2] - cz0);
+      const taper = 0.97 - 0.2 * ss(u, 0.45, 1); // s'affine en montant pour rentrer sous la tête
+      const ex = Math.sin(ang) * top.rx * taper, ez = Math.cos(ang) * top.rz * taper;
+      const x = (p[0] - cx0) * (1 - shape) + ex * shape;
+      const z = (p[2] - cz0) * (1 - shape) + ez * shape;
+      const y = p[1] + (yTop - p[1]) * u; // chaque point monte depuis sa hauteur réelle
+      P.push(x * shrink + cx0 * (1 - shape), y, z * shrink + cz0 * (1 - shape) + czAt(y) * shape);
+      // poids : ceux du corps au bord, puis le seul os du cou
+      const i = ring[k];
+      const w = new Map();
+      for (let c = 0; c < 4; c++) { const b = SI[i * 4 + c], v = (SW[i * 4 + c] / 255) * (1 - toNeck); if (v > 0) w.set(b, (w.get(b) || 0) + v); }
+      w.set(bi.Neck, (w.get(bi.Neck) || 0) + toNeck);
+      const top4 = [...w.entries()].sort((a, b) => b[1] - a[1]).slice(0, 4);
+      const sum = top4.reduce((a, e) => a + e[1], 0) || 1;
+      for (let c = 0; c < 4; c++) { skI.push(top4[c] ? top4[c][0] : 0); skW.push(top4[c] ? top4[c][1] / sum : 0); }
+    });
+    if (r < U.length - 1) {
+      for (let k = 0; k < N; k++) {
+        const a = r * N + k, b = r * N + ((k + 1) % N), c = a + N, d = b + N;
+        if (area > 0) idx.push(a, c, b, b, c, d); else idx.push(a, b, c, b, d, c);
+      }
+    }
+  });
+  const g = new THREE.BufferGeometry();
+  g.setAttribute('position', new THREE.Float32BufferAttribute(P, 3));
+  g.setAttribute('skinIndex', new THREE.Uint16BufferAttribute(skI, 4));
+  g.setAttribute('skinWeight', new THREE.Float32BufferAttribute(skW, 4));
+  g.setIndex(idx);
+  g.computeVertexNormals();
+  return new THREE.SkinnedMesh(g, material);
+}
+
 const lerpPts = (pts, y) => {
   if (y <= pts[0][0]) return pts[0][1];
   for (let i = 0; i < pts.length - 1; i++) {
@@ -141,16 +193,21 @@ export function buildMannequin(preset, k = { bust: 1, waist: 1, hip: 1 }, materi
 
   // ---------- Cou prolongé et tête ovale sans visage ----------
   const nc = meta.neckCut, hd = meta.head;
-  const slope = (J.Head.z - J.Neck.z) / (J.Head.y - J.Neck.y); // le cou penche vers l'avant
-  const czAt = (y) => nc.cz + (y - nc.y) * slope;
-  const nr = (y, f) => ({ y, rx: nc.rx * f, zf: nc.rz * f, zb: nc.rz * f, cz: czAt(y) });
-  const neckGeo = loftGeometry([
-    nr(nc.y - 0.05, 0.99), nr(nc.y - 0.01, 1.03), nr(nc.y + 0.004, 1.035), nr(hd.chin + 0.02, 0.98), nr(hd.chin + 0.07, 0.94),
-    { ...nr(hd.chin + 0.08, 0.2) },
-  ], { seg: 48, yOffset: J.Neck.y });
-  neckGeo.translate(0, 0, -J.Neck.z);
-  const neckMesh = new THREE.Mesh(neckGeo, material);
-  bones.Neck.add(neckMesh);
+  // Le cou part exactement du bord découpé du corps (anneau exporté), puis
+  // s'arrondit en montant sous la tête : aucune marche ni trait à la jonction.
+  // Il est skinné comme le corps : le raccord tient pendant les mouvements.
+  const neckMesh = buildNeck(nc, hd, J, pos, D.skinIndex, D.skinWeight, bi, material);
+  root.add(neckMesh);
+  neckMesh.bind(body.skeleton, body.bindMatrix);
+  // normales communes sur l'anneau de jonction : pas de ligne d'éclairage
+  {
+    const bn = geo.attributes.normal.array, nn = neckMesh.geometry.attributes.normal.array;
+    nc.ring.forEach((i, k) => {
+      let x = bn[i * 3] + nn[k * 3], y = bn[i * 3 + 1] + nn[k * 3 + 1], z = bn[i * 3 + 2] + nn[k * 3 + 2];
+      const l = Math.hypot(x, y, z) || 1; x /= l; y /= l; z /= l;
+      bn[i * 3] = nn[k * 3] = x; bn[i * 3 + 1] = nn[k * 3 + 1] = y; bn[i * 3 + 2] = nn[k * 3 + 2] = z;
+    });
+  }
 
   // Œuf lisse : gabarit normalisé (hauteur 1, demi-largeur 0.29, profondeur 0.69).
   const H = (hd.top - hd.chin) * 0.97;
@@ -172,6 +229,7 @@ export function buildMannequin(preset, k = { bust: 1, waist: 1, hip: 1 }, materi
   headMesh.rotation.x = 0.04;
   bones.Head.add(headMesh);
   for (const m of [neckMesh, headMesh]) { m.castShadow = m.receiveShadow = true; meshes.push(m); }
+  neckMesh.frustumCulled = false;
 
   // ---------- Position de repos ----------
   const rest = {};
