@@ -24,16 +24,19 @@ const hangOutside = (b, side, fwd = 0.03, out = 0.075) => {
   const L = (S.distanceTo(J[`${n}ForeArm`]) + J[`${n}ForeArm`].distanceTo(J[`${n}Hand`])) * 0.985;
   let w = 0;
   let g = 0;
-  for (let y = S.y - L - 0.06; y < S.y - L + 0.2; y += 0.02) {
+  // du bout des doigts (≈ 18 cm sous le poignet) jusqu'au haut de la cuisse
+  for (let y = S.y - L - 0.22; y < S.y - L + 0.2; y += 0.02) {
     w = Math.max(w, b.halfWidthAt(y));
     g = Math.max(g, b.garmentHalfWidthAt?.(y) ?? 0); // le corps s'écarte de la tenue
   }
-  const x = Math.max(w + out, g + 0.045, Math.abs(S.x) + 0.02);
+  const x = Math.max(w + out, g ? g + 0.065 : 0, Math.abs(S.x) + 0.02);
   const dx = x - Math.abs(S.x);
   const dy = Math.sqrt(Math.max(0.01, L * L - dx * dx - fwd * fwd));
   return [side * x, S.y - dy, S.z + fwd];
 };
-const HANG = (side, fwd, out) => ({ target: (b) => hangOutside(b, side, fwd, out), pole: [side * 0.25, 0, -1] });
+// Cible exprimée dans le repère du bassin : si la pose fait pivoter les hanches
+// (et donc la jupe), la main reste à l'extérieur de la tenue.
+const HANG = (side, fwd, out) => ({ target: (b) => hangOutside(b, side, fwd, out), pole: [side * 0.25, 0, -1], frame: 'Hips' });
 
 export const POSES = [
   {

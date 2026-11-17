@@ -305,7 +305,7 @@ class Skirt {
       floor: 0.06, ankle: J.LeftFoot.y + 0.06, midcalf: (J.LeftLeg.y + J.LeftFoot.y) / 2 - 0.02,
       knee: J.LeftLeg.y - 0.03, midthigh: (J.LeftUpLeg.y + J.LeftLeg.y) / 2,
     }[spec.to];
-    const R = Math.max(10, Math.round((yTop - yHem) / 0.045) + 1);
+    const R = Math.max(12, Math.round((yTop - yHem) / 0.034) + 1);
     this.R = R; this.M = 96;
 
     // Gabarit du corps au repos (sans les bras) : ellipse par hauteur.
@@ -372,6 +372,10 @@ class Skirt {
     // Positions de repos (repère du bassin), particules, liens.
     const hips = J.Hips;
     this.hipsZ = hips.z;
+    this.hipsY = hips.y;
+    this.give = spec.cut === 'aline' ? 1.0 : 1.06; // légère élasticité des coupes ajustées
+    // Une jupe étroite limite l'amplitude des jambes (pas plus court).
+    this.legFreedom = spec.cut === 'aline' ? 1 : spec.cut === 'straight' ? 0.55 : 0.45;
     const count = R * M;
     this.local = new Float32Array(count * 3);
     for (let i = 0; i < R; i++) for (let j = 0; j < M; j++) {
@@ -413,8 +417,9 @@ class Skirt {
     };
     this.legRadii = ['Left', 'Right'].map((side) => ({
       side,
-      thigh: [legR(side, J[`${side}UpLeg`].y - 0.12) * 0.92, legR(side, J[`${side}Leg`].y + 0.04)],
-      calf: [legR(side, J[`${side}Leg`].y - 0.08), legR(side, J[`${side}Foot`].y + 0.08)],
+      // rayons pris au plus large (cuisse galbée, genou) : le genou ne perce pas la jupe
+      thigh: [Math.max(legR(side, J[`${side}UpLeg`].y - 0.12), legR(side, J[`${side}UpLeg`].y - 0.2)) * 1.04, Math.max(legR(side, J[`${side}Leg`].y + 0.06), legR(side, J[`${side}Leg`].y)) * 1.08],
+      calf: [legR(side, J[`${side}Leg`].y - 0.08) * 1.06, legR(side, J[`${side}Foot`].y + 0.08) * 1.05],
     }));
 
     // Maillage de rendu (colonne de couture dupliquée pour le motif).
@@ -482,6 +487,23 @@ class Skirt {
     this.reset();
   }
 
+  /** Profondeur (m, repère du bassin non mis à l'échelle) d'un point à l'intérieur de la jupe ; < 0 s'il est dehors. */
+  penetration(lx, ly, lz) {
+    const y = ly + this.hipsY;
+    const rs = this.rings;
+    if (y > rs[0].y + 0.02 || y < rs.at(-1).y) return -1;
+    let i = rs.findIndex((r) => r.y <= y);
+    if (i < 0) i = rs.length - 1;
+    const r = rs[i];
+    const dz = lz - (r.cz - this.hipsZ);
+    const d = Math.hypot(lx, dz);
+    let a = Math.atan2(lx, dz) / (Math.PI * 2);
+    if (a < 0) a += 1;
+    const f = a * this.M, j0 = f | 0, w = f - j0;
+    const R = r.radii[j0 % this.M] * (1 - w) + r.radii[(j0 + 1) % this.M] * w;
+    return R - d;
+  }
+
   computeTargets() {
     const hm = this.body.bones.Hips.matrixWorld;
     this.hipsM = hm.elements;
@@ -541,7 +563,7 @@ class Skirt {
       }
     }
     const caps = this.caps;
-    const thick = 0.007 * this.body.root.scale.x;
+    const thick = 0.011 * this.body.root.scale.x;
     const floorY = this.floorY ?? 0;
     const box = this.box;
     const links = this.links;
@@ -551,9 +573,10 @@ class Skirt {
         const dx = pos[b] - pos[a], dy = pos[b + 1] - pos[a + 1], dz = pos[b + 2] - pos[a + 2];
         const d = Math.hypot(dx, dy, dz) || 1e-9;
         // le tissu résiste à l'étirement, plisse librement à la compression (sauf en vertical)
-        if (type === 1 && d < rest) continue;
+        if (type === 1 && d < rest * this.give) continue;
         if (type === 2 && d > rest * 0.98) continue;
-        const diff = ((d - rest) / d) * (type === 2 ? 0.25 : 0.5);
+        const target = type === 1 ? rest * this.give : rest;
+        const diff = ((d - target) / d) * (type === 2 ? 0.25 : 0.5);
         const wa = a < M * 3 ? 0 : 1, wb = b < M * 3 ? 0 : 1;
         const sum = wa + wb || 1;
         pos[a] += dx * diff * (wa / sum) * 2; pos[a + 1] += dy * diff * (wa / sum) * 2; pos[a + 2] += dz * diff * (wa / sum) * 2;
@@ -653,6 +676,7 @@ export function buildOutfit(body, outfit, uniforms, scene) {
   if (outfit?.skirt) skirt = new Skirt(body, outfit.skirt, uniforms, scene);
   return {
     skirt,
+    legFreedom: skirt?.legFreedom ?? 1,
     /** Demi-largeur de la tenue (côtés) à une hauteur du mannequin au repos. */
     halfWidthAt(y) {
       if (!skirt) return 0;
@@ -660,7 +684,16 @@ export function buildOutfit(body, outfit, uniforms, scene) {
       if (y > rs[0].y || y < rs.at(-1).y) return 0;
       const i = rs.findIndex((r) => r.y <= y);
       const r = rs[Math.max(0, i)];
-      return Math.max(r.radii[skirt.M / 4 | 0], r.radii[(3 * skirt.M) / 4 | 0]);
+      // largeur réelle sur les côtés (plis compris), là où pendent les mains
+      let w = 0;
+      for (let j = 0; j < skirt.M; j++) w = Math.max(w, Math.abs(r.radii[j] * Math.sin((j / skirt.M) * Math.PI * 2)));
+      return w;
+    },
+    /** Un point du monde est-il dans la jupe ? (profondeur en m) */
+    penetration(world, hipsBone, scale) {
+      if (!skirt) return -1;
+      const l = hipsBone.worldToLocal(world.clone());
+      return skirt.penetration(l.x, l.y, l.z) * 1 + 0 * scale;
     },
     update(dt, env) { skirt?.update(dt, env); },
     reset() { skirt?.reset(); },

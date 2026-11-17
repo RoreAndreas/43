@@ -125,6 +125,15 @@ export class Rig {
     const { bones, rest, root } = this.body;
     const saved = Object.fromEntries(Object.entries(bones).map(([n, b]) => [n, b.quaternion.clone()]));
     const rot = expandPose(pose);
+    // Le corps s'adapte à la tenue : une jupe étroite raccourcit le pas.
+    const free = this.outfit?.legFreedom ?? 1;
+    if (free < 1 && !pose.stool) {
+      for (const n of Object.keys(rot)) {
+        if (!/UpLeg|Leg|Foot/.test(n)) continue;
+        const [x, y, z] = rot[n];
+        rot[n] = [x * (/Foot/.test(n) ? free : free), y * free, z];
+      }
+    }
     for (const [n, b] of Object.entries(bones)) {
       b.quaternion.copy(rest[n]);
       const r = rot[n];
@@ -134,15 +143,48 @@ export class Rig {
     if (pose.ik) {
       for (const [side, spec] of Object.entries(pose.ik)) {
         const t = spec.target(this.body);
-        const T = root.localToWorld(new THREE.Vector3(...t));
+        let T;
+        if (spec.frame) {
+          // cible définie au repos, puis emmenée par l'os (le bassin) dans la pose
+          const o = this.body.restJ[spec.frame];
+          T = bones[spec.frame].localToWorld(new THREE.Vector3(t[0] - o.x, t[1] - o.y, t[2] - o.z));
+        } else T = root.localToWorld(new THREE.Vector3(...t));
         const pole = new THREE.Vector3(...spec.pole).applyQuaternion(root.getWorldQuaternion(new THREE.Quaternion()));
         solveTwoBone(bones[`${side}Arm`], bones[`${side}ForeArm`], bones[`${side}Hand`], T, pole);
       }
     }
+    // Les mains ne traversent jamais la tenue : si un point de la main ou de
+    // l'avant-bras est dans la jupe, le bras s'écarte jusqu'à en sortir.
+    if (this.outfit?.skirt) this.clearArms();
     const out = Object.fromEntries(Object.entries(bones).map(([n, b]) => [n, b.quaternion.clone()]));
     for (const [n, b] of Object.entries(bones)) b.quaternion.copy(saved[n]);
     root.updateMatrixWorld(true);
     return out;
+  }
+
+  clearArms() {
+    const { bones, root } = this.body;
+    const s = root.scale.x;
+    const fwd = new THREE.Vector3(), p = new THREE.Vector3(), q = new THREE.Quaternion(), wq = new THREE.Quaternion();
+    for (const side of ['Left', 'Right']) {
+      const arm = bones[`${side}Arm`], fore = bones[`${side}ForeArm`], hand = bones[`${side}Hand`];
+      const sign = side === 'Left' ? 1 : -1;
+      for (let it = 0; it < 24; it++) {
+        root.updateMatrixWorld(true);
+        let worst = -1;
+        const pts = [fore.getWorldPosition(new THREE.Vector3()).lerp(hand.getWorldPosition(new THREE.Vector3()), 0.6), hand.getWorldPosition(new THREE.Vector3())];
+        hand.getWorldQuaternion(wq);
+        for (const d of [0.07, 0.13, 0.18]) pts.push(hand.getWorldPosition(new THREE.Vector3()).add(p.set(0, -d * s, 0).applyQuaternion(wq)));
+        for (const pt of pts) worst = Math.max(worst, this.outfit.penetration(pt, bones.Hips, s) + 0.032);
+        if (worst <= 0) break;
+        // abduction autour de l'axe avant du buste
+        fwd.set(0, 0, 1).applyQuaternion(bones.Spine.getWorldQuaternion(q));
+        const step = Math.min(0.08, 0.02 + worst * 1.2) * sign;
+        arm.getWorldQuaternion(wq);
+        wq.premultiply(q.setFromAxisAngle(fwd, step));
+        setWorldQuat(arm, wq);
+      }
+    }
   }
 
   setPose(id, duration = 1.0) {
