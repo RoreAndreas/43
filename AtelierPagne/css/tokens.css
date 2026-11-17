@@ -1,0 +1,57 @@
+/* Atelier Pagne — jetons de design partagés par toutes les pages. */
+:root {
+  --ink: #1d1b19;
+  --ink-2: #4a443d;
+  --muted: #6b645b;
+  --indigo: #1f2a44;
+  --indigo-2: #2c3a5e;
+  --terracotta: #c4572e;
+  --terracotta-2: #a9461f;
+  --ochre: #e0a33a;
+  --cream: #f6f1e8;
+  --sand: #ece4d6;
+  --paper: #fffdf9;
+  --line: rgba(31, 42, 68, 0.12);
+  --stitch: rgba(196, 87, 46, 0.45);
+
+  --font-ui: 'DM Sans', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --font-display: 'Fraunces', Georgia, 'Times New Roman', serif;
+
+  --radius: 18px;
+  --radius-sm: 12px;
+  --shadow: 0 10px 30px rgba(31, 42, 68, 0.12), 0 2px 6px rgba(31, 42, 68, 0.06);
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-io: cubic-bezier(0.65, 0, 0.35, 1);
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body {
+  margin: 0;
+  font-family: var(--font-ui);
+  font-size: 16px;
+  line-height: 1.45;
+  color: var(--ink);
+  background: var(--cream);
+}
+button { font: inherit; color: inherit; }
+:focus-visible { outline: 3px solid var(--ochre); outline-offset: 2px; }
+
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  min-height: 44px; padding: 0 18px;
+  border-radius: 999px; border: 1.5px solid transparent;
+  font-weight: 700; font-size: 15px; cursor: pointer;
+  transition: transform .2s var(--ease-out), background-color .2s, border-color .2s, box-shadow .2s;
+}
+.btn svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.btn:active { transform: scale(0.97); }
+.btn--primary { background: var(--terracotta); color: #fff; box-shadow: 0 6px 16px rgba(196, 87, 46, 0.3); }
+.btn--primary:hover { background: var(--terracotta-2); }
+.btn--ghost { background: var(--paper); border-color: var(--line); color: var(--indigo); }
+.btn--ghost:hover { border-color: var(--indigo); }
+.btn--block { width: 100%; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; }
+}
