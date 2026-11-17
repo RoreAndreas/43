@@ -44,7 +44,7 @@ export const OUTFITS = {
 
 // ---------- Matériau tissu : motif plaqué en coordonnées de repos ----------
 export function fabricUniforms() {
-  return { uMap: { value: null }, uScale: { value: 0.3 }, uHasMap: { value: 0 } };
+  return { uMap: { value: null }, uScale: { value: 0.3 }, uHasMap: { value: 0 }, trim: new THREE.Color(0xe0a33a) };
 }
 
 function fabricMaterial(uniforms, { mode, color = 0xffffff, side = THREE.FrontSide }) {
@@ -64,7 +64,7 @@ function fabricMaterial(uniforms, { mode, color = 0xffffff, side = THREE.FrontSi
       .replace('#include <map_fragment>', mode === 'uv' ? `
         if (uHasMap > 0.5) diffuseColor.rgb *= texture2D(uMap, vFabricUv / uScale).rgb;` : `
         if (uHasMap > 0.5) {
-          vec3 w = pow(abs(normalize(vRestN)), vec3(6.0)); w /= (w.x + w.y + w.z);
+          vec3 w = pow(abs(normalize(vRestN)), vec3(14.0)); w /= (w.x + w.y + w.z);
           vec3 p = vRestPos / uScale;
           vec3 c = texture2D(uMap, p.zy * vec2(-1.0, -1.0)).rgb * w.x + texture2D(uMap, p.xz).rgb * w.y + texture2D(uMap, p.xy * vec2(1.0, -1.0)).rgb * w.z;
           diffuseColor.rgb *= c;
@@ -115,12 +115,36 @@ function bodyPiece(body, select, offset, uniforms, opts = {}) {
   g.setAttribute('skinIndex', new THREE.Uint8BufferAttribute(si, 4));
   g.setAttribute('skinWeight', new THREE.Uint8BufferAttribute(sw, 4, true));
   g.setIndex(tris);
+  let loops = boundaryLoops(tris, count);
+  // Bas de la pièce : coupé net à l'horizontale (et rentré sous la jupe s'il y en a une).
+  if (opts.bottomY !== undefined) {
+    const isBottom = (loop) => loop.reduce((m, v) => m + rest[v * 3 + 1], 0) / loop.length < opts.bottomY + 0.035;
+    for (const loop of loops) if (isBottom(loop)) for (const v of loop) pos[v * 3 + 1] -= rest[v * 3 + 1] - opts.bottomY;
+    if (opts.hideBottom) loops = loops.filter((l) => !isBottom(l));
+  }
+  // Bords nets : on lisse le tracé des encolures, emmanchures et ourlets.
+  for (const loop of loops) {
+    for (let it = 0; it < 4; it++) {
+      const cur = loop.map((v) => [pos[v * 3], pos[v * 3 + 1], pos[v * 3 + 2]]);
+      loop.forEach((v, k) => {
+        const a = cur[(k - 1 + loop.length) % loop.length], b = cur[(k + 1) % loop.length], c = cur[k];
+        for (let d = 0; d < 3; d++) pos[v * 3 + d] = c[d] * 0.5 + (a[d] + b[d]) * 0.25;
+      });
+    }
+  }
   g.computeVertexNormals();
   const mesh = new THREE.SkinnedMesh(g, fabricMaterial(uniforms, { mode: 'tri', color: opts.color, side: THREE.DoubleSide }));
   mesh.castShadow = mesh.receiveShadow = true;
   mesh.frustumCulled = false;
   body.root.add(mesh);
   mesh.bind(body.body.skeleton, body.body.bindMatrix);
+  // Passepoil (biais contrasté) le long des bords, porté par les mêmes os.
+  if (opts.piping !== false && loops.length) {
+    const pipe = pipingMesh(g, loops, uniforms.trim ?? new THREE.Color(0x2b2a2e), opts.pipingRadius ?? 0.0038);
+    body.root.add(pipe);
+    pipe.bind(body.body.skeleton, body.body.bindMatrix);
+    mesh.userData.extra = [pipe];
+  }
   return mesh;
 }
 
@@ -149,7 +173,7 @@ function buildTop(body, spec, uniforms) {
   const W = regionWeights(body);
   const n = P.length / 3;
   const y = (i) => P[i * 3 + 1], x = (i) => P[i * 3], z = (i) => P[i * 3 + 2];
-  const bottom = { waist: lm.waist, waistLow: lm.waist - 0.045, hip: lm.hip - 0.05, hipLow: J.LeftUpLeg.y - 0.09 }[spec.bottom];
+  const bottom = { waist: lm.waist - 0.02, waistLow: lm.waist - 0.05, hip: lm.hip - 0.055, hipLow: J.LeftUpLeg.y - 0.09 }[spec.bottom];
   const neckY = J.Neck.y, neckZ = J.Neck.z;
   // Bras (repère de liaison : pose en A) : abscisse le long du bras depuis l'épaule.
   const armAxis = (i) => {
@@ -219,7 +243,14 @@ function buildTop(body, spec, uniforms) {
       const a = armAxis(i);
       const radial = a.p.clone().sub(a.s).addScaledVector(a.d1, -a.t1).normalize();
       let extra = thick;
-      if (spec.sleeves === 'puff' || spec.sleeves === 'band') extra += 0.028 * Math.sin(Math.PI * THREE.MathUtils.clamp((a.t1 + 0.02) / 0.16, 0, 1));
+      if (spec.sleeves === 'puff' || spec.sleeves === 'band') {
+        // manche bouffante, avec ses fronces
+        const u = new THREE.Vector3().crossVectors(a.d1, new THREE.Vector3(0, 0, 1)).normalize();
+        const v = new THREE.Vector3().crossVectors(a.d1, u);
+        const ang = Math.atan2(radial.dot(v), radial.dot(u));
+        const puff = Math.sin(Math.PI * THREE.MathUtils.clamp((a.t1 + 0.02) / 0.16, 0, 1));
+        extra += 0.028 * puff * (1 + 0.22 * Math.sin(12 * ang));
+      }
       if (spec.sleeves === 'short' && spec.loose) extra += 0.012 * ss(a.t1, 0, 0.15);
       p.addScaledVector(radial, extra * 0.7).addScaledVector(nn, extra * 0.3);
       return;
@@ -238,7 +269,7 @@ function buildTop(body, spec, uniforms) {
     }
     p.addScaledVector(nn, thick);
   };
-  return bodyPiece(body, select, offset, uniforms);
+  return bodyPiece(body, select, offset, uniforms, { bottomY: bottom, hideBottom: spec.tucked });
 }
 
 function buildPants(body, uniforms) {
@@ -275,7 +306,7 @@ class Skirt {
       knee: J.LeftLeg.y - 0.03, midthigh: (J.LeftUpLeg.y + J.LeftLeg.y) / 2,
     }[spec.to];
     const R = Math.max(10, Math.round((yTop - yHem) / 0.045) + 1);
-    this.R = R; this.M = 64;
+    this.R = R; this.M = 96;
 
     // Gabarit du corps au repos (sans les bras) : ellipse par hauteur.
     const rp = body.restPos;
@@ -296,8 +327,9 @@ class Skirt {
       for (const q of h.pts) { zmin = Math.min(zmin, q[1]); zmax = Math.max(zmax, q[1]); }
       return { hull: h.pts, cz: (zmin + zmax) / 2 };
     };
-    const M = 64;
+    const M = 96;
     const kneeY = J.LeftLeg.y;
+    const crotchY = J.LeftUpLeg.y - 0.06;
     const rings = [];
     let last = null;
     for (let i = 0; i < R; i++) {
@@ -310,21 +342,36 @@ class Skirt {
         const t = Math.max(0, kneeY + 0.06 - yy);
         grow = spec.flare * t * (0.6 + 0.4 * Math.min(1, t / 0.35));
       } else grow = (spec.flare * (yTop - yy)) / (yTop - yHem) * 0.5;
+      const base = new Float32Array(M);
+      const bodyR = sec && yy > crotchY ? new Float32Array(M) : null;
+      // Plis : godets qui s'ouvrent vers l'ourlet, fronces sous la ceinture.
+      const t = i / (R - 1);
+      const drop = yTop - yy;
+      let godet = 0, nGodet = 9, gather = 0;
+      if (spec.cut === 'aline') { godet = 0.024 * t ** 1.3; gather = spec.from === 'waist' ? 0.006 * Math.max(0, 1 - drop / 0.16) : 0; }
+      else if (spec.cut === 'fitted') { godet = 0.03 * Math.min(1, Math.max(0, kneeY + 0.06 - yy) / 0.4) ** 1.2; nGodet = 7; }
+      else { godet = 0.009 * t; nGodet = 11; gather = spec.from === 'waist' ? 0.004 * Math.max(0, 1 - drop / 0.12) : 0; }
       for (let j = 0; j < M; j++) {
         const th = (j / M) * Math.PI * 2;
         const dx = Math.sin(th), dz = Math.cos(th);
-        const fit = (sec ? rayHull(sec.hull, [0, cz], dx, dz) : last.radii[j]) + 0.013;
+        const body0 = sec ? rayHull(sec.hull, [0, cz], dx, dz) : last.body0[j];
+        if (bodyR) bodyR[j] = body0;
+        const fit = body0 + 0.013;
         let r = fit + (spec.cut === 'fitted' ? grow : 0);
-        if (spec.cut !== 'fitted' && i > 0) r = Math.max(fit, rings[0].radii[j] + grow, last.radii[j]);
-        radii[j] = r;
+        if (spec.cut !== 'fitted' && i > 0) r = Math.max(fit, rings[0].base[j] + grow, last.base[j]);
+        base[j] = r;
+        radii[j] = r + godet * (0.5 + 0.5 * Math.sin(nGodet * th + 0.7)) + gather * (0.5 + 0.5 * Math.sin(32 * th));
       }
-      last = { radii, cz, y: yy };
+      const body0 = new Float32Array(M);
+      for (let j = 0; j < M; j++) body0[j] = base[j] - 0.013;
+      last = { radii, base, body0, bodyR, cz, y: yy };
       rings.push(last);
     }
     this.rings = rings;
 
     // Positions de repos (repère du bassin), particules, liens.
     const hips = J.Hips;
+    this.hipsZ = hips.z;
     const count = R * M;
     this.local = new Float32Array(count * 3);
     for (let i = 0; i < R; i++) for (let j = 0; j < M; j++) {
@@ -402,11 +449,44 @@ class Skirt {
     this.mesh.castShadow = this.mesh.receiveShadow = true;
     this.mesh.frustumCulled = false;
     scene.add(this.mesh);
+
+    // Ceinture : bande unie qui couvre la couture entre le haut et la jupe.
+    const bandH = spec.from === 'waist' ? 0.04 : 0.018;
+    const r0 = rings[0];
+    const bandGeo = new THREE.BufferGeometry();
+    const bp = [], bn = [], bi = [];
+    for (let j = 0; j <= M; j++) {
+      const th = (j / M) * Math.PI * 2;
+      // la ceinture recouvre les fronces de la jupe sur toute sa hauteur
+      let rr = 0;
+      for (const ring of rings) if (ring.y > r0.y - bandH * 0.7) rr = Math.max(rr, ring.radii[j % M]);
+      rr += 0.008;
+      for (const dy of [-bandH * 0.6, bandH * 0.4]) {
+        bp.push(Math.sin(th) * rr, r0.y - hips.y + dy, r0.cz - hips.z + Math.cos(th) * rr);
+        bn.push(Math.sin(th), 0, Math.cos(th));
+      }
+      if (j < M) { const a = j * 2; bi.push(a, a + 2, a + 1, a + 1, a + 2, a + 3); }
+    }
+    bandGeo.setAttribute('position', new THREE.Float32BufferAttribute(bp, 3));
+    bandGeo.setAttribute('normal', new THREE.Float32BufferAttribute(bn, 3));
+    bandGeo.setIndex(bi);
+    const trimMat = new THREE.MeshStandardMaterial({ roughness: 0.7, side: THREE.DoubleSide });
+    trimMat.color = uniforms.trim;
+    this.band = new THREE.Mesh(bandGeo, trimMat);
+    this.band.castShadow = true;
+    body.bones.Hips.add(this.band);
+
+    // Ourlet roulé : petit boudin qui suit le bas de la jupe.
+    this.hem = new LoopTube(M, 0.0042, trimMat);
+    scene.add(this.hem.mesh);
     this.reset();
   }
 
   computeTargets() {
-    const m = this.body.bones.Hips.matrixWorld.elements;
+    const hm = this.body.bones.Hips.matrixWorld;
+    this.hipsM = hm.elements;
+    this.invHips = (this._inv ||= new THREE.Matrix4()).copy(hm).invert().elements;
+    const m = hm.elements;
     const L = this.local, T = this.target;
     for (let k = 0; k < L.length; k += 3) {
       const x = L[k], y = L[k + 1], z = L[k + 2];
@@ -435,6 +515,11 @@ class Skirt {
     for (const lr of this.legRadii) {
       caps.push([wp(`${lr.side}UpLeg`), wp(`${lr.side}Leg`), lr.thigh[0] * s, lr.thigh[1] * s]);
       caps.push([wp(`${lr.side}Leg`), wp(`${lr.side}Foot`), lr.calf[0] * s, lr.calf[1] * s]);
+      // Les mains et avant-bras repoussent le tissu au lieu de le traverser.
+      const hand = wp(`${lr.side}Hand`);
+      const tip = new THREE.Vector3(0, -0.17 * s, 0).applyQuaternion(b[`${lr.side}Hand`].getWorldQuaternion(new THREE.Quaternion())).add(hand);
+      caps.push([wp(`${lr.side}ForeArm`), hand, 0.034 * s, 0.026 * s]);
+      caps.push([hand, tip, 0.028 * s, 0.016 * s]);
     }
     return caps;
   }
@@ -490,6 +575,26 @@ class Skirt {
           const d = Math.hypot(ox, oy, oz);
           if (d < r && d > 1e-6) { const f = r / d; px = cx + ox * f; py = cy + oy * f; pz = cz + oz * f; }
         }
+        const ring = this.rings[(k / 3 / M) | 0];
+        if (ring.bodyR) {
+          const e = this.invHips;
+          const lx = e[0] * px + e[4] * py + e[8] * pz + e[12];
+          const ly = e[1] * px + e[5] * py + e[9] * pz + e[13];
+          const lz = e[2] * px + e[6] * py + e[10] * pz + e[14] - (ring.cz - this.hipsZ);
+          const rr = Math.hypot(lx, lz);
+          let a = Math.atan2(lx, lz) / (Math.PI * 2);
+          if (a < 0) a += 1;
+          const f = a * M, j0 = f | 0, w = f - j0;
+          const minR = ring.bodyR[j0 % M] * (1 - w) + ring.bodyR[(j0 + 1) % M] * w + 0.006;
+          if (rr < minR && rr > 1e-6) {
+            const q = minR / rr;
+            const nx = lx * q, nz = lz * q + (ring.cz - this.hipsZ);
+            const m = this.hipsM;
+            px = m[0] * nx + m[4] * ly + m[8] * nz + m[12];
+            py = m[1] * nx + m[5] * ly + m[9] * nz + m[13];
+            pz = m[2] * nx + m[6] * ly + m[10] * nz + m[14];
+          }
+        }
         if (box && px > box.x0 && px < box.x1 && pz > box.z0 && pz < box.z1 && py < box.top + thick) {
           const pen = [box.top + thick - py, px - box.x0, box.x1 - px, pz - box.z0, box.z1 - pz];
           const m = pen.indexOf(Math.min(...pen));
@@ -521,6 +626,7 @@ class Skirt {
     }
     this.geo.attributes.position.needsUpdate = true;
     this.geo.computeVertexNormals();
+    if (this.hem) this.hem.update(pos, (R - 1) * M, this.body.root.scale.x);
     // normales lissées sur la couture
     const nr = this.geo.attributes.normal.array;
     for (let i = 0; i < R; i++) {
@@ -533,6 +639,8 @@ class Skirt {
     this.mesh.parent?.remove(this.mesh);
     this.geo.dispose();
     this.mesh.material.dispose();
+    this.band.parent?.remove(this.band); this.band.geometry.dispose(); this.band.material.dispose();
+    this.hem.mesh.parent?.remove(this.hem.mesh); this.hem.mesh.geometry.dispose();
   }
 }
 
@@ -540,18 +648,142 @@ class Skirt {
 export function buildOutfit(body, outfit, uniforms, scene) {
   const parts = [];
   let skirt = null;
-  if (outfit?.top) { const m = buildTop(body, outfit.top, uniforms); if (m) parts.push(m); }
+  if (outfit?.top) { const m = buildTop(body, { ...outfit.top, tucked: !!outfit.skirt }, uniforms); if (m) parts.push(m); }
   if (outfit?.pants) { const m = buildPants(body, uniforms); if (m) parts.push(m); }
   if (outfit?.skirt) skirt = new Skirt(body, outfit.skirt, uniforms, scene);
   return {
     skirt,
+    /** Demi-largeur de la tenue (côtés) à une hauteur du mannequin au repos. */
+    halfWidthAt(y) {
+      if (!skirt) return 0;
+      const rs = skirt.rings;
+      if (y > rs[0].y || y < rs.at(-1).y) return 0;
+      const i = rs.findIndex((r) => r.y <= y);
+      const r = rs[Math.max(0, i)];
+      return Math.max(r.radii[skirt.M / 4 | 0], r.radii[(3 * skirt.M) / 4 | 0]);
+    },
     update(dt, env) { skirt?.update(dt, env); },
     reset() { skirt?.reset(); },
     dispose() {
-      for (const m of parts) { m.parent?.remove(m); m.geometry.dispose(); m.material.dispose(); }
+      for (const m of parts) {
+        for (const e of [m, ...(m.userData.extra || [])]) { e.parent?.remove(e); e.geometry.dispose(); e.material.dispose(); }
+      }
       skirt?.dispose();
     },
   };
+}
+
+// ---------- Finitions : bords, passepoil, ourlet ----------
+function boundaryLoops(tris, count) {
+  const edges = new Map();
+  const key = (a, b) => (a < b ? a * count + b : b * count + a);
+  for (let t = 0; t < tris.length; t += 3) {
+    for (const [a, b] of [[tris[t], tris[t + 1]], [tris[t + 1], tris[t + 2]], [tris[t + 2], tris[t]]]) {
+      const k = key(a, b);
+      edges.set(k, edges.has(k) ? null : [a, b]);
+    }
+  }
+  const next = new Map();
+  for (const e of edges.values()) if (e) { next.set(e[0], e[1]); }
+  const seen = new Set(), loops = [];
+  for (const start of next.keys()) {
+    if (seen.has(start)) continue;
+    const loop = [];
+    let v = start;
+    while (v !== undefined && !seen.has(v)) { seen.add(v); loop.push(v); v = next.get(v); }
+    if (loop.length >= 8 && v === start) loops.push(loop);
+  }
+  return loops;
+}
+
+/** Biais tubulaire le long des bords d'une pièce skinnée (mêmes poids que le bord). */
+function pipingMesh(g, loops, color, radius) {
+  const P = g.attributes.position.array, N = g.attributes.normal.array;
+  const SI = g.attributes.skinIndex.array, SW = g.attributes.skinWeight.array;
+  const S = 6;
+  const pos = [], nrm = [], si = [], sw = [], idx = [];
+  const t = new THREE.Vector3(), n = new THREE.Vector3(), b = new THREE.Vector3(), c = new THREE.Vector3();
+  for (const loop of loops) {
+    const base = pos.length / 3;
+    const L = loop.length;
+    loop.forEach((v, k) => {
+      const a = loop[(k - 1 + L) % L], d = loop[(k + 1) % L];
+      t.set(P[d * 3] - P[a * 3], P[d * 3 + 1] - P[a * 3 + 1], P[d * 3 + 2] - P[a * 3 + 2]).normalize();
+      n.fromArray(N, v * 3);
+      b.crossVectors(t, n).normalize();
+      n.crossVectors(b, t).normalize();
+      c.fromArray(P, v * 3);
+      for (let r = 0; r < S; r++) {
+        const ang = (r / S) * Math.PI * 2;
+        const ox = Math.cos(ang), oy = Math.sin(ang);
+        pos.push(c.x + (n.x * ox + b.x * oy) * radius, c.y + (n.y * ox + b.y * oy) * radius, c.z + (n.z * ox + b.z * oy) * radius);
+        nrm.push(n.x * ox + b.x * oy, n.y * ox + b.y * oy, n.z * ox + b.z * oy);
+        for (let q = 0; q < 4; q++) { si.push(SI[v * 4 + q]); sw.push(SW[v * 4 + q]); }
+      }
+      const k2 = (k + 1) % L;
+      for (let r = 0; r < S; r++) {
+        const a0 = base + k * S + r, a1 = base + k * S + ((r + 1) % S), b0 = base + k2 * S + r, b1 = base + k2 * S + ((r + 1) % S);
+        idx.push(a0, b0, a1, a1, b0, b1);
+      }
+    });
+  }
+  const geo = new THREE.BufferGeometry();
+  geo.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
+  geo.setAttribute('normal', new THREE.Float32BufferAttribute(nrm, 3));
+  geo.setAttribute('skinIndex', new THREE.Uint8BufferAttribute(si, 4));
+  geo.setAttribute('skinWeight', new THREE.Uint8BufferAttribute(sw, 4, true));
+  geo.setIndex(idx);
+  const mat = new THREE.MeshStandardMaterial({ roughness: 0.65 });
+  mat.color = color;
+  const mesh = new THREE.SkinnedMesh(geo, mat);
+  mesh.castShadow = true;
+  mesh.frustumCulled = false;
+  return mesh;
+}
+
+/** Boudin le long d'une boucle de particules (ourlet de la jupe simulée). */
+class LoopTube {
+  constructor(M, radius, material) {
+    this.M = M; this.radius = radius; this.S = 6;
+    const S = this.S;
+    this.pos = new Float32Array(M * S * 3);
+    const idx = [];
+    for (let k = 0; k < M; k++) for (let r = 0; r < S; r++) {
+      const a0 = k * S + r, a1 = k * S + ((r + 1) % S), b0 = ((k + 1) % M) * S + r, b1 = ((k + 1) % M) * S + ((r + 1) % S);
+      idx.push(a0, b0, a1, a1, b0, b1);
+    }
+    const g = new THREE.BufferGeometry();
+    g.setAttribute('position', new THREE.BufferAttribute(this.pos, 3));
+    g.setIndex(idx);
+    this.mesh = new THREE.Mesh(g, material);
+    this.mesh.castShadow = true;
+    this.mesh.frustumCulled = false;
+  }
+  update(src, start, scale) {
+    const { M, S, pos } = this;
+    const r = this.radius * scale;
+    let cx = 0, cz = 0;
+    for (let k = 0; k < M; k++) { cx += src[(start + k) * 3]; cz += src[(start + k) * 3 + 2]; }
+    cx /= M; cz /= M;
+    for (let k = 0; k < M; k++) {
+      const p = (start + k) * 3, a = (start + ((k - 1 + M) % M)) * 3, b = (start + ((k + 1) % M)) * 3;
+      const tx = src[b] - src[a], ty = src[b + 1] - src[a + 1], tz = src[b + 2] - src[a + 2];
+      const tl = Math.hypot(tx, ty, tz) || 1;
+      let nx = src[p] - cx, nz = src[p + 2] - cz;
+      const nl = Math.hypot(nx, nz) || 1; nx /= nl; nz /= nl;
+      // binormale = t × n (n horizontal)
+      const bx = (ty / tl) * nz, by = (tz / tl) * nx - (tx / tl) * nz, bz = -(ty / tl) * nx;
+      for (let q = 0; q < S; q++) {
+        const ang = (q / S) * Math.PI * 2, ox = Math.cos(ang) * r, oy = Math.sin(ang) * r;
+        const o = (k * S + q) * 3;
+        pos[o] = src[p] + nx * ox + bx * oy;
+        pos[o + 1] = src[p + 1] + by * oy;
+        pos[o + 2] = src[p + 2] + nz * ox + bz * oy;
+      }
+    }
+    this.mesh.geometry.attributes.position.needsUpdate = true;
+    this.mesh.geometry.computeVertexNormals();
+  }
 }
 
 // ---------- Géométrie plane ----------

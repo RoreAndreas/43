@@ -12,7 +12,12 @@ const ease = (t) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2);
 const _v1 = new THREE.Vector3(), _v2 = new THREE.Vector3(), _v3 = new THREE.Vector3();
 const _q = new THREE.Quaternion(), _m = new THREE.Matrix4(), _box = new THREE.Box3();
 
-const _e = new THREE.Euler();
+const _e = new THREE.Euler(), _qt = new THREE.Quaternion();
+// Réactivité de chaque os (1/s) : le bassin répond vite, la tête et les mains avec souplesse.
+const FOLLOW = {
+  Hips: 16, Spine: 12, Neck: 9, Head: 7, LeftUpLeg: 16, RightUpLeg: 16, LeftLeg: 16, RightLeg: 16, LeftFoot: 14, RightFoot: 14,
+  LeftArm: 10, RightArm: 10, LeftForeArm: 9, RightForeArm: 9, LeftHand: 8, RightHand: 8,
+};
 // Retard (s) de chaque os dans une transition de pose.
 const LAG = {
   Hips: 0, LeftUpLeg: 0, RightUpLeg: 0, LeftLeg: 0.03, RightLeg: 0.03, LeftFoot: 0.06, RightFoot: 0.06,
@@ -100,14 +105,18 @@ export class Rig {
     this.presetId = presetId;
 
     // Reprend la pose en cours sans animation (les cibles IK dépendent du corps).
-    const target = this.computePose(this.poseId);
-    this.basePose = target;
+    this.basePose = this.computePose(this.poseId);
     this.anim = null;
-    this.applyBones();
-    this.buildTapes();
+    this.applyBones(0);
     this.ground();
-    this.ruler.setHeight(cm.height / 100);
     this.buildOutfit();
+    // la pose s'adapte au volume de la tenue (bras écartés d'une jupe ample…)
+    this.basePose = this.computePose(this.poseId);
+    this.applyBones(0);
+    this.ground();
+    this.outfit?.reset();
+    this.buildTapes();
+    this.ruler.setHeight(cm.height / 100);
     return body;
   }
 
@@ -148,7 +157,7 @@ export class Rig {
       this.basePose = to;
       this.anim = null;
       this.stoolT = this.stoolTarget;
-      this.applyBones();
+      this.applyBones(0);
       this.ground();
       this.outfit?.reset();
       return;
@@ -157,13 +166,17 @@ export class Rig {
   }
 
   /** Pose de base × mouvement au repos → os. */
-  applyBones() {
+  applyBones(dt = 0) {
     const { bones } = this.body;
     const idle = this.idleOffsets();
     for (const [n, b] of Object.entries(bones)) {
-      b.quaternion.copy(this.basePose[n]);
+      _qt.copy(this.basePose[n]);
       const o = idle[n];
-      if (o) b.quaternion.multiply(_q.setFromEuler(_e.set(o[0], o[1], o[2])));
+      if (o) _qt.multiply(_q.setFromEuler(_e.set(o[0], o[1], o[2])));
+      // Chaque os suit sa cible avec sa propre inertie : pas d'à-coups, même si
+      // l'on change de pose en plein mouvement.
+      if (dt > 0) b.quaternion.slerp(_qt, 1 - Math.exp(-dt * (FOLLOW[n] ?? 12)));
+      else b.quaternion.copy(_qt);
     }
   }
 
@@ -200,15 +213,18 @@ export class Rig {
   setOutfit(id) {
     this.outfitId = id;
     this.buildOutfit();
+    this.setPose(this.poseId); // les bras s'ajustent à la nouvelle tenue
   }
 
   buildOutfit() {
     this.outfit?.dispose();
     this.outfit = null;
+    if (this.body) this.body.garmentHalfWidthAt = null;
     const spec = this.outfitsFor().find((o) => o.id === this.outfitId);
     if (!spec || spec.id === 'aucune' || !this.body) return;
     this.body.root.updateMatrixWorld(true);
     this.outfit = buildOutfit(this.body, spec, this.fabric, this.stage);
+    this.body.garmentHalfWidthAt = (y) => this.outfit?.halfWidthAt(y) ?? 0;
   }
 
   setFabric(texture, scale) {
@@ -253,7 +269,7 @@ export class Rig {
     // Rotation du mannequin sur son socle (la jupe s'évase sous l'effet).
     this.spinSpeed += ((this.spinOn ? 0.9 : 0) - this.spinSpeed) * (1 - Math.exp(-dt * 1.5));
     if (Math.abs(this.spinSpeed) > 1e-4) this.body.root.rotation.y += this.spinSpeed * dt;
-    this.applyBones();
+    this.applyBones(dt);
     this.ground();
     // Socle cubique : sort du sol sous le bassin dans la pose assise.
     const st = this.stoolTarget ?? 0;
