@@ -46,8 +46,8 @@ AtelierPagne/
 │   ├── mannequin.js         chargement du mannequin, squelette, tête ovale, mesures
 │   ├── geometry.js          surfaces « loft », tour de mesure (enveloppe convexe)
 │   ├── poses.js             bibliothèque de poses (données)
-│   ├── garments.js          tenues wax : haut taillé dans le corps, jupe en tissu simulé
-│   ├── dress.js             robes importées (Blender) : ajustement, rig, tissu simulé
+│   ├── garments.js          liste des tenues, matière tissu (pagne, reflet, tissage)
+│   ├── dress.js             robes Blender : ajustement, poids, chaînes de jupe à ressort
 │   ├── wax.js               six motifs wax originaux + import de la photo d’un pagne
 │   ├── rig.js               transitions, IK des bras, contact au sol, tabouret, rubans
 │   └── ui.js                panneaux, vues, mesures, mémorisation, clavier
@@ -154,17 +154,22 @@ stockage, partage), `assets/modeles/*.glb`, `assets/pagnes/*.webp`.
   chaîne (le bassin part d’abord, le buste suit, puis la tête et les bras).
 - **Animation au repos** (activable) : respiration, report du poids d’une jambe
   sur l’autre, regard qui se promène à gauche et à droite.
-- **Tenues wax** : robe sirène, robe évasée, ensemble pagne (femme) ; chemise
-  wax, tunique & pantalon (homme). Le haut suit exactement chaque pose ; la jupe
-  est un tissu simulé qui se balance, s’écarte quand la jambe avance, drape sur
-  les cuisses en pose assise et s’évase quand le mannequin tourne (« Rotation »).
-- **Robe importée de Blender** (« Robe longue épaules dénudées ») : ajustée
-  automatiquement au mannequin et à ses mesures (aisance de 1,2 cm mesurée sur la
-  peau), riggée sur son squelette ; le bustier suit le corps, la jupe longue
-  fendue est un tissu simulé (8 500 points) qui garde les plis du modèle,
-  s'ouvre sur la jambe à la marche et drape sur les cuisses en pose assise.
-  Le pagne est posé selon les UV du patron. Pour en ajouter une :
-  `python tools/convert_garment.py robe.blend nom`, puis l'ajouter à OUTFITS.
+- **Tenues : robes modélisées dans Blender** (aujourd’hui « Robe longue épaules
+  dénudées »). Méthode des jeux vidéo et des cabines virtuelles :
+  - la robe garde la coupe et le volume dessinés dans Blender : simple mise à
+    l’échelle du mannequin, élargie en douceur là où le corps est plus large,
+    corrigée localement là où la peau la traverserait ;
+  - le bustier et le bandeau suivent le torse et les bras (poids du point de
+    peau le plus proche) ;
+  - la jupe est portée par 16 chaînes d’os à ressort : elle se balance, s’évase
+    en rotation, s’écarte des jambes et des mains, se pose sur les cuisses et
+    s’étale au sol en position assise ; les bords de la fente s’ouvrent ;
+  - toute la déformation est faite par la carte graphique ; le processeur ne
+    calcule qu’une centaine de points (0,3 ms par image) : aucun tremblement ;
+  - matière tissu : reflet de fibre, grain de tissage, ourlet roulé.
+  Pour ajouter une robe : `python tools/convert_garment.py robe.blend nom`, puis
+  l’ajouter à `OUTFITS` dans `js/essayage/garments.js`.
+- **Mode téléphone** : résolution, ombres et anticrénelage allégés.
 - **Pagnes** : six motifs wax originaux, ou la photo du pagne de la cliente,
   à l’échelle réelle (taille du motif réglable en cm).
 - **Silhouette** : les proportions du modèle de référence fourni (hanches et

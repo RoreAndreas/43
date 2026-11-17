@@ -334,7 +334,7 @@ export class Rig {
         x0: st.position.x - 0.22, x1: st.position.x + 0.22, z0: st.position.z - 0.22, z1: st.position.z + 0.22, top: st.scale.y,
       } : null;
       this.body.root.updateMatrixWorld(true);
-      this.outfit.update(dt, { floorY: this.groundY, box, seated: !!this.pose?.stool });
+      this.outfit.update(dt, { floorY: this.groundY, box, seated: !!this.pose?.stool, spin: this.spinSpeed });
     }
     // Mètres rubans : tracé progressif.
     for (const t of this.tapeObjs) {

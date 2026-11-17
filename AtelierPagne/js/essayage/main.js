@@ -13,14 +13,16 @@ import { loadDresses } from './dress.js';
 const viewport = document.getElementById('viewport');
 
 // ---------- Rendu ----------
-const renderer = new THREE.WebGLRenderer({ antialias: true });
-renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+// Mode téléphone : résolution, ombres et anticrénelage allégés.
+const lite = Math.min(window.innerWidth, window.innerHeight) < 700 || window.matchMedia('(pointer: coarse)').matches;
+const renderer = new THREE.WebGLRenderer({ antialias: !lite || window.devicePixelRatio < 2, powerPreference: 'high-performance' });
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, lite ? 1.5 : 2));
 renderer.outputColorSpace = THREE.SRGBColorSpace;
 // Tonemapping « neutre » : couleurs fidèles (indispensable pour les pagnes).
 renderer.toneMapping = THREE.NeutralToneMapping;
 renderer.toneMappingExposure = 1.0;
 renderer.shadowMap.enabled = true;
-renderer.shadowMap.type = THREE.VSMShadowMap;
+renderer.shadowMap.type = lite ? THREE.PCFSoftShadowMap : THREE.VSMShadowMap;
 viewport.appendChild(renderer.domElement);
 
 const labels = new CSS2DRenderer();
@@ -48,7 +50,6 @@ controls.addEventListener('start', () => { cameraTween = null; ui?.onUserOrbit()
 
 // ---------- Décor et mannequin ----------
 await Promise.all([loadMannequins(), loadDresses(['aveline'])]);
-const lite = Math.min(window.innerWidth, window.innerHeight) < 700;
 const decor = buildDecor(scene, renderer, { lite });
 const stage = new THREE.Group();
 scene.add(stage);
