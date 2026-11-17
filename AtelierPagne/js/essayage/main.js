@@ -5,7 +5,7 @@ import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
 import { CSS2DRenderer } from 'three/addons/renderers/CSS2DRenderer.js';
 import { Rig } from './rig.js';
 import { POSES } from './poses.js';
-import { PRESETS } from './mannequin.js';
+import { PRESETS, loadMannequins } from './mannequin.js';
 import { initUI } from './ui.js';
 import { buildDecor, PLATE_TOP } from './decor.js';
 
@@ -46,6 +46,7 @@ controls.autoRotateSpeed = 1.4;
 controls.addEventListener('start', () => { cameraTween = null; ui?.onUserOrbit(); });
 
 // ---------- Décor et mannequin ----------
+await loadMannequins();
 const lite = Math.min(window.innerWidth, window.innerHeight) < 700;
 const decor = buildDecor(scene, renderer, { lite });
 const stage = new THREE.Group();

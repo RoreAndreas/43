@@ -18,3 +18,15 @@ Puis ouvrir <http://localhost:8000/> (accueil) ou
 
 Three.js r170 est fourni dans `vendor/three/` (licence MIT) : aucune connexion
 n’est nécessaire, à part les polices Google Fonts (avec repli système).
+
+## Mannequin
+
+Le corps du mannequin vient du maillage de base **MakeHuman** (cibles de
+morphologie et poids du squelette compris), publié sous licence **CC0**
+(domaine public) par la communauté MakeHuman. Pour régénérer les fichiers de
+`assets/mannequin/` (télécharge les données sources dans `tools/.cache/`) :
+
+```bash
+python3 tools/build_mannequin.py
+```
+

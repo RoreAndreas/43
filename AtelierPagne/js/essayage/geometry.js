@@ -1,5 +1,5 @@
-// Outils géométriques du mannequin : « loft » (surface tendue entre des
-// sections elliptiques successives) et calcul du tour mesuré au mètre ruban.
+// Outils géométriques : « loft » (surface tendue entre des sections
+// elliptiques successives, pour la tête et le cou) et tour au mètre ruban.
 import * as THREE from 'three';
 
 const KEYS = ['y', 'rx', 'zf', 'zb', 'cx', 'cz', 'b'];
@@ -99,23 +99,6 @@ export function loftGeometry(rings, { seg = 48, sub = 4, scale = null, yOffset =
   return g;
 }
 
-/** Section interpolée à une hauteur donnée (repère absolu du maillage). */
-export function ringAt(geometry, y) {
-  const R = geometry.userData.rings;
-  const asc = R[R.length - 1].y > R[0].y;
-  for (let i = 0; i < R.length - 1; i++) {
-    const a = R[i], b = R[i + 1];
-    const lo = asc ? a.y : b.y, hi = asc ? b.y : a.y;
-    if (y >= lo && y <= hi) {
-      const t = (y - a.y) / (b.y - a.y || 1);
-      const r = {};
-      for (const k of KEYS) r[k] = a[k] + (b[k] - a[k]) * t;
-      return r;
-    }
-  }
-  return null;
-}
-
 function cross(o, a, b) { return (a[0] - o[0]) * (b[1] - o[1]) - (a[1] - o[1]) * (b[0] - o[0]); }
 
 /** Enveloppe convexe : c'est le trajet réel d'un mètre ruban autour du corps. */
@@ -135,12 +118,4 @@ export function perimeter(poly) {
     L += Math.hypot(b[0] - a[0], b[1] - a[1]);
   }
   return L;
-}
-
-/** Tour de mesure à la hauteur y : contour (x,z) et longueur en mètres. */
-export function tapeAt(geometry, y, seg = 96) {
-  const r = ringAt(geometry, y);
-  if (!r) return null;
-  const hull = convexHull(sectionPoints(r, seg, geometry.userData.bust));
-  return { hull, length: perimeter(hull), y };
 }

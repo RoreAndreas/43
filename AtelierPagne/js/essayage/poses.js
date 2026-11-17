@@ -7,6 +7,16 @@
 // droit n'est pas précisé. `ik` place le poignet sur une cible (repère du
 // mannequin) : la cible peut dépendre de la morphologie (largeur des hanches).
 
+// Cibles des poignets, calculées sur la morphologie (repère du mannequin au repos).
+const handOnHip = (b, side, dz = 0) => {
+  const y = (b.lm.waist + b.lm.hip) / 2 + 0.02;
+  return [side * (b.halfWidthAt(y) + 0.03), y, b.lm.joints.Hips.z + dz];
+};
+const handOnThigh = (b, side) => {
+  const j = b.lm.joints[side > 0 ? 'LeftUpLeg' : 'RightUpLeg'];
+  return [j.x + side * 0.05, j.y + 0.11, j.z + b.lm.thigh * 0.62];
+};
+
 export const POSES = [
   {
     id: 'neutre',
@@ -48,8 +58,8 @@ export const POSES = [
       LeftHand: [0.1, -0.35, 0.55],
     },
     ik: {
-      Left: { target: (b) => [b.halfWidthAt(1.01) + 0.03, 1.005, -0.005], pole: [1, 0.1, -0.55] },
-      Right: { target: (b) => [-(b.halfWidthAt(1.01) + 0.03), 1.005, -0.005], pole: [-1, 0.1, -0.55] },
+      Left: { target: (b) => handOnHip(b, 1), pole: [1, 0.1, -0.55] },
+      Right: { target: (b) => handOnHip(b, -1), pole: [-1, 0.1, -0.55] },
     },
   },
   {
@@ -104,7 +114,7 @@ export const POSES = [
       RightHand: [0, 0, 0.05],
     },
     ik: {
-      Left: { target: (b) => [b.halfWidthAt(1.02) + 0.03, 1.02, 0.0], pole: [1, 0.1, -0.55] },
+      Left: { target: (b) => handOnHip(b, 1, 0.01), pole: [1, 0.1, -0.55] },
     },
   },
   {
@@ -122,8 +132,8 @@ export const POSES = [
       LeftHand: [-0.2, 0.6, 0.15],
     },
     ik: {
-      Left: { target: () => [0.15, 1.0, 0.27], pole: [0.5, -0.3, -1] },
-      Right: { target: () => [-0.15, 1.0, 0.27], pole: [-0.5, -0.3, -1] },
+      Left: { target: (b) => handOnThigh(b, 1), pole: [0.5, -0.3, -1] },
+      Right: { target: (b) => handOnThigh(b, -1), pole: [-0.5, -0.3, -1] },
     },
   },
 ];

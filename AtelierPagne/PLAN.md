@@ -43,11 +43,13 @@ AtelierPagne/
 ├── js/essayage/
 │   ├── main.js              scène, caméra, boucle
 │   ├── decor.js             showroom clair : lumière, béton, socles, cadres drapés, plantes
-│   ├── mannequin.js         mannequin procédural + morphologies Femme/Homme
+│   ├── mannequin.js         chargement du mannequin, squelette, tête ovale, mesures
 │   ├── geometry.js          surfaces « loft », tour de mesure (enveloppe convexe)
 │   ├── poses.js             bibliothèque de poses (données)
 │   ├── rig.js               transitions, IK des bras, contact au sol, tabouret, rubans
 │   └── ui.js                panneaux, vues, mesures, mémorisation, clavier
+├── assets/mannequin/        femme / homme : maillage + poids (.bin) et repères (.json)
+├── tools/build_mannequin.py fabrique ces fichiers à partir de MakeHuman (CC0)
 └── vendor/three/            Three.js r170 (local : pas de dépendance à un CDN)
 ```
 
@@ -129,10 +131,11 @@ stockage, partage), `assets/modeles/*.glb`, `assets/pagnes/*.webp`.
 
 ## 7. Salle d’essayage — ce qui est livré
 
-- **Mannequin de vitrine épuré**, gris clair, sans visage : silhouette allongée,
-  tête ovale, long cou, jambes lisses d’un seul tenant ; seules les articulations
-  des bras (épaule, coude, poignet) restent visibles, dans un gris plus soutenu.
-  Femme par défaut, Homme au choix.
+- **Mannequin de vitrine réaliste**, gris clair, **sans visage** : corps humain
+  lisse et élancé (base MakeHuman, domaine public CC0), mains avec doigts, tête
+  ovale lisse posée sur le cou. Femme par défaut, Homme au choix. Le maillage
+  est préparé par `tools/build_mannequin.py` (silhouette mince et élancée,
+  tétons et nombril effacés, visage retiré, 163 os regroupés en 16).
 - **Showroom clair** : mur blanc, sol en béton, plaque d’acier sous le mannequin,
   socles cubiques, cadres métalliques drapés de lin, un peu de végétation.
 - Interface **plein écran** : le mannequin occupe l’écran ; une seule barre en bas

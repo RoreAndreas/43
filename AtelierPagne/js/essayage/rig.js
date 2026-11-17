@@ -104,7 +104,6 @@ export class Rig {
     if (pose.ik) {
       for (const [side, spec] of Object.entries(pose.ik)) {
         const t = spec.target(this.body);
-        t[1] += this.body.yShift ?? 0;
         const T = root.localToWorld(new THREE.Vector3(...t));
         const pole = new THREE.Vector3(...spec.pole).applyQuaternion(root.getWorldQuaternion(new THREE.Quaternion()));
         solveTwoBone(bones[`${side}Arm`], bones[`${side}ForeArm`], bones[`${side}Hand`], T, pole);
@@ -134,12 +133,10 @@ export class Rig {
   }
 
   ground() {
-    const { root, feet } = this.body;
+    const { root } = this.body;
     root.position.y = 0;
     root.updateMatrixWorld(true);
-    let min = Infinity;
-    for (const f of feet) min = Math.min(min, _box.setFromObject(f, true).min.y);
-    root.position.y = this.groundY - min;
+    root.position.y = this.groundY - this.body.lowestSole();
     root.updateMatrixWorld(true);
   }
 
@@ -157,8 +154,8 @@ export class Rig {
     const st = this.stoolTarget ?? 0;
     this.stoolT += Math.sign(st - this.stoolT) * Math.min(Math.abs(st - this.stoolT), dt * 2.2);
     if (this.stoolT > 0.001) {
-      const pelvisBottom = _box.setFromObject(this.body.pelvis, true).min.y;
-      const top = Math.max(0.05, pelvisBottom + 0.03 * this.body.scale);
+      const pelvisBottom = this.body.lowestSeat();
+      const top = Math.max(0.05, pelvisBottom + 0.01 * this.body.scale);
       this.stool.visible = true;
       this.stool.scale.set(1, Math.max(0.001, top * ease(this.stoolT)), 1);
       const hp = this.body.bones.Hips.getWorldPosition(_v1);
