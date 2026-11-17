@@ -47,11 +47,14 @@ AtelierPagne/
 │   ├── geometry.js          surfaces « loft », tour de mesure (enveloppe convexe)
 │   ├── poses.js             bibliothèque de poses (données)
 │   ├── garments.js          tenues wax : haut taillé dans le corps, jupe en tissu simulé
+│   ├── dress.js             robes importées (Blender) : ajustement, rig, tissu simulé
 │   ├── wax.js               six motifs wax originaux + import de la photo d’un pagne
 │   ├── rig.js               transitions, IK des bras, contact au sol, tabouret, rubans
 │   └── ui.js                panneaux, vues, mesures, mémorisation, clavier
 ├── assets/mannequin/        femme / homme : maillage + poids (.bin) et repères (.json)
+├── assets/garments/        robes importées (.bin + .json)
 ├── tools/build_mannequin.py fabrique ces fichiers à partir de MakeHuman (CC0)
+├── tools/convert_garment.py convertit un vêtement .blend (module Python de Blender)
 └── vendor/three/            Three.js r170 (local : pas de dépendance à un CDN)
 ```
 
@@ -155,6 +158,13 @@ stockage, partage), `assets/modeles/*.glb`, `assets/pagnes/*.webp`.
   wax, tunique & pantalon (homme). Le haut suit exactement chaque pose ; la jupe
   est un tissu simulé qui se balance, s’écarte quand la jambe avance, drape sur
   les cuisses en pose assise et s’évase quand le mannequin tourne (« Rotation »).
+- **Robe importée de Blender** (« Robe longue épaules dénudées ») : ajustée
+  automatiquement au mannequin et à ses mesures (aisance de 1,2 cm mesurée sur la
+  peau), riggée sur son squelette ; le bustier suit le corps, la jupe longue
+  fendue est un tissu simulé (8 500 points) qui garde les plis du modèle,
+  s'ouvre sur la jambe à la marche et drape sur les cuisses en pose assise.
+  Le pagne est posé selon les UV du patron. Pour en ajouter une :
+  `python tools/convert_garment.py robe.blend nom`, puis l'ajouter à OUTFITS.
 - **Pagnes** : six motifs wax originaux, ou la photo du pagne de la cliente,
   à l’échelle réelle (taille du motif réglable en cm).
 - **Silhouette** : les proportions du modèle de référence fourni (hanches et

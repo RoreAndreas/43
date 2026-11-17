@@ -8,6 +8,7 @@ import { POSES } from './poses.js';
 import { PRESETS, loadMannequins } from './mannequin.js';
 import { initUI } from './ui.js';
 import { buildDecor, PLATE_TOP } from './decor.js';
+import { loadDresses } from './dress.js';
 
 const viewport = document.getElementById('viewport');
 
@@ -46,7 +47,7 @@ controls.autoRotateSpeed = 1.4;
 controls.addEventListener('start', () => { cameraTween = null; ui?.onUserOrbit(); });
 
 // ---------- Décor et mannequin ----------
-await loadMannequins();
+await Promise.all([loadMannequins(), loadDresses(['aveline'])]);
 const lite = Math.min(window.innerWidth, window.innerHeight) < 700;
 const decor = buildDecor(scene, renderer, { lite });
 const stage = new THREE.Group();

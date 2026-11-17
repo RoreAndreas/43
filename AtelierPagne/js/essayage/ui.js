@@ -30,6 +30,7 @@ const SHORT = { 'mains-hanches': 'Mains hanches', 'bras-ouverts': 'Bras ouverts'
 const ico = (d) => `<svg class="outfit__ico" viewBox="0 0 40 48" aria-hidden="true">${d}</svg>`;
 const OUTFIT_ICON = {
   aucune: ico('<circle cx="20" cy="6" r="3.5"/><path d="M14 13h12l-1 14 2 18M14 13l1 14-2 18M20 27v0"/>'),
+  aveline: ico('<path d="M9 9h22M12 9l1 4 2 12-7 21h10l2-12 2 12h10l-7-21 2-12 1-4"/><path d="M20 33l-1 13"/>'),
   sirene: ico('<path d="M13 10c3 2 11 2 14 0M14 11l1 14-1 9-5 11h22l-5-11-1-9 1-14"/><path d="M12 10l-3 4M28 10l3 4"/>'),
   evasee: ico('<path d="M16 5c2 2 6 2 8 0M15 5l-4 5 3 2 1 8M25 5l4 5-3 2-1 8M15 20h10M15 20 8 40h24l-7-20"/>'),
   ensemble: ico('<path d="M14 6h12M14 6l-4 6 3 1 1 6h12l1-6 3-1-4-6M15 22h10l2 23H13z"/><path d="M15 22l4 5"/>'),
@@ -152,7 +153,7 @@ export function initUI({ rig, POSES, VIEWS, PRESETS, controls, goToView, orbitBy
   const outfitsEl = $('#outfits');
   const renderOutfits = () => {
     const list = rig.outfitsFor(state.preset);
-    if (!list.some((o) => o.id === state.outfit)) state.outfit = list[state.preset === 'femme' ? 2 : 1]?.id || 'aucune';
+    if (!list.some((o) => o.id === state.outfit)) state.outfit = (list.find((o) => o.id === 'aveline') || list[1])?.id || 'aucune';
     outfitsEl.innerHTML = list.map((o) => `
       <button type="button" class="outfit" role="radio" aria-checked="${o.id === state.outfit}" data-outfit="${o.id}">
         ${OUTFIT_ICON[o.id] || ''}<span><strong>${o.label}</strong><small>${o.hint}</small></span>

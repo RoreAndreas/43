@@ -1,0 +1,17 @@
+{
+ "name": "Aveline Black Off-the-Shoulder Maxi Dress",
+ "source": "198d0b79-Inpired_by_Aveline_Black_Off-the-Shoulder_Maxi_Dress.blend",
+ "particles": 8478,
+ "renderVertices": 8834,
+ "triangles": 16694,
+ "min": [
+  -0.3503,
+  0.0014,
+  -0.2138
+ ],
+ "max": [
+  0.2071,
+  1.4302,
+  0.2387
+ ]
+}

@@ -7,10 +7,15 @@
 //   mannequin tourne sur lui-même.
 // - Le motif est plaqué à l'échelle réelle (taille d'un motif en mètres).
 import * as THREE from 'three';
+import { DressCloth, hasDress } from './dress.js';
 
 export const OUTFITS = {
   femme: [
     { id: 'aucune', label: 'Sans tenue', hint: 'Le mannequin seul, pour juger la silhouette.' },
+    {
+      id: 'aveline', label: 'Robe longue épaules dénudées', hint: 'Modèle 3D importé : bustier à bandeau, jupe longue fendue.',
+      mesh: 'aveline',
+    },
     {
       id: 'sirene', label: 'Robe sirène', hint: 'Ajustée jusqu’aux genoux, évasée jusqu’au sol, épaules dénudées.',
       top: { neck: 'offshoulder', bottom: 'hip', sleeves: 'band' },
@@ -674,12 +679,16 @@ export function buildOutfit(body, outfit, uniforms, scene) {
   if (outfit?.top) { const m = buildTop(body, { ...outfit.top, tucked: !!outfit.skirt }, uniforms); if (m) parts.push(m); }
   if (outfit?.pants) { const m = buildPants(body, uniforms); if (m) parts.push(m); }
   if (outfit?.skirt) skirt = new Skirt(body, outfit.skirt, uniforms, scene);
+  if (outfit?.mesh && hasDress(outfit.mesh)) {
+    skirt = new DressCloth(body, outfit.mesh, fabricMaterial(uniforms, { mode: 'uv', side: THREE.DoubleSide }), scene);
+  }
   return {
     skirt,
     legFreedom: skirt?.legFreedom ?? 1,
     /** Demi-largeur de la tenue (côtés) à une hauteur du mannequin au repos. */
     halfWidthAt(y) {
       if (!skirt) return 0;
+      if (skirt.halfWidthAt) return skirt.halfWidthAt(y);
       const rs = skirt.rings;
       if (y > rs[0].y || y < rs.at(-1).y) return 0;
       const i = rs.findIndex((r) => r.y <= y);
