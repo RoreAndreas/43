@@ -51,6 +51,48 @@ def site_bone(name):
     return None
 
 
+GAIN = 1.9  # intensité générale de la musculature
+
+
+def muscles(V, N, Wn, J):
+    """Musculature athlétique, sculptée sur le maillage (position en T) : pectoraux,
+    abdominaux, deltoïdes, biceps, triceps, avant-bras, trapèzes, dorsaux, fessiers,
+    quadriceps, ischio-jambiers, mollets. Chaque masse gonfle la pièce le long de sa
+    normale, en douceur (gaussienne), seulement sur l'os qui la porte."""
+    idx = {b: i for i, b in enumerate(BONES)}
+    out = V.copy()
+    armY = J['LeftArm'][1]
+
+    def blob(c, r, amp, bones, d=None, sharp=1.0):
+        amp *= GAIN
+        w = sum(Wn[:, idx[b]] for b in bones)
+        g = np.exp(-np.sum((V - np.asarray(c)) ** 2, axis=1) / (r * r))
+        f = np.ones(len(V))
+        if d is not None:
+            d = np.asarray(d, dtype=float); d /= np.linalg.norm(d)
+            f = np.clip(N @ d, 0, 1) ** sharp
+        out[:] += N * (amp * g * w * f)[:, None]
+    for sx, S in ((1, 'Left'), (-1, 'Right')):
+        A, F, H = J[S + 'Arm'], J[S + 'ForeArm'], J[S + 'Hand']
+        U, L, Ft = J[S + 'UpLeg'], J[S + 'Leg'], J[S + 'Foot']
+        blob((sx * 0.075, armY - 0.085, 0.07), 0.085, 0.022, ['Spine'], (0, 0, 1))          # pectoraux
+        for k, y in enumerate((0.03, 0.09, 0.15)):                                            # abdominaux
+            blob((sx * 0.033, J['Spine'][1] + y, 0.08), 0.032, 0.007, ['Spine', 'Hips'], (0, 0, 1), 2)
+        blob(A + np.array([sx * 0.03, 0.02, 0]), 0.065, 0.016, ['LeftArm', 'RightArm', 'Spine'], (sx, 0.6, 0))  # deltoïdes
+        m = A + 0.5 * (F - A)
+        blob(m, 0.065, 0.014, [S + 'Arm'], (0, 0.3, 1))                                        # biceps
+        blob(m, 0.065, 0.011, [S + 'Arm'], (0, 0.2, -1))                                       # triceps
+        blob(F + 0.3 * (H - F), 0.055, 0.009, [S + 'ForeArm'])                                 # avant-bras
+        blob((sx * 0.065, J['Neck'][1] - 0.01, -0.02), 0.06, 0.013, ['Spine'], (0, 1, -0.6))  # trapèzes
+        blob((sx * 0.11, armY - 0.16, -0.03), 0.085, 0.014, ['Spine'], (sx, 0, -1))            # dorsaux
+        blob((sx * 0.07, U[1] - 0.04, -0.09), 0.085, 0.016, ['Hips', S + 'UpLeg'], (0, 0, -1))  # fessiers
+        q = U + 0.42 * (L - U)
+        blob(q + np.array([0, 0, 0.03]), 0.1, 0.019, [S + 'UpLeg'], (0, 0, 1))                # quadriceps
+        blob(q + np.array([0, 0, -0.03]), 0.1, 0.011, [S + 'UpLeg'], (0, 0, -1))               # ischio-jambiers
+        blob(L + 0.27 * (Ft - L) + np.array([0, 0, -0.03]), 0.07, 0.017, [S + 'Leg'], (0, 0, -1))  # mollets
+    return out
+
+
 def to_site(v):
     return np.array([v[0], v[2], -v[1]], dtype=np.float64)
 
@@ -74,6 +116,8 @@ def main():
     me = ev.to_mesh()
     mw = ev.matrix_world
     V = np.array([to_site(mw @ v.co) for v in me.vertices])
+    Nrm = np.array([to_site(mw.to_3x3() @ v.normal) for v in me.vertices])
+    Nrm /= np.maximum(np.linalg.norm(Nrm, axis=1, keepdims=True), 1e-9)
     faces = [list(p.vertices) for p in me.polygons]
     fmat = [p.material_index for p in me.polygons]  # 0 : blanc, 1 : rouge (pièces du mannequin)
     gname = {g.index: site_bone(g.name) for g in ob.vertex_groups}
@@ -102,6 +146,7 @@ def main():
     V = (V - origin) * scale
     J = {k: (v - origin) * scale for k, v in J.items()}
 
+    V = muscles(V, Nrm, W / np.maximum(W.sum(1, keepdims=True), 1e-9), J)
     order = np.argsort(-W, axis=1)[:, :4]
     wsel = np.take_along_axis(W, order, axis=1)
     wsel = np.where(wsel.sum(1, keepdims=True) > 0, wsel / np.maximum(wsel.sum(1, keepdims=True), 1e-9), [1, 0, 0, 0])

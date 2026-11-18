@@ -62,7 +62,8 @@ export function proceduralWalk(body, style = 'unisexe') {
   const q = (x, y, z) => new THREE.Quaternion().setFromEuler(new THREE.Euler(x, y, z));
   const frames = [];
   for (let i = 0; i < N; i++) {
-    const p = i / N;
+    // rythme non uniforme : appui un peu plus long, jambe libre plus vive (moins mécanique)
+    const p0 = i / N, p = p0 + 0.025 * Math.sin(TAU * 2 * p0);
     const rot = {};
     for (const [side, ph, sx] of [['Left', p, 1], ['Right', p + 0.5, -1]]) {
       const th = THIGH(ph), kn = KNEE(ph);
@@ -72,16 +73,19 @@ export function proceduralWalk(body, style = 'unisexe') {
       rot[`${side}Leg`] = [kn, 0, 0];
       rot[`${side}Foot`] = [FOOT(ph) - (th + kn), 0, 0];
       // bras opposé à la jambe : en arrière quand la jambe du même côté est devant
-      rot[`${side}Arm`] = [S.arm / 0.42 * ARM(ph - 0.04), 0, sx * S.armOut];
-      rot[`${side}ForeArm`] = [-S.fore / 0.3 * ELBOW(ph - 0.06), 0, 0];
-      rot[`${side}Hand`] = [0.08 + 0.06 * Math.sin(TAU * (ph - 0.2)), 0, -sx * 0.08]; // poignet relâché, en léger retard
+      // chaîne du bras en retard progressif (épaule → coude → poignet) : effet de fouet
+      const a = ARM(ph - 0.05);
+      rot[`${side}Arm`] = [S.arm / 0.42 * a, 0, sx * (S.armOut + 0.05 * Math.max(0, -a))]; // le bras devant s'écarte un peu : il passe à côté du bassin
+      rot[`${side}ForeArm`] = [-S.fore / 0.3 * ELBOW(ph - 0.12), 0, 0];
+      rot[`${side}Hand`] = [0.1 + 0.14 * Math.sin(TAU * (ph - 0.28)), 0, -sx * 0.1]; // poignet relâché qui suit
     }
     const c = Math.cos(TAU * p), s = Math.sin(TAU * p);
     rot.Hips = [0, -S.hipYaw * c, -S.hipTilt * s];
     // buste : contre-rotation, flexion latérale qui compense la bascule du bassin,
     // léger rebond (il se penche un peu plus à l'amorti)
     const bob = Math.cos(TAU * 2 * (p - 0.125));
-    rot.Spine = [S.lean + 0.03 * bob, S.chest * c + S.hipYaw * c, S.hipTilt * s * 0.7 + (S.bend || 0) * s];
+    const cl = Math.cos(TAU * (p - 0.04)); // le buste suit le bassin avec un léger retard
+    rot.Spine = [S.lean + 0.03 * bob, S.chest * cl + S.hipYaw * c, S.hipTilt * s * 0.7 + (S.bend || 0) * s];
     rot.Neck = [-S.lean * 0.4 - 0.01 * bob, -S.chest * c * 0.45, -(S.bend || 0) * s * 0.5];
     rot.Head = [-S.lean * 0.3 - 0.01 * bob, -S.chest * c * 0.4, -(S.bend || 0) * s * 0.4];
     const L = {};
@@ -91,7 +95,7 @@ export function proceduralWalk(body, style = 'unisexe') {
       if (r) L[n].multiply(q(r[0], r[1], r[2]));
     }
     // bassin : balancement latéral vers la jambe d'appui (la hauteur est donnée par les pieds)
-    frames.push({ L, h: new THREE.Vector3(S.sway * s, 0, 0) });
+    frames.push({ L, h: new THREE.Vector3(S.sway * 1.4 * Math.sin(TAU * (p - 0.05)), 0, 0) });
   }
   return { fps, frames, speed: 1.2 };
 }
