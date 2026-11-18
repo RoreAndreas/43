@@ -80,6 +80,11 @@ for (const sizeId of sizes) {
       //    devant le socle et recule en s'asseyant, comme une vraie personne.
       const frames = [];
       rig.basePose = Object.fromEntries(Object.entries(body.rest).map(([n, q]) => [n, q.clone()]));
+      // Les bras partent déjà hors de la jupe (comme dans la pose Debout) : au repos
+      // strict, les mains pendent contre les hanches, dans le tissu, et
+      // l'entraîneraient en sortant (fente qui s'ouvre, pans retroussés).
+      const armsOut = rig.computePose('neutre');
+      for (const n of ['LeftArm', 'LeftForeArm', 'LeftHand', 'RightArm', 'RightForeArm', 'RightHand']) rig.basePose[n] = armsOut[n].clone();
       rig.applyBones(0);
       rig.ground();
       cloth.reset(); // la jupe repart de sa forme de repos

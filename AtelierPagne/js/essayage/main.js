@@ -49,7 +49,8 @@ controls.autoRotateSpeed = 1.4;
 controls.addEventListener('start', () => { cameraTween = null; ui?.onUserOrbit(); });
 
 // ---------- Décor et mannequin ----------
-await Promise.all([loadMannequins(), loadDresses(['aveline']), loadBakeIndex('aveline')]);
+const DRESSES = ['aveline', 'bretelles'];
+await Promise.all([loadMannequins(), loadDresses(DRESSES), ...DRESSES.map((d) => loadBakeIndex(d))]);
 const decor = buildDecor(scene, renderer, { lite });
 const stage = new THREE.Group();
 scene.add(stage);

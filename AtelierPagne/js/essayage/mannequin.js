@@ -154,6 +154,12 @@ export function buildMannequin(preset, k = { bust: 1, waist: 1, hip: 1 }, materi
     pos[i * 3 + 2] = cz + (pos[i * 3 + 2] - cz) * f;
   }
 
+  /** Même déformation pour un point proche du corps (vêtement modélisé sur ce mannequin). */
+  const morphPoint = (x, y, z, w) => {
+    const f = 1 + (factor(y) - 1) * w, cz = centerZ(y);
+    return [x * f, y, cz + (z - cz) * f];
+  };
+
   const geo = new THREE.BufferGeometry();
   geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
   geo.setAttribute('skinIndex', new THREE.Uint8BufferAttribute(D.skinIndex, 4));
@@ -192,49 +198,54 @@ export function buildMannequin(preset, k = { bust: 1, waist: 1, hip: 1 }, materi
   const meshes = [body];
 
   // ---------- Cou prolongé et tête ovale sans visage ----------
-  const nc = meta.neckCut, hd = meta.head;
-  // Le cou part exactement du bord découpé du corps (anneau exporté), puis
-  // s'arrondit en montant sous la tête : aucune marche ni trait à la jonction.
-  // Il est skinné comme le corps : le raccord tient pendant les mouvements.
-  const neckMesh = buildNeck(nc, hd, J, pos, D.skinIndex, D.skinWeight, bi, material);
-  root.add(neckMesh);
-  neckMesh.bind(body.skeleton, body.bindMatrix);
-  // normales communes sur l'anneau de jonction : pas de ligne d'éclairage
-  {
-    const bn = geo.attributes.normal.array, nn = neckMesh.geometry.attributes.normal.array;
-    nc.ring.forEach((i, k) => {
-      let x = bn[i * 3] + nn[k * 3], y = bn[i * 3 + 1] + nn[k * 3 + 1], z = bn[i * 3 + 2] + nn[k * 3 + 2];
-      const l = Math.hypot(x, y, z) || 1; x /= l; y /= l; z /= l;
-      bn[i * 3] = nn[k * 3] = x; bn[i * 3 + 1] = nn[k * 3 + 1] = y; bn[i * 3 + 2] = nn[k * 3 + 2] = z;
-    });
-  }
+  // (seulement si la tête du modèle a été retirée : MakeHuman ; le mannequin
+  // femme garde la sienne, déjà lisse et sans visage)
+  if (meta.neckCut) {
+    const nc = meta.neckCut, hd = meta.head;
+    // Le cou part exactement du bord découpé du corps (anneau exporté), puis
+    // s'arrondit en montant sous la tête : aucune marche ni trait à la jonction.
+    // Il est skinné comme le corps : le raccord tient pendant les mouvements.
+    const neckMesh = buildNeck(nc, hd, J, pos, D.skinIndex, D.skinWeight, bi, material);
+    root.add(neckMesh);
+    neckMesh.bind(body.skeleton, body.bindMatrix);
+    // normales communes sur l'anneau de jonction : pas de ligne d'éclairage
+    {
+      const bn = geo.attributes.normal.array, nn = neckMesh.geometry.attributes.normal.array;
+      nc.ring.forEach((i, k) => {
+        let x = bn[i * 3] + nn[k * 3], y = bn[i * 3 + 1] + nn[k * 3 + 1], z = bn[i * 3 + 2] + nn[k * 3 + 2];
+        const l = Math.hypot(x, y, z) || 1; x /= l; y /= l; z /= l;
+        bn[i * 3] = nn[k * 3] = x; bn[i * 3 + 1] = nn[k * 3 + 1] = y; bn[i * 3 + 2] = nn[k * 3 + 2] = z;
+      });
+    }
 
-  // Œuf lisse : gabarit normalisé (hauteur 1, demi-largeur 0.29, profondeur 0.69).
-  const H = (hd.top - hd.chin) * 0.97;
-  const headGeo = loftGeometry([
-    { y: 0, rx: 0.004, zf: 0.004, zb: 0.004, cz: 0.1 },
-    { y: 0.035, rx: 0.12, zf: 0.12, zb: 0.12, cz: 0.1 },
-    { y: 0.15, rx: 0.205, zf: 0.235, zb: 0.24, cz: 0.06 },
-    { y: 0.34, rx: 0.268, zf: 0.31, zb: 0.33, cz: 0.02 },
-    { y: 0.55, rx: 0.29, zf: 0.33, zb: 0.36, cz: 0 },
-    { y: 0.75, rx: 0.276, zf: 0.3, zb: 0.34, cz: -0.01 },
-    { y: 0.9, rx: 0.2, zf: 0.21, zb: 0.25, cz: -0.02 },
-    { y: 0.985, rx: 0.08, zf: 0.08, zb: 0.1, cz: -0.02 },
-    { y: 1, rx: 0.004, zf: 0.004, zb: 0.004, cz: -0.02 },
-  ], { seg: 56 });
-  const width = Math.min(hd.rx, 0.078) * 0.94;
-  headGeo.scale(width / 0.29, H, ((hd.zf - hd.zb) * 0.86) / 0.69);
-  const headMesh = new THREE.Mesh(headGeo, material);
-  headMesh.position.set(0, hd.chin + 0.006 - J.Head.y, (hd.zf + hd.zb) / 2 - 0.012 - J.Head.z);
-  headMesh.rotation.x = 0.04;
-  bones.Head.add(headMesh);
-  for (const m of [neckMesh, headMesh]) { m.castShadow = m.receiveShadow = true; meshes.push(m); }
-  neckMesh.frustumCulled = false;
+    // Œuf lisse : gabarit normalisé (hauteur 1, demi-largeur 0.29, profondeur 0.69).
+    const H = (hd.top - hd.chin) * 0.97;
+    const headGeo = loftGeometry([
+      { y: 0, rx: 0.004, zf: 0.004, zb: 0.004, cz: 0.1 },
+      { y: 0.035, rx: 0.12, zf: 0.12, zb: 0.12, cz: 0.1 },
+      { y: 0.15, rx: 0.205, zf: 0.235, zb: 0.24, cz: 0.06 },
+      { y: 0.34, rx: 0.268, zf: 0.31, zb: 0.33, cz: 0.02 },
+      { y: 0.55, rx: 0.29, zf: 0.33, zb: 0.36, cz: 0 },
+      { y: 0.75, rx: 0.276, zf: 0.3, zb: 0.34, cz: -0.01 },
+      { y: 0.9, rx: 0.2, zf: 0.21, zb: 0.25, cz: -0.02 },
+      { y: 0.985, rx: 0.08, zf: 0.08, zb: 0.1, cz: -0.02 },
+      { y: 1, rx: 0.004, zf: 0.004, zb: 0.004, cz: -0.02 },
+    ], { seg: 56 });
+    const width = Math.min(hd.rx, 0.078) * 0.94;
+    headGeo.scale(width / 0.29, H, ((hd.zf - hd.zb) * 0.86) / 0.69);
+    const headMesh = new THREE.Mesh(headGeo, material);
+    headMesh.position.set(0, hd.chin + 0.006 - J.Head.y, (hd.zf + hd.zb) / 2 - 0.012 - J.Head.z);
+    headMesh.rotation.x = 0.04;
+    bones.Head.add(headMesh);
+    for (const m of [neckMesh, headMesh]) { m.castShadow = m.receiveShadow = true; meshes.push(m); }
+    neckMesh.frustumCulled = false;
+  }
 
   // ---------- Position de repos ----------
   const rest = {};
+  const restEuler = meta.rest ?? REST; // le modèle importé est déjà dans la position de repos
   for (const name of B) {
-    const r = REST[name];
+    const r = restEuler[name];
     rest[name] = r ? new THREE.Quaternion().setFromEuler(new THREE.Euler(...r)) : new THREE.Quaternion();
     bones[name].quaternion.copy(rest[name]);
   }
@@ -246,6 +257,8 @@ export function buildMannequin(preset, k = { bust: 1, waist: 1, hip: 1 }, materi
   const rv = new THREE.Vector3();
   for (let i = 0; i < n; i++) { body.getVertexPosition(i, rv); restPos.set([rv.x, rv.y, rv.z], i * 3); }
   const restJ = Object.fromEntries(B.map((name) => [name, bones[name].getWorldPosition(new THREE.Vector3())]));
+  // passage position de liaison → repos, par os (pour placer un vêtement modélisé sur le maillage)
+  const restSkin = body.skeleton.bones.map((b, i) => new THREE.Matrix4().multiplyMatrices(b.matrixWorld, body.skeleton.boneInverses[i]));
 
   // ---------- Mesures (tour du mètre ruban, sur le maillage au repos) ----------
   const slab = (y, h = 0.007) => {
@@ -283,6 +296,7 @@ export function buildMannequin(preset, k = { bust: 1, waist: 1, hip: 1 }, materi
 
   return {
     root, bones, rest, meshes, body, tapes, halfWidthAt, material, restPos, restJ, torsoW, bi, sex: preset.id,
+    basePos: D.pos, morphPoint, restSkin,
     lm: { ...lm, joints: J, thigh: J.LeftUpLeg.distanceTo(J.LeftLeg) },
     lowestSole: () => lowest(meta.soles),
     lowestSeat: () => lowest(meta.seat),

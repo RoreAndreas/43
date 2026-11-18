@@ -12,7 +12,8 @@ MakeHuman sont publiés sous licence CC0 (domaine public). Ce script :
 5. écrit assets/mannequin/<nom>.bin (géométrie + poids) et <nom>.json
    (articulations, repères de mesure, points de contact).
 
-Usage : python3 tools/build_mannequin.py
+Usage : python3 tools/build_mannequin.py [femme] [homme]   (par défaut : homme)
+La silhouette femme du site vient désormais de tools/import_mannequin.py.
 """
 import json
 import pathlib
@@ -313,8 +314,9 @@ def main():
     V0, groups = load_obj()
     skel = json.loads(fetch('rigs/default.mhskel').read_text())
     weights = json.loads(fetch('rigs/default_weights.mhw').read_text())['weights']
-    for name, recipe in RECIPES.items():
-        build(name, recipe, V0, groups, skel, weights)
+    import sys
+    for name in sys.argv[1:] or ['homme']:
+        build(name, RECIPES[name], V0, groups, skel, weights)
 
 
 if __name__ == '__main__':

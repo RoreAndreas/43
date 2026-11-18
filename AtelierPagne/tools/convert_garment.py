@@ -3,7 +3,13 @@
 
 Nécessite le module Python de Blender :  pip install bpy  (dans un venv)
 Usage :
-    python tools/convert_garment.py <fichier.blend> <nom> [objet]
+    python tools/convert_garment.py <fichier.blend|.fbx> <nom> [objet] [--subdiv N] [--native femme]
+
+--subdiv N     subdivise N fois le vêtement (Catmull-Clark) avant l'export : plus de
+               points pour le tissu (des plis plus fins), comme dans le tutoriel.
+--native femme le vêtement a été modélisé sur le mannequin femme lui-même (même
+               fichier source, voir tools/import_mannequin.py) : il est placé dans
+               le repère du mannequin et l'ajustement garde sa coupe telle quelle.
 
 Écrit assets/garments/<nom>.bin et <nom>.json :
 - sommets uniques (les « particules » du tissu, en mètres, Y vers le haut) ;
@@ -25,11 +31,26 @@ ROOT = pathlib.Path(__file__).resolve().parent.parent
 
 
 def main():
-    src, name = sys.argv[1], sys.argv[2]
-    obj_name = sys.argv[3] if len(sys.argv) > 3 else None
-    bpy.ops.wm.open_mainfile(filepath=src)
+    args = sys.argv[1:]
+    opts = {}
+    for flag in ('--subdiv', '--native'):
+        if flag in args:
+            i = args.index(flag)
+            opts[flag] = args[i + 1]
+            del args[i:i + 2]
+    src, name = args[0], args[1]
+    obj_name = args[2] if len(args) > 2 else None
+    if src.endswith('.fbx'):
+        bpy.ops.wm.read_factory_settings(use_empty=True)
+        bpy.ops.import_scene.fbx(filepath=src)
+    else:
+        bpy.ops.wm.open_mainfile(filepath=src, load_ui=False, use_scripts=False)
     meshes = [o for o in bpy.data.objects if o.type == 'MESH']
     o = next(m for m in meshes if m.name == obj_name) if obj_name else max(meshes, key=lambda m: len(m.data.vertices))
+    if '--subdiv' in opts:
+        sub = o.modifiers.new('subdiv', 'SUBSURF')
+        sub.levels = sub.render_levels = int(opts['--subdiv'])
+        sub.uv_smooth = 'PRESERVE_BOUNDARIES'
     dg = bpy.context.evaluated_depsgraph_get()
     m = o.evaluated_get(dg).to_mesh()
     bm = bmesh.new()
@@ -40,6 +61,10 @@ def main():
 
     uniq = np.array([(mw @ v.co)[:] for v in bm.verts], dtype=np.float64)
     uniq = np.stack([uniq[:, 0], uniq[:, 2], -uniq[:, 1]], axis=1)  # Z-up -> Y-up, face avant vers +Z
+    native = opts.get('--native')
+    if native:
+        tr = json.loads((ROOT / 'assets' / 'mannequin' / f'{native}.json').read_text())['sourceTransform']
+        uniq = (uniq - np.array(tr['origin'])) * tr['scale']
     rv, ruv, key, tris = [], [], {}, []
     for f in bm.faces:
         tri = []
@@ -75,6 +100,8 @@ def main():
         'particles': int(len(uniq)), 'renderVertices': int(len(rv)), 'triangles': int(len(tris)),
         'min': uniq.min(axis=0).round(4).tolist(), 'max': uniq.max(axis=0).round(4).tolist(),
     }
+    if native:
+        meta['native'] = native
     (out / f'{name}.json').write_text(json.dumps(meta, indent=1))
     print(f"{name}: {meta['particles']} particules, {meta['triangles']} triangles, {len(blob) // 1024} Ko")
 

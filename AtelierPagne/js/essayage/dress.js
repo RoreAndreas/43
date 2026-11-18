@@ -158,13 +158,6 @@ function fitDress(body, name) {
   for (let y = hem + (top - hem) * 0.7; y < hem + (top - hem) * 0.92; y += BIN) { const s = dSec(y); if (s && s.per < best) { best = s.per; dWaist = y; } }
   let dBodice = top;
   for (let y = dWaist + 0.04; y < top; y += BIN) { const a = dSec(y), b = dSec(y + 0.02); if (a && b && b.per > a.per * 1.22) { dBodice = y; break; } }
-  // vertical : une seule échelle, ourlet au ras du sol, bustier sous le bandeau
-  const bandY = lm.bust + 0.032;
-  const HEM = 0.022; // ourlet à 2 cm du sol : il ne se coince pas sous les pieds
-  const sy = (bandY - HEM) / (dBodice - hem);
-  const mapY = (y) => HEM + (y - hem) * sy;
-
-  // horizontal : une seule échelle, donnée par le tour du corps entre hanches et poitrine
   const rp = body.restPos;
   const geo = body.body.geometry;
   const SI = geo.attributes.skinIndex.array, SW = geo.attributes.skinWeight.array;
@@ -177,52 +170,87 @@ function fitDress(body, name) {
   const bandKeep = (i) => wOf(i, exclude) < 0.3;
   const bS = sliceOf(rp, nb, torsoKeep);
   const bSec = (y) => section(bS.get(Math.round(y / BIN)) || []);
-  const ratios = [];
-  let bzSum = 0, dzSum = 0, cnt = 0;
-  for (let y = lm.hip; y <= lm.bust; y += BIN) {
-    const b = bSec(y);
-    const d = dSec(hem + (y - HEM) / sy); // hauteur correspondante dans la robe d'origine
-    if (!b || !d) continue;
-    ratios.push((b.per + 2 * Math.PI * 0.008) / d.per);
-    bzSum += b.c[1]; dzSum += d.c[1]; cnt++;
-  }
-  const sorted = ratios.map((r) => r).sort((a, b) => a - b);
-  const sx = THREE.MathUtils.clamp(sorted[Math.floor(sorted.length / 2)] ?? 1, 0.7, 1.6);
-  const bz = cnt ? bzSum / cnt : 0, dz = cnt ? dzSum / cnt : 0;
-  // Là où le corps est plus large que la robe (hanches galbées…), la robe est
-  // élargie en douceur sur toute la hauteur concernée, sans jamais rétrécir.
-  const need = new Map();
-  for (let y = J.LeftUpLeg.y - 0.08; y <= lm.bust + 0.02; y += BIN) {
-    const b = bSec(y), d = dSec(hem + (y - HEM) / sy);
-    if (b && d) need.set(Math.round(y / BIN), Math.max(sx, (b.per + 2 * Math.PI * 0.01) / d.per));
-  }
-  const kLo = Math.round((J.LeftUpLeg.y - 0.08) / BIN), kHi = Math.round((lm.bust + 0.02) / BIN);
-  const scaleAt = (y) => {
-    const k = THREE.MathUtils.clamp(Math.round(y / BIN), kLo, kHi);
-    let acc = 0, w = 0;
-    for (let d = -15; d <= 15; d++) {
-      const v = need.get(THREE.MathUtils.clamp(k + d, kLo, kHi));
-      if (v === undefined) continue;
-      const ww = 16 - Math.abs(d);
-      acc += v * ww; w += ww;
+  let P, bandY, HEM, bz = 0;
+  if (D.meta.native === body.sex && body.basePos) {
+    // Vêtement modélisé sur ce mannequin : sa coupe est gardée telle quelle. Chaque
+    // point suit le point du tronc le plus proche : déformation selon les mesures,
+    // puis passage de la position de liaison (bras écartés) à la position de repos.
+    bandY = Infinity;
+    P = new Float32Array(n * 3);
+    const base = body.basePos, gridBase = makeGrid(base, nb, torsoKeep);
+    const m = new THREE.Matrix4(), e = new Float32Array(16), v = new THREE.Vector3();
+    for (let i = 0; i < n; i++) {
+      const j = nearestIn(gridBase, base, P0[i * 3], P0[i * 3 + 1], P0[i * 3 + 2]);
+      const q = body.morphPoint(P0[i * 3], P0[i * 3 + 1], P0[i * 3 + 2], body.torsoW[j]);
+      e.fill(0);
+      for (let c = 0; c < 4; c++) {
+        const w = SW[j * 4 + c] / 255;
+        if (!w) continue;
+        const te = body.restSkin[SI[j * 4 + c]].elements;
+        for (let k = 0; k < 16; k++) e[k] += te[k] * w;
+      }
+      m.fromArray(e);
+      v.set(q[0], q[1], q[2]).applyMatrix4(m);
+      P[i * 3] = v.x; P[i * 3 + 1] = v.y; P[i * 3 + 2] = v.z;
     }
-    return w ? Math.max(sx, acc / w) : sx;
-  };
-  const P = new Float32Array(n * 3);
-  for (let i = 0; i < n; i++) {
-    const y = mapY(P0[i * 3 + 1]);
-    const k = scaleAt(y);
-    P[i * 3] = P0[i * 3] * k;
-    P[i * 3 + 1] = y;
-    P[i * 3 + 2] = bz + (P0[i * 3 + 2] - dz) * k;
+    HEM = Infinity;
+    for (let i = 0; i < n; i++) HEM = Math.min(HEM, P[i * 3 + 1]);
+  } else {
+    // vertical : une seule échelle, ourlet au ras du sol, bustier sous le bandeau
+    bandY = lm.bust + 0.032;
+    HEM = 0.022; // ourlet à 2 cm du sol : il ne se coince pas sous les pieds
+    const sy = (bandY - HEM) / (dBodice - hem);
+    const mapY = (y) => HEM + (y - hem) * sy;
+
+    // horizontal : une seule échelle, donnée par le tour du corps entre hanches et poitrine
+    const ratios = [];
+    let bzSum = 0, dzSum = 0, cnt = 0;
+    for (let y = lm.hip; y <= lm.bust; y += BIN) {
+      const b = bSec(y);
+      const d = dSec(hem + (y - HEM) / sy); // hauteur correspondante dans la robe d'origine
+      if (!b || !d) continue;
+      ratios.push((b.per + 2 * Math.PI * 0.008) / d.per);
+      bzSum += b.c[1]; dzSum += d.c[1]; cnt++;
+    }
+    const sorted = ratios.map((r) => r).sort((a, b) => a - b);
+    const sx = THREE.MathUtils.clamp(sorted[Math.floor(sorted.length / 2)] ?? 1, 0.7, 1.6);
+    bz = cnt ? bzSum / cnt : 0; const dz = cnt ? dzSum / cnt : 0;
+    // Là où le corps est plus large que la robe (hanches galbées…), la robe est
+    // élargie en douceur sur toute la hauteur concernée, sans jamais rétrécir.
+    const need = new Map();
+    for (let y = J.LeftUpLeg.y - 0.08; y <= lm.bust + 0.02; y += BIN) {
+      const b = bSec(y), d = dSec(hem + (y - HEM) / sy);
+      if (b && d) need.set(Math.round(y / BIN), Math.max(sx, (b.per + 2 * Math.PI * 0.01) / d.per));
+    }
+    const kLo = Math.round((J.LeftUpLeg.y - 0.08) / BIN), kHi = Math.round((lm.bust + 0.02) / BIN);
+    const scaleAt = (y) => {
+      const k = THREE.MathUtils.clamp(Math.round(y / BIN), kLo, kHi);
+      let acc = 0, w = 0;
+      for (let d = -15; d <= 15; d++) {
+        const v = need.get(THREE.MathUtils.clamp(k + d, kLo, kHi));
+        if (v === undefined) continue;
+        const ww = 16 - Math.abs(d);
+        acc += v * ww; w += ww;
+      }
+      return w ? Math.max(sx, acc / w) : sx;
+    };
+    P = new Float32Array(n * 3);
+    for (let i = 0; i < n; i++) {
+      const y = mapY(P0[i * 3 + 1]);
+      const k = scaleAt(y);
+      P[i * 3] = P0[i * 3] * k;
+      P[i * 3 + 1] = y;
+      P[i * 3 + 2] = bz + (P0[i * 3 + 2] - dz) * k;
+    }
   }
 
   // ---------- 1 bis. Sous la taille, la jupe suit le corps ----------
   // Chaque tranche de jupe est recentrée sur la tranche du corps (cambrure,
   // fesses), puis élargie juste assez pour contenir le corps et les deux jambes,
   // aisance comprise. Décalage et élargissement sont lissés sur la hauteur :
-  // la jupe garde son tombé, sans bosse ni marche.
-  {
+  // la jupe garde son tombé, sans bosse ni marche. (Inutile pour un vêtement
+  // coupé sur le mannequin : il contient déjà le corps.)
+  if (bandY !== Infinity) {
     const pS = new Map();
     for (let i = 0; i < n; i++) {
       const k = Math.round(P[i * 3 + 1] / BIN);
@@ -370,7 +398,8 @@ function fitDress(body, name) {
     let ax = 0, az = 0, topY = -Infinity, c = 0;
     for (const ch of chains) for (const p of ch) {
       const y = P[p * 3 + 1];
-      if (y > 0.12 && y < yRoot - 0.02) { const a = ang(P[p * 3], P[p * 3 + 2]); ax += Math.sin(a); az += Math.cos(a); topY = Math.max(topY, y); c++; }
+      // au-dessus de l'ourlet (l'ourlet d'une robe midi n'est pas une fente)
+      if (y > HEM + 0.1 && y < yRoot - 0.02) { const a = ang(P[p * 3], P[p * 3 + 2]); ax += Math.sin(a); az += Math.cos(a); topY = Math.max(topY, y); c++; }
     }
     if (c > 6) slit = { theta: Math.atan2(ax, az), top: topY };
   }

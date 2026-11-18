@@ -54,7 +54,8 @@ AtelierPagne/
 │   └── ui.js                panneaux, vues, mesures, mémorisation, clavier
 ├── assets/mannequin/        femme / homme : maillage + poids (.bin) et repères (.json)
 ├── assets/garments/        robes importées (.bin + .json)
-├── tools/build_mannequin.py fabrique ces fichiers à partir de MakeHuman (CC0)
+├── tools/import_mannequin.py mannequin femme : modèle rigué Mixamo (FBX du tutoriel), lissé
+├── tools/build_mannequin.py mannequin homme, à partir de MakeHuman (CC0)
 ├── tools/convert_garment.py convertit un vêtement .blend (module Python de Blender)
 ├── tools/bake/              pré-calcul des tombés (export.mjs → simulate.py, run.sh)
 └── vendor/three/            Three.js r170 (local : pas de dépendance à un CDN)
@@ -123,7 +124,9 @@ stockage, partage), `assets/modeles/*.glb`, `assets/pagnes/*.webp`.
 15. Mode hors ligne léger (PWA) : la salle d’essayage marche sans réseau.
 16. Droits : n’utiliser dans le catalogue que des motifs libres ou sous licence
     (les grandes marques de wax protègent leurs dessins). Les imports de
-    l’utilisateur restent privés sur son appareil.
+    l’utilisateur restent privés sur son appareil. **À vérifier** avant la mise
+    en ligne : la licence des fichiers du tutoriel (mannequin femme, robe à
+    bretelles) pour un usage commercial.
 
 ## 6. Feuille de route
 
@@ -138,11 +141,15 @@ stockage, partage), `assets/modeles/*.glb`, `assets/pagnes/*.webp`.
 
 ## 7. Salle d’essayage — ce qui est livré
 
-- **Mannequin de vitrine réaliste**, gris clair, **sans visage** : corps humain
-  lisse et élancé (base MakeHuman, domaine public CC0), mains avec doigts, tête
-  ovale lisse posée sur le cou. Femme par défaut, Homme au choix. Le maillage
-  est préparé par `tools/build_mannequin.py` (silhouette mince et élancée,
-  tétons et nombril effacés, visage retiré, 163 os regroupés en 16).
+- **Mannequin femme : le modèle du tutoriel « Cloth Simulation »**
+  (`Female_with_Dress.fbx`, rig Mixamo), gris clair, **sans visage**, en un seul
+  maillage fermé fait pour la simulation de tissu. `tools/import_mannequin.py` le
+  remet en position de repos (bras, mains et jambes comme avant : les poses ne
+  changent pas), regroupe ses os sur les 16 os du site et **lisse les raccords**
+  laissés par les sphères dont il est fait (ceinture à la taille, bande sur le
+  bassin). Il garde sa propre tête lisse.
+- **Mannequin homme** : base MakeHuman (domaine public CC0), préparée par
+  `tools/build_mannequin.py` (tête remplacée par un ovale lisse, 163 os regroupés en 16).
 - **Showroom clair** : mur blanc, sol en béton, plaque d’acier sous le mannequin,
   socles cubiques, cadres métalliques drapés de lin, un peu de végétation.
 - Interface **plein écran** : le mannequin occupe l’écran ; une seule barre en bas
@@ -156,8 +163,10 @@ stockage, partage), `assets/modeles/*.glb`, `assets/pagnes/*.webp`.
   chaîne (le bassin part d’abord, le buste suit, puis la tête et les bras).
 - **Animation au repos** (activable) : respiration, report du poids d’une jambe
   sur l’autre, regard qui se promène à gauche et à droite.
-- **Tenues : robes modélisées dans Blender** (aujourd’hui « Robe longue épaules
-  dénudées »), avec un **vrai tombé de tissu pré-calculé** pour chaque pose et
+- **Tenues : robes modélisées dans Blender** (« Robe longue épaules dénudées » et
+  « Robe fendue à bretelles », la robe du tutoriel, coupée sur le mannequin
+  lui-même : `convert_garment.py --native femme` garde sa coupe telle quelle),
+  avec un **vrai tombé de tissu pré-calculé** pour chaque pose et
   chaque taille :
   - `tools/bake/run.sh` : la salle d’essayage (navigateur sans écran) exporte le
     mannequin, la robe ajustée et le mouvement réel vers la pose ; Blender
