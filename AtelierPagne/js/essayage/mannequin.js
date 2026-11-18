@@ -27,7 +27,9 @@ export async function loadMannequins(base = 'assets/mannequin/') {
     const skinIndex = new Uint8Array(bin, o, n * 4); o += n * 4;
     const skinWeight = new Uint8Array(bin, o, n * 4); o += n * 4;
     const index = new Uint16Array(bin, o, meta.indexCount);
-    DATA[id] = { meta, pos, skinIndex, skinWeight, index };
+    // animations du modèle (défilé…) : rotations des os image par image
+    const clips = Object.fromEntries(await Promise.all((meta.clips || []).map(async (c) => [c, await fetch(`${base}${id}-${c}.json`).then((r) => r.json())])));
+    DATA[id] = { meta, pos, skinIndex, skinWeight, index, clips };
   }));
 }
 
@@ -296,7 +298,7 @@ export function buildMannequin(preset, k = { bust: 1, waist: 1, hip: 1 }, materi
 
   return {
     root, bones, rest, meshes, body, tapes, halfWidthAt, material, restPos, restJ, torsoW, bi, sex: preset.id,
-    basePos: D.pos, morphPoint, restSkin,
+    basePos: D.pos, morphPoint, restSkin, bindQ, clips: D.clips || {}, soleIds: meta.soles,
     lm: { ...lm, joints: J, thigh: J.LeftUpLeg.distanceTo(J.LeftLeg) },
     lowestSole: () => lowest(meta.soles),
     lowestSeat: () => lowest(meta.seat),

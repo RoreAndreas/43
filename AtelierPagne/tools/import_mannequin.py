@@ -43,6 +43,12 @@ AIM_DIRS = {
     'UpLeg': (0.086, -0.993, 0.081),
     'Leg': (0.058, -0.996, -0.066),
 }
+# Os du site → os Mixamo dont on reprend la rotation dans les animations
+# (le buste suit le haut du dos : Spine2).
+ANIM_MAP = {
+    'Hips': 'Hips', 'Spine': 'Spine2', 'Neck': 'Neck', 'Head': 'Head',
+    **{s + p: s + p for s in ('Left', 'Right') for p in ('Arm', 'ForeArm', 'Hand', 'UpLeg', 'Leg', 'Foot')},
+}
 CHILD = {'Arm': 'ForeArm', 'ForeArm': 'Hand', 'Hand': 'HandMiddle1', 'UpLeg': 'Leg', 'Leg': 'Foot', 'Foot': 'ToeBase'}
 
 
@@ -253,6 +259,10 @@ def main():
         aim(s + 'Hand', s + 'HandMiddle1', to_blender((AIM_DIRS['Hand'][0] * sx, *AIM_DIRS['Hand'][1:])))
         print(f'{s} : paume vers la cuisse ({palm().dot(inward):.2f})')
 
+    # Orientation des os Mixamo dans cette position (référence des animations).
+    ref_q = {n: (mw @ P(m).matrix).to_quaternion() for n, m in ANIM_MAP.items()}
+    ref_hips = head('Hips').copy()
+
     # Maillage déformé dans cette position de repos.
     dg = bpy.context.evaluated_depsgraph_get()
     ev = body.evaluated_get(dg)
@@ -355,7 +365,68 @@ def main():
     print(f'{name}: {len(Pf)} sommets, {len(tris)} triangles, {len(blob) // 1024} Ko, échelle {scale:.4f} ; '
           f'poitrine {perim(bust_y):.3f} / taille {perim(waist_y):.3f} / hanches {perim(hip_y):.3f} m '
           f'(à {bust_y:.3f} / {waist_y:.3f} / {hip_y:.3f}) ; semelles {len(soles)}, assise {len(seat)}')
+    if export_animations(arm, P, mw, ref_q, ref_hips, origin, scale, name):
+        meta['clips'] = ['defile']
+        (OUT / f'{name}.json').write_text(json.dumps(meta, indent=1))
     return scale, origin
+
+
+def export_animations(arm, P, mw, ref_q, ref_hips, origin, scale, name):
+    """Animations du fichier → rotations des 16 os du site, image par image.
+
+    Pour chaque os : rotation (repère du site) depuis la position de liaison du
+    maillage exporté, et déplacement du bassin. Le site en déduit la pose (voir
+    rig.js, playClip). Seul le cycle de marche en boucle est gardé (« défilé »).
+    """
+    sc = bpy.context.scene
+    acts = [a for a in bpy.data.actions if a.name.startswith(arm.name) or 'mixamo' in a.name]
+    cycle = min(acts, key=lambda a: a.frame_range[1] - a.frame_range[0], default=None)
+    if not cycle:
+        return False
+    ad = arm.animation_data_create()
+    ad.action = cycle
+    if hasattr(ad, 'action_slot') and ad.action_slot is None and len(getattr(cycle, 'slots', [])):
+        ad.action_slot = cycle.slots[0]  # Blender ≥ 4.4 : actions à « emplacements »
+    for pb in arm.pose.bones:
+        pb.matrix_basis = Matrix.Identity(4)
+    f0, f1 = map(int, cycle.frame_range)
+    frames = []
+    for f in range(f0, f1):  # la dernière image est la première (boucle)
+        sc.frame_set(f)
+        bpy.context.view_layer.update()
+        q = {}
+        for n, m in ANIM_MAP.items():
+            d = (mw @ P(m).matrix).to_quaternion() @ ref_q[n].inverted()
+            # Blender → site : (x, y, z) → (x, z, -y) ; quaternion (x, y, z, w) pour three.js
+            q[n] = [round(d.x, 5), round(d.z, 5), round(-d.y, 5), round(d.w, 5)]
+        h = (to_site(mw @ P('Hips').head) - to_site(ref_hips)) * scale
+        frames.append({'h': [round(float(c), 5) for c in h], 'q': q})
+    # vitesse de marche (pied posé qui recule) : sert à la simulation du tissu
+    out = OUT / f'{name}-defile.json'
+    out.write_text(json.dumps({'fps': sc.render.fps, 'source': cycle.name, 'speed': walk_speed(arm, P, mw, cycle, scale), 'frames': frames}))
+    print(f'animation « défilé » : {len(frames)} images à {sc.render.fps} i/s → {out.name}')
+    return True
+
+
+def walk_speed(arm, P, mw, act, scale):
+    """Vitesse (m/s) du pied posé au sol, dans le cycle sur place."""
+    sc = bpy.context.scene
+    f0, f1 = map(int, act.frame_range)
+    pts = []
+    for f in range(f0, f1):
+        sc.frame_set(f)
+        bpy.context.view_layer.update()
+        for s in ('Left', 'Right'):
+            p = to_site(mw @ P(s + 'Foot').head) * scale
+            pts.append((f, s, p))
+    v = []
+    for s in ('Left', 'Right'):
+        ps = [(f, p) for f, s2, p in pts if s2 == s]
+        low = min(p[1] for f, p in ps)
+        for (fa, a), (fb, b) in zip(ps, ps[1:]):
+            if a[1] < low + 0.01 and b[1] < low + 0.01:  # pied au sol
+                v.append((a[2] - b[2]) * sc.render.fps)
+    return round(float(np.median(v)), 4) if v else 0.0
 
 
 if __name__ == '__main__':

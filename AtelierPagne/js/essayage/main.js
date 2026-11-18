@@ -64,6 +64,7 @@ export const VIEWS = [
   { id: 'dos', label: 'Dos', az: Math.PI, polar: 1.46, r: 5.2, ty: 0.95 },
 ];
 let cameraTween = null;
+const follow = new THREE.Vector3(); // position suivie par la caméra (le mannequin, pendant le défilé)
 const sph = new THREE.Spherical();
 
 function fitRadius(r) {
@@ -99,7 +100,7 @@ function updateCameraTween(dt) {
   c.t = Math.min(1, c.t + dt / c.d);
   const e = 1 - Math.pow(1 - c.t, 3);
   const L = (k) => c.from[k] + (c.to[k] - c.from[k]) * e;
-  controls.target.set(0, L('ty'), 0);
+  controls.target.set(follow.x, L('ty'), follow.z);
   sph.set(L('r'), L('polar'), L('az'));
   camera.position.copy(controls.target).add(new THREE.Vector3().setFromSpherical(sph));
   if (c.t >= 1) cameraTween = null;
@@ -138,6 +139,11 @@ function capturePhoto() {
   a.click();
 }
 
+// ---------- Défilé : fondu bref quand le parcours recommence ----------
+const fadeEl = document.getElementById('fade');
+rig.onClipFadeOut = () => { document.getElementById('fade-label').textContent = ''; fadeEl.classList.add('is-on'); };
+rig.onClipWrap = () => setTimeout(() => fadeEl.classList.remove('is-on'), 60);
+
 // ---------- Interface ----------
 const ui = initUI({ rig, POSES, VIEWS, PRESETS, controls, goToView, orbitBy, capturePhoto, setInsets });
 
@@ -163,6 +169,15 @@ renderer.setAnimationLoop(() => {
   updateCameraTween(dt);
   decor.update(dt);
   rig.update(dt);
+  // Défilé : le mannequin avance, la caméra le suit (comme un travelling).
+  const rp = rig.body?.root.position;
+  if (rp && (rp.x !== follow.x || rp.z !== follow.z)) {
+    const dx = rp.x - follow.x, dz = rp.z - follow.z;
+    camera.position.x += dx; camera.position.z += dz;
+    controls.target.x += dx; controls.target.z += dz;
+    follow.set(rp.x, 0, rp.z);
+  }
+  decor.plate.visible = !rig.clip;
   rig.faceRuler(camera);
   controls.update(dt);
   renderer.render(scene, camera);

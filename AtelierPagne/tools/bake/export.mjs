@@ -121,11 +121,32 @@ for (const sizeId of sizes) {
           thin[i * 3] = +q.x.toFixed(5); thin[i * 3 + 1] = +q.y.toFixed(5); thin[i * 3 + 2] = +q.z.toFixed(5);
         }
       }
-      for (let f = 1; f < 18; f++) { for (let i = 0; i < 6; i++) rig.update(1 / 60); snap(); }
-      for (let i = 0; i < 150; i++) rig.update(1 / 60);
-      snap();
+      // Défilé (animation du modèle) : transition du repos vers la première image,
+      // puis un cycle de marche complet, image par image ; Blender le répète.
+      const clip = body.clips?.[poseId] ? rig.clipFrames(poseId) : null;
+      let clipInfo = null;
+      if (clip) {
+        rig.stopClip();
+        const TR = 6, J = body.lm.joints, from = rig.basePose, c0 = clip.frames[0];
+        const yRest = root.position.y, yClip = rig.groundY - clip.ground * s;
+        const sm = (u) => u * u * (3 - 2 * u);
+        for (let k = 1; k < TR; k++) {
+          const u = sm(k / TR);
+          for (const [n, b] of Object.entries(body.bones)) b.quaternion.slerpQuaternions(from[n], c0.L[n], u);
+          body.bones.Hips.position.copy(J.Hips).addScaledVector(c0.h, u);
+          root.position.y = yRest + (yClip - yRest) * u;
+          snap();
+        }
+        rig.clip = clip;
+        for (let i = 0; i < clip.frames.length; i++) { rig.applyClip(i / clip.fps); root.position.y = yClip; snap(); }
+        clipInfo = { start: TR, len: clip.frames.length, fps: clip.fps, step: 3, speed: +(clip.speed * s).toFixed(4) };
+      } else {
+        for (let f = 1; f < 18; f++) { for (let i = 0; i < 6; i++) rig.update(1 / 60); snap(); }
+        for (let i = 0; i < 150; i++) rig.update(1 / 60);
+        snap();
+      }
       const last = frames[frames.length - 1];
-      const planted = rig.pose?.stool;
+      const planted = !clip && rig.pose?.stool;
       if (planted) {
         for (const f of frames) {
           const dx = last.feet[0] - f.feet[0], dz = last.feet[1] - f.feet[1];
@@ -138,7 +159,8 @@ for (const sizeId of sizes) {
         rootY: root.position.y, scale: s, body: last.body, dress: last.dress, frames, thin,
         quats: Object.fromEntries(Object.entries(body.bones).map(([n, b]) => [n, b.quaternion.toArray().map((x) => +x.toFixed(6))])),
       };
-      const stool = st.visible && rig.stoolT > 0.5 ? { x: st.position.x, z: st.position.z, half: 0.22, top: st.scale.y } : null;
+      if (clip) rig.stopClip();
+      const stool = !clip && st.visible && rig.stoolT > 0.5 ? { x: st.position.x, z: st.position.z, half: 0.22, top: st.scale.y } : null;
       // points tenus par le corps (bustier, bandeau) : au-dessus de la taille basse ;
       // sous les hanches le tissu est libre (il passe sur les fesses, les cuisses)
       const hip = body.lm.hip, ss = (x, a, b) => { const t = Math.min(1, Math.max(0, (x - a) / (b - a))); return t * t * (3 - 2 * t); };
@@ -151,7 +173,7 @@ for (const sizeId of sizes) {
         if (a !== b && b !== c && a !== c) tris.push(a, b, c);
       }
       return {
-        size, pose: poseId, rest, target: pose, stool, pin, tris,
+        size, pose: poseId, rest, target: pose, stool, pin, tris, clip: clipInfo,
         bodyIndex: Array.from(body.body.geometry.index.array), floorY: rig.groundY,
       };
     }, [size, poseId, dress]);

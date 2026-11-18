@@ -177,18 +177,26 @@ function fitDress(body, name) {
     // puis passage de la position de liaison (bras écartés) à la position de repos.
     bandY = Infinity;
     P = new Float32Array(n * 3);
-    const base = body.basePos, gridBase = makeGrid(base, nb, torsoKeep);
+    // (seul le tronc guide : une jupe suit le bassin, pas la jambe la plus proche,
+    // sinon ses deux moitiés se pincent entre les jambes)
+    const trunk = [bi.Hips, bi.Spine, bi.Neck];
+    const base = body.basePos, gridBase = makeGrid(base, nb, (i) => wOf(i, trunk) > 0.6);
     const m = new THREE.Matrix4(), e = new Float32Array(16), v = new THREE.Vector3();
     for (let i = 0; i < n; i++) {
-      const j = nearestIn(gridBase, base, P0[i * 3], P0[i * 3 + 1], P0[i * 3 + 2]);
-      const q = body.morphPoint(P0[i * 3], P0[i * 3 + 1], P0[i * 3 + 2], body.torsoW[j]);
+      const x = P0[i * 3], y = P0[i * 3 + 1], z = P0[i * 3 + 2];
+      const j = nearestIn(gridBase, base, x, y, z);
+      // bas de la jupe, loin du tronc : il suit le bassin
+      const near = wOf(j, trunk) > 0.6 && Math.hypot(base[j * 3] - x, base[j * 3 + 1] - y, base[j * 3 + 2] - z) < 0.2;
+      const q = body.morphPoint(x, y, z, near ? body.torsoW[j] : 1);
       e.fill(0);
-      for (let c = 0; c < 4; c++) {
-        const w = SW[j * 4 + c] / 255;
-        if (!w) continue;
-        const te = body.restSkin[SI[j * 4 + c]].elements;
-        for (let k = 0; k < 16; k++) e[k] += te[k] * w;
-      }
+      if (near) {
+        for (let c = 0; c < 4; c++) {
+          const w = SW[j * 4 + c] / 255;
+          if (!w) continue;
+          const te = body.restSkin[SI[j * 4 + c]].elements;
+          for (let k = 0; k < 16; k++) e[k] += te[k] * w;
+        }
+      } else e.set(body.restSkin[bi.Hips].elements);
       m.fromArray(e);
       v.set(q[0], q[1], q[2]).applyMatrix4(m);
       P[i * 3] = v.x; P[i * 3 + 1] = v.y; P[i * 3 + 2] = v.z;
@@ -1062,6 +1070,16 @@ export class BakedDress {
       this.hem.geometry.attributes.normal.needsUpdate = true;
       this.hemMesh.visible = true;
     }
+  }
+
+  /** Image f (fractionnaire, en boucle) d'un tombé animé de `frames` images. */
+  showFrame(pos, frames, f) {
+    const m = this.n * 3;
+    this.tmp ||= new Float32Array(m);
+    const i0 = Math.floor(f) % frames, i1 = (i0 + 1) % frames, a = f - Math.floor(f);
+    const A = i0 * m, B = i1 * m, P = this.tmp;
+    for (let k = 0; k < m; k++) P[k] = pos[A + k] + (pos[B + k] - pos[A + k]) * a;
+    this.show(P);
   }
 
   hide() { this.mesh.visible = false; if (this.hemMesh) this.hemMesh.visible = false; }

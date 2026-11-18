@@ -95,6 +95,7 @@ export class Rig {
       waist: cm.waist / 100 / (base.C.waist * s),
       hip: cm.hip / 100 / (base.C.hip * s),
     };
+    this.stopClip();
     const prev = this.body;
     const yaw = prev ? prev.root.rotation.y : 0;
     if (prev) { this.outfit?.dispose(); this.outfit = null; this.stage.remove(prev.root); disposeBody(prev); }
@@ -197,6 +198,7 @@ export class Rig {
   setPose(id, duration = 1.0) {
     const pose = POSES.find((p) => p.id === id);
     if (!pose || !this.body) return;
+    this.stopClip();
     this.poseId = id;
     this.pose = pose;
     const from = Object.fromEntries(Object.entries(this.basePose).map(([n, q]) => [n, q.clone()]));
@@ -232,6 +234,30 @@ export class Rig {
     this.pose = pose;
     this.anim = null;
     this.stoolTarget = this.stoolT = pose.stool ? 1 : 0;
+    this.stopClip();
+    const clip = pose.clip && this.clipFrames(pose.clip);
+    if (clip) {
+      // Animation du modèle (défilé), en boucle ; robe au tombé animé pré-calculé
+      // s'il existe (sinon animée en direct).
+      this.clip = clip;
+      this.clipT = 0;
+      this.clipBake = bake?.meta.frames ? bake : null;
+      this.spinOn = false;
+      this.spinSpeed = 0;
+      // parcours : 4 pas doubles vers l'avant, en passant par le centre (la caméra suit)
+      const yaw = this.body.root.rotation.y, fx = Math.sin(yaw), fz = Math.cos(yaw);
+      const D = 4 * clip.total * this.body.scale;
+      this.walk = { x0: -fx * D * 0.45, z0: -fz * D * 0.45, fx, fz, D, fading: false };
+      this.walkY = 0; // sur le sol (la plaque d'acier est retirée)
+      this.applyClip(0);
+      this.basePose = Object.fromEntries(Object.entries(this.body.bones).map(([n, b]) => [n, b.quaternion.clone()]));
+      this.walkTo(0);
+      this.onClipStart?.();
+      this.body.root.updateMatrixWorld(true);
+      if (this.clipBake) o.showBakedFrame(bake.pos, bake.meta.frames, 0);
+      else if (o) o.showLive?.();
+      return;
+    }
     if (bake) {
       const q = bake.meta.quats;
       this.basePose = Object.fromEntries(Object.entries(this.body.bones).map(([n]) => [n, new THREE.Quaternion().fromArray(q[n])]));
@@ -240,6 +266,97 @@ export class Rig {
     this.ground();
     if (bake) o.showBaked(bake.pos);
     else if (o) o.showLive?.();
+  }
+
+  // ---------- Animation du modèle (défilé) ----------
+  /** Rotations locales des os, image par image, pour le corps courant (mises en cache). */
+  clipFrames(name) {
+    const body = this.body, raw = body?.clips?.[name];
+    if (!raw) return null;
+    body.clipCache ||= {};
+    if (body.clipCache[name]) return body.clipCache[name];
+    const order = Object.keys(body.bones); // parents d'abord
+    const parent = Object.fromEntries(order.map((n) => [n, body.bones[n].parent?.isBone ? body.bones[n].parent.name : null]));
+    const frames = raw.frames.map((fr) => {
+      const W = {}, L = {};
+      for (const n of order) {
+        W[n] = new THREE.Quaternion().fromArray(fr.q[n]).multiply(body.bindQ[n]);
+        L[n] = parent[n] ? W[parent[n]].clone().invert().multiply(W[n]) : W[n].clone();
+      }
+      return { L, h: new THREE.Vector3(...fr.h) };
+    });
+    const clip = { name, fps: raw.fps, frames, speed: raw.speed, ground: 0, low: [], adv: [0], total: 0 };
+    // Pieds posés : à chaque image, le pied le plus bas touche le sol (hauteur
+    // du corps image par image) ; le corps avance de ce que recule le pied
+    // d'appui (pas de glissement). Repère du mannequin, avant mise à l'échelle.
+    const saved = this.clip, v = new THREE.Vector3(), ids = body.soleIds, rest = body.restPos;
+    this.clip = clip;
+    const soles = frames.map((_, i) => {
+      this.applyClip(i / clip.fps);
+      body.root.updateMatrixWorld(true);
+      body.body.skeleton.update();
+      const out = { Left: [Infinity, 0], Right: [Infinity, 0] };
+      for (const id of ids) {
+        body.body.getVertexPosition(id, v);
+        const side = rest[id * 3] > 0 ? 'Left' : 'Right';
+        if (v.y < out[side][0]) out[side] = [v.y, v.z];
+      }
+      return out;
+    });
+    const N = frames.length;
+    for (let i = 0; i < N; i++) {
+      const a = soles[i], b = soles[(i + 1) % N];
+      const side = a.Left[0] < a.Right[0] ? 'Left' : 'Right';
+      clip.low.push(Math.min(a.Left[0], a.Right[0]));
+      const step = Math.max(0, a[side][1] - b[side][1]); // le pied d'appui recule : le corps avance
+      clip.total += step;
+      if (i < N - 1) clip.adv.push(clip.total);
+    }
+    clip.ground = Math.min(...clip.low);
+    this.clip = saved;
+    body.clipCache[name] = clip;
+    return clip;
+  }
+
+  /** Pose du corps au temps t (s) de l'animation en cours ; renvoie l'image (fractionnaire). */
+  applyClip(t) {
+    const c = this.clip, N = c.frames.length;
+    const f = (((t * c.fps) % N) + N) % N, i0 = Math.floor(f), i1 = (i0 + 1) % N, a = f - i0;
+    const A = c.frames[i0], B = c.frames[i1];
+    for (const [n, b] of Object.entries(this.body.bones)) b.quaternion.slerpQuaternions(A.L[n], B.L[n], a);
+    this.body.bones.Hips.position.copy(this.body.lm.joints.Hips).add(_v1.lerpVectors(A.h, B.h, a));
+    return f;
+  }
+
+  /** Défilé : position du corps au temps de l'animation (il avance, pieds posés). */
+  walkTo(f) {
+    const c = this.clip, N = c.frames.length, root = this.body.root, s = this.body.scale;
+    const i0 = Math.floor(f), a = f - i0, i1 = (i0 + 1) % N;
+    const lerp = (arr) => arr[i0] + ((i1 ? arr[i1] : (i0 === N - 1 ? c.total : arr[0])) - arr[i0]) * a;
+    const cyc = Math.floor((this.clipT * c.fps) / N);
+    const d = (cyc * c.total + (i1 === 0 ? c.adv[i0] + (c.total - c.adv[i0]) * a : lerp(c.adv))) * s;
+    const w = this.walk;
+    if (d > w.D) { // fin du parcours : on repart du début (sous un fondu)
+      this.clipT = 0;
+      w.fading = false;
+      this.onClipWrap?.();
+      return this.walkTo(this.applyClip(0));
+    }
+    if (!w.fading && d > w.D - 0.45 * c.speed * s) { w.fading = true; this.onClipFadeOut?.(); }
+    root.position.x = w.x0 + w.fx * d;
+    root.position.z = w.z0 + w.fz * d;
+    root.position.y = this.walkY - (c.low[i0] + (c.low[i1] - c.low[i0]) * a) * s;
+  }
+
+  stopClip() {
+    if (!this.clip) return;
+    this.clip = null;
+    this.clipBake = null;
+    if (this.body) {
+      this.body.bones.Hips.position.copy(this.body.lm.joints.Hips);
+      this.body.root.position.x = this.body.root.position.z = 0;
+    }
+    this.onClipStop?.();
   }
 
   /** Pose de base × mouvement au repos → os. */
@@ -316,6 +433,22 @@ export class Rig {
     }
     this.look += (this.lookTarget - this.look) * (1 - Math.exp(-dt * 1.8));
     this.idleAmt += ((this.idleOn ? 1 : 0) - this.idleAmt) * (1 - Math.exp(-dt * 2.5));
+    if (this.clip) {
+      // Défilé : l'animation pilote les os ; le tissu suit son tombé animé.
+      this.clipT += dt;
+      const f = this.applyClip(this.clipT);
+      this.walkTo(f);
+      this.stool.visible = false;
+      this.body.root.updateMatrixWorld(true);
+      if (this.outfit) {
+        if (this.clipBake) {
+          const b = this.clipBake;
+          this.outfit.showBakedFrame(b.pos, b.meta.frames, (f / this.clip.frames.length) * b.meta.frames);
+        } else this.outfit.update(dt, { floorY: this.groundY, box: null, seated: false, spin: this.spinSpeed });
+      }
+      this.updateTapes(dt);
+      return;
+    }
     if (this.anim) {
       // Chaîne de mouvement : le bassin et les jambes partent, le buste suit,
       // puis la tête et les bras, légèrement en retard (mouvement plus naturel).
@@ -356,6 +489,10 @@ export class Rig {
       this.body.root.updateMatrixWorld(true);
       this.outfit.update(dt, { floorY: this.groundY, box, seated: !!this.pose?.stool, spin: this.spinSpeed });
     }
+    this.updateTapes(dt);
+  }
+
+  updateTapes(dt) {
     // Mètres rubans : tracé progressif.
     for (const t of this.tapeObjs) {
       const goal = this.showTapes ? 1 : 0;

@@ -96,6 +96,8 @@ export const POSES = [
     id: 'defile',
     label: 'Défilé',
     hint: 'En marche : le mouvement de la jupe ou du pantalon.',
+    // animation de marche du modèle (mannequin femme) ; sinon, pas figé ci-dessous
+    clip: 'defile',
     rot: {
       Hips: [0, -0.1, 0.03],
       Spine: [0.03, 0.14, -0.03],

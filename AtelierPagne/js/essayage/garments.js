@@ -97,6 +97,12 @@ export function buildOutfit(body, outfit, uniforms, scene) {
       baked.show(pos);
       live(false);
     },
+    /** Tombé animé (défilé) : image f (fractionnaire) d'un cycle de `frames` images. */
+    showBakedFrame(pos, frames, f) {
+      baked ||= new BakedDress(outfit.mesh, material, body.root);
+      baked.showFrame(pos, frames, f);
+      live(false);
+    },
     showLive() { baked?.hide(); live(true); dress.reset(); },
     legFreedom: dress.legFreedom,
     halfWidthAt: (y) => dress.halfWidthAt(y),
