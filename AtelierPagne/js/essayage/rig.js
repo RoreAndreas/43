@@ -306,6 +306,38 @@ export class Rig {
       }
       return out;
     });
+    // Plante des pieds : un pied près du sol se pose à plat (talon compris) ;
+    // il ne garde l'appui sur la pointe qu'en l'air.
+    const yawOnly = (q) => { const f = _v3.set(0, 0, 1).applyQuaternion(q); return new THREE.Quaternion().setFromAxisAngle(_v2.set(0, 1, 0), Math.atan2(f.x, f.z)); };
+    frames.forEach((fr, i) => {
+      const low = Math.min(soles[i].Left[0], soles[i].Right[0]);
+      for (const side of ['Left', 'Right']) {
+        const h = soles[i][side][0] - low;
+        const w = 1 - THREE.MathUtils.smoothstep(h, 0.015, 0.07);
+        if (w <= 0) continue;
+        const leg = body.bones[`${side}Leg`], foot = `${side}Foot`;
+        // orientation monde (repère du mannequin) de la jambe, puis du pied
+        const chain = [];
+        for (let b = leg; b?.isBone; b = b.parent) chain.unshift(b.name);
+        const Wleg = chain.reduce((q, n) => q.multiply(fr.L[n]), new THREE.Quaternion());
+        const Wfoot = Wleg.clone().multiply(fr.L[foot]);
+        const target = Wfoot.clone().slerp(yawOnly(Wfoot), w);
+        fr.L[foot] = Wleg.invert().multiply(target);
+      }
+    });
+    const soles2 = frames.map((_, i) => {
+      this.applyClip(i / clip.fps);
+      body.root.updateMatrixWorld(true);
+      body.body.skeleton.update();
+      const out = { Left: [Infinity, 0], Right: [Infinity, 0] };
+      for (const id of ids) {
+        body.body.getVertexPosition(id, v);
+        const side = rest[id * 3] > 0 ? 'Left' : 'Right';
+        if (v.y < out[side][0]) out[side] = [v.y, v.z];
+      }
+      return out;
+    });
+    soles.splice(0, soles.length, ...soles2);
     const N = frames.length;
     for (let i = 0; i < N; i++) {
       const a = soles[i], b = soles[(i + 1) % N];
