@@ -38,17 +38,17 @@ function curve(keys) {
 // 0,5 = contact derrière (sur la pointe).
 const K = (vals) => vals.map((v, i) => [i / 8, v]);
 //                 contact amorti passage élévation | contact amorti passage élévation (jambe arrière puis libre)
-const THIGH = curve(K([-0.48, -0.3, -0.05, 0.2, 0.38, 0.45, -0.15, -0.45]));
-const KNEE = curve(K([0.05, 0.3, 0.1, 0.02, 0.25, 0.7, 1.05, 0.35]));
+const THIGH = curve(K([-0.4, -0.27, -0.04, 0.17, 0.32, 0.38, -0.12, -0.38]));
+const KNEE = curve(K([0.06, 0.32, 0.14, 0.05, 0.28, 0.68, 0.95, 0.38]));
 // inclinaison du pied dans le monde (> 0 : pointe vers le bas) : talon, à plat, talon qui se lève, sur la pointe
 const FOOT = curve(K([-0.35, 0, 0, 0.2, 0.6, 1.0, 0.35, -0.1]));
 // bras : écartés au contact, alignés au passage, plus loin à l'élévation (phase de la jambe opposée)
 const ARM = curve(K([0.42, 0.3, 0.02, -0.25, -0.42, -0.3, -0.02, 0.25]));
-const ELBOW = curve(K([0.12, 0.14, 0.25, 0.4, 0.55, 0.45, 0.3, 0.18]));
+const ELBOW = curve(K([0.2, 0.22, 0.3, 0.42, 0.55, 0.48, 0.36, 0.26]));
 
 const STYLES = {
   // démarche de la vidéo (mannequin articulé unisexe)
-  unisexe: { arm: 0.36, armOut: 0.12, fore: 0.32, hipYaw: 0.1, hipTilt: 0.05, sway: 0.015, chest: 0.12, lean: 0.035, cross: 0 },
+  unisexe: { arm: 0.3, armOut: 0.07, fore: 0.36, hipYaw: 0.11, hipTilt: 0.06, sway: 0.018, chest: 0.13, lean: 0.05, cross: 0.035, bend: 0.04 },
   // allure masculine : grand pas, bras amples, bassin stable
   homme: { arm: 0.34, armOut: 0.13, fore: 0.32, hipYaw: 0.08, hipTilt: 0.035, sway: 0.012, chest: 0.12, lean: 0.04, cross: 0 },
   // allure féminine : pas croisés, bassin plus mobile, bras près du corps
@@ -58,7 +58,7 @@ const STYLES = {
 /** Animation de marche (format de rig.clipFrames : rotations locales et bassin, 30 i/s). */
 export function proceduralWalk(body, style = 'unisexe') {
   const S = STYLES[style] || STYLES.homme;
-  const N = 30, fps = 30; // cycle d'1 s, comme la vidéo (24 images à 24 i/s)
+  const N = 34, fps = 30; // un peu plus d'1 s par cycle : allure posée, comme le rendu de la vidéo
   const q = (x, y, z) => new THREE.Quaternion().setFromEuler(new THREE.Euler(x, y, z));
   const frames = [];
   for (let i = 0; i < N; i++) {
@@ -74,13 +74,16 @@ export function proceduralWalk(body, style = 'unisexe') {
       // bras opposé à la jambe : en arrière quand la jambe du même côté est devant
       rot[`${side}Arm`] = [S.arm / 0.42 * ARM(ph - 0.04), 0, sx * S.armOut];
       rot[`${side}ForeArm`] = [-S.fore / 0.3 * ELBOW(ph - 0.06), 0, 0];
-      rot[`${side}Hand`] = [0, 0, -sx * 0.06];
+      rot[`${side}Hand`] = [0.08 + 0.06 * Math.sin(TAU * (ph - 0.2)), 0, -sx * 0.08]; // poignet relâché, en léger retard
     }
     const c = Math.cos(TAU * p), s = Math.sin(TAU * p);
     rot.Hips = [0, -S.hipYaw * c, -S.hipTilt * s];
-    rot.Spine = [S.lean, S.chest * c + S.hipYaw * c, S.hipTilt * s * 0.7];
-    rot.Neck = [-S.lean * 0.4, -S.chest * c * 0.45, 0];
-    rot.Head = [-S.lean * 0.3, -S.chest * c * 0.4, 0];
+    // buste : contre-rotation, flexion latérale qui compense la bascule du bassin,
+    // léger rebond (il se penche un peu plus à l'amorti)
+    const bob = Math.cos(TAU * 2 * (p - 0.125));
+    rot.Spine = [S.lean + 0.015 * bob, S.chest * c + S.hipYaw * c, S.hipTilt * s * 0.7 + (S.bend || 0) * s];
+    rot.Neck = [-S.lean * 0.4 - 0.01 * bob, -S.chest * c * 0.45, -(S.bend || 0) * s * 0.5];
+    rot.Head = [-S.lean * 0.3 - 0.01 * bob, -S.chest * c * 0.4, -(S.bend || 0) * s * 0.4];
     const L = {};
     for (const n of Object.keys(body.bones)) {
       const r = rot[n];

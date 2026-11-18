@@ -7,7 +7,7 @@ import { Rig } from './rig.js';
 import { POSES } from './poses.js';
 import { PRESETS, loadMannequins } from './mannequin.js';
 import { initUI } from './ui.js';
-import { buildDecor, PLATE_TOP } from './decor.js';
+import { buildDecor, PLATE_TOP } from './studio.js';
 import { loadDresses, loadBakeIndex } from './dress.js';
 
 const viewport = document.getElementById('viewport');

@@ -36,12 +36,12 @@ export async function loadMannequins(base = 'assets/mannequin/') {
 /** Pièces rouges du mannequin articulé (bassin, poitrine, articulations). */
 let accent = null;
 export function accentMaterial() {
-  return (accent ||= new THREE.MeshPhysicalMaterial({ color: 0xc8261e, roughness: 0.5, metalness: 0, sheen: 0.2, sheenColor: new THREE.Color(0xffffff) }));
+  return (accent ||= new THREE.MeshPhysicalMaterial({ color: 0xd02a1f, roughness: 0.36, metalness: 0, clearcoat: 0.55, clearcoatRoughness: 0.22 }));
 }
 
 export function createSiliconeMaterial() {
   return new THREE.MeshPhysicalMaterial({
-    color: 0xe9e8e6, roughness: 0.5, metalness: 0, sheen: 0.3, sheenRoughness: 0.6, sheenColor: new THREE.Color(0xffffff),
+    color: 0xeeedeb, roughness: 0.34, metalness: 0, clearcoat: 0.55, clearcoatRoughness: 0.22,
   });
 }
 
