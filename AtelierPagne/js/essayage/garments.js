@@ -10,10 +10,11 @@ export const OUTFITS = {
       id: 'aveline', label: 'Robe longue épaules dénudées', hint: 'Bustier à bandeau, jupe longue fendue.',
       mesh: 'aveline',
     },
+    /* Robe à bretelles du tutoriel : coupée sur l'ancien mannequin, à recouper pour le mannequin articulé.
     {
       id: 'bretelles', label: 'Robe fendue à bretelles', hint: 'Robe midi à fines bretelles, fendue sur la cuisse : coupée sur le mannequin.',
       mesh: 'bretelles',
-    },
+    }, */
   ],
   homme: [
     { id: 'aucune', label: 'Sans tenue', hint: 'Aucune tenue homme pour l’instant : ajoutez-en une modélisée dans Blender.' },

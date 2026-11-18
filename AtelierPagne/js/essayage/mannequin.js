@@ -33,9 +33,15 @@ export async function loadMannequins(base = 'assets/mannequin/') {
   }));
 }
 
+/** Pièces rouges du mannequin articulé (bassin, poitrine, articulations). */
+let accent = null;
+export function accentMaterial() {
+  return (accent ||= new THREE.MeshPhysicalMaterial({ color: 0xc8261e, roughness: 0.5, metalness: 0, sheen: 0.2, sheenColor: new THREE.Color(0xffffff) }));
+}
+
 export function createSiliconeMaterial() {
   return new THREE.MeshPhysicalMaterial({
-    color: 0xbdbec1, roughness: 0.55, metalness: 0, sheen: 0.3, sheenRoughness: 0.6, sheenColor: new THREE.Color(0xffffff),
+    color: 0xe9e8e6, roughness: 0.5, metalness: 0, sheen: 0.3, sheenRoughness: 0.6, sheenColor: new THREE.Color(0xffffff),
   });
 }
 
@@ -191,7 +197,13 @@ export function buildMannequin(preset, k = { bust: 1, waist: 1, hip: 1 }, materi
     bones[name] = b;
   }
   root.updateMatrixWorld(true);
-  const body = new THREE.SkinnedMesh(geo, material);
+  let bodyMat = material;
+  if (meta.groups) { // deux matières : blanc et rouge, comme le modèle
+    geo.addGroup(0, meta.groups[0], 0);
+    geo.addGroup(meta.groups[0], meta.groups[1], 1);
+    bodyMat = [material, accentMaterial()];
+  }
+  const body = new THREE.SkinnedMesh(geo, bodyMat);
   body.castShadow = body.receiveShadow = true;
   body.frustumCulled = false;
   root.add(body);

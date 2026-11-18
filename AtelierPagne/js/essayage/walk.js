@@ -47,6 +47,8 @@ const ARM = curve(K([0.42, 0.3, 0.02, -0.25, -0.42, -0.3, -0.02, 0.25]));
 const ELBOW = curve(K([0.12, 0.14, 0.25, 0.4, 0.55, 0.45, 0.3, 0.18]));
 
 const STYLES = {
+  // démarche de la vidéo (mannequin articulé unisexe)
+  unisexe: { arm: 0.36, armOut: 0.12, fore: 0.32, hipYaw: 0.1, hipTilt: 0.05, sway: 0.015, chest: 0.12, lean: 0.035, cross: 0 },
   // allure masculine : grand pas, bras amples, bassin stable
   homme: { arm: 0.34, armOut: 0.13, fore: 0.32, hipYaw: 0.08, hipTilt: 0.035, sway: 0.012, chest: 0.12, lean: 0.04, cross: 0 },
   // allure féminine : pas croisés, bassin plus mobile, bras près du corps
@@ -54,7 +56,7 @@ const STYLES = {
 };
 
 /** Animation de marche (format de rig.clipFrames : rotations locales et bassin, 30 i/s). */
-export function proceduralWalk(body, style = body.sex) {
+export function proceduralWalk(body, style = 'unisexe') {
   const S = STYLES[style] || STYLES.homme;
   const N = 30, fps = 30; // cycle d'1 s, comme la vidéo (24 images à 24 i/s)
   const q = (x, y, z) => new THREE.Quaternion().setFromEuler(new THREE.Euler(x, y, z));
