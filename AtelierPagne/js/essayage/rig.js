@@ -305,12 +305,15 @@ export class Rig {
       this.applyClip(i / clip.fps);
       body.root.updateMatrixWorld(true);
       body.body.skeleton.update();
-      const out = { Left: [Infinity, 0], Right: [Infinity, 0] };
+      // par pied : point le plus bas, et position moyenne de la semelle (pour l'avancée :
+      // le point le plus bas saute du talon à la pointe, pas la semelle)
+      const out = { Left: [Infinity, 0, 0], Right: [Infinity, 0, 0] };
       for (const id of ids) {
         body.body.getVertexPosition(id, v);
-        const side = rest[id * 3] > 0 ? 'Left' : 'Right';
-        if (v.y < out[side][0]) out[side] = [v.y, v.z];
+        const o = out[rest[id * 3] > 0 ? 'Left' : 'Right'];
+        o[0] = Math.min(o[0], v.y); o[1] += v.z; o[2]++;
       }
+      for (const o of Object.values(out)) o[1] /= o[2] || 1;
       return out;
     });
     // Plante des pieds : un pied près du sol se pose à plat (talon compris) ;
@@ -341,19 +344,23 @@ export class Rig {
       this.applyClip(i / clip.fps);
       body.root.updateMatrixWorld(true);
       body.body.skeleton.update();
-      const out = { Left: [Infinity, 0], Right: [Infinity, 0] };
+      // par pied : point le plus bas, et position moyenne de la semelle (pour l'avancée :
+      // le point le plus bas saute du talon à la pointe, pas la semelle)
+      const out = { Left: [Infinity, 0, 0], Right: [Infinity, 0, 0] };
       for (const id of ids) {
         body.body.getVertexPosition(id, v);
-        const side = rest[id * 3] > 0 ? 'Left' : 'Right';
-        if (v.y < out[side][0]) out[side] = [v.y, v.z];
+        const o = out[rest[id * 3] > 0 ? 'Left' : 'Right'];
+        o[0] = Math.min(o[0], v.y); o[1] += v.z; o[2]++;
       }
+      for (const o of Object.values(out)) o[1] /= o[2] || 1;
       return out;
     });
     soles.splice(0, soles.length, ...soles2);
     const N = frames.length;
     for (let i = 0; i < N; i++) {
       const a = soles[i], b = soles[(i + 1) % N];
-      const side = a.Left[0] < a.Right[0] ? 'Left' : 'Right';
+      // pied d'appui : le plus bas sur l'intervalle (pas seulement à l'image i)
+      const side = a.Left[0] + b.Left[0] < a.Right[0] + b.Right[0] ? 'Left' : 'Right';
       clip.low.push(Math.min(a.Left[0], a.Right[0]));
       const step = Math.max(0, a[side][1] - b[side][1]); // le pied d'appui recule : le corps avance
       clip.total += step;
@@ -380,7 +387,7 @@ export class Rig {
     const c = this.clip, N = c.frames.length, root = this.body.root, s = this.body.scale;
     const i0 = Math.floor(f), a = f - i0, i1 = (i0 + 1) % N;
     const lerp = (arr) => arr[i0] + ((i1 ? arr[i1] : (i0 === N - 1 ? c.total : arr[0])) - arr[i0]) * a;
-    const cyc = Math.floor((this.clipT * c.fps) / N);
+    const cyc = Math.round((this.clipT * c.fps - f) / N); // (cohérent avec f, sans erreur d'arrondi)
     const d = (cyc * c.total + (i1 === 0 ? c.adv[i0] + (c.total - c.adv[i0]) * a : lerp(c.adv))) * s;
     const w = this.walk;
     if (d > w.D) { // fin du parcours : on repart du début (sous un fondu)
