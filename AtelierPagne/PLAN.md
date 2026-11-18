@@ -196,3 +196,9 @@ stockage, partage), `assets/modeles/*.glb`, `assets/pagnes/*.webp`.
 - **Mes mesures** : hauteur, tours de poitrine, taille, hanches → le mannequin se
   déforme en direct ; valeurs mémorisées sur l’appareil.
 - **Mètres rubans** et toise affichables, bouton **Photo** (capture PNG).
+
+## Crédits
+
+- Mannequin articulé : `Mannequin-Rig.blend` (P2Design), fourni par la cliente (`tools/import_rig_mannequin.py`).
+- Démarche du défilé : « Rigged Man With Walk Cycle » par **brightonpiers** (Blend Swap),
+  licence Creative Commons Attribution 3.0 — crédit obligatoire (`tools/import_walk.py`).

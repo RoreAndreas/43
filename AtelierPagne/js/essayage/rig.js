@@ -289,7 +289,8 @@ export class Rig {
     const frames = proc ? proc.frames : raw.frames.map((fr) => {
       const W = {}, L = {};
       for (const n of order) {
-        W[n] = new THREE.Quaternion().fromArray(fr.q[n]).multiply(body.bindQ[n]);
+        W[n] = new THREE.Quaternion().fromArray(fr.q[n]);
+        if (!raw.world) W[n].multiply(body.bindQ[n]); // (orientation donnée depuis la position de liaison)
         L[n] = parent[n] ? W[parent[n]].clone().invert().multiply(W[n]) : W[n].clone();
       }
       return { L, h: new THREE.Vector3(...fr.h) };
