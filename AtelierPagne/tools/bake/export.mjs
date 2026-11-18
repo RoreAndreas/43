@@ -81,6 +81,8 @@ for (const sizeId of sizes) {
       const frames = [];
       rig.basePose = Object.fromEntries(Object.entries(body.rest).map(([n, q]) => [n, q.clone()]));
       rig.applyBones(0);
+      rig.ground();
+      cloth.reset(); // la jupe repart de sa forme de repos
       rig.stoolT = 0;
       rig.setPose(poseId, 1.0);
       const st = rig.stool;
@@ -94,7 +96,27 @@ for (const sizeId of sizes) {
         cloth.mesh.skeleton.update();
         frames.push({ body: meshPos(body.body), dress: particles(meshPos(cloth.mesh)), feet: feet() });
       };
-      for (let f = 0; f < 18; f++) { snap(); for (let i = 0; i < 6; i++) rig.update(1 / 60); }
+      snap();
+      // Jambes amincies (30 % autour de l'axe des os), au repos : au début de la
+      // simulation elles reprennent leur volume et poussent le tissu du bon côté.
+      const thin = frames[0].body.slice();
+      {
+        const geo = body.body.geometry, SI = geo.attributes.skinIndex, SW = geo.attributes.skinWeight;
+        const bi = body.bi, segs = { [bi.LeftUpLeg]: ['LeftUpLeg', 'LeftLeg'], [bi.LeftLeg]: ['LeftLeg', 'LeftFoot'], [bi.RightUpLeg]: ['RightUpLeg', 'RightLeg'], [bi.RightLeg]: ['RightLeg', 'RightFoot'] };
+        const P = (name) => body.bones[name].getWorldPosition(new V());
+        for (let i = 0; i < SI.count; i++) {
+          let best = -1, bw = 0;
+          for (let c = 0; c < 4; c++) { const b2 = SI.getComponent(i, c), w = SW.getComponent(i, c); if (segs[b2] && w > bw) { bw = w; best = b2; } }
+          if (best < 0 || bw < 0.5) continue;
+          const [a, b2] = segs[best].map(P);
+          const p = new V(thin[i * 3], thin[i * 3 + 1], thin[i * 3 + 2]);
+          const ab = b2.clone().sub(a), t = Math.max(0, Math.min(1, p.clone().sub(a).dot(ab) / ab.lengthSq()));
+          const c = a.clone().addScaledVector(ab, t);
+          const q = c.addScaledVector(p.clone().sub(c), 0.3);
+          thin[i * 3] = +q.x.toFixed(5); thin[i * 3 + 1] = +q.y.toFixed(5); thin[i * 3 + 2] = +q.z.toFixed(5);
+        }
+      }
+      for (let f = 1; f < 18; f++) { for (let i = 0; i < 6; i++) rig.update(1 / 60); snap(); }
       for (let i = 0; i < 150; i++) rig.update(1 / 60);
       snap();
       const last = frames[frames.length - 1];
@@ -102,12 +124,13 @@ for (const sizeId of sizes) {
       if (planted) {
         for (const f of frames) {
           const dx = last.feet[0] - f.feet[0], dz = last.feet[1] - f.feet[1];
-          for (const arr of [f.body, f.dress]) for (let i = 0; i < arr.length; i += 3) { arr[i] = +(arr[i] + dx).toFixed(5); arr[i + 2] = +(arr[i + 2] + dz).toFixed(5); }
+          const arrs = f === frames[0] ? [f.body, f.dress, thin] : [f.body, f.dress];
+          for (const arr of arrs) for (let i = 0; i < arr.length; i += 3) { arr[i] = +(arr[i] + dx).toFixed(5); arr[i + 2] = +(arr[i + 2] + dz).toFixed(5); }
         }
       }
       for (const f of frames) delete f.feet;
       const pose = {
-        rootY: root.position.y, scale: s, body: last.body, dress: last.dress, frames,
+        rootY: root.position.y, scale: s, body: last.body, dress: last.dress, frames, thin,
         quats: Object.fromEntries(Object.entries(body.bones).map(([n, b]) => [n, b.quaternion.toArray().map((x) => +x.toFixed(6))])),
       };
       const stool = st.visible && rig.stoolT > 0.5 ? { x: st.position.x, z: st.position.z, half: 0.22, top: st.scale.y } : null;

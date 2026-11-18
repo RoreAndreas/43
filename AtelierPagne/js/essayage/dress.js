@@ -160,8 +160,9 @@ function fitDress(body, name) {
   for (let y = dWaist + 0.04; y < top; y += BIN) { const a = dSec(y), b = dSec(y + 0.02); if (a && b && b.per > a.per * 1.22) { dBodice = y; break; } }
   // vertical : une seule échelle, ourlet au ras du sol, bustier sous le bandeau
   const bandY = lm.bust + 0.032;
-  const sy = (bandY - 0.006) / (dBodice - hem);
-  const mapY = (y) => 0.006 + (y - hem) * sy;
+  const HEM = 0.022; // ourlet à 2 cm du sol : il ne se coince pas sous les pieds
+  const sy = (bandY - HEM) / (dBodice - hem);
+  const mapY = (y) => HEM + (y - hem) * sy;
 
   // horizontal : une seule échelle, donnée par le tour du corps entre hanches et poitrine
   const rp = body.restPos;
@@ -180,7 +181,7 @@ function fitDress(body, name) {
   let bzSum = 0, dzSum = 0, cnt = 0;
   for (let y = lm.hip; y <= lm.bust; y += BIN) {
     const b = bSec(y);
-    const d = dSec(hem + (y - 0.006) / sy); // hauteur correspondante dans la robe d'origine
+    const d = dSec(hem + (y - HEM) / sy); // hauteur correspondante dans la robe d'origine
     if (!b || !d) continue;
     ratios.push((b.per + 2 * Math.PI * 0.008) / d.per);
     bzSum += b.c[1]; dzSum += d.c[1]; cnt++;
@@ -192,7 +193,7 @@ function fitDress(body, name) {
   // élargie en douceur sur toute la hauteur concernée, sans jamais rétrécir.
   const need = new Map();
   for (let y = J.LeftUpLeg.y - 0.08; y <= lm.bust + 0.02; y += BIN) {
-    const b = bSec(y), d = dSec(hem + (y - 0.006) / sy);
+    const b = bSec(y), d = dSec(hem + (y - HEM) / sy);
     if (b && d) need.set(Math.round(y / BIN), Math.max(sx, (b.per + 2 * Math.PI * 0.01) / d.per));
   }
   const kLo = Math.round((J.LeftUpLeg.y - 0.08) / BIN), kHi = Math.round((lm.bust + 0.02) / BIN);
@@ -214,6 +215,99 @@ function fitDress(body, name) {
     P[i * 3] = P0[i * 3] * k;
     P[i * 3 + 1] = y;
     P[i * 3 + 2] = bz + (P0[i * 3 + 2] - dz) * k;
+  }
+
+  // ---------- 1 bis. Sous la taille, la jupe suit le corps ----------
+  // Chaque tranche de jupe est recentrée sur la tranche du corps (cambrure,
+  // fesses), puis élargie juste assez pour contenir le corps et les deux jambes,
+  // aisance comprise. Décalage et élargissement sont lissés sur la hauteur :
+  // la jupe garde son tombé, sans bosse ni marche.
+  {
+    const pS = new Map();
+    for (let i = 0; i < n; i++) {
+      const k = Math.round(P[i * 3 + 1] / BIN);
+      if (!pS.has(k)) pS.set(k, []);
+      pS.get(k).push(i);
+    }
+    const kWaist = Math.round(lm.waist / BIN);
+    const ks = [...pS.keys()].filter((k) => k <= kWaist + 4).sort((a, b) => a - b);
+    const smoothMap = (m, win) => {
+      const out = new Map();
+      for (const k of ks) {
+        let acc = 0, w = 0;
+        for (let d = -win; d <= win; d++) { const v = m.get(k + d); if (v !== undefined) { const ww = win + 1 - Math.abs(d); acc += v * ww; w += ww; } }
+        out.set(k, w ? acc / w : (m.get(k) ?? 0));
+      }
+      return out;
+    };
+    // a) décalage : centre du corps − centre de la jupe (sans le haut du buste)
+    const sx2 = new Map(), sz2 = new Map();
+    let lastX = 0, lastZ = 0;
+    for (const k of ks) {
+      const sk = section(pS.get(k).map((i) => [P[i * 3], P[i * 3 + 2]]));
+      const bs = bSec(k * BIN);
+      if (sk && bs) { lastX = bs.c[0] - sk.c[0]; lastZ = bs.c[1] - sk.c[1]; }
+      sx2.set(k, lastX); sz2.set(k, lastZ);
+    }
+    const shX = smoothMap(sx2, 8), shZ = smoothMap(sz2, 8);
+    for (const k of ks) {
+      const fade = 1 - ss(k * BIN, lm.waist - 0.02, lm.waist + 0.04); // rien au-dessus de la taille
+      for (const i of pS.get(k)) { P[i * 3] += shX.get(k) * fade; P[i * 3 + 2] += shZ.get(k) * fade; }
+    }
+    // b) là où le corps dépasse (dans une direction donnée), la jupe est poussée
+    //    vers l'extérieur dans cette direction seulement ; la poussée est lissée
+    //    autour de la jupe (±25°) et sur la hauteur (±7 cm).
+    const def = new Map(), centers = new Map();
+    for (const k of ks) {
+      if (k * BIN > lm.hip + 0.04) continue;
+      const sk = section(pS.get(k).map((i) => [P[i * 3], P[i * 3 + 2]]));
+      const pts = bS.get(k);
+      if (!sk || !pts) continue;
+      centers.set(k, sk.c);
+      const dk = new Float32Array(NA);
+      for (const [x, z] of pts) {
+        const dx = x - sk.c[0], dz = z - sk.c[1], d = Math.hypot(dx, dz);
+        if (d < 1e-6) continue;
+        let a2 = Math.atan2(dx / d, dz / d) / (Math.PI * 2);
+        if (a2 < 0) a2 += 1;
+        const j = Math.round(a2 * NA) % NA;
+        dk[j] = Math.max(dk[j], d + 0.012 - radiusAt(sk, dx / d, dz / d));
+      }
+      // autour de la jupe : dilatation puis moyenne
+      const dil = new Float32Array(NA), sm = new Float32Array(NA);
+      for (let j = 0; j < NA; j++) { let m = 0; for (let q = -2; q <= 2; q++) m = Math.max(m, dk[(j + q + NA) % NA]); dil[j] = m; }
+      for (let j = 0; j < NA; j++) { let acc = 0; for (let q = -4; q <= 4; q++) acc += dil[(j + q + NA) % NA]; sm[j] = acc / 9; }
+      def.set(k, sm);
+    }
+    // sur la hauteur : dilatation puis moyenne
+    const defH = new Map();
+    for (const k of def.keys()) {
+      const out = new Float32Array(NA);
+      for (let j = 0; j < NA; j++) {
+        let acc = 0, w = 0;
+        for (let d = -7; d <= 7; d++) {
+          let m = 0;
+          for (let e = -3; e <= 3; e++) { const v = def.get(k + d + e); if (v) m = Math.max(m, v[j]); }
+          acc += m; w++;
+        }
+        out[j] = acc / w;
+      }
+      defH.set(k, out);
+    }
+    for (const [k, dk] of defH) {
+      const c = centers.get(k);
+      const fade = 1 - ss(k * BIN, lm.hip - 0.02, lm.hip + 0.04);
+      for (const i of pS.get(k)) {
+        const dx = P[i * 3] - c[0], dz = P[i * 3 + 2] - c[1], d = Math.hypot(dx, dz);
+        if (d < 1e-6) continue;
+        let a2 = Math.atan2(dx / d, dz / d) / (Math.PI * 2);
+        if (a2 < 0) a2 += 1;
+        const fj = a2 * NA, j0 = Math.floor(fj) % NA, w = fj - Math.floor(fj);
+        const push = (dk[j0] * (1 - w) + dk[(j0 + 1) % NA] * w) * fade;
+        if (push <= 0) continue;
+        P[i * 3] += (dx / d) * push; P[i * 3 + 2] += (dz / d) * push;
+      }
+    }
   }
 
   // ---------- 2. Correction locale : jamais dans le corps ----------
@@ -282,7 +376,7 @@ function fitDress(body, name) {
   }
   const theta0 = slit ? slit.theta : Math.PI; // la découpe angulaire passe par la fente (ou le dos)
   const uOf = (a) => { let u = (a - theta0) / (Math.PI * 2); u -= Math.floor(u); return u; };
-  const segLen = (yRoot - 0.006) / L;
+  const segLen = (yRoot - HEM) / L;
   // repos des articulations : centre des points de la jupe du secteur, à chaque hauteur
   const restJ = new Float32Array(K * (L + 1) * 3);
   for (let j = 0; j < K; j++) {

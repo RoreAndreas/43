@@ -25,6 +25,7 @@ import numpy as np
 
 STEP_SIT, STEP = 9, 6    # images entre deux instantanés du mouvement (s'asseoir : plus lent)
 SETTLE = 45             # images pour que le tissu se pose à la fin
+HOLD = 20               # images au repos avant le mouvement (les jambes reprennent leur volume, le tissu se pose)
 STEP_CUR = STEP
 Q = 16000.0             # quantification (unités par mètre)
 
@@ -47,20 +48,20 @@ def mesh_object(name, verts, faces):
     return ob
 
 
-def animate_sequence(ob, frames):
-    """Instantanés successifs en clés de forme, enchaînés image après image."""
+def animate_sequence(ob, frames, times):
+    """Formes successives en clés de forme : frames[0] = forme de base, frames[i] à l'image times[i]."""
     ob.shape_key_add(name='Basis')
-    keys = []
-    for i, co in enumerate(frames[1:], start=1):
+    for i in range(1, len(frames)):
         k = ob.shape_key_add(name=f'f{i}', from_mix=False)
-        k.data.foreach_set('co', co.ravel())
-        keys.append((i, k))
-    for i, k in keys:
-        f = 1 + i * STEP_CUR
-        last = i == len(frames) - 1
-        for ff, v in ((f - STEP_CUR, 0.0), (f, 1.0), (f + STEP_CUR, 1.0 if last else 0.0)):
+        k.data.foreach_set('co', frames[i].ravel())
+        prev_t, t = times[i - 1], times[i]
+        next_t = times[i + 1] if i + 1 < len(times) else None
+        for ff, v in ((prev_t, 0.0), (t, 1.0)):
             k.value = v
             k.keyframe_insert('value', frame=ff)
+        if next_t is not None:
+            k.value = 0.0
+            k.keyframe_insert('value', frame=next_t)
 
 
 def simulate(src, out_dir):
@@ -70,15 +71,17 @@ def simulate(src, out_dir):
     fr = d['target']['frames']
     global STEP_CUR
     STEP_CUR = STEP_SIT if d.get('stool') else STEP
-    FRAMES = 1 + (len(fr) - 1) * STEP_CUR + SETTLE
+    FRAMES = 1 + HOLD + (len(fr) - 1) * STEP_CUR + SETTLE
     scene.frame_start, scene.frame_end = 1, FRAMES
 
     # Mannequin : collisionneur animé du repos à la pose.
-    body = mesh_object('mannequin', to_blender(fr[0]['body']), d['bodyIndex'])
-    animate_sequence(body, [to_blender(f['body']) for f in fr])
+    times = [1 + HOLD + i * STEP_CUR for i in range(len(fr))]
+    # le corps part avec des jambes amincies, qui reprennent leur volume pendant le repos
+    body = mesh_object('mannequin', to_blender(d['target']['thin']), d['bodyIndex'])
+    animate_sequence(body, [to_blender(d['target']['thin'])] + [to_blender(f['body']) for f in fr], [1] + times)
     body.modifiers.new('collision', 'COLLISION')
-    body.collision.thickness_outer = 0.008
-    body.collision.thickness_inner = 0.05
+    body.collision.thickness_outer = 0.002  # zone de contact plus fine que l'aisance de la robe (8 mm)
+    body.collision.thickness_inner = 0.02
     body.collision.cloth_friction = 6
 
     # Sol.
@@ -99,7 +102,7 @@ def simulate(src, out_dir):
 
     # Robe : épinglée au bustier, libre ailleurs.
     dress = mesh_object('robe', to_blender(fr[0]['dress']), d['tris'])
-    animate_sequence(dress, [to_blender(f['dress']) for f in fr])  # cible du bustier épinglé
+    animate_sequence(dress, [to_blender(f['dress']) for f in fr], times)  # cible du bustier épinglé
     vg = dress.vertex_groups.new(name='pin')
     pin = np.asarray(d['pin'])
     for w in np.unique(pin[pin > 0]):
@@ -117,7 +120,7 @@ def simulate(src, out_dir):
     cs.pin_stiffness = 1
     cc = cloth.collision_settings
     cc.collision_quality = 6
-    cc.distance_min = 0.005
+    cc.distance_min = 0.004
     cc.use_self_collision = True
     cc.self_distance_min = 0.004
     cc.self_friction = 5
