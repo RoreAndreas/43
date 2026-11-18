@@ -1,7 +1,7 @@
 // Tenues : robes modélisées dans Blender (voir tools/convert_garment.py et dress.js),
 // habillées du pagne choisi, avec une matière de tissu (reflet, grain de tissage).
 import * as THREE from 'three';
-import { DressCloth, hasDress } from './dress.js';
+import { DressCloth, BakedDress, hasDress } from './dress.js';
 
 export const OUTFITS = {
   femme: [
@@ -80,9 +80,20 @@ export function fabricMaterial(uniforms, { side = THREE.DoubleSide } = {}) {
 // ---------- Assemblage d'une tenue ----------
 export function buildOutfit(body, outfit, uniforms, scene) {
   if (!outfit?.mesh || !hasDress(outfit.mesh)) return null;
-  const dress = new DressCloth(body, outfit.mesh, fabricMaterial(uniforms), scene);
+  const material = fabricMaterial(uniforms);
+  const dress = new DressCloth(body, outfit.mesh, material, scene);
+  let baked = null; // tombé pré-calculé affiché (sinon : robe animée en direct)
+  const live = (on) => { dress.mesh.visible = on; if (dress.hem) dress.hem.visible = on; };
   return {
     skirt: dress,
+    mesh: outfit.mesh,
+    get isBaked() { return !!baked?.mesh.visible; },
+    showBaked(pos) {
+      baked ||= new BakedDress(outfit.mesh, material, body.root);
+      baked.show(pos);
+      live(false);
+    },
+    showLive() { baked?.hide(); live(true); dress.reset(); },
     legFreedom: dress.legFreedom,
     halfWidthAt: (y) => dress.halfWidthAt(y),
     /** Un point du monde est-il dans la robe ? (profondeur en m, < 0 dehors) */
@@ -90,8 +101,8 @@ export function buildOutfit(body, outfit, uniforms, scene) {
       const l = hipsBone.worldToLocal(world.clone());
       return dress.penetration(l.x, l.y, l.z);
     },
-    update(dt, env) { dress.update(dt, env); },
-    reset() { dress.reset(); },
-    dispose() { dress.dispose(); },
+    update(dt, env) { if (!baked?.mesh.visible) dress.update(dt, env); },
+    reset() { if (!baked?.mesh.visible) dress.reset(); },
+    dispose() { baked?.dispose(); dress.dispose(); },
   };
 }

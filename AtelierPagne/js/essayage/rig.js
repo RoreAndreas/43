@@ -1,12 +1,13 @@
 // Pilote du mannequin : construction selon la morphologie et les mesures,
-// transitions de pose naturelles (le bassin part d'abord, les bras suivent),
-// mouvement au repos (respiration, report du poids, regard), rotation sur
-// le socle, tenue en wax, contact au sol, socle de la pose assise, rubans.
+// affichage d'une pose (instantané, avec le tombé de robe pré-calculé quand il
+// existe ; transition animée seulement pour le pré-calcul lui-même), regard au
+// repos, rotation sur le socle, tenue, contact au sol, socle assis, rubans.
 import * as THREE from 'three';
 import { CSS2DObject } from 'three/addons/renderers/CSS2DRenderer.js';
 import { buildMannequin, createSiliconeMaterial, PRESETS } from './mannequin.js';
 import { POSES, expandPose } from './poses.js';
 import { OUTFITS, buildOutfit, fabricUniforms } from './garments.js';
+import { hasBake, loadBake } from './dress.js';
 
 const ease = (t) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2);
 const _v1 = new THREE.Vector3(), _v2 = new THREE.Vector3(), _v3 = new THREE.Vector3();
@@ -55,6 +56,9 @@ export class Rig {
     this.spinOn = false;
     this.spinSpeed = 0;
     this.outfitId = 'aucune';
+    this.sizeId = null;
+    // tombés pré-calculés : désactivés pendant le pré-calcul lui-même (?bake)
+    this.bakes = !new URLSearchParams(location.search).has('bake');
     this.fabric = fabricUniforms();
     this.outfit = null;
   }
@@ -210,6 +214,34 @@ export class Rig {
     this.anim = { from, to, t: 0, d: duration };
   }
 
+  /**
+   * Affiche une pose d'un coup (sans transition). Avec une robe dont le tombé a
+   * été pré-calculé pour cette taille et cette pose, on charge ce tombé et la
+   * pose exacte du corps ; sinon la robe est animée en direct.
+   * Renvoie une promesse résolue quand tout est en place.
+   */
+  async showPose(id) {
+    const pose = POSES.find((p) => p.id === id);
+    if (!pose || !this.body) return;
+    const token = (this.showToken = (this.showToken || 0) + 1);
+    const o = this.outfit;
+    const useBake = this.bakes && o?.mesh && hasBake(o.mesh, this.sizeId, id);
+    const bake = useBake ? await loadBake(o.mesh, this.sizeId, id) : null;
+    if (token !== this.showToken || o !== this.outfit) return; // une autre pose a été demandée entre-temps
+    this.poseId = id;
+    this.pose = pose;
+    this.anim = null;
+    this.stoolTarget = this.stoolT = pose.stool ? 1 : 0;
+    if (bake) {
+      const q = bake.meta.quats;
+      this.basePose = Object.fromEntries(Object.entries(this.body.bones).map(([n]) => [n, new THREE.Quaternion().fromArray(q[n])]));
+    } else this.basePose = this.computePose(id);
+    this.applyBones(0);
+    this.ground();
+    if (bake) o.showBaked(bake.pos);
+    else if (o) o.showLive?.();
+  }
+
   /** Pose de base × mouvement au repos → os. */
   applyBones(dt = 0) {
     const { bones } = this.body;
@@ -225,27 +257,14 @@ export class Rig {
     }
   }
 
-  /** Respiration, report du poids d'une jambe sur l'autre, regard qui se promène. */
+  /** Mouvement au repos : seul le regard se promène (le corps reste immobile : la robe est figée). */
   idleOffsets() {
     const a = this.idleAmt;
     if (a < 0.001) return {};
-    const t = this.time;
-    const breath = Math.sin((t * Math.PI * 2) / 4.4);
-    const standing = !this.pose?.stool && this.poseId !== 'defile' ? 1 : 0;
-    const sway = Math.sin((t * Math.PI * 2) / 7.5) * standing;
-    const lk = this.look;
-    const arms = this.pose?.ik ? 0.3 : 1;
+    const lk = this.look, t = this.time;
     return {
-      Hips: [0, 0.035 * sway * a, 0.024 * sway * a],
-      LeftUpLeg: [0, 0, -0.024 * sway * a],
-      RightUpLeg: [0, 0, -0.024 * sway * a],
-      Spine: [0.014 * breath * a, -0.03 * sway * a, -0.016 * sway * a],
-      Neck: [0.01 * breath * a, 0.35 * lk * a, 0.004 * sway * a],
+      Neck: [0, 0.35 * lk * a, 0],
       Head: [0.02 * Math.sin(t * 0.41) * a, 0.6 * lk * a, -0.06 * lk * a],
-      LeftArm: [0.02 * Math.sin((t * Math.PI * 2) / 5.3) * a * arms, 0, 0.014 * breath * a * arms],
-      RightArm: [0.02 * Math.sin((t * Math.PI * 2) / 5.3 + 1.3) * a * arms, 0, -0.014 * breath * a * arms],
-      LeftForeArm: [-0.02 * Math.sin((t * Math.PI * 2) / 6.1) * a * arms, 0, 0],
-      RightForeArm: [-0.02 * Math.sin((t * Math.PI * 2) / 6.1 + 0.8) * a * arms, 0, 0],
     };
   }
 
@@ -255,10 +274,10 @@ export class Rig {
   // ---------- Tenue ----------
   outfitsFor(presetId = this.presetId) { return OUTFITS[presetId] || []; }
 
+  /** Change de tenue ; appeler ensuite showPose() pour l'afficher dans la pose. */
   setOutfit(id) {
     this.outfitId = id;
     this.buildOutfit();
-    this.setPose(this.poseId); // les bras s'ajustent à la nouvelle tenue
   }
 
   buildOutfit() {
@@ -321,7 +340,8 @@ export class Rig {
     this.stoolT += Math.sign(st - this.stoolT) * Math.min(Math.abs(st - this.stoolT), dt * 2.2);
     if (this.stoolT > 0.001) {
       const pelvisBottom = this.body.lowestSeat();
-      const top = Math.max(0.05, pelvisBottom + 0.01 * this.body.scale);
+      // avec une tenue, le tissu passe entre le corps et le socle (1,2 cm)
+      const top = Math.max(0.05, pelvisBottom + (this.outfit ? -0.012 : 0.01) * this.body.scale);
       this.stool.visible = true;
       this.stool.scale.set(1, Math.max(0.001, top * ease(this.stoolT)), 1);
       const hp = this.body.bones.Hips.getWorldPosition(_v1);

@@ -47,7 +47,8 @@ AtelierPagne/
 │   ├── geometry.js          surfaces « loft », tour de mesure (enveloppe convexe)
 │   ├── poses.js             bibliothèque de poses (données)
 │   ├── garments.js          liste des tenues, matière tissu (pagne, reflet, tissage)
-│   ├── dress.js             robes Blender : ajustement, poids, chaînes de jupe à ressort
+│   ├── dress.js             robes Blender : ajustement, tombés pré-calculés, chaînes de jupe
+│   ├── sizes.js             guide des tailles (36–46, 44–54)
 │   ├── wax.js               six motifs wax originaux + import de la photo d’un pagne
 │   ├── rig.js               transitions, IK des bras, contact au sol, tabouret, rubans
 │   └── ui.js                panneaux, vues, mesures, mémorisation, clavier
@@ -55,6 +56,7 @@ AtelierPagne/
 ├── assets/garments/        robes importées (.bin + .json)
 ├── tools/build_mannequin.py fabrique ces fichiers à partir de MakeHuman (CC0)
 ├── tools/convert_garment.py convertit un vêtement .blend (module Python de Blender)
+├── tools/bake/              pré-calcul des tombés (export.mjs → simulate.py, run.sh)
 └── vendor/three/            Three.js r170 (local : pas de dépendance à un CDN)
 ```
 
@@ -155,20 +157,24 @@ stockage, partage), `assets/modeles/*.glb`, `assets/pagnes/*.webp`.
 - **Animation au repos** (activable) : respiration, report du poids d’une jambe
   sur l’autre, regard qui se promène à gauche et à droite.
 - **Tenues : robes modélisées dans Blender** (aujourd’hui « Robe longue épaules
-  dénudées »). Méthode des jeux vidéo et des cabines virtuelles :
-  - la robe garde la coupe et le volume dessinés dans Blender : simple mise à
-    l’échelle du mannequin, élargie en douceur là où le corps est plus large,
-    corrigée localement là où la peau la traverserait ;
-  - le bustier et le bandeau suivent le torse et les bras (poids du point de
-    peau le plus proche) ;
-  - la jupe est portée par 16 chaînes d’os à ressort : elle se balance, s’évase
-    en rotation, s’écarte des jambes et des mains, se pose sur les cuisses et
-    s’étale au sol en position assise ; les bords de la fente s’ouvrent ;
-  - toute la déformation est faite par la carte graphique ; le processeur ne
-    calcule qu’une centaine de points (0,3 ms par image) : aucun tremblement ;
-  - matière tissu : reflet de fibre, grain de tissage, ourlet roulé.
-  Pour ajouter une robe : `python tools/convert_garment.py robe.blend nom`, puis
-  l’ajouter à `OUTFITS` dans `js/essayage/garments.js`.
+  dénudées »), avec un **vrai tombé de tissu pré-calculé** pour chaque pose et
+  chaque taille :
+  - `tools/bake/run.sh` : la salle d’essayage (navigateur sans écran) exporte le
+    mannequin, la robe ajustée et le mouvement réel vers la pose ; Blender
+    simule le tissu (gravité, collisions avec le corps, le socle et le sol,
+    auto-collisions) ; pour s’asseoir, le mannequin part debout devant le socle
+    et recule, pieds posés ; le résultat (≈ 50 Ko par pose) va dans
+    `assets/garments/bakes/<robe>/` ;
+  - dans le site, choisir une pose affiche un court chargement puis le
+    mannequin directement dans la pose, robe en place (pas de transition) ;
+  - **tailles** 36 à 46 (femme) au lieu des tours libres ; la hauteur reste libre
+    (mannequin et robe mis à l’échelle ensemble) ;
+  - au repos, seul le regard bouge (la robe est figée) ;
+  - sans tombé pré-calculé (autre taille, silhouette homme), la robe est animée
+    en direct par des chaînes de jupe à ressort (`js/essayage/dress.js`).
+  Pour ajouter une robe : `python tools/convert_garment.py robe.blend nom`,
+  l’ajouter à `OUTFITS` dans `js/essayage/garments.js`, puis
+  `BPY_PYTHON=… tools/bake/run.sh nom` (≈ 5 min par pose et par taille).
 - **Mode téléphone** : résolution, ombres et anticrénelage allégés.
 - **Pagnes** : six motifs wax originaux, ou la photo du pagne de la cliente,
   à l’échelle réelle (taille du motif réglable en cm).

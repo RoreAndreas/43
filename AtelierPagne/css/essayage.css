@@ -213,8 +213,26 @@ input[type="range"]::-moz-range-thumb { width: 16px; height: 16px; border-radius
 }
 @keyframes sew { 0% { clip-path: inset(0 100% 0 0); } 60% { clip-path: inset(0 0 0 0); } 100% { clip-path: inset(0 0 0 100%); } }
 
-.fade { position: fixed; inset: 0; z-index: 4; background: var(--bg); opacity: 0; pointer-events: none; transition: opacity .35s var(--ease-io); }
+.fade {
+  position: fixed; inset: 0; z-index: 4; display: grid; place-content: center; justify-items: center; gap: 14px;
+  background: var(--bg); opacity: 0; pointer-events: none; transition: opacity .3s var(--ease-io);
+}
 .fade.is-on { opacity: 1; }
+.fade p { margin: 0; font-size: 13px; color: var(--muted); }
+.fade__seam {
+  width: 120px; height: 1px;
+  background: repeating-linear-gradient(90deg, var(--ink) 0 6px, transparent 6px 11px);
+  animation: sew 1.2s var(--ease-io) infinite;
+}
+
+/* Tailles */
+.sizes { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.size-chip { display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 10px 6px; border: 1px solid var(--line); border-radius: 12px; background: var(--paper); cursor: pointer; transition: border-color .2s; }
+.size-chip strong { font-size: 18px; font-weight: 500; }
+.size-chip small { font-size: 11px; color: var(--muted); font-variant-numeric: tabular-nums; }
+.size-chip:hover { border-color: var(--line-strong); }
+.size-chip[aria-checked="true"] { border-color: var(--ink); box-shadow: inset 0 0 0 1px var(--ink); }
+.sizes__legend { margin: 6px 0 0; font-size: 12px; color: var(--muted); }
 body.flash .fade { animation: flash .45s ease-out; }
 @keyframes flash { from { opacity: .9; background: #fff; } to { opacity: 0; } }
 

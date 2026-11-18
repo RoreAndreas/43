@@ -400,6 +400,7 @@ export class DressCloth {
     const { P } = fit;
     const n = D.meta.particles;
     const tris = D.tris, rv = D.rv, uv = D.uv;
+    this.tris = tris; this.rv = rv; // (export des tombés : tools/bake)
     this.hipsRest = body.restJ.Hips.clone();
     this.legFreedom = 0.85;
     this.bi = body.bi;
@@ -836,5 +837,113 @@ class EdgeTube {
         }
       }
     });
+  }
+}
+
+// ---------- Tombés pré-calculés (tools/bake) ----------
+// Pour chaque robe, taille et pose, la forme du tissu a été simulée dans Blender.
+// Elle s'affiche telle quelle : vrais plis, tissu posé sur les cuisses, traîne au sol.
+const BAKES = {}; // robe → { index: Set, cache: Map }
+const BAKE_BASE = 'assets/garments/bakes/';
+
+export async function loadBakeIndex(name) {
+  try {
+    const list = await fetch(`${BAKE_BASE}${name}/index.json`).then((r) => (r.ok ? r.json() : []));
+    BAKES[name] = { index: new Set(list), cache: new Map() };
+  } catch {
+    BAKES[name] = { index: new Set(), cache: new Map() };
+  }
+}
+
+export const hasBake = (name, size, pose) => !!BAKES[name]?.index.has(`${size}-${pose}`);
+
+/** Charge (une fois) un tombé : positions du tissu (repère du mannequin) et pose exacte du corps. */
+export function loadBake(name, size, pose) {
+  const B = BAKES[name], key = `${size}-${pose}`;
+  if (!B.cache.has(key)) {
+    B.cache.set(key, Promise.all([
+      fetch(`${BAKE_BASE}${name}/${key}.json`).then((r) => r.json()),
+      fetch(`${BAKE_BASE}${name}/${key}.bin`).then((r) => r.arrayBuffer()),
+    ]).then(([meta, bin]) => {
+      const q = new Int16Array(bin), pos = new Float32Array(q.length);
+      for (let i = 0; i < q.length; i++) pos[i] = q[i] / meta.quant;
+      return { meta, pos };
+    }));
+  }
+  return B.cache.get(key);
+}
+
+/** Robe figée dans un tombé pré-calculé, accrochée au mannequin. */
+export class BakedDress {
+  constructor(name, material, root) {
+    const D = DATA[name];
+    this.D = D;
+    const { rv, uv, tris } = D;
+    const n = D.meta.particles, m = rv.length;
+    this.n = n;
+    this.N = new Float32Array(n * 3);
+    const g = new THREE.BufferGeometry();
+    g.setAttribute('position', new THREE.BufferAttribute(new Float32Array(m * 3), 3));
+    g.setAttribute('normal', new THREE.BufferAttribute(new Float32Array(m * 3), 3));
+    g.setAttribute('fabricUv', new THREE.BufferAttribute(new Float32Array(uv), 2));
+    g.setAttribute('uv', new THREE.BufferAttribute(new Float32Array(uv), 2));
+    g.setIndex(new THREE.BufferAttribute(new Uint32Array(tris), 1));
+    this.mesh = new THREE.Mesh(g, material);
+    this.mesh.castShadow = this.mesh.receiveShadow = true;
+    this.mesh.frustumCulled = false;
+    root.add(this.mesh);
+    // ourlet roulé : bords du bas et de la fente
+    let top = -Infinity;
+    for (let i = 0; i < n; i++) top = Math.max(top, D.uniq[i * 3 + 1]);
+    const chains = (D.chains ||= boundaryChains(tris, rv, n)).filter((ch) => ch.some((p) => D.uniq[p * 3 + 1] < top * 0.5));
+    if (chains.length) {
+      const puv = new Float32Array(n * 2);
+      for (let r = 0; r < m; r++) { puv[rv[r] * 2] = uv[r * 2]; puv[rv[r] * 2 + 1] = uv[r * 2 + 1]; }
+      this.hem = new EdgeTube(chains, puv, 0.0035);
+      this.hemMesh = new THREE.Mesh(this.hem.geometry, material);
+      this.hemMesh.castShadow = true;
+      this.hemMesh.frustumCulled = false;
+      root.add(this.hemMesh);
+    }
+    this.mesh.visible = false;
+    if (this.hemMesh) this.hemMesh.visible = false;
+  }
+
+  /** Affiche un tombé (positions des points du tissu, repère du mannequin). */
+  show(P) {
+    const { rv, tris } = this.D, N = this.N, n = this.n;
+    N.fill(0);
+    for (let t = 0; t < tris.length; t += 3) {
+      const a = rv[tris[t]] * 3, b = rv[tris[t + 1]] * 3, c = rv[tris[t + 2]] * 3;
+      const ux = P[b] - P[a], uy = P[b + 1] - P[a + 1], uz = P[b + 2] - P[a + 2];
+      const vx = P[c] - P[a], vy = P[c + 1] - P[a + 1], vz = P[c + 2] - P[a + 2];
+      const nx = uy * vz - uz * vy, ny = uz * vx - ux * vz, nz = ux * vy - uy * vx;
+      N[a] += nx; N[a + 1] += ny; N[a + 2] += nz; N[b] += nx; N[b + 1] += ny; N[b + 2] += nz; N[c] += nx; N[c + 1] += ny; N[c + 2] += nz;
+    }
+    for (let i = 0; i < n; i++) {
+      const l = Math.hypot(N[i * 3], N[i * 3 + 1], N[i * 3 + 2]) || 1;
+      N[i * 3] /= l; N[i * 3 + 1] /= l; N[i * 3 + 2] /= l;
+    }
+    const pos = this.mesh.geometry.attributes.position.array, nrm = this.mesh.geometry.attributes.normal.array;
+    for (let r = 0; r < rv.length; r++) {
+      const s = rv[r] * 3;
+      pos[r * 3] = P[s]; pos[r * 3 + 1] = P[s + 1]; pos[r * 3 + 2] = P[s + 2];
+      nrm[r * 3] = N[s]; nrm[r * 3 + 1] = N[s + 1]; nrm[r * 3 + 2] = N[s + 2];
+    }
+    this.mesh.geometry.attributes.position.needsUpdate = true;
+    this.mesh.geometry.attributes.normal.needsUpdate = true;
+    this.mesh.visible = true;
+    if (this.hem) {
+      this.hem.write(P, N);
+      this.hem.geometry.attributes.position.needsUpdate = true;
+      this.hem.geometry.attributes.normal.needsUpdate = true;
+      this.hemMesh.visible = true;
+    }
+  }
+
+  hide() { this.mesh.visible = false; if (this.hemMesh) this.hemMesh.visible = false; }
+
+  dispose() {
+    for (const m of [this.mesh, this.hemMesh]) { if (!m) continue; m.parent?.remove(m); m.geometry.dispose(); }
   }
 }

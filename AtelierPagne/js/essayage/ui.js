@@ -1,6 +1,7 @@
 // Interface de la salle d'essayage : dock (poses, vues, rotation, animation),
 // tiroir « Tenue » (modèle, pagne) et « Mes mesures », guide de première visite.
 import { WAX, waxCanvas, waxTexture, photoTexture } from './wax.js';
+import { SIZES, DEFAULT_SIZE, sizeMeasures } from './sizes.js';
 
 const STORE = 'atelier-pagne:essayage:v1';
 const GUIDE = 'atelier-pagne:guide-vu';
@@ -38,12 +39,7 @@ const OUTFIT_ICON = {
   tunique: ico('<path d="M15 4l5 3 5-3 7 5-2 14-3-1v15H13V22l-3 1-2-14zM20 7v10"/><path d="M15 37h10l1 9h-4l-2-6-2 6h-4z"/>'),
 };
 
-const MEASURES = [
-  { key: 'height', label: 'Hauteur', min: 145, max: 195, help: 'Du sommet de la tête au sol, pieds nus.' },
-  { key: 'bust', label: 'Tour de poitrine', min: 70, max: 135, help: 'Au plus fort de la poitrine, mètre horizontal.' },
-  { key: 'waist', label: 'Tour de taille', min: 55, max: 125, help: 'Au plus creux, au-dessus du nombril.' },
-  { key: 'hip', label: 'Tour de hanches', min: 80, max: 145, help: 'Au plus fort des fesses.' },
-];
+const HEIGHT = { min: 145, max: 195 };
 
 export function initUI({ rig, POSES, VIEWS, PRESETS, controls, goToView, orbitBy, capturePhoto, setInsets }) {
   const $ = (s) => document.querySelector(s);
@@ -58,10 +54,15 @@ export function initUI({ rig, POSES, VIEWS, PRESETS, controls, goToView, orbitBy
     wax: WAX.some((w) => w.id === stored.wax) ? stored.wax : 'medaillons',
     motif: stored.motif || 28,
   };
-  const defaults = (p) => ({ ...rig.base(p).cm });
-  state.cm = stored.cm && stored.preset === state.preset ? { ...defaults(state.preset), ...stored.cm } : defaults(state.preset);
+  // Taille (guide des tailles) + hauteur libre ; les tours en découlent.
+  const baseHeight = (p) => rig.base(p).cm.height;
+  const validSize = (p, id) => (SIZES[p].some((x) => x.id === id) ? id : DEFAULT_SIZE[p]);
+  state.size = validSize(state.preset, stored.preset === state.preset ? stored.size : null);
+  state.height = stored.preset === state.preset && stored.height ? stored.height : baseHeight(state.preset);
+  const measuresNow = () => sizeMeasures(state.preset, state.size, state.height, baseHeight(state.preset));
+  state.cm = measuresNow();
   const persist = () => save(STORE, {
-    preset: state.preset, cm: state.cm, pose: state.pose, tapes: state.tapes,
+    preset: state.preset, size: state.size, height: state.height, pose: state.pose, tapes: state.tapes,
     idle: state.idle, outfit: state.outfit, wax: state.wax === 'photo' ? 'medaillons' : state.wax, motif: state.motif,
   });
 
@@ -80,14 +81,28 @@ export function initUI({ rig, POSES, VIEWS, PRESETS, controls, goToView, orbitBy
     <button class="pose" type="button" role="radio" aria-checked="false" data-pose="${p.id}" title="${p.hint}">
       ${figSVG(p.id)}<span>${SHORT[p.id] || p.label}</span>
     </button>`).join('');
-  const setPose = (id, animate = true) => {
+  // Changement de pose : court écran de chargement, puis le mannequin apparaît
+  // directement dans la pose (pas de transition), robe en place.
+  const fade = $('#fade'), fadeLabel = $('#fade-label');
+  const wait = (ms) => new Promise((r) => setTimeout(r, ms));
+  let showing = 0;
+  const present = async (label, work) => {
+    const me = ++showing;
+    fadeLabel.textContent = label;
+    fade.classList.add('is-on');
+    await wait(300); // le fondu couvre la scène
+    await work();
+    await wait(120);
+    if (me === showing) fade.classList.remove('is-on');
+  };
+  const setPose = (id) => {
     state.pose = id;
-    rig.setPose(id, animate ? 0.95 : 0);
     const pose = POSES.find((p) => p.id === id);
     poseList.querySelectorAll('.pose').forEach((b) => b.setAttribute('aria-checked', String(b.dataset.pose === id)));
     $('#caption-title').textContent = pose.label;
     $('#caption-hint').textContent = pose.hint;
     persist();
+    return present(`Pose « ${pose.label} »`, () => rig.showPose(id));
   };
   poseList.addEventListener('click', (e) => {
     const b = e.target.closest('.pose');
@@ -100,7 +115,7 @@ export function initUI({ rig, POSES, VIEWS, PRESETS, controls, goToView, orbitBy
     <button class="view view--spin" type="button" id="btn-spin" aria-pressed="false" title="Le mannequin tourne sur son socle">
       <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 12a8 8 0 1 1-2.3-5.6M20 4v4h-4"/></svg>Rotation
     </button>
-    <button class="view view--toggle" type="button" id="btn-idle" aria-pressed="false" title="Respiration, report du poids, regard">
+    <button class="view view--toggle" type="button" id="btn-idle" aria-pressed="false" title="Le mannequin tourne la tête de temps en temps">
       <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12h3l2-5 4 10 2-5h7"/></svg>Animation
     </button>`;
   const setActiveView = (id) => views.querySelectorAll('[data-view]').forEach((b) => b.classList.toggle('is-active', b.dataset.view === id));
@@ -162,8 +177,8 @@ export function initUI({ rig, POSES, VIEWS, PRESETS, controls, goToView, orbitBy
   const setOutfit = (id) => {
     state.outfit = id;
     outfitsEl.querySelectorAll('.outfit').forEach((b) => b.setAttribute('aria-checked', String(b.dataset.outfit === id)));
-    rig.setOutfit(id);
     persist();
+    return present('Essayage de la tenue', async () => { rig.setOutfit(id); await rig.showPose(state.pose); });
   };
   outfitsEl.addEventListener('click', (e) => { const b = e.target.closest('.outfit'); if (b) setOutfit(b.dataset.outfit); });
 
@@ -214,80 +229,89 @@ export function initUI({ rig, POSES, VIEWS, PRESETS, controls, goToView, orbitBy
   const seg = $('#preset');
   seg.innerHTML = Object.entries(PRESETS).map(([id, p]) => `<button type="button" data-preset="${id}" aria-pressed="false">${p.label}</button>`).join('');
   const refreshPreset = () => seg.querySelectorAll('button').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.preset === state.preset)));
-  const fade = $('#fade');
   seg.addEventListener('click', (e) => {
     const b = e.target.closest('button');
     if (!b || b.dataset.preset === state.preset) return;
     state.preset = b.dataset.preset;
-    state.cm = defaults(state.preset);
+    state.size = DEFAULT_SIZE[state.preset];
+    state.height = baseHeight(state.preset);
+    state.cm = measuresNow();
     refreshPreset();
+    renderSizes();
     syncSliders();
     persist();
-    fade.classList.add('is-on');
-    setTimeout(() => {
+    present('Changement de silhouette', async () => {
       renderOutfits();
       rig.outfitId = state.outfit;
-      rig.setBody(state.preset, state.cm);
-      fade.classList.remove('is-on');
-    }, 360);
+      rebuildBody();
+      await rig.showPose(state.pose);
+    });
   });
 
+  // ---------- Taille et hauteur ----------
   const list = $('#measures');
-  list.innerHTML = MEASURES.map((m) => `
-    <div class="measure" data-key="${m.key}">
-      <div class="measure__head">
-        <label for="m-${m.key}">${m.label}</label>
-        <output id="o-${m.key}" for="m-${m.key}"></output>
-      </div>
+  list.innerHTML = `
+    <div class="measure">
+      <div class="measure__head"><span>Taille</span><output id="o-size"></output></div>
+      <div class="sizes" id="sizes" role="radiogroup" aria-label="Taille"></div>
+      <p class="sizes__legend">Tours de poitrine · taille · hanches, en cm</p>
+    </div>
+    <div class="measure" data-key="height">
+      <div class="measure__head"><label for="m-height">Hauteur</label><output id="o-height" for="m-height"></output></div>
       <div class="measure__ctrl">
-        <button type="button" class="step" data-step="-1" aria-label="Diminuer : ${m.label.toLowerCase()}">−</button>
-        <input type="range" id="m-${m.key}" min="${m.min}" max="${m.max}" step="1" aria-describedby="h-${m.key}">
-        <button type="button" class="step" data-step="1" aria-label="Augmenter : ${m.label.toLowerCase()}">+</button>
+        <button type="button" class="step" data-step="-1" aria-label="Diminuer la hauteur">−</button>
+        <input type="range" id="m-height" min="${HEIGHT.min}" max="${HEIGHT.max}" step="1" aria-describedby="h-height">
+        <button type="button" class="step" data-step="1" aria-label="Augmenter la hauteur">+</button>
       </div>
-      <p class="measure__help" id="h-${m.key}">${m.help}</p>
-    </div>`).join('');
-  const syncSliders = () => {
-    for (const m of MEASURES) {
-      $(`#m-${m.key}`).value = state.cm[m.key];
-      $(`#o-${m.key}`).textContent = `${state.cm[m.key]} cm`;
-    }
+      <p class="measure__help" id="h-height">Du sommet de la tête au sol, pieds nus.</p>
+    </div>`;
+  const sizesEl = $('#sizes');
+  const renderSizes = () => {
+    sizesEl.innerHTML = SIZES[state.preset].map((z) => `
+      <button type="button" class="size-chip" role="radio" aria-checked="${z.id === state.size}" data-size="${z.id}">
+        <strong>${z.id}</strong><small>${z.bust} · ${z.waist} · ${z.hip}</small>
+      </button>`).join('');
   };
-  // Pendant le réglage, seul le mannequin est reconstruit (fluide) ; la tenue est
-  // réajustée une fois, quand on lâche le curseur.
-  let pending = false, fullTimer = 0, gen = 0, fullGen = -1;
-  const rebuild = (delay = 300) => {
-    const g = ++gen;
+  const syncSliders = () => {
+    $('#m-height').value = state.height;
+    $('#o-height').textContent = `${state.height} cm`;
+    $('#o-size').textContent = state.size;
+  };
+  const rebuildBody = (outfit = true) => {
+    state.cm = measuresNow();
+    rig.sizeId = state.size;
+    rig.setBody(state.preset, state.cm, { outfit });
+  };
+  const setSize = (id) => {
+    state.size = id;
+    renderSizes();
+    syncSliders();
+    persist();
+    return present(`Taille ${id}`, async () => { rebuildBody(); await rig.showPose(state.pose); });
+  };
+  sizesEl.addEventListener('click', (e) => { const b = e.target.closest('.size-chip'); if (b && b.dataset.size !== state.size) setSize(b.dataset.size); });
+  // Hauteur : pendant le réglage, seul le mannequin change ; la tenue revient au relâchement.
+  let pending = false, fullTimer = 0;
+  const setHeight = (v, final = false) => {
+    state.height = Math.max(HEIGHT.min, Math.min(HEIGHT.max, Math.round(v)));
+    syncSliders();
+    persist();
     clearTimeout(fullTimer);
     if (!pending) {
       pending = true;
-      requestAnimationFrame(() => {
-        pending = false;
-        if (fullGen < gen) rig.setBody(state.preset, state.cm, { outfit: false }); // déjà à jour sinon
-      });
+      requestAnimationFrame(() => { pending = false; rebuildBody(false); rig.showPose(state.pose); });
     }
-    fullTimer = setTimeout(() => { fullGen = g; rig.setBody(state.preset, state.cm); }, delay);
+    fullTimer = setTimeout(() => present('Ajustement de la tenue', async () => { rebuildBody(); await rig.showPose(state.pose); }), final ? 0 : 400);
   };
-  const setMeasure = (key, v) => {
-    const m = MEASURES.find((x) => x.key === key);
-    state.cm[key] = Math.max(m.min, Math.min(m.max, Math.round(v)));
-    syncSliders();
-    rebuild();
-    persist();
-  };
-  list.addEventListener('input', (e) => {
-    if (e.target.type === 'range') setMeasure(e.target.closest('.measure').dataset.key, +e.target.value);
-  });
-  list.addEventListener('change', (e) => { if (e.target.type === 'range') rebuild(0); });
+  list.addEventListener('input', (e) => { if (e.target.id === 'm-height') setHeight(+e.target.value); });
   list.addEventListener('click', (e) => {
     const b = e.target.closest('.step');
-    if (b) setMeasure(b.closest('.measure').dataset.key, state.cm[b.closest('.measure').dataset.key] + +b.dataset.step);
+    if (b) setHeight(state.height + +b.dataset.step);
   });
   $('#btn-reset').addEventListener('click', () => {
-    state.cm = defaults(state.preset);
-    syncSliders();
-    rebuild();
-    persist();
-    toast('Mesures standard rétablies');
+    state.height = baseHeight(state.preset);
+    setSize(DEFAULT_SIZE[state.preset]);
+    toast('Taille et hauteur standard rétablies');
   });
 
   const tapesToggle = $('#toggle-tapes');
@@ -333,24 +357,25 @@ export function initUI({ rig, POSES, VIEWS, PRESETS, controls, goToView, orbitBy
 
   // ---------- Démarrage ----------
   refreshPreset();
+  renderSizes();
   syncSliders();
   renderOutfits();
   renderSwatches();
   rig.outfitId = state.outfit;
   setWax(state.wax);
   setMotif(state.motif);
-  rig.setBody(state.preset, state.cm);
+  rebuildBody();
   setIdle(state.idle);
-  setPose(state.pose, false);
+  const firstPose = setPose(state.pose);
   tapesToggle.setAttribute('aria-checked', String(state.tapes));
   if (state.tapes) setTimeout(() => setTapes(true), 1800);
 
   return {
     ready() {
-      setTimeout(() => {
+      firstPose.then(() => setTimeout(() => {
         document.body.classList.add('is-ready');
         if (!load(GUIDE)) setTimeout(openGuide, 1100);
-      }, 400);
+      }, 400));
     },
     onUserOrbit() { setActiveView(null); },
   };
