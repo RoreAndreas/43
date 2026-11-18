@@ -43,6 +43,9 @@ export class Rig {
     this.stool.scale.setScalar(0.001);
     this.stoolT = 0;
     stage.add(this.stool);
+    // Ombres de contact sous les pieds (le pied posé « pèse » sur le sol)
+    this.contact = ['Left', 'Right'].map(() => makeContactShadow());
+    for (const c of this.contact) stage.add(c);
     this.ruler = makeRuler();
     this.ruler.group.visible = false;
     stage.add(this.ruler.group);
@@ -446,6 +449,7 @@ export class Rig {
           this.outfit.showBakedFrame(b.pos, b.meta.frames, (f / this.clip.frames.length) * b.meta.frames);
         } else this.outfit.update(dt, { floorY: this.groundY, box: null, seated: false, spin: this.spinSpeed });
       }
+      this.updateContact();
       this.updateTapes(dt);
       return;
     }
@@ -489,7 +493,33 @@ export class Rig {
       this.body.root.updateMatrixWorld(true);
       this.outfit.update(dt, { floorY: this.groundY, box, seated: !!this.pose?.stool, spin: this.spinSpeed });
     }
+    this.body.root.updateMatrixWorld(true);
+    this.updateContact();
     this.updateTapes(dt);
+  }
+
+  /** Ombres de contact : sous chaque pied, d'autant plus nettes qu'il est près du sol. */
+  updateContact() {
+    const body = this.body, ids = body.soleIds, rest = body.restPos, v = _v2;
+    const floor = this.clip ? this.walkY : this.groundY;
+    body.body.skeleton.update();
+    const acc = { Left: [Infinity, 0, 0, 0], Right: [Infinity, 0, 0, 0] };
+    for (const id of ids) {
+      body.body.getVertexPosition(id, v);
+      v.applyMatrix4(body.body.matrixWorld);
+      const a = acc[rest[id * 3] > 0 ? 'Left' : 'Right'];
+      a[0] = Math.min(a[0], v.y); a[1] += v.x; a[2] += v.z; a[3]++;
+    }
+    ['Left', 'Right'].forEach((side, k) => {
+      const a = acc[side], m = this.contact[k];
+      if (!a[3] || this.stoolT > 0.5) { m.visible = false; return; }
+      const h = Math.max(0, a[0] - floor);
+      m.visible = true;
+      m.position.set(a[1] / a[3], floor + 0.0015, a[2] / a[3]);
+      m.rotation.y = body.root.rotation.y;
+      m.scale.setScalar(body.scale * (1 + h * 4));
+      m.material.opacity = 0.65 * Math.max(0, 1 - h / 0.07);
+    });
   }
 
   updateTapes(dt) {
@@ -542,6 +572,22 @@ export class Rig {
   }
 
   setTapesVisible(v) { this.showTapes = v; }
+}
+
+/** Ombre de contact : tache douce elliptique posée au sol. */
+function makeContactShadow() {
+  const c = document.createElement('canvas');
+  c.width = c.height = 64;
+  const x = c.getContext('2d');
+  const g = x.createRadialGradient(32, 32, 0, 32, 32, 32);
+  g.addColorStop(0, 'rgba(0,0,0,1)'); g.addColorStop(0.45, 'rgba(0,0,0,0.55)'); g.addColorStop(1, 'rgba(0,0,0,0)');
+  x.fillStyle = g; x.fillRect(0, 0, 64, 64);
+  const geo = new THREE.PlaneGeometry(0.11, 0.26);
+  geo.rotateX(-Math.PI / 2);
+  const m = new THREE.Mesh(geo, new THREE.MeshBasicMaterial({ map: new THREE.CanvasTexture(c), transparent: true, depthWrite: false, opacity: 0.5 }));
+  m.renderOrder = 1;
+  m.visible = false;
+  return m;
 }
 
 /** IK à deux segments : épaule-coude-poignet, coude orienté vers `pole`. */

@@ -176,6 +176,7 @@ renderer.setAnimationLoop(() => {
     camera.position.x += dx; camera.position.z += dz;
     controls.target.x += dx; controls.target.z += dz;
     follow.set(rp.x, 0, rp.z);
+    decor.follow(rp.x, rp.z);
   }
   decor.plate.visible = !rig.clip;
   rig.faceRuler(camera);
@@ -190,4 +191,4 @@ camera.position.set(-1.6, 1.6, 7);
 goToView('face', 1.8);
 
 // Accès pour les tests et la console.
-window.__essayage = { rig, camera, controls, goToView, scene, renderer, skipIntro: () => { if (intro) intro.t = 0.999; } };
+window.__essayage = { rig, decor, camera, controls, goToView, scene, renderer, skipIntro: () => { if (intro) intro.t = 0.999; } };

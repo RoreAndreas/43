@@ -100,7 +100,14 @@ export function buildDecor(scene, renderer, { lite = false } = {}) {
   group.add(plant(-2.05, -1.95, 0.8, 7));
   group.add(plant(2.25, -1.7, 0.85, 19));
 
-  return { plate, update() {} };
+  scene.add(key.target);
+  const keyOffset = key.position.clone();
+  return {
+    plate,
+    /** L'ombre portée suit le mannequin quand il se déplace (défilé). */
+    follow(x, z) { key.position.set(keyOffset.x + x, keyOffset.y, keyOffset.z + z); key.target.position.set(x, 0, z); },
+    update() {},
+  };
 }
 
 // ---------- Textures et géométries ----------
