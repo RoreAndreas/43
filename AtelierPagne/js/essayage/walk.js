@@ -14,25 +14,37 @@ import * as THREE from 'three';
 const TAU = Math.PI * 2;
 const ss = THREE.MathUtils.smoothstep;
 
-// Courbe périodique définie par des clés (phase 0..1 → valeur), interpolation douce.
+// Courbe périodique définie par des clés (phase 0..1 → valeur), interpolation
+// Catmull-Rom (mouvement continu, sans arrêt sur les poses clés).
 function curve(keys) {
+  const n = keys.length;
   return (p) => {
     p -= Math.floor(p);
-    for (let i = 0; i < keys.length; i++) {
-      const [p0, v0] = keys[i], [p1r, v1] = keys[(i + 1) % keys.length];
-      const p1 = i + 1 < keys.length ? p1r : p1r + 1;
-      const q = p < p0 ? p + 1 : p;
-      if (q >= p0 && q <= p1) { const u = (q - p0) / (p1 - p0); return v0 + (v1 - v0) * (u * u * (3 - 2 * u)); }
-    }
-    return keys[0][1];
+    let i = n - 1;
+    for (let k = 0; k < n; k++) if (keys[k][0] <= p) i = k;
+    const at = (k) => keys[((k % n) + n) % n];
+    const [p1, v1] = at(i), [p2r, v2] = at(i + 1);
+    const p2 = p2r <= p1 ? p2r + 1 : p2r;
+    const q = p < p1 ? p + 1 : p;
+    const t = (q - p1) / (p2 - p1);
+    const v0 = at(i - 1)[1], v3 = at(i + 2)[1];
+    return 0.5 * (2 * v1 + (-v0 + v2) * t + (2 * v0 - 5 * v1 + 4 * v2 - v3) * t * t + (-v0 + 3 * v1 - 3 * v2 + v3) * t * t * t);
   };
 }
 
-// Jambe, phase 0 = contact du talon ; appui 0 → 0,6 ; jambe libre 0,6 → 1.
-const THIGH = curve([[0, -0.42], [0.12, -0.32], [0.3, -0.05], [0.58, 0.32], [0.72, 0.12], [0.88, -0.38]]);
-const KNEE = curve([[0, 0.04], [0.12, 0.26], [0.3, 0.08], [0.5, 0.12], [0.62, 0.55], [0.74, 1.05], [0.9, 0.3]]);
-// inclinaison du pied dans le monde (> 0 : pointe vers le bas)
-const FOOT = curve([[0, -0.28], [0.1, 0], [0.42, 0], [0.6, 0.6], [0.72, 0.35], [0.9, -0.05]]);
+// Poses clés de la vidéo « Walk Cycle » (P2Design) : contact (image 1), amorti (4),
+// passage (7), élévation/poussée (10), puis les mêmes en miroir (13, 16, 19, 22) ;
+// cycle de 24 images = 1 s. Phase de la jambe : 0 = contact devant (talon),
+// 0,5 = contact derrière (sur la pointe).
+const K = (vals) => vals.map((v, i) => [i / 8, v]);
+//                 contact amorti passage élévation | contact amorti passage élévation (jambe arrière puis libre)
+const THIGH = curve(K([-0.48, -0.3, -0.05, 0.2, 0.38, 0.45, -0.15, -0.45]));
+const KNEE = curve(K([0.05, 0.3, 0.1, 0.02, 0.25, 0.7, 1.05, 0.35]));
+// inclinaison du pied dans le monde (> 0 : pointe vers le bas) : talon, à plat, talon qui se lève, sur la pointe
+const FOOT = curve(K([-0.35, 0, 0, 0.2, 0.6, 1.0, 0.35, -0.1]));
+// bras : écartés au contact, alignés au passage, plus loin à l'élévation (phase de la jambe opposée)
+const ARM = curve(K([0.42, 0.3, 0.02, -0.25, -0.42, -0.3, -0.02, 0.25]));
+const ELBOW = curve(K([0.12, 0.14, 0.25, 0.4, 0.55, 0.45, 0.3, 0.18]));
 
 const STYLES = {
   // allure masculine : grand pas, bras amples, bassin stable
@@ -44,7 +56,7 @@ const STYLES = {
 /** Animation de marche (format de rig.clipFrames : rotations locales et bassin, 30 i/s). */
 export function proceduralWalk(body, style = body.sex) {
   const S = STYLES[style] || STYLES.homme;
-  const N = 36, fps = 30;
+  const N = 30, fps = 30; // cycle d'1 s, comme la vidéo (24 images à 24 i/s)
   const q = (x, y, z) => new THREE.Quaternion().setFromEuler(new THREE.Euler(x, y, z));
   const frames = [];
   for (let i = 0; i < N; i++) {
@@ -57,10 +69,9 @@ export function proceduralWalk(body, style = body.sex) {
       rot[`${side}UpLeg`] = [th, 0, -sx * S.cross * swing];
       rot[`${side}Leg`] = [kn, 0, 0];
       rot[`${side}Foot`] = [FOOT(ph) - (th + kn), 0, 0];
-      // bras opposé à la jambe, avec retard (overlap)
-      const a = Math.cos(TAU * (ph - 0.06));
-      rot[`${side}Arm`] = [S.arm * a, 0, sx * S.armOut];
-      rot[`${side}ForeArm`] = [-(S.fore * 0.5 + S.fore * Math.max(0, -Math.cos(TAU * (ph - 0.14)))), 0, 0];
+      // bras opposé à la jambe : en arrière quand la jambe du même côté est devant
+      rot[`${side}Arm`] = [S.arm / 0.42 * ARM(ph - 0.04), 0, sx * S.armOut];
+      rot[`${side}ForeArm`] = [-S.fore / 0.3 * ELBOW(ph - 0.06), 0, 0];
       rot[`${side}Hand`] = [0, 0, -sx * 0.06];
     }
     const c = Math.cos(TAU * p), s = Math.sin(TAU * p);
@@ -77,5 +88,5 @@ export function proceduralWalk(body, style = body.sex) {
     // bassin : balancement latéral vers la jambe d'appui (la hauteur est donnée par les pieds)
     frames.push({ L, h: new THREE.Vector3(S.sway * s, 0, 0) });
   }
-  return { fps, frames, speed: 1.1 };
+  return { fps, frames, speed: 1.2 };
 }
