@@ -8,6 +8,7 @@ import { buildMannequin, createSiliconeMaterial, PRESETS } from './mannequin.js'
 import { POSES, expandPose } from './poses.js';
 import { OUTFITS, buildOutfit, fabricUniforms } from './garments.js';
 import { hasBake, loadBake } from './dress.js';
+import { proceduralWalk } from './walk.js';
 
 const ease = (t) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2);
 const _v1 = new THREE.Vector3(), _v2 = new THREE.Vector3(), _v3 = new THREE.Vector3();
@@ -274,13 +275,18 @@ export class Rig {
   // ---------- Animation du modèle (défilé) ----------
   /** Rotations locales des os, image par image, pour le corps courant (mises en cache). */
   clipFrames(name) {
-    const body = this.body, raw = body?.clips?.[name];
-    if (!raw) return null;
+    const body = this.body;
+    if (!body) return null;
     body.clipCache ||= {};
     if (body.clipCache[name]) return body.clipCache[name];
+    // animation du fichier du modèle (femme) ; sinon marche procédurale (homme)
+    let raw = body.clips?.[name];
+    const proc = !raw && name === 'defile' ? proceduralWalk(body) : null;
+    if (!raw && !proc) return null;
+    if (proc) raw = proc;
     const order = Object.keys(body.bones); // parents d'abord
     const parent = Object.fromEntries(order.map((n) => [n, body.bones[n].parent?.isBone ? body.bones[n].parent.name : null]));
-    const frames = raw.frames.map((fr) => {
+    const frames = proc ? proc.frames : raw.frames.map((fr) => {
       const W = {}, L = {};
       for (const n of order) {
         W[n] = new THREE.Quaternion().fromArray(fr.q[n]).multiply(body.bindQ[n]);
@@ -321,7 +327,12 @@ export class Rig {
         for (let b = leg; b?.isBone; b = b.parent) chain.unshift(b.name);
         const Wleg = chain.reduce((q, n) => q.multiply(fr.L[n]), new THREE.Quaternion());
         const Wfoot = Wleg.clone().multiply(fr.L[foot]);
-        const target = Wfoot.clone().slerp(yawOnly(Wfoot), w);
+        // déroulé du pied : attaque du talon (pointe relevée) quand le pied
+        // arrive devant le corps, puis pied à plat sous le corps
+        const ahead = soles[i][side][1] - (body.lm.joints.Hips.z + fr.h.z);
+        const heel = THREE.MathUtils.smoothstep(ahead, 0.05, 0.16) * 0.2;
+        const flat = yawOnly(Wfoot).multiply(_q.setFromAxisAngle(_v2.set(1, 0, 0), -heel));
+        const target = Wfoot.clone().slerp(flat, w);
         fr.L[foot] = Wleg.invert().multiply(target);
       }
     });
