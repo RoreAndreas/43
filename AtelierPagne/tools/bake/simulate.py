@@ -130,7 +130,7 @@ def simulate(src, out_dir):
     body.modifiers.new('collision', 'COLLISION')
     body.collision.thickness_outer = 0.002  # zone de contact plus fine que l'aisance de la robe (8 mm)
     body.collision.thickness_inner = 0.02
-    body.collision.cloth_friction = 6
+    body.collision.cloth_friction = 6 if not clip else 1.5  # en marche, le tissu glisse sur les jambes (sinon il remonte)
 
     # Sol.
     bpy.ops.mesh.primitive_plane_add(size=8 if not clip else 40, location=(0, 0 if not clip else -15, d['floorY']))

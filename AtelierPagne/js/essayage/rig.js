@@ -355,7 +355,7 @@ export class Rig {
       }
     });
     soles = measure();
-    // Le pied libre ne frôle pas le sol : là où il passe à moins de 2,5 cm, on plie
+    // Le pied libre ne frôle pas le sol : là où il passe à moins de 1,2 cm, on plie
     // un peu plus le genou (et la hanche), en douceur d'une image à l'autre.
     const one = (i) => measure.frame(i);
     const extra = { Left: new Float32Array(N), Right: new Float32Array(N) };
@@ -368,10 +368,11 @@ export class Rig {
         if (wSup(i, side) > 0.2) continue;
         const other = side === 'Left' ? 'Right' : 'Left';
         let k = 0;
-        for (let it = 0; it < 10; it++) {
+        // (dégagement modéré : un genou trop plié traverserait une jupe étroite)
+        for (let it = 0; it < 6; it++) {
           const m = one(i);
-          if (m[side][0] - m[other][0] >= 0.025) break;
-          bend(frames[i], side, 0.05); k += 0.05;
+          if (m[side][0] - m[other][0] >= 0.012) break;
+          bend(frames[i], side, 0.04); k += 0.04;
         }
         if (k) bend(frames[i], side, -k); // on remet, puis on applique la version lissée
         extra[side][i] = k;
