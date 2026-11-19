@@ -92,7 +92,10 @@ export function proceduralWalk(body, style = 'unisexe') {
     for (const n of Object.keys(body.bones)) {
       const r = rot[n];
       L[n] = body.rest[n].clone();
-      if (r) L[n].multiply(q(r[0], r[1], r[2]));
+      // avant-bras et main : flexion dans le plan de la marche, avant la torsion de
+      // repos de l'avant-bras (sinon, chez l'homme, le coude plie vers l'intérieur)
+      if (r && /ForeArm|Hand/.test(n)) L[n] = q(r[0], r[1], r[2]).multiply(L[n]);
+      else if (r) L[n].multiply(q(r[0], r[1], r[2]));
     }
     // bassin : balancement latéral vers la jambe d'appui (la hauteur est donnée par les pieds)
     frames.push({ L, h: new THREE.Vector3(S.sway * 1.4 * Math.sin(TAU * (p - 0.05)), 0, 0) });

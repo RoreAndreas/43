@@ -41,7 +41,7 @@ export function accentMaterial() {
 
 export function createSiliconeMaterial() {
   return new THREE.MeshPhysicalMaterial({
-    color: 0xeeedeb, roughness: 0.34, metalness: 0, clearcoat: 0.55, clearcoatRoughness: 0.22,
+    color: 0xc4c5c8, roughness: 0.5, metalness: 0, sheen: 0.3, sheenRoughness: 0.6, sheenColor: new THREE.Color(0xffffff), clearcoat: 0.12, clearcoatRoughness: 0.4,
   });
 }
 

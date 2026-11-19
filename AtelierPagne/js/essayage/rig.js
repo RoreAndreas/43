@@ -301,12 +301,14 @@ export class Rig {
     // d'appui (pas de glissement). Repère du mannequin, avant mise à l'échelle.
     const saved = this.clip, v = new THREE.Vector3(), ids = body.soleIds, rest = body.restPos;
     this.clip = clip;
-    const soles = frames.map((_, i) => {
+    const N = frames.length;
+    // par pied : point le plus bas, et position moyenne de la semelle (pour l'avancée :
+    // le point le plus bas saute du talon à la pointe, pas la semelle)
+    const measure = () => frames.map((_, i) => measure.frame(i));
+    measure.frame = (i) => {
       this.applyClip(i / clip.fps);
       body.root.updateMatrixWorld(true);
       body.body.skeleton.update();
-      // par pied : point le plus bas, et position moyenne de la semelle (pour l'avancée :
-      // le point le plus bas saute du talon à la pointe, pas la semelle)
       const out = { Left: [Infinity, 0, 0], Right: [Infinity, 0, 0] };
       for (const id of ids) {
         body.body.getVertexPosition(id, v);
@@ -315,15 +317,27 @@ export class Rig {
       }
       for (const o of Object.values(out)) o[1] /= o[2] || 1;
       return out;
-    });
-    // Plante des pieds : un pied près du sol se pose à plat (talon compris) ;
-    // il ne garde l'appui sur la pointe qu'en l'air.
+    };
+    let soles = measure();
+    // Pied d'appui : celui qui recule par rapport au corps (il est posé au sol et le
+    // corps avance au-dessus). Le plus bas ne suffit pas : dans une marche de défilé,
+    // le pied libre passe parfois plus bas que le pied d'appui.
+    const dz = (i, side) => soles[(i + 1) % N][side][1] - soles[(i + N - 1) % N][side][1];
+    const support = soles.map((_, i) => (dz(i, 'Left') < dz(i, 'Right') ? 'Left' : 'Right'));
+    // poids d'appui lissé (passage d'un pied à l'autre en douceur, sur 2 images)
+    const wSup = (i, side) => {
+      let acc = 0;
+      for (let k = -2; k <= 2; k++) acc += support[(i + k + N) % N] === side ? 1 : 0;
+      return acc / 5;
+    };
+    // Plante des pieds : le pied d'appui se pose à plat (talon compris) ; un pied
+    // libre près du sol s'aplatit aussi (il se pose ou décolle).
     const yawOnly = (q) => { const f = _v3.set(0, 0, 1).applyQuaternion(q); return new THREE.Quaternion().setFromAxisAngle(_v2.set(0, 1, 0), Math.atan2(f.x, f.z)); };
     frames.forEach((fr, i) => {
       const low = Math.min(soles[i].Left[0], soles[i].Right[0]);
       for (const side of ['Left', 'Right']) {
         const h = soles[i][side][0] - low;
-        const w = 1 - THREE.MathUtils.smoothstep(h, 0.015, 0.07);
+        const w = Math.max(wSup(i, side), 1 - THREE.MathUtils.smoothstep(h, 0.015, 0.07));
         if (w <= 0) continue;
         const leg = body.bones[`${side}Leg`], foot = `${side}Foot`;
         // orientation monde (repère du mannequin) de la jambe, puis du pied
@@ -340,29 +354,46 @@ export class Rig {
         fr.L[foot] = Wleg.invert().multiply(target);
       }
     });
-    const soles2 = frames.map((_, i) => {
-      this.applyClip(i / clip.fps);
-      body.root.updateMatrixWorld(true);
-      body.body.skeleton.update();
-      // par pied : point le plus bas, et position moyenne de la semelle (pour l'avancée :
-      // le point le plus bas saute du talon à la pointe, pas la semelle)
-      const out = { Left: [Infinity, 0, 0], Right: [Infinity, 0, 0] };
-      for (const id of ids) {
-        body.body.getVertexPosition(id, v);
-        const o = out[rest[id * 3] > 0 ? 'Left' : 'Right'];
-        o[0] = Math.min(o[0], v.y); o[1] += v.z; o[2]++;
+    soles = measure();
+    // Le pied libre ne frôle pas le sol : là où il passe à moins de 2,5 cm, on plie
+    // un peu plus le genou (et la hanche), en douceur d'une image à l'autre.
+    const one = (i) => measure.frame(i);
+    const extra = { Left: new Float32Array(N), Right: new Float32Array(N) };
+    const bend = (fr, side, k) => {
+      fr.L[`${side}Leg`].multiply(_q.setFromAxisAngle(_v2.set(1, 0, 0), k));
+      fr.L[`${side}UpLeg`].multiply(_q.setFromAxisAngle(_v2.set(1, 0, 0), -k * 0.5));
+    };
+    for (let i = 0; i < N; i++) {
+      for (const side of ['Left', 'Right']) {
+        if (wSup(i, side) > 0.2) continue;
+        const other = side === 'Left' ? 'Right' : 'Left';
+        let k = 0;
+        for (let it = 0; it < 10; it++) {
+          const m = one(i);
+          if (m[side][0] - m[other][0] >= 0.025) break;
+          bend(frames[i], side, 0.05); k += 0.05;
+        }
+        if (k) bend(frames[i], side, -k); // on remet, puis on applique la version lissée
+        extra[side][i] = k;
       }
-      for (const o of Object.values(out)) o[1] /= o[2] || 1;
-      return out;
-    });
-    soles.splice(0, soles.length, ...soles2);
-    const N = frames.length;
+    }
+    for (const side of ['Left', 'Right']) {
+      const e = extra[side], sm = new Float32Array(N);
+      for (let i = 0; i < N; i++) { let m = 0; for (let k = -2; k <= 2; k++) m = Math.max(m, e[(i + k + N) % N] * (1 - Math.abs(k) * 0.25)); sm[i] = m; }
+      for (let i = 0; i < N; i++) if (sm[i] > 0) bend(frames[i], side, sm[i]);
+    }
+    soles = measure();
     for (let i = 0; i < N; i++) {
       const a = soles[i], b = soles[(i + 1) % N];
-      // pied d'appui : le plus bas sur l'intervalle (pas seulement à l'image i)
-      const side = a.Left[0] + b.Left[0] < a.Right[0] + b.Right[0] ? 'Left' : 'Right';
-      clip.low.push(Math.min(a.Left[0], a.Right[0]));
-      const step = Math.max(0, a[side][1] - b[side][1]); // le pied d'appui recule : le corps avance
+      const wl = wSup(i, 'Left'), wr = 1 - wl;
+      // hauteur : le pied d'appui touche le sol ; le pied libre ne s'enfonce jamais
+      // de plus d'1 cm (il frôle le sol)
+      // (au changement d'appui, les deux pieds sont au sol : le plus bas des deux)
+      const sup = Math.min(wl > 0 ? a.Left[0] : Infinity, wr > 0 ? a.Right[0] : Infinity);
+      const swing = wl >= 0.5 ? a.Right[0] : a.Left[0];
+      clip.low.push(Math.min(sup, swing + 0.01));
+      // avancée : ce que recule le pied d'appui (semelle entière)
+      const step = Math.max(0, wl * (a.Left[1] - b.Left[1]) + wr * (a.Right[1] - b.Right[1]));
       clip.total += step;
       if (i < N - 1) clip.adv.push(clip.total);
     }

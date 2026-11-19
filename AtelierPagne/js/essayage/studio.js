@@ -33,7 +33,7 @@ function floorTexture() {
 export function buildDecor(scene, renderer, { lite = false } = {}) {
   const BG = '#2c2c2f';
   scene.background = gradientTexture('#17171a', BG);
-  scene.fog = null;
+  scene.fog = new THREE.Fog(BG, 9, 20); // au loin, le sol prend la couleur du fond : pas de ligne d'horizon
   const group = new THREE.Group();
   scene.add(group);
 
@@ -59,7 +59,7 @@ export function buildDecor(scene, renderer, { lite = false } = {}) {
   scene.add(fill, fill.target);
 
   // sol : gris moyen, éclairci sous le mannequin, fondu dans le fond
-  const base = new THREE.Mesh(new THREE.PlaneGeometry(80, 80), new THREE.MeshStandardMaterial({ color: 0x2c2c2f, roughness: 0.95 }));
+  const base = new THREE.Mesh(new THREE.PlaneGeometry(80, 80), new THREE.MeshStandardMaterial({ color: 0x3a3a3d, roughness: 0.95 }));
   base.rotation.x = -Math.PI / 2;
   base.position.y = -0.002;
   base.receiveShadow = true;
