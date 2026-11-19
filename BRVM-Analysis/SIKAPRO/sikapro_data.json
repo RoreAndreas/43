@@ -1,6 +1,6 @@
 {
-    "last_update": "2026-11-19 17:01:25",
-    "count": 4,
+    "last_update": "2026-11-19 23:31:53",
+    "count": 8,
     "data": [
         {
             "ticker": "PRSC",
@@ -79,8 +79,8 @@
             }
         },
         {
-            "ticker": "BOAS",
-            "nom_societe": "BOAS",
+            "ticker": "BOAB",
+            "nom_societe": "BOAB",
             "presentation": null,
             "cours_bas_1mois": null,
             "cours_bas_1mois_str": null,
@@ -88,7 +88,7 @@
             "cours_haut_1mois_str": null,
             "haut_52sem": null,
             "bas_52sem": null,
-            "url": "https://pro.sikafinance.com/fiche/BOAS.sn",
+            "url": "https://pro.sikafinance.com/fiche/BOAB.bj",
             "nombre_titres": null,
             "capitalisation_mxof": null,
             "beta_1an": null,
@@ -102,10 +102,10 @@
             "consensus_reco": null,
             "objectif_cours": null,
             "potentiel_pct": null,
-            "resultat_net_annuel": 21905.0,
-            "capitaux_propres": 96526.0,
+            "resultat_net_annuel": 20107.0,
+            "capitaux_propres": 117507.0,
             "dette_nette_annuelle": null,
-            "chiffre_affaires_annuel": 51926.0,
+            "chiffre_affaires_annuel": 51274.0,
             "finances": {
                 "annees": [
                     2023,
@@ -113,14 +113,14 @@
                     2025
                 ],
                 "chiffre_affaires": {
-                    "2023": 45426.0,
-                    "2024": 49666.0,
-                    "2025": 51926.0
+                    "2023": 47832.0,
+                    "2024": 46527.0,
+                    "2025": 51274.0
                 },
                 "ebit": {
-                    "2023": 17904.0,
-                    "2024": 22673.0,
-                    "2025": 24723.0
+                    "2023": 23013.0,
+                    "2024": 21455.0,
+                    "2025": 21190.0
                 },
                 "ebitda": {
                     "2023": null,
@@ -128,19 +128,19 @@
                     "2025": null
                 },
                 "charges_exploitation": {
-                    "2023": 23452.0,
-                    "2024": 19688.0,
-                    "2025": 29069.0
+                    "2023": 22910.0,
+                    "2024": 22370.0,
+                    "2025": 22704.0
                 },
                 "resultat_net": {
-                    "2023": 17022.0,
-                    "2024": 19984.0,
-                    "2025": 21905.0
+                    "2023": 21529.0,
+                    "2024": 19647.0,
+                    "2025": 20107.0
                 },
                 "capitaux_propres": {
-                    "2023": 76637.0,
-                    "2024": 88621.0,
-                    "2025": 96526.0
+                    "2023": 112818.0,
+                    "2024": 117396.0,
+                    "2025": 117507.0
                 },
                 "dette_nette": {
                     "2023": null,
@@ -148,15 +148,15 @@
                     "2025": null
                 },
                 "tresorerie": {
-                    "2023": 39652.0,
-                    "2024": 50780.0,
-                    "2025": 43781.0
+                    "2023": 21049.0,
+                    "2024": 60217.0,
+                    "2025": null
                 }
             }
         },
         {
-            "ticker": "CBIBF",
-            "nom_societe": "CBIBF",
+            "ticker": "BOAC",
+            "nom_societe": "BOAC",
             "presentation": null,
             "cours_bas_1mois": null,
             "cours_bas_1mois_str": null,
@@ -164,7 +164,7 @@
             "cours_haut_1mois_str": null,
             "haut_52sem": null,
             "bas_52sem": null,
-            "url": "https://pro.sikafinance.com/fiche/CBIBF.bf",
+            "url": "https://pro.sikafinance.com/fiche/BOAC.ci",
             "nombre_titres": null,
             "capitalisation_mxof": null,
             "beta_1an": null,
@@ -178,10 +178,10 @@
             "consensus_reco": null,
             "objectif_cours": null,
             "potentiel_pct": null,
-            "resultat_net_annuel": 65495.0,
-            "capitaux_propres": 330548.0,
+            "resultat_net_annuel": 35540.0,
+            "capitaux_propres": 125340.0,
             "dette_nette_annuelle": null,
-            "chiffre_affaires_annuel": 138986.0,
+            "chiffre_affaires_annuel": 73545.0,
             "finances": {
                 "annees": [
                     2023,
@@ -189,34 +189,34 @@
                     2025
                 ],
                 "chiffre_affaires": {
-                    "2023": 129203.0,
-                    "2024": 130987.0,
-                    "2025": 138986.0
+                    "2023": 60811.0,
+                    "2024": 72724.0,
+                    "2025": 73545.0
                 },
                 "ebit": {
-                    "2023": 69257.0,
-                    "2024": 47755.0,
-                    "2025": 71959.0
+                    "2023": 31018.0,
+                    "2024": 39222.0,
+                    "2025": 41655.0
                 },
                 "ebitda": {
                     "2023": null,
-                    "2024": 88269.0,
-                    "2025": 88412.0
+                    "2024": null,
+                    "2025": null
                 },
                 "charges_exploitation": {
-                    "2023": 36366.0,
-                    "2024": 42761.0,
-                    "2025": 50574.0
+                    "2023": 23147.0,
+                    "2024": 25105.0,
+                    "2025": 25499.0
                 },
                 "resultat_net": {
-                    "2023": 64247.0,
-                    "2024": 47937.0,
-                    "2025": 65495.0
+                    "2023": 26075.0,
+                    "2024": 32044.0,
+                    "2025": 35540.0
                 },
                 "capitaux_propres": {
-                    "2023": 271865.0,
-                    "2024": 287734.0,
-                    "2025": 330548.0
+                    "2023": 95801.0,
+                    "2024": 112644.0,
+                    "2025": 125340.0
                 },
                 "dette_nette": {
                     "2023": null,
@@ -224,15 +224,15 @@
                     "2025": null
                 },
                 "tresorerie": {
-                    "2023": 57740.0,
-                    "2024": 159613.0,
-                    "2025": 151535.0
+                    "2023": 96833.0,
+                    "2024": 181214.0,
+                    "2025": 257451.0
                 }
             }
         },
         {
-            "ticker": "SIBC",
-            "nom_societe": "SIBC",
+            "ticker": "BOAM",
+            "nom_societe": "BOAM",
             "presentation": null,
             "cours_bas_1mois": null,
             "cours_bas_1mois_str": null,
@@ -240,7 +240,7 @@
             "cours_haut_1mois_str": null,
             "haut_52sem": null,
             "bas_52sem": null,
-            "url": "https://pro.sikafinance.com/fiche/SIBC.ci",
+            "url": "https://pro.sikafinance.com/fiche/BOAM.ml",
             "nombre_titres": null,
             "capitalisation_mxof": null,
             "beta_1an": null,
@@ -254,10 +254,10 @@
             "consensus_reco": null,
             "objectif_cours": null,
             "potentiel_pct": null,
-            "resultat_net_annuel": 55623.0,
-            "capitaux_propres": 204765.0,
+            "resultat_net_annuel": 11081.0,
+            "capitaux_propres": 49820.0,
             "dette_nette_annuelle": null,
-            "chiffre_affaires_annuel": 108663.0,
+            "chiffre_affaires_annuel": 37997.0,
             "finances": {
                 "annees": [
                     2023,
@@ -265,14 +265,14 @@
                     2025
                 ],
                 "chiffre_affaires": {
-                    "2023": 95571.0,
-                    "2024": 102763.0,
-                    "2025": 108663.0
+                    "2023": 35519.0,
+                    "2024": 36157.0,
+                    "2025": 37997.0
                 },
                 "ebit": {
-                    "2023": 48879.0,
-                    "2024": 57440.0,
-                    "2025": 63095.0
+                    "2023": 6298.0,
+                    "2024": 8559.0,
+                    "2025": 9414.0
                 },
                 "ebitda": {
                     "2023": null,
@@ -280,19 +280,19 @@
                     "2025": null
                 },
                 "charges_exploitation": {
-                    "2023": 34900.0,
-                    "2024": 36892.0,
-                    "2025": 38800.0
+                    "2023": 20841.0,
+                    "2024": 19137.0,
+                    "2025": 19678.0
                 },
                 "resultat_net": {
-                    "2023": 43513.0,
-                    "2024": 50234.0,
-                    "2025": 55623.0
+                    "2023": 5778.0,
+                    "2024": 9123.0,
+                    "2025": 11081.0
                 },
                 "capitaux_propres": {
-                    "2023": 164402.0,
-                    "2024": 187136.0,
-                    "2025": 204765.0
+                    "2023": 40197.0,
+                    "2024": 46195.0,
+                    "2025": 49820.0
                 },
                 "dette_nette": {
                     "2023": null,
@@ -300,9 +300,313 @@
                     "2025": null
                 },
                 "tresorerie": {
-                    "2023": 114910.0,
-                    "2024": 94152.0,
-                    "2025": 98820.0
+                    "2023": 38454.0,
+                    "2024": 31757.0,
+                    "2025": 87939.0
+                }
+            }
+        },
+        {
+            "ticker": "BOABF",
+            "nom_societe": "BOABF",
+            "presentation": null,
+            "cours_bas_1mois": null,
+            "cours_bas_1mois_str": null,
+            "cours_haut_1mois": null,
+            "cours_haut_1mois_str": null,
+            "haut_52sem": null,
+            "bas_52sem": null,
+            "url": "https://pro.sikafinance.com/fiche/BOABF.bf",
+            "nombre_titres": null,
+            "capitalisation_mxof": null,
+            "beta_1an": null,
+            "rsi_14": null,
+            "mm_20": null,
+            "mm_50": null,
+            "mm_200": null,
+            "perf_ytd_pct": null,
+            "perf_1an_pct": null,
+            "consensus_note": null,
+            "consensus_reco": null,
+            "objectif_cours": null,
+            "potentiel_pct": null,
+            "resultat_net_annuel": 19252.0,
+            "capitaux_propres": 126516.0,
+            "dette_nette_annuelle": null,
+            "chiffre_affaires_annuel": 57820.0,
+            "finances": {
+                "annees": [
+                    2023,
+                    2024,
+                    2025
+                ],
+                "chiffre_affaires": {
+                    "2023": 60576.0,
+                    "2024": 57490.0,
+                    "2025": 57820.0
+                },
+                "ebit": {
+                    "2023": 34234.0,
+                    "2024": 25697.0,
+                    "2025": 22182.0
+                },
+                "ebitda": {
+                    "2023": null,
+                    "2024": null,
+                    "2025": null
+                },
+                "charges_exploitation": {
+                    "2023": 24302.0,
+                    "2024": 25686.0,
+                    "2025": 25418.0
+                },
+                "resultat_net": {
+                    "2023": 29063.0,
+                    "2024": 22419.0,
+                    "2025": 19252.0
+                },
+                "capitaux_propres": {
+                    "2023": 125145.0,
+                    "2024": 129272.0,
+                    "2025": 126516.0
+                },
+                "dette_nette": {
+                    "2023": null,
+                    "2024": null,
+                    "2025": null
+                },
+                "tresorerie": {
+                    "2023": 78849.0,
+                    "2024": 81730.0,
+                    "2025": 136292.0
+                }
+            }
+        },
+        {
+            "ticker": "CABC",
+            "nom_societe": "CABC",
+            "presentation": null,
+            "cours_bas_1mois": null,
+            "cours_bas_1mois_str": null,
+            "cours_haut_1mois": null,
+            "cours_haut_1mois_str": null,
+            "haut_52sem": null,
+            "bas_52sem": null,
+            "url": "https://pro.sikafinance.com/fiche/CABC.ci",
+            "nombre_titres": null,
+            "capitalisation_mxof": null,
+            "beta_1an": null,
+            "rsi_14": null,
+            "mm_20": null,
+            "mm_50": null,
+            "mm_200": null,
+            "perf_ytd_pct": null,
+            "perf_1an_pct": null,
+            "consensus_note": null,
+            "consensus_reco": null,
+            "objectif_cours": null,
+            "potentiel_pct": null,
+            "resultat_net_annuel": 1704.0,
+            "capitaux_propres": 8986.0,
+            "dette_nette_annuelle": -1312.0,
+            "chiffre_affaires_annuel": 21263.0,
+            "finances": {
+                "annees": [
+                    2023,
+                    2024,
+                    2025
+                ],
+                "chiffre_affaires": {
+                    "2023": 17753.0,
+                    "2024": 19125.0,
+                    "2025": 21263.0
+                },
+                "ebit": {
+                    "2023": 1749.0,
+                    "2024": 1785.0,
+                    "2025": 2264.0
+                },
+                "ebitda": {
+                    "2023": 5638.0,
+                    "2024": 1965.0,
+                    "2025": 2174.0
+                },
+                "charges_exploitation": {
+                    "2023": 15934.0,
+                    "2024": 17160.0,
+                    "2025": 18999.0
+                },
+                "resultat_net": {
+                    "2023": 1430.0,
+                    "2024": 1225.0,
+                    "2025": 1704.0
+                },
+                "capitaux_propres": {
+                    "2023": 7338.0,
+                    "2024": 8039.0,
+                    "2025": 8986.0
+                },
+                "dette_nette": {
+                    "2023": 1730.0,
+                    "2024": -3078.0,
+                    "2025": -1312.0
+                },
+                "tresorerie": {
+                    "2023": 6491.0,
+                    "2024": 6865.0,
+                    "2025": 5139.0
+                }
+            }
+        },
+        {
+            "ticker": "ONTBF",
+            "nom_societe": "ONTBF",
+            "presentation": null,
+            "cours_bas_1mois": null,
+            "cours_bas_1mois_str": null,
+            "cours_haut_1mois": null,
+            "cours_haut_1mois_str": null,
+            "haut_52sem": null,
+            "bas_52sem": null,
+            "url": "https://pro.sikafinance.com/fiche/ONTBF.bf",
+            "nombre_titres": null,
+            "capitalisation_mxof": null,
+            "beta_1an": null,
+            "rsi_14": null,
+            "mm_20": null,
+            "mm_50": null,
+            "mm_200": null,
+            "perf_ytd_pct": null,
+            "perf_1an_pct": null,
+            "consensus_note": null,
+            "consensus_reco": null,
+            "objectif_cours": null,
+            "potentiel_pct": null,
+            "resultat_net_annuel": 15887.0,
+            "capitaux_propres": 57542.0,
+            "dette_nette_annuelle": 47147.0,
+            "chiffre_affaires_annuel": 146177.0,
+            "finances": {
+                "annees": [
+                    2023,
+                    2024,
+                    2025
+                ],
+                "chiffre_affaires": {
+                    "2023": 139154.0,
+                    "2024": 141841.0,
+                    "2025": 146177.0
+                },
+                "ebit": {
+                    "2023": 33312.0,
+                    "2024": 33565.0,
+                    "2025": 25665.0
+                },
+                "ebitda": {
+                    "2023": 67126.0,
+                    "2024": 33297.0,
+                    "2025": 56731.0
+                },
+                "charges_exploitation": {
+                    "2023": 105842.0,
+                    "2024": 77621.0,
+                    "2025": 120511.0
+                },
+                "resultat_net": {
+                    "2023": 21129.0,
+                    "2024": 21471.0,
+                    "2025": 15887.0
+                },
+                "capitaux_propres": {
+                    "2023": 61929.0,
+                    "2024": 62561.0,
+                    "2025": 57542.0
+                },
+                "dette_nette": {
+                    "2023": 50166.0,
+                    "2024": 49503.0,
+                    "2025": 47147.0
+                },
+                "tresorerie": {
+                    "2023": 5536.0,
+                    "2024": 6057.0,
+                    "2025": 10649.0
+                }
+            }
+        },
+        {
+            "ticker": "PALC",
+            "nom_societe": "PALC",
+            "presentation": null,
+            "cours_bas_1mois": null,
+            "cours_bas_1mois_str": null,
+            "cours_haut_1mois": null,
+            "cours_haut_1mois_str": null,
+            "haut_52sem": null,
+            "bas_52sem": null,
+            "url": "https://pro.sikafinance.com/fiche/PALC.ci",
+            "nombre_titres": null,
+            "capitalisation_mxof": null,
+            "beta_1an": null,
+            "rsi_14": null,
+            "mm_20": null,
+            "mm_50": null,
+            "mm_200": null,
+            "perf_ytd_pct": null,
+            "perf_1an_pct": null,
+            "consensus_note": null,
+            "consensus_reco": null,
+            "objectif_cours": null,
+            "potentiel_pct": null,
+            "resultat_net_annuel": 15509.0,
+            "capitaux_propres": 142639.0,
+            "dette_nette_annuelle": 5355.0,
+            "chiffre_affaires_annuel": 197630.0,
+            "finances": {
+                "annees": [
+                    2023,
+                    2024,
+                    2025
+                ],
+                "chiffre_affaires": {
+                    "2023": 206244.0,
+                    "2024": 172183.0,
+                    "2025": 197630.0
+                },
+                "ebit": {
+                    "2023": 28502.0,
+                    "2024": 19394.0,
+                    "2025": 18163.0
+                },
+                "ebitda": {
+                    "2023": 44013.0,
+                    "2024": 37060.0,
+                    "2025": 33012.0
+                },
+                "charges_exploitation": {
+                    "2023": 177742.0,
+                    "2024": 135067.0,
+                    "2025": 164603.0
+                },
+                "resultat_net": {
+                    "2023": 19352.0,
+                    "2024": 15862.0,
+                    "2025": 15509.0
+                },
+                "capitaux_propres": {
+                    "2023": 128875.0,
+                    "2024": 135061.0,
+                    "2025": 142639.0
+                },
+                "dette_nette": {
+                    "2023": -904.0,
+                    "2024": 16706.0,
+                    "2025": 5355.0
+                },
+                "tresorerie": {
+                    "2023": 8233.0,
+                    "2024": -12659.0,
+                    "2025": -4559.0
                 }
             }
         }
