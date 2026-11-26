@@ -1,6 +1,6 @@
 {
-    "last_update": "2026-11-26 01:53:51",
-    "count": 2,
+    "last_update": "2026-11-26 18:05:14",
+    "count": 3,
     "data": [
         {
             "ticker": "PRSC",
@@ -79,8 +79,8 @@
             }
         },
         {
-            "ticker": "SGBC",
-            "nom_societe": "SGBC",
+            "ticker": "BNBC",
+            "nom_societe": "BNBC",
             "presentation": null,
             "cours_bas_1mois": null,
             "cours_bas_1mois_str": null,
@@ -88,7 +88,7 @@
             "cours_haut_1mois_str": null,
             "haut_52sem": null,
             "bas_52sem": null,
-            "url": "https://pro.sikafinance.com/fiche/SGBC.ci",
+            "url": "https://pro.sikafinance.com/fiche/BNBC.ci",
             "nombre_titres": null,
             "capitalisation_mxof": null,
             "beta_1an": null,
@@ -102,10 +102,10 @@
             "consensus_reco": null,
             "objectif_cours": null,
             "potentiel_pct": null,
-            "resultat_net_annuel": 101352.0,
-            "capitaux_propres": 495113.0,
-            "dette_nette_annuelle": null,
-            "chiffre_affaires_annuel": 276048.0,
+            "resultat_net_annuel": 22.0,
+            "capitaux_propres": 17748.0,
+            "dette_nette_annuelle": 15584.0,
+            "chiffre_affaires_annuel": 42454.0,
             "finances": {
                 "annees": [
                     2023,
@@ -113,44 +113,120 @@
                     2025
                 ],
                 "chiffre_affaires": {
-                    "2023": 253286.0,
-                    "2024": 263207.0,
-                    "2025": 276048.0
+                    "2023": 45955.0,
+                    "2024": 45312.0,
+                    "2025": 42454.0
                 },
                 "ebit": {
-                    "2023": 119617.0,
-                    "2024": 127561.0,
-                    "2025": 122245.0
+                    "2023": 1571.0,
+                    "2024": 1193.0,
+                    "2025": null
                 },
                 "ebitda": {
-                    "2023": null,
-                    "2024": null,
+                    "2023": 3265.0,
+                    "2024": 1726.0,
                     "2025": null
                 },
                 "charges_exploitation": {
-                    "2023": 133239.0,
-                    "2024": 99723.0,
-                    "2025": 106974.0
+                    "2023": 44384.0,
+                    "2024": 43146.0,
+                    "2025": null
                 },
                 "resultat_net": {
-                    "2023": 97230.0,
-                    "2024": 101228.0,
-                    "2025": 101352.0
+                    "2023": 36.0,
+                    "2024": 7.0,
+                    "2025": 22.0
                 },
                 "capitaux_propres": {
-                    "2023": 403974.0,
-                    "2024": 451721.0,
-                    "2025": 495113.0
+                    "2023": 17743.0,
+                    "2024": 17748.0,
+                    "2025": null
                 },
                 "dette_nette": {
-                    "2023": null,
-                    "2024": null,
+                    "2023": 17385.0,
+                    "2024": 15584.0,
                     "2025": null
                 },
                 "tresorerie": {
-                    "2023": 315778.0,
-                    "2024": 326828.0,
-                    "2025": 371730.0
+                    "2023": -16736.0,
+                    "2024": -14688.0,
+                    "2025": null
+                }
+            }
+        },
+        {
+            "ticker": "NEIC",
+            "nom_societe": "NEIC",
+            "presentation": null,
+            "cours_bas_1mois": null,
+            "cours_bas_1mois_str": null,
+            "cours_haut_1mois": null,
+            "cours_haut_1mois_str": null,
+            "haut_52sem": null,
+            "bas_52sem": null,
+            "url": "https://pro.sikafinance.com/fiche/NEIC.ci",
+            "nombre_titres": null,
+            "capitalisation_mxof": null,
+            "beta_1an": null,
+            "rsi_14": null,
+            "mm_20": null,
+            "mm_50": null,
+            "mm_200": null,
+            "perf_ytd_pct": null,
+            "perf_1an_pct": null,
+            "consensus_note": null,
+            "consensus_reco": null,
+            "objectif_cours": null,
+            "potentiel_pct": null,
+            "resultat_net_annuel": 2037.0,
+            "capitaux_propres": 5755.0,
+            "dette_nette_annuelle": -4762.0,
+            "chiffre_affaires_annuel": 5139.0,
+            "finances": {
+                "annees": [
+                    2023,
+                    2024,
+                    2025
+                ],
+                "chiffre_affaires": {
+                    "2023": 8525.0,
+                    "2024": 6744.0,
+                    "2025": 5139.0
+                },
+                "ebit": {
+                    "2023": 1850.0,
+                    "2024": 603.0,
+                    "2025": 1213.0
+                },
+                "ebitda": {
+                    "2023": 1858.0,
+                    "2024": 599.0,
+                    "2025": null
+                },
+                "charges_exploitation": {
+                    "2023": 6675.0,
+                    "2024": 6145.0,
+                    "2025": null
+                },
+                "resultat_net": {
+                    "2023": 1167.0,
+                    "2024": -759.0,
+                    "2025": 2037.0
+                },
+                "capitaux_propres": {
+                    "2023": 5638.0,
+                    "2024": 3718.0,
+                    "2025": 5755.0
+                },
+                "dette_nette": {
+                    "2023": -2059.0,
+                    "2024": -4762.0,
+                    "2025": null
+                },
+                "tresorerie": {
+                    "2023": 5400.0,
+                    "2024": 4762.0,
+                    "2025": 4196.0
                 }
             }
         }
